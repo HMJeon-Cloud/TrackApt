@@ -620,6 +620,23 @@ function bandTag(p, lowGood) {
   if (p >= 70) return { t: "상단 " + p.toFixed(0) + "%", c: lowGood ? "down" : "up" };
   return { t: "중간 " + p.toFixed(0) + "%", c: "flat" };
 }
+/* 표본 수까지 감안한 태그: 24개월 미만이면 백분위를 신뢰하지 않음 */
+function tagOf(band, lowGood) {
+  if (!band) return { t: "—", c: "flat" };
+  if (band.count < 24) return { t: "표본 부족", c: "flat" };
+  return bandTag(band.pctile, lowGood);
+}
+/* 밴드 라벨: 10년치가 안 되면 실제 개월 수를 밝힘 */
+function bandLabel(band) {
+  if (!band) return "10년 밴드";
+  return band.count >= 120 ? "10년 밴드" : "밴드 (" + band.count + "개월)";
+}
+/* 앞쪽 결측 구간을 잘라 실제 데이터 구간만 차트에 표시 */
+function trimSeries(labels, arr) {
+  var first = 0;
+  while (first < arr.length && arr[first] == null) first++;
+  return { labels: labels.slice(first), data: arr.slice(first) };
+}
 
 /* ══ 갭투자 탭 ═══════════════════════════════ */
 function buildGap(root) {
@@ -670,9 +687,9 @@ function renderGap() {
   var needGap = (gap != null && f) ? gap + f.acq + f.broker + f.etc : null;
 
   var k = "";
-  var tag = band ? bandTag(band.pctile, false) : { t: "—", c: "flat" };
+  var tag = tagOf(band, false);
   k += statBox("현재 전세가율", band ? band.cur.toFixed(1) + "%" : "—");
-  k += statBox("10년 밴드", band ? band.min.toFixed(1) + " ~ " + band.max.toFixed(1) + "%" : "—");
+  k += statBox(bandLabel(band), band ? band.min.toFixed(1) + " ~ " + band.max.toFixed(1) + "%" : "—");
   k += statBox("밴드 백분위", tag.t, tag.c);
   k += statBox("갭투자 필요현금 (" + area + "㎡)", needGap != null ? eok(needGap) : "—",
                (cash > 0 && needGap != null && needGap <= cash) ? "up" : "");
@@ -681,10 +698,11 @@ function renderGap() {
   var css = getComputedStyle(document.documentElement);
   var cBrand = css.getPropertyValue("--brand").trim();
   if (chartGap) chartGap.destroy();
+  var gpTrim = trimSeries(pmLabels(), ratio);
   chartGap = new Chart(document.getElementById("gp-chart"), {
     type: "line",
-    data: { labels: pmLabels(), datasets: [
-      { label: "전세가율", data: ratio, borderColor: cBrand, borderWidth: 2, pointRadius: 0, tension: .1 }
+    data: { labels: gpTrim.labels, datasets: [
+      { label: "전세가율", data: gpTrim.data, borderColor: cBrand, borderWidth: 2, pointRadius: 0, tension: .1 }
     ]},
     options: chartOpts("%"),
     plugins: [bandPlugin(function () { return band; }, "rgba(15,76,92,.07)")]
@@ -699,7 +717,7 @@ function renderGap() {
     var g = (sc != null && jc != null) ? (sc - jc) * area : null;
     var fin = g != null ? finance(key, sc * area, cond) : null;
     var need = (g != null && fin) ? g + fin.acq + fin.broker + fin.etc : null;
-    var t = b ? bandTag(b.pctile, false) : { t: "—", c: "flat" };
+    var t = tagOf(b, false);
     var hit = cash > 0 && need != null && need <= cash;
     return '<tr class="' + (hit ? "hit" : "") + '"><td>' + (i + 1) + "</td>" +
       "<td>" + (isRegulated(key) ? "⛔ " : "") + disp(key) + "</td>" +
@@ -786,14 +804,14 @@ function renderMove() {
   var tgtArr = pmSeries("salePm", MOVE.target);
   var mult = ratioSeries(tgtArr, mineArr, 1);
   var band = bandStats(mult, 120);
-  var tag = band ? bandTag(band.pctile, true) : { t: "—", c: "flat" };
+  var tag = tagOf(band, true);
   var tPm = lastVal("salePm", MOVE.target);
   var fin = finance(MOVE.target, tPm * area, cond);
   var extra = (tPm - myPm) * area + fin.acq + fin.broker + fin.etc;
 
   var k = "";
   k += statBox("현재 배율", band ? band.cur.toFixed(2) + "x" : "—");
-  k += statBox("10년 밴드", band ? band.min.toFixed(2) + " ~ " + band.max.toFixed(2) + "x" : "—");
+  k += statBox(bandLabel(band), band ? band.min.toFixed(2) + " ~ " + band.max.toFixed(2) + "x" : "—");
   k += statBox("밴드 백분위", tag.t, tag.c);
   k += statBox("단순 추가금 (" + area + "㎡)", eok(extra));
   document.getElementById("mv-kpi").innerHTML = k;
@@ -801,10 +819,11 @@ function renderMove() {
   var css = getComputedStyle(document.documentElement);
   var cUp = css.getPropertyValue("--up").trim();
   if (chartMove) chartMove.destroy();
+  var mvTrim = trimSeries(pmLabels(), mult);
   chartMove = new Chart(document.getElementById("mv-chart"), {
     type: "line",
-    data: { labels: pmLabels(), datasets: [
-      { label: disp(MOVE.target) + " ÷ " + disp(home), data: mult,
+    data: { labels: mvTrim.labels, datasets: [
+      { label: disp(MOVE.target) + " ÷ " + disp(home), data: mvTrim.data,
         borderColor: cUp, borderWidth: 2, pointRadius: 0, tension: .1 }
     ]},
     options: chartOpts("x"),
@@ -815,7 +834,7 @@ function renderMove() {
   var tb = document.querySelector("#mv-table tbody");
   tb.innerHTML = uppers.map(function (key) {
     var b = bandStats(ratioSeries(pmSeries("salePm", key), mineArr, 1), 120);
-    var t = b ? bandTag(b.pctile, true) : { t: "—", c: "flat" };
+    var t = tagOf(b, true);
     var p = lastVal("salePm", key);
     var f2 = finance(key, p * area, cond);
     var ex = (p - myPm) * area + f2.acq + f2.broker + f2.etc;

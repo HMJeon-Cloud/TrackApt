@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="TrackApt — KB 시계열로 보는 전국 아파트 가격 서열과 투자 타이밍">
+<title>TrackApt</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ── 디자인 토큰 ─────────────────────────────── */
+:root{
+  --bg:#f7f8fa;          /* 페이지 배경 */
+  --panel:#ffffff;       /* 카드 배경 */
+  --ink:#1c2430;         /* 본문 */
+  --ink-soft:#5b6675;    /* 보조 텍스트 */
+  --line:#e3e7ee;        /* 구분선 */
+  --brand:#0f4c5c;       /* 딥 틸 — 브랜드/버튼 */
+  --up:#0e7c66;          /* 상승 */
+  --down:#c47f17;        /* 하락/경계 */
+  --miss:#98a1ad;        /* 미달/회색 */
+  --cash:#e2571b;        /* 내 현금 라인 (주황) */
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{
+  font-family:"Pretendard Variable",Pretendard,-apple-system,system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+/* ── 헤더 ───────────────────────────────────── */
+header{
+  position:sticky;top:0;z-index:20;background:var(--panel);
+  border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 10px) 16px 0;
+}
+.brand{display:flex;align-items:baseline;gap:8px;padding-bottom:8px}
+.brand h1{font-size:1.15rem;font-weight:800;letter-spacing:-.02em}
+.brand h1 .accent{color:var(--brand)}
+.brand .ver{font-size:.72rem;color:var(--ink-soft);font-weight:600}
+/* 탭 내비게이션: 그룹 스크롤 */
+nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{
+  flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink-soft);
+  font:inherit;font-size:.82rem;font-weight:600;padding:7px 13px;border-radius:999px;
+  cursor:pointer;white-space:nowrap;
+}
+nav button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+nav button:focus-visible{outline:2px solid var(--cash);outline-offset:2px}
+/* ── 본문 ───────────────────────────────────── */
+main{max-width:860px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom) + 48px)}
+section.tab{display:none}
+section.tab.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;margin-bottom:14px}
+.card h2{font-size:1rem;font-weight:800;letter-spacing:-.01em;margin-bottom:4px}
+.card .eyebrow{font-size:.68rem;font-weight:700;letter-spacing:.14em;color:var(--brand);text-transform:uppercase;margin-bottom:6px}
+.card p.desc{font-size:.85rem;color:var(--ink-soft);margin-bottom:12px}
+/* 내 조건 폼 */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field.full{grid-column:1 / -1}
+.field label{font-size:.76rem;font-weight:700;color:var(--ink-soft)}
+.field input,.field select{
+  font:inherit;font-size:.92rem;padding:9px 10px;border:1px solid var(--line);
+  border-radius:8px;background:#fff;color:var(--ink);width:100%;
+}
+.field input:focus,.field select:focus{outline:2px solid var(--brand);outline-offset:-1px;border-color:var(--brand)}
+.btn{
+  font:inherit;font-weight:700;font-size:.92rem;border:0;border-radius:10px;
+  padding:12px 16px;cursor:pointer;background:var(--brand);color:#fff;width:100%;
+}
+.btn:focus-visible{outline:2px solid var(--cash);outline-offset:2px}
+.hint{font-size:.76rem;color:var(--ink-soft);margin-top:8px}
+/* 데이터 상태 패널 */
+.status{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--bg);border-radius:8px;padding:10px 12px}
+.stat .k{font-size:.72rem;color:var(--ink-soft);font-weight:600}
+.stat .v{font-size:1.05rem;font-weight:800;letter-spacing:-.01em}
+.stat .v.up{color:var(--up)} .stat .v.down{color:var(--down)}
+.badge{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px}
+.badge.ok{background:#e4f3ef;color:var(--up)}
+.badge.err{background:#fbeee0;color:var(--down)}
+.placeholder{
+  border:1.5px dashed var(--line);border-radius:var(--radius);padding:28px 16px;
+  text-align:center;color:var(--miss);font-size:.85rem;margin-bottom:14px;
+}
+footer{max-width:860px;margin:0 auto;padding:0 16px 40px;font-size:.72rem;color:var(--miss);line-height:1.7}
+@media (max-width:480px){ .grid{grid-template-columns:1fr 1fr} html{font-size:15px} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Track<span class="accent">Apt</span></h1>
+    <span class="ver">v0.1</span>
+  </div>
+  <nav id="nav" aria-label="주요 메뉴"></nav>
+</header>
+
+<main id="main"></main>
+
+<footer>
+  TrackApt는 KB부동산 월간 시계열 등 공개 통계를 계산해 보여주는 정보 제공 도구이며 투자 자문이 아닙니다.
+  통계는 표본조사 기반이라 실제 거래가와 다를 수 있고, 대출·세금 규정은 수시로 바뀝니다.
+  실행 전 반드시 은행·세무 전문가와 확인하세요. 모든 판단의 책임은 이용자 본인에게 있습니다.
+</footer>
+
+<script>
+"use strict";
+
+/* ══ 앱 상태 ══════════════════════════════════ */
+var DB = null;                     // kb_data.json 로드 결과
+var LS_KEY = "trackapt_cond_v1";   // 내 조건 저장 키
+
+/* 탭 정의 — 로드맵의 전체 화면을 미리 등록, 미구현은 placeholder */
+var TABS = [
+  { id: "start",   name: "시작",        build: buildStart },
+  { id: "market",  name: "시장 현황",   build: null },
+  { id: "rank",    name: "전국 급지표", build: null },
+  { id: "gap",     name: "갭투자",      build: null },
+  { id: "move",    name: "갈아타기",    build: null },
+  { id: "reco",    name: "맞춤 추천",   build: null },
+  { id: "danji",   name: "단지 찾기",   build: null },
+  { id: "loan",    name: "자금 계산기", build: null },
+  { id: "setting", name: "기준·설정",   build: null }
+];
+
+/* ══ 초기화 ══════════════════════════════════ */
+document.addEventListener("DOMContentLoaded", function () {
+  var nav = document.getElementById("nav");
+  var main = document.getElementById("main");
+
+  TABS.forEach(function (t, i) {
+    var b = document.createElement("button");
+    b.textContent = t.name;
+    b.addEventListener("click", function () { showTab(t.id); });
+    b.dataset.tab = t.id;
+    nav.appendChild(b);
+
+    var s = document.createElement("section");
+    s.className = "tab";
+    s.id = "tab-" + t.id;
+    if (t.build) t.build(s);
+    else s.innerHTML = '<div class="placeholder">「' + t.name + '」 화면은 다음 버전에서 구현됩니다.</div>';
+    main.appendChild(s);
+  });
+
+  showTab("start");
+  loadData();
+});
+
+function showTab(id) {
+  document.querySelectorAll("nav button").forEach(function (b) {
+    b.classList.toggle("on", b.dataset.tab === id);
+  });
+  document.querySelectorAll("section.tab").forEach(function (s) {
+    s.classList.toggle("on", s.id === "tab-" + id);
+  });
+}
+
+/* ══ 시작 탭 ══════════════════════════════════ */
+function buildStart(root) {
+  root.innerHTML =
+    '<div class="card">' +
+      '<div class="eyebrow">My Condition</div>' +
+      '<h2>내 조건</h2>' +
+      '<p class="desc">여기 값이 모든 탭의 계산에 쓰입니다. 금액 단위는 <b>만원</b>입니다.</p>' +
+      '<div class="grid">' +
+        '<div class="field"><label for="f-cash">동원 가능 현금 (만원)</label>' +
+          '<input id="f-cash" type="number" inputmode="numeric" placeholder="예: 30000"></div>' +
+        '<div class="field"><label for="f-area">기준 전용면적</label>' +
+          '<select id="f-area">' +
+            '<option value="36">36㎡ · 14평형</option>' +
+            '<option value="46">46㎡ · 18평형</option>' +
+            '<option value="59">59㎡ · 24평형</option>' +
+            '<option value="84" selected>84㎡ · 34평형</option>' +
+            '<option value="101">101㎡ · 40평형</option>' +
+          '</select></div>' +
+        '<div class="field full"><label for="f-home">지금 사는 지역</label>' +
+          '<select id="f-home"><option value="">데이터 로드 중…</option></select></div>' +
+        '<div class="field"><label for="f-income">연소득 (만원 · DSR용)</label>' +
+          '<input id="f-income" type="number" inputmode="numeric" placeholder="0이면 미적용"></div>' +
+        '<div class="field"><label for="f-rate">주담대 금리 (%)</label>' +
+          '<input id="f-rate" type="number" step="0.1" inputmode="decimal" placeholder="예: 4.0"></div>' +
+        '<div class="field full"><label for="f-own">보유 주택 상태</label>' +
+          '<select id="f-own">' +
+            '<option value="none" selected>무주택</option>' +
+            '<option value="switch">1주택 · 갈아타기 (기존 처분)</option>' +
+            '<option value="add">1주택 · 추가 매수 (유지)</option>' +
+            '<option value="multi">2주택 이상</option>' +
+          '</select></div>' +
+      '</div>' +
+      '<p class="hint" id="save-hint">값은 이 브라우저에만 저장됩니다.</p>' +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="eyebrow">Data</div>' +
+      '<h2>데이터 상태 <span id="data-badge" class="badge err">로드 중</span></h2>' +
+      '<p class="desc">KB부동산 월간 시계열이 정상적으로 붙었는지 확인하는 패널입니다.</p>' +
+      '<div class="status" id="data-status"></div>' +
+    '</div>';
+
+  ["f-cash","f-area","f-home","f-income","f-rate","f-own"].forEach(function (id) {
+    root.querySelector("#" + id).addEventListener("change", saveCond);
+  });
+}
+
+/* ══ 내 조건 저장/복원 ═══════════════════════ */
+function saveCond() {
+  var cond = {
+    cash:   val("f-cash"), area: val("f-area"), home: val("f-home"),
+    income: val("f-income"), rate: val("f-rate"), own: val("f-own")
+  };
+  try { localStorage.setItem(LS_KEY, JSON.stringify(cond)); } catch (e) {}
+  var h = document.getElementById("save-hint");
+  if (h) h.textContent = "저장됨 · 값은 이 브라우저에만 보관됩니다.";
+}
+function restoreCond() {
+  var raw = null;
+  try { raw = localStorage.getItem(LS_KEY); } catch (e) {}
+  if (!raw) return;
+  try {
+    var c = JSON.parse(raw);
+    setVal("f-cash", c.cash); setVal("f-area", c.area); setVal("f-home", c.home);
+    setVal("f-income", c.income); setVal("f-rate", c.rate); setVal("f-own", c.own);
+  } catch (e) {}
+}
+function val(id) { var el = document.getElementById(id); return el ? el.value : ""; }
+function setVal(id, v) { var el = document.getElementById(id); if (el && v != null && v !== "") el.value = v; }
+
+/* ══ 데이터 로드 ═════════════════════════════ */
+function loadData() {
+  fetch("kb_data.json")
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (j) { DB = j; onDataReady(); })
+    .catch(function (e) {
+      var b = document.getElementById("data-badge");
+      if (b) { b.className = "badge err"; b.textContent = "로드 실패"; }
+      var s = document.getElementById("data-status");
+      if (s) s.innerHTML = '<div class="stat" style="grid-column:1/-1"><div class="k">원인</div>' +
+        '<div class="v" style="font-size:.85rem;font-weight:600">kb_data.json을 찾지 못했습니다 (' + e.message + '). ' +
+        'index.html과 같은 폴더에 kb_data.json이 있는지 확인하세요.</div></div>';
+    });
+}
+
+/* 시리즈에서 특정 연-월 값 꺼내기 (없으면 null) */
+function getVal(key, region, ym) {
+  var blk = DB[key]; if (!blk) return null;
+  var s = blk.series[region]; if (!s) return null;
+  var p0 = blk.dates[0].split("-"), p1 = ym.split("-");
+  var i = (Number(p1[0]) * 12 + Number(p1[1])) - (Number(p0[0]) * 12 + Number(p0[1])) - s.o;
+  return (i >= 0 && i < s.v.length) ? s.v[i] : null;
+}
+
+function onDataReady() {
+  var badge = document.getElementById("data-badge");
+  badge.className = "badge ok";
+  badge.textContent = "정상";
+
+  /* 지역 셀렉트 채우기 — ㎡당가가 있는 지역(=필요현금 계산 가능 지역) 기준 */
+  var sel = document.getElementById("f-home");
+  sel.innerHTML = '<option value="">선택하세요</option>';
+  Object.keys(DB.salePm.series).forEach(function (k) {
+    var o = document.createElement("option");
+    o.value = k;
+    o.textContent = k.replace("|", " ");
+    sel.appendChild(o);
+  });
+  restoreCond();
+
+  /* 상태 패널: 핵심 수치 몇 개로 데이터 검증 */
+  var end = DB.sale.dates[1];
+  var endLabel = end.replace("-", ".");
+  var seoulPm = getVal("salePm", "서울특별시", end);
+  var natSale = getVal("salePm", "전국", end);
+  var natJeon = getVal("jeonsePm", "전국", end);
+  var jr = (natSale && natJeon) ? (natJeon / natSale * 100) : null;
+  var buyer = getVal("buyerIdx", "서울특별시", end);
+
+  var html = "";
+  html += stat("시계열 기간", DB.sale.dates[0].replace("-", ".") + " ~ " + endLabel);
+  html += stat("지수 지역 수", Object.keys(DB.sale.series).length + "곳");
+  html += stat("㎡당가 지역 수", Object.keys(DB.salePm.series).length + "곳");
+  html += stat("서울 ㎡당 매매가", seoulPm != null ? fmt(seoulPm) + " 만원" : "—");
+  html += stat("전국 전세가율", jr != null ? jr.toFixed(1) + "%" : "—");
+  html += stat("서울 매수우위지수", buyer != null ? buyer.toFixed(1) : "—", buyer != null ? (buyer >= 100 ? "up" : "down") : "");
+  document.getElementById("data-status").innerHTML = html;
+}
+function stat(k, v, cls) {
+  return '<div class="stat"><div class="k">' + k + '</div><div class="v ' + (cls || "") + '">' + v + "</div></div>";
+}
+function fmt(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+</script>
+</body>
+</html>

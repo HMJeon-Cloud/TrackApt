@@ -87,6 +87,18 @@ tr:last-child td{border-bottom:0}
 .btn.sm{width:auto;padding:6px 10px;font-size:.76rem;border-radius:7px}
 .expbar{display:flex;gap:8px;margin:8px 0 10px}
 .capturing .expbar,.capturing button{display:none!important}
+.bb{position:relative;display:inline-block;width:70px;height:8px;vertical-align:middle;margin-right:6px}
+.bbtrack{position:absolute;inset:0;border-radius:4px;opacity:.5}
+.bbtick{position:absolute;top:-2.5px;width:3px;height:13px;background:var(--ink);border-radius:2px;transform:translateX(-50%)}
+.bbv{font-size:.78rem;font-variant-numeric:tabular-nums}
+.axis{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:.76rem}
+.axis .axname{width:52px;color:var(--ink-soft);font-weight:700;flex:none}
+.axis .axtrack{flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
+.axis .axfill{height:100%;border-radius:4px;background:var(--up)}
+.axis b{width:26px;text-align:right;flex:none}
+.axis small{color:var(--ink-soft);flex:none;max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tagmini{display:inline-block;font-size:.66rem;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:4px;vertical-align:1px}
+.tagmini.ok{background:#e4f3ef;color:var(--up)} .tagmini.no{background:#f1f3f6;color:var(--miss)}
 .grade{font-size:1.5rem;font-weight:800;min-width:44px;text-align:center;border-radius:10px;padding:6px 0}
 .grade.A{background:#e4f3ef;color:var(--up)} .grade.B{background:#eaf2f4;color:var(--brand)}
 .grade.C{background:#fbf4e8;color:var(--down)} .grade.D{background:#f1f3f6;color:var(--miss)}
@@ -112,7 +124,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v0.13</span>
+    <span class="ver">v0.14</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
 </header>
@@ -506,7 +518,7 @@ function buildRank(root) {
       '<div style="position:relative"><canvas id="rk-chart"></canvas></div></div>' +
     '<div class="card"><div class="eyebrow">Table</div><h2>급지표 전체</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="급지표">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="rk-table" data-name="급지표">엑셀 저장</button></div>' +
       '<div class="tblwrap"><table id="rk-table"><thead><tr>' +
-      '<th>서열</th><th>지역</th><th>㎡당가</th><th>매수가</th><th>대출</th><th>필요현금</th><th>꼬리표</th><th>전세가율</th></tr>' +
+      '<th>서열</th><th>지역</th><th>㎡당가</th><th>매수가</th><th>대출</th><th>필요현금</th><th>꼬리표</th><th>전세가율</th><th>10년</th></tr>' +
       '</thead><tbody></tbody></table></div>' +
       '<div class="note"><b>필요현금</b> = 매수가 − 대출가능액 + 취득세 + 중개보수 + 등기·이사비. ' +
         '매수가는 그 지역 ㎡당 평균가 × 기준 전용면적이라 <b>지역 평균 기준</b>입니다 — 대장 단지는 이보다 30~50% 비쌀 수 있습니다. ' +
@@ -614,7 +626,8 @@ function renderRank() {
       "<td>" + (r.loan > 0 ? eok(r.loan) : "—") + "</td>" +
       "<td><b>" + eok(r.need) + "</b></td>" +
       "<td>" + r.tag + "</td>" +
-      '<td class="' + (r.jr != null && r.jr >= 70 ? "up" : "") + '">' + (r.jr != null ? r.jr.toFixed(1) + "%" : "—") + "</td></tr>";
+      '<td class="' + (r.jr != null && r.jr >= 70 ? "up" : "") + '">' + (r.jr != null ? r.jr.toFixed(1) + "%" : "—") + "</td>" +
+      "<td>" + r10Cell(r.key) + "</td></tr>";
   }).join("");
 }
 
@@ -674,6 +687,24 @@ function bandPlugin(getBand, color) {
     }
   };
 }
+/* 밴드 미니 바: 그라데이션 트랙 + 현재 위치 눈금 (lowGood: 왼쪽이 유리) */
+function bandBar(p, lowGood) {
+  if (p == null) return "—";
+  var g = lowGood
+    ? "linear-gradient(90deg,#0e7c66,#e3e7ee 50%,#c47f17)"
+    : "linear-gradient(90deg,#c47f17,#e3e7ee 50%,#0e7c66)";
+  return '<span class="bb"><span class="bbtrack" style="background:' + g + '"></span>' +
+    '<span class="bbtick" style="left:' + Math.max(0, Math.min(100, p)).toFixed(0) + '%"></span></span>' +
+    '<span class="bbv">' + p.toFixed(0) + "%</span>";
+}
+/* 10년 상승률 셀: 값 + 합격(100%↑, 연 7.2%) 태그 */
+function r10Cell(k) {
+  var v = idxChange("sale", ik(k), 120);
+  if (v == null) return "—";
+  return '<span class="' + cls(v) + '">' + pct(v, 1) + "</span>" +
+    (v >= 100 ? '<span class="tagmini ok">합격</span>' : '<span class="tagmini no">미달</span>');
+}
+
 /* 백분위 위치 태그 (lowGood: 낮을수록 유리한 지표인가) */
 function bandTag(p, lowGood) {
   if (p == null) return { t: "—", c: "flat" };
@@ -719,7 +750,7 @@ function buildGap(root) {
       '<p class="desc">갭 = (매매 − 전세) × 기준 면적. 필요현금은 갭 + 취득세·중개보수·부대비이며 ' +
         '<b>대출 없이 전세를 낀 매수</b> 기준입니다. 예산(내 조건의 현금) 안이면 하이라이트됩니다.</p>' +
       '<div class="tblwrap"><table id="gp-table"><thead><tr>' +
-      '<th>서열</th><th>지역</th><th>전세가율</th><th>10년 밴드</th><th>백분위</th><th>갭</th><th>필요현금</th></tr>' +
+      '<th>서열</th><th>지역</th><th>전세가율</th><th>밴드 위치</th><th>갭</th><th>필요현금</th><th>10년</th><th></th></tr>' +
       '</thead><tbody></tbody></table></div>' +
       '<div class="note"><b>백분위 읽는 법</b> — 상단(70%↑)은 역대 대비 전세가율이 높아 진입 부담이 낮은 상태, ' +
         '하단(30%↓)은 역대 최저권이라 매매가가 상대적으로 고평가된 상태입니다. 밴드는 몇 년씩 눌린 채 ' +
@@ -780,14 +811,23 @@ function renderGap() {
     var need = (g != null && fin) ? g + fin.acq + fin.broker + fin.etc : null;
     var t = tagOf(b, false);
     var hit = cash > 0 && need != null && need <= cash;
+    var barCell = (b && b.count >= 24) ? bandBar(b.pctile, false) : t.t;
     return '<tr class="' + (hit ? "hit" : "") + '"><td>' + (i + 1) + "</td>" +
       "<td>" + (isRegulated(key) ? "⛔ " : "") + disp(key) + "</td>" +
       "<td>" + (b ? b.cur.toFixed(1) + "%" : "—") + "</td>" +
-      "<td>" + (b ? b.min.toFixed(0) + "~" + b.max.toFixed(0) + "%" : "—") + "</td>" +
-      '<td class="' + t.c + '">' + t.t + "</td>" +
+      "<td>" + barCell + "</td>" +
       "<td>" + (g != null ? eok(g) : "—") + "</td>" +
-      "<td><b>" + (need != null ? eok(need) : "—") + "</b></td></tr>";
+      "<td><b>" + (need != null ? eok(need) : "—") + "</b></td>" +
+      "<td>" + r10Cell(key) + "</td>" +
+      '<td><button class="btn sm ghost" data-gdj="' + key + '">단지</button></td></tr>';
   }).join("");
+  tb.querySelectorAll("button[data-gdj]").forEach(function (b2) {
+    b2.addEventListener("click", function () {
+      showTab("danji");
+      var sel = document.getElementById("dj-region");
+      if (sel && LAWD[b2.dataset.gdj]) sel.value = b2.dataset.gdj;
+    });
+  });
 }
 
 /* ══ 갈아타기 탭 ═════════════════════════════ */
@@ -803,6 +843,7 @@ function buildMove(root) {
         '<div class="field full"><label for="mv-target">목표 지역</label><select id="mv-target"></select></div>' +
       '</div>' +
       '<div class="status" id="mv-kpi" style="margin-top:12px"></div>' +
+      '<div class="note" id="mv-read" style="margin-top:10px;display:none"></div>' +
     '</div>' +
     '<div class="card"><div class="eyebrow">Multiple</div><h2>배율 추이</h2>' +
       '<p class="desc">회색 영역이 최근 10년 밴드, 점선이 밴드 중앙값입니다. 선이 영역 아래쪽일수록 ' +
@@ -813,7 +854,7 @@ function buildMove(root) {
         '추가금 = (목표 − 내 지역) ㎡당가 차이 × 기준 면적 + 목표 지역 취득세·중개보수·부대비. ' +
         '<b>대출·양도세는 포함하지 않은 단순 비교</b>입니다.</p>' +
       '<div class="tblwrap"><table id="mv-table"><thead><tr>' +
-      '<th>서열</th><th>지역</th><th>배율</th><th>10년 밴드</th><th>백분위</th><th>추가금</th></tr>' +
+      '<th>서열</th><th>지역</th><th>배율</th><th>10년 평균</th><th>밴드 위치</th><th>추가금</th><th>판정</th></tr>' +
       '</thead><tbody></tbody></table></div>' +
       '<div class="note"><b>하단이 왜 유리한가</b> — 배율이 낮다는 건 목표 지역과 내 지역의 격차가 역대 대비 ' +
         '좁혀졌다는 뜻이라, 같은 집을 팔아 더 적은 추가금으로 윗급지를 삽니다. 반대로 배율 상단에서 ' +
@@ -870,12 +911,57 @@ function renderMove() {
   var fin = finance(MOVE.target, tPm * area, cond);
   var extra = (tPm - myPm) * area + fin.acq + fin.broker + fin.etc;
 
+  /* 역대 최저 배율 시점과 그때 기준 추가금 */
+  var winStart = Math.max(0, mult.length - 120);
+  var minIdx = -1, minV = Infinity;
+  for (var mi = winStart; mi < mult.length; mi++) {
+    if (mult[mi] != null && mult[mi] < minV) { minV = mult[mi]; minIdx = mi; }
+  }
+  var minLabel = minIdx >= 0 ? pmLabels()[minIdx] : null;
+  function extraAt(m) {
+    var pT = myPm * m * area;
+    var fx = finance(MOVE.target, pT, cond);
+    return pT - myPm * area + fx.acq + fx.broker + fx.etc;
+  }
+  var extraMin = (band && band.count >= 24 && minIdx >= 0) ? extraAt(minV) : null;
+  var extraMed = band ? extraAt(band.med) : null;
+
   var k = "";
   k += statBox("현재 배율", band ? band.cur.toFixed(2) + "x" : "—");
-  k += statBox(bandLabel(band), band ? band.min.toFixed(2) + " ~ " + band.max.toFixed(2) + "x" : "—");
-  k += statBox("밴드 백분위", tag.t, tag.c);
+  k += statBox("밴드 위치", (band && band.count >= 24) ? "" : tag.t, tag.c);
   k += statBox("단순 추가금 (" + area + "㎡)", eok(extra));
+  k += statBox("역대 최저 배율이면", extraMin != null ? eok(extraMin) + " (" + minLabel + " 수준)" : "—",
+    extraMin != null && extraMin < extra ? "up" : "");
   document.getElementById("mv-kpi").innerHTML = k;
+  if (band && band.count >= 24) {
+    var kpiBoxes = document.querySelectorAll("#mv-kpi .stat .v");
+    if (kpiBoxes[1]) kpiBoxes[1].innerHTML = bandBar(band.pctile, true);
+  }
+
+  /* 이 갈아타기 읽기 */
+  var readEl = document.getElementById("mv-read");
+  if (band && band.count >= 24) {
+    var myIdx = RANKED.indexOf(home), tgIdx = RANKED.indexOf(MOVE.target);
+    var vsMed = (band.cur / band.med - 1) * 100;
+    var save = (extraMed != null && extra != null) ? extra - extraMed : null;
+    var my10 = idxChange("sale", ik(home), 120), tg10 = idxChange("sale", ik(MOVE.target), 120);
+    var my3 = idxChange("sale", ik(home), 36), tg3 = idxChange("sale", ik(MOVE.target), 36);
+    var lines = [];
+    lines.push("전국 서열 <b>" + (myIdx + 1) + "위 → " + (tgIdx + 1) + "위</b>로 올라가는 갈아타기입니다.");
+    lines.push("현재 배율 " + band.cur.toFixed(2) + "는 10년 중앙값 " + band.med.toFixed(2) + " 대비 <b>" +
+      pct(vsMed, 1) + "</b> " + (vsMed > 0 ? "벌어진" : "좁혀진") + " 상태입니다 (밴드 " + band.pctile.toFixed(0) + "%).");
+    if (save != null && save > 0) lines.push("배율이 10년 중앙값으로만 돌아가면 추가금은 <b>" + eok(extraMed) +
+      "</b> — 지금보다 <b>" + eok(save) + " 적게</b> 듭니다. 반대로 격차가 더 벌어질 위험과 맞바꾸는 선택입니다.");
+    else if (save != null) lines.push("지금 배율이 10년 중앙값보다 좁혀진 상태라 <b>역대 기준으로 싸게 올라가는 구간</b>입니다.");
+    if (my10 != null && tg10 != null) lines.push("10년 상승률은 내 지역 " + pct(my10, 1) + " vs 목표 " + pct(tg10, 1) +
+      " — " + (tg10 > my10 ? "목표지가 더 빨리 달려온 만큼 기다릴수록 격차가 커질 수 있는" : "내 지역이 더 빨랐던") + " 조합입니다.");
+    if (my3 != null && tg3 != null) lines.push("최근 3년은 " + pct(my3, 1) + " vs " + pct(tg3, 1) + "입니다.");
+    if (minLabel) lines.push("역대 최저 배율은 <b>" + minLabel + "</b>의 " + minV.toFixed(2) + " — 그 수준이면 추가금 " + eok(extraMin) + "이었습니다.");
+    readEl.style.display = "";
+    readEl.innerHTML = "<b>이 갈아타기 읽기</b><br>" + lines.join("<br>");
+  } else {
+    readEl.style.display = "none";
+  }
 
   var css = getComputedStyle(document.documentElement);
   var cUp = css.getPropertyValue("--up").trim();
@@ -899,12 +985,18 @@ function renderMove() {
     var p = lastVal("salePm", key);
     var f2 = finance(key, p * area, cond);
     var ex = (p - myPm) * area + f2.acq + f2.broker + f2.etc;
-    return "<tr><td>" + (RANKED.indexOf(key) + 1) + "</td>" +
+    var verdict = !b || b.count < 24 ? '<span class="flat">표본 부족</span>'
+      : b.pctile <= 25 ? '<span class="up"><b>하단 · 유리</b></span>'
+      : b.pctile >= 90 ? '<span class="down">역대 최고권</span>'
+      : b.pctile >= 70 ? '<span class="down">상단</span>' : '<span class="flat">중립</span>';
+    var barCell = (b && b.count >= 24) ? bandBar(b.pctile, true) : "—";
+    return '<tr class="' + (b && b.count >= 24 && b.pctile <= 25 ? "hit" : "") + '"><td>' + (RANKED.indexOf(key) + 1) + "</td>" +
       "<td>" + (isRegulated(key) ? "⛔ " : "") + disp(key) + "</td>" +
       "<td>" + (b ? b.cur.toFixed(2) + "x" : "—") + "</td>" +
-      "<td>" + (b ? b.min.toFixed(2) + "~" + b.max.toFixed(2) : "—") + "</td>" +
-      '<td class="' + t.c + '">' + t.t + "</td>" +
-      "<td><b>" + eok(ex) + "</b></td></tr>";
+      "<td>" + (b ? b.med.toFixed(2) + "x" : "—") + "</td>" +
+      "<td>" + barCell + "</td>" +
+      "<td><b>" + eok(ex) + "</b></td>" +
+      "<td>" + verdict + "</td></tr>";
   }).join("");
 }
 
@@ -1053,21 +1145,59 @@ function renderReco() {
   if (!list.length) {
     topEl.innerHTML = '<div class="callout warn">조건에 맞는 지역이 없습니다. 예산 필터를 끄거나 평형·현금을 조정해보세요.</div>';
   } else {
+    var AXN = { rank: "급지", perf: "성과", supply: "수급", timing: "타이밍", cash: "자금" };
+    function axRow(name, v, sub) {
+      return '<div class="axis"><span class="axname">' + name + '</span>' +
+        '<div class="axtrack"><div class="axfill" style="width:' + v.toFixed(0) + '%"></div></div>' +
+        "<b>" + v.toFixed(0) + "</b>" + (sub ? "<small>" + sub + "</small>" : "") + "</div>";
+    }
     topEl.innerHTML = list.slice(0, 5).map(function (r, i) {
-      return '<div class="reco' + (i === 0 ? " best" : "") + '">' +
+      var grade = r.total >= 80 ? "A" : (r.total >= 65 ? "B" : (r.total >= 50 ? "C" : "D"));
+      var rationale = "";
+      if (i === 0) {
+        var axArr = Object.keys(AXN).map(function (k2) { return [k2, r.s[k2]]; })
+          .sort(function (a, b) { return b[1] - a[1]; });
+        rationale = '<div class="rowinfo" style="margin-top:8px"><b>추천 근거</b> — ' +
+          disp(r.key) + "가 " + grade + "등급 " + r.total.toFixed(0) + "점으로 1순위입니다. " +
+          "가장 강한 축은 <b>" + AXN[axArr[0][0]] + " " + axArr[0][1].toFixed(0) + "점</b>, " +
+          "가장 약한 축은 <b>" + AXN[axArr[axArr.length - 1][0]] + " " + axArr[axArr.length - 1][1].toFixed(0) + "점</b>입니다. " +
+          (r.cagr != null ? "10년 연복리 " + r.cagr.toFixed(1) + "% · " : "") +
+          "타이밍 " + r.timingNote + " · 필요현금 " + eok(r.fin.need) +
+          (cond.cash > 0 ? (r.fin.need <= cond.cash ? " <b>(실행 가능)</b>" : " (부족 " + eok(r.fin.need - cond.cash) + ")") : "") + "</div>";
+      }
+      return '<div class="reco' + (i === 0 ? " best" : "") + '" style="flex-wrap:wrap">' +
         '<div class="no">' + (i + 1) + "</div>" +
         '<div class="body"><div class="name">' + (r.fin.reg ? "⛔ " : "") + disp(r.key) +
-          ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">서열 ' + r.rank + "위</span></div>" +
-        '<div class="chips">' +
-          '<span class="chip">급지 <b>' + r.s.rank.toFixed(0) + "</b></span>" +
-          '<span class="chip">성과 <b>' + r.s.perf.toFixed(0) + "</b>" + (r.cagr != null ? " (" + pct(r.cagr, 1) + "/년)" : "") + "</span>" +
-          '<span class="chip">수급 <b>' + r.s.supply.toFixed(0) + "</b></span>" +
-          '<span class="chip">타이밍 <b>' + r.s.timing.toFixed(0) + "</b> (" + r.timingNote + ")</span>" +
-          '<span class="chip">자금 <b>' + r.s.cash.toFixed(0) + "</b></span>" +
-        "</div></div>" +
-        '<div class="money"><div class="score">' + r.total.toFixed(1) + "</div>" +
-        '<div class="need">필요현금 ' + eok(r.fin.need) + "</div></div></div>";
+          ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">서열 ' + r.rank + "위 · " + fmt(r.pm) + "만/㎡</span></div>" +
+        axRow("급지", r.s.rank, "전국 " + r.rank + "위") +
+        axRow("성과", r.s.perf, r.cagr != null ? "연복리 " + r.cagr.toFixed(1) + "%" : "") +
+        axRow("수급", r.s.supply, "") +
+        axRow("타이밍", r.s.timing, r.timingNote) +
+        axRow("자금", r.s.cash, "필요 " + eok(r.fin.need)) +
+        rationale +
+        '<div class="btnrow" style="margin-top:8px">' +
+          '<button class="btn sm ghost" data-rc="danji" data-k="' + r.key + '">단지 보기</button>' +
+          '<button class="btn sm ghost" data-rc="map" data-k="' + r.key + '">지도에서 보기</button>' +
+          '<button class="btn sm ghost" data-rc="move" data-k="' + r.key + '">갈아타기 분석</button></div>' +
+        "</div>" +
+        '<div class="money"><div class="grade ' + grade + '" style="font-size:1.1rem;padding:4px 10px">' + grade + "</div>" +
+        '<div class="score" style="margin-top:4px">' + r.total.toFixed(1) + "</div></div></div>";
     }).join("");
+    topEl.querySelectorAll("button[data-rc]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var k2 = b.dataset.k;
+        if (b.dataset.rc === "danji") {
+          showTab("danji");
+          var sel = document.getElementById("dj-region");
+          if (sel && LAWD[k2]) sel.value = k2;
+        } else if (b.dataset.rc === "map") {
+          showTab("mapx"); renderMapx();
+          if (COORDS[k2]) showMapDetail(k2);
+        } else {
+          MOVE.target = k2; showTab("move");
+        }
+      });
+    });
   }
 
   /* 백테스트 카드 (매 렌더 계산 — 가볍고 데이터 갱신에 자동 대응) */
@@ -3122,6 +3252,7 @@ function buildMarket(root) {
       '<th>연도</th><th>매매</th><th>전세</th><th>매매지수</th><th>전세지수</th></tr></thead><tbody></tbody></table></div></div>' +
     '<div class="card"><div class="eyebrow">2-Year</div><h2>2년 단위 수익률</h2>' +
       '<p class="desc">2년씩 끊어 실제 누적 수익률을 봅니다. 복리와 산술합의 차이가 복리 효과입니다.</p>' +
+      '<div class="status" id="mk-kpi2" style="margin-bottom:10px"></div>' +
       '<div class="tblwrap"><table id="mk-table2"><thead><tr>' +
       '<th>구간</th><th>매매 2년</th><th>산술합</th><th>전세 2년</th><th>매매−전세</th></tr></thead><tbody></tbody></table></div>' +
       '<div class="note"><b>왜 두 값이 다른가</b> — 1년차 +20%, 2년차 −10%면 산술합은 +10%지만 ' +
@@ -3264,6 +3395,19 @@ function renderMarket() {
     var label = (y2 - 1) + "–" + ((y2 === e[0] && e[1] !== 12) ? y2 + "." + e[1] : y2);
     out.push({ label: label, comp: comp, arith: arith, compJ: compJ,
                diff: compJ != null ? comp - compJ : null });
+  }
+  /* 2년 KPI: 평균·중위·전세 평균·플러스 구간 */
+  var comps = out.map(function (r) { return r.comp; });
+  var compJs = out.map(function (r) { return r.compJ; }).filter(function (v) { return v != null; });
+  var plus = comps.filter(function (v) { return v > 0; }).length;
+  var k2el = document.getElementById("mk-kpi2");
+  if (k2el) {
+    k2el.innerHTML = comps.length
+      ? statBox("2년 수익률 평균 (매매)", pct(comps.reduce(function (a, b) { return a + b; }, 0) / comps.length, 1), "up") +
+        statBox("중위", pct(median(comps), 1)) +
+        statBox("2년 평균 (전세)", compJs.length ? pct(compJs.reduce(function (a, b) { return a + b; }, 0) / compJs.length, 1) : "—") +
+        statBox("플러스 구간", plus + " / " + comps.length + " (" + Math.round(plus / comps.length * 100) + "%)")
+      : "";
   }
   var tb2 = document.querySelector("#mk-table2 tbody");
   tb2.innerHTML = out.map(function (r) {

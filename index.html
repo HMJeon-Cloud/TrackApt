@@ -2780,9 +2780,9 @@ function renderBtestShell() {
 }
 
 function ymShift(ym, n) {
-  var y = Math.floor(ym / 100), m = ym % 100 + n;
-  y += Math.floor((m - 1) / 12); m = ((m - 1) % 12) + 1;
-  return y * 100 + m;
+  /* 월을 0기준 절대개월수로 바꿔 계산 — 음수 이동에도 안전 */
+  var t = Math.floor(ym / 100) * 12 + (ym % 100 - 1) + n;
+  return Math.floor(t / 12) * 100 + (((t % 12) + 12) % 12) + 1;
 }
 
 /* 특정 (lawd, 과거 3개월) 매매 조회 — 캐시 포함 */

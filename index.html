@@ -82,6 +82,9 @@ tr:last-child td{border-bottom:0}
   font-size:.9rem;margin-bottom:12px;line-height:1.6}
 .callout.warn{border-color:var(--down);background:#fbf4e8}
 .callout b{font-weight:800}
+.btn.sm{width:auto;padding:6px 10px;font-size:.76rem;border-radius:7px}
+.btn.sm.ghost{border-width:1px}
+.rowinfo{font-size:.74rem;color:var(--ink-soft);background:var(--bg);border-radius:6px;padding:6px 8px;margin-top:4px;line-height:1.5}
 .reco{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
 .reco.best{border-color:var(--up);background:#f0f8f5}
 .reco .no{font-size:1.3rem;font-weight:800;color:var(--brand);min-width:28px;text-align:center}
@@ -102,7 +105,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v0.6</span>
+    <span class="ver">v0.7</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
 </header>
@@ -168,7 +171,7 @@ var TABS = [
   { id: "gap",     name: "갭투자",      build: buildGap },
   { id: "move",    name: "갈아타기",    build: buildMove },
   { id: "reco",    name: "맞춤 추천",   build: buildReco },
-  { id: "danji",   name: "단지 찾기",   build: null },
+  { id: "danji",   name: "단지 찾기",   build: buildDanji },
   { id: "setting", name: "기준·설정",   build: buildSetting }
 ];
 
@@ -200,6 +203,7 @@ function showTab(id) {
   if (id === "gap") renderGap();
   if (id === "move") renderMove();
   if (id === "reco") renderReco();
+  if (id === "danji") renderDanjiShell();
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */
@@ -385,6 +389,7 @@ function onDataReady() {
   if (onTab && onTab.id === "tab-gap") renderGap();
   if (onTab && onTab.id === "tab-move") renderMove();
   if (onTab && onTab.id === "tab-reco") renderReco();
+  renderDanjiShell();
 }
 function statBox(k, v, c) {
   return '<div class="stat"><div class="k">' + k + '</div><div class="v ' + (c || "") + '">' + v + "</div></div>";
@@ -1060,6 +1065,292 @@ function renderReco() {
       "<td>" + r.s.cash.toFixed(0) + "</td>" +
       "<td>" + eok(r.fin.need) + "</td></tr>";
   }).join("");
+}
+
+/* ══ 단지 찾기 탭 ═════════════════════════════ */
+/* KB 지역 키 → 법정동 시군구코드(5자리). 신설 구 등 미등록 지역은 직접 입력으로 조회 */
+var LAWD = {
+  "강북14개구|종로구":"11110","강북14개구|중구":"11140","강북14개구|용산구":"11170",
+  "강북14개구|성동구":"11200","강북14개구|광진구":"11215","강북14개구|동대문구":"11230",
+  "강북14개구|중랑구":"11260","강북14개구|성북구":"11290","강북14개구|강북구":"11305",
+  "강북14개구|도봉구":"11320","강북14개구|노원구":"11350","강북14개구|은평구":"11380",
+  "강북14개구|서대문구":"11410","강북14개구|마포구":"11440",
+  "강남11개구|양천구":"11470","강남11개구|강서구":"11500","강남11개구|구로구":"11530",
+  "강남11개구|금천구":"11545","강남11개구|영등포구":"11560","강남11개구|동작구":"11590",
+  "강남11개구|관악구":"11620","강남11개구|서초구":"11650","강남11개구|강남구":"11680",
+  "강남11개구|송파구":"11710","강남11개구|강동구":"11740",
+  "부산광역시|중구":"26110","부산광역시|서구":"26140","부산광역시|동구":"26170",
+  "부산광역시|영도구":"26200","부산광역시|부산진구":"26230","부산광역시|동래구":"26260",
+  "부산광역시|남구":"26290","부산광역시|북구":"26320","부산광역시|해운대구":"26350",
+  "부산광역시|사하구":"26380","부산광역시|금정구":"26410","부산광역시|강서구":"26440",
+  "부산광역시|연제구":"26470","부산광역시|수영구":"26500","부산광역시|사상구":"26530",
+  "부산광역시|기장군":"26710",
+  "대구광역시|중구":"27110","대구광역시|동구":"27140","대구광역시|서구":"27170",
+  "대구광역시|남구":"27200","대구광역시|북구":"27230","대구광역시|수성구":"27260",
+  "대구광역시|달서구":"27290","대구광역시|달성군":"27710",
+  "인천광역시|미추홀구":"28177","인천광역시|연수구":"28185","인천광역시|남동구":"28200",
+  "인천광역시|부평구":"28237","인천광역시|계양구":"28245",
+  "(구)광주광역시|동구":"29110","(구)광주광역시|서구":"29140","(구)광주광역시|남구":"29155",
+  "(구)광주광역시|북구":"29170","(구)광주광역시|광산구":"29200",
+  "대전광역시|동구":"30110","대전광역시|중구":"30140","대전광역시|서구":"30170",
+  "대전광역시|유성구":"30200","대전광역시|대덕구":"30230",
+  "울산광역시|중구":"31110","울산광역시|남구":"31140","울산광역시|동구":"31170",
+  "울산광역시|북구":"31200","울산광역시|울주군":"31710",
+  "세종특별자치시":"36110",
+  "수원시|장안구":"41111","수원시|권선구":"41113","수원시|팔달구":"41115","수원시|영통구":"41117",
+  "성남시|수정구":"41131","성남시|중원구":"41133","성남시|분당구":"41135",
+  "의정부시":"41150","안양시|만안구":"41171","안양시|동안구":"41173",
+  "부천시|원미구":"41192","부천시|소사구":"41194","부천시|오정구":"41196",
+  "광명시":"41210","평택시":"41220","동두천":"41250",
+  "안산시|상록구":"41271","안산시|단원구":"41273",
+  "고양시|덕양구":"41281","고양시|일산동구":"41285","고양시|일산서구":"41287",
+  "과천시":"41290","구리시":"41310","남양주시":"41360","오산시":"41370","시흥시":"41390",
+  "군포시":"41410","의왕시":"41430","하남시":"41450",
+  "용인시|처인구":"41461","용인시|기흥구":"41463","용인시|수지구":"41465",
+  "파주시":"41480","이천시":"41500","안성시":"41550","김포시":"41570",
+  "양주시":"41630","광주시":"41610"
+};
+var DJ = { lawd: "", regionKey: "", months: 3, rows: [], kaptList: null, minCnt: 3, areaFilter: "my" };
+var LS_CART = "trackapt_cart_v1";
+
+function getCart() {
+  try { return JSON.parse(localStorage.getItem(LS_CART) || "[]"); } catch (e) { return []; }
+}
+function setCart(c) { try { localStorage.setItem(LS_CART, JSON.stringify(c)); } catch (e) {} }
+
+function buildDanji(root) {
+  root.innerHTML =
+    '<div class="card">' +
+      '<div class="eyebrow">Complex</div><h2>단지 찾기 · 실거래 기반</h2>' +
+      '<p class="desc">국토부 실거래가로 최근 거래를 모아 <b>단지별 평당가 순</b>으로 세우고, ' +
+        'K-apt에서 세대수·주차·시공사를 붙입니다. 마음에 들면 <b>담기</b> — 담은 단지는 아래 장바구니에 모입니다.</p>' +
+      '<div class="grid">' +
+        '<div class="field"><label for="dj-region">지역 (코드 등록된 시·군·구)</label><select id="dj-region"></select></div>' +
+        '<div class="field"><label for="dj-lawd">법정동코드 직접 입력 (5자리 · 선택)</label>' +
+          '<input id="dj-lawd" type="text" inputmode="numeric" maxlength="5" placeholder="신설 구 등 미등록 지역용"></div>' +
+        '<div class="field"><label>조회 기간</label><div class="seg" id="dj-months">' +
+          '<button data-m="3" class="on">3개월</button><button data-m="6">6개월</button>' +
+          '<button data-m="12">12개월</button></div></div>' +
+        '<div class="field"><label>&nbsp;</label><button class="btn" id="dj-go">실거래 불러오기</button></div>' +
+      '</div>' +
+      '<div id="dj-note" class="hint"></div>' +
+    '</div>' +
+    '<div class="card" id="dj-resultcard" style="display:none">' +
+      '<div class="eyebrow">Result</div><h2>단지 목록 <span class="badge ok" id="dj-count"></span></h2>' +
+      '<div class="grid">' +
+        '<div class="field"><label for="dj-area">면적 필터</label><select id="dj-area">' +
+          '<option value="my">내 기준 면적 ±8㎡</option><option value="all">전체 면적</option></select></div>' +
+        '<div class="field"><label for="dj-mincnt">최소 거래 건수</label><select id="dj-mincnt">' +
+          '<option value="1">1건 이상</option><option value="2">2건 이상</option>' +
+          '<option value="3" selected>3건 이상</option><option value="5">5건 이상</option></select></div>' +
+      '</div>' +
+      '<div class="tblwrap" style="margin-top:10px"><table id="dj-table"><thead><tr>' +
+      '<th>#</th><th>단지</th><th>㎡당가</th><th>평당가</th><th>건수</th><th>최근 거래</th><th>연식</th><th></th>' +
+      '</tr></thead><tbody></tbody></table></div>' +
+      '<div class="note">㎡당가는 조회 기간 실거래(해제 제외)의 <b>거래액÷전용면적 평균</b>입니다. ' +
+        '<b>단지정보</b>를 누르면 K-apt에서 세대수·주차·시공사·지하철을 불러와 행 아래에 표시합니다. ' +
+        '신고 지연·정정으로 실제와 다를 수 있습니다.</div></div>' +
+    '<div class="card">' +
+      '<div class="eyebrow">Cart</div><h2>장바구니 <span class="badge ok" id="cart-count"></span></h2>' +
+      '<p class="desc">담은 단지 목록입니다. 최종 채점·비교 보고서는 다음 버전에서 붙습니다.</p>' +
+      '<div class="tblwrap"><table id="cart-table"><thead><tr>' +
+      '<th>단지</th><th>지역</th><th>㎡당가</th><th>세대수</th><th></th></tr></thead><tbody></tbody></table></div></div>';
+
+  var sel = root.querySelector("#dj-region");
+  root.querySelector("#dj-go").addEventListener("click", loadDanji);
+  root.querySelectorAll("#dj-months button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      DJ.months = Number(b.dataset.m);
+      root.querySelectorAll("#dj-months button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    });
+  });
+  root.querySelector("#dj-area").addEventListener("change", function () { DJ.areaFilter = this.value; renderDanjiTable(); });
+  root.querySelector("#dj-mincnt").addEventListener("change", function () { DJ.minCnt = Number(this.value); renderDanjiTable(); });
+}
+
+function renderDanjiShell() {
+  if (!DB || !RANKED.length) return;
+  var sel = document.getElementById("dj-region");
+  if (sel && !sel.options.length) {
+    RANKED.forEach(function (k) {
+      if (!LAWD[k]) return;
+      var o = document.createElement("option");
+      o.value = k; o.textContent = disp(k) + " (" + LAWD[k] + ")";
+      sel.appendChild(o);
+    });
+    var note = document.getElementById("dj-note");
+    var missing = RANKED.filter(function (k) { return !LAWD[k]; });
+    note.textContent = "코드 미등록 지역 " + missing.length + "곳(신설 구·도 단위 등)은 법정동코드를 직접 입력해 조회하세요.";
+  }
+  renderCart();
+}
+
+function ymList(n) {
+  var now = new Date();
+  var y = now.getFullYear(), m = now.getMonth() + 1;
+  var out = [];
+  for (var i = 0; i < n; i++) {
+    out.push(String(y * 100 + m));
+    m--; if (m === 0) { m = 12; y--; }
+  }
+  return out;
+}
+
+function loadDanji() {
+  var manual = (document.getElementById("dj-lawd").value || "").trim();
+  var regionKey = document.getElementById("dj-region").value;
+  var lawd = /^\d{5}$/.test(manual) ? manual : LAWD[regionKey];
+  if (!lawd) { alert("지역을 선택하거나 5자리 법정동코드를 입력하세요."); return; }
+  DJ.lawd = lawd;
+  DJ.regionKey = /^\d{5}$/.test(manual) ? "" : regionKey;
+  DJ.kaptList = null;
+  var btn = document.getElementById("dj-go");
+  btn.disabled = true; btn.textContent = "불러오는 중… (0/" + DJ.months + ")";
+  var months = ymList(DJ.months);
+  var done = 0;
+  Promise.all(months.map(function (ym) {
+    return fetch("/api/trades?kind=sale&lawd=" + lawd + "&ym=" + ym)
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        done++; btn.textContent = "불러오는 중… (" + done + "/" + DJ.months + ")";
+        if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
+        return j.items || [];
+      });
+  })).then(function (lists) {
+    var all = [].concat.apply([], lists).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; });
+    /* 단지(이름+법정동)별 집계 */
+    var byApt = {};
+    all.forEach(function (t) {
+      var id = t.dong + "|" + t.apt;
+      var g = byApt[id] || (byApt[id] = { id: id, apt: t.apt, dong: t.dong, deals: [], buildYear: t.buildYear });
+      g.deals.push(t);
+      if (t.buildYear && !g.buildYear) g.buildYear = t.buildYear;
+    });
+    DJ.rows = Object.keys(byApt).map(function (id) {
+      var g = byApt[id];
+      var pmVals = g.deals.map(function (t) { return t.amount / t.area; });
+      g.pmAvg = pmVals.reduce(function (a, b) { return a + b; }, 0) / pmVals.length;
+      g.cnt = g.deals.length;
+      g.areas = g.deals.map(function (t) { return t.area; });
+      var last = g.deals.slice().sort(function (a, b) { return (b.ym * 100 + b.day) - (a.ym * 100 + a.day); })[0];
+      g.last = last;
+      return g;
+    }).sort(function (a, b) { return b.pmAvg - a.pmAvg; });
+    document.getElementById("dj-resultcard").style.display = "";
+    renderDanjiTable();
+  }).catch(function (e) {
+    alert("실거래 조회 실패: " + e.message + "\n\nVercel 환경변수 MOLIT_API_KEY가 설정돼 있는지, /api/trades가 배포됐는지 확인하세요.");
+  }).finally(function () {
+    btn.disabled = false; btn.textContent = "실거래 불러오기";
+  });
+}
+
+function renderDanjiTable() {
+  var cond = getCond();
+  var rows = DJ.rows.filter(function (g) { return g.cnt >= DJ.minCnt; });
+  if (DJ.areaFilter === "my") {
+    rows = rows.filter(function (g) {
+      return g.areas.some(function (a) { return Math.abs(a - cond.area) <= 8; });
+    });
+  }
+  document.getElementById("dj-count").textContent = rows.length + "단지";
+  var cart = getCart();
+  var tb = document.querySelector("#dj-table tbody");
+  tb.innerHTML = rows.map(function (g, i) {
+    var inCart = cart.some(function (c) { return c.id === DJ.lawd + "|" + g.id; });
+    return '<tr data-id="' + g.id + '"><td>' + (i + 1) + "</td>" +
+      "<td><b>" + g.apt + "</b> <span style='color:var(--ink-soft);font-size:.76rem'>" + g.dong + "</span>" +
+        '<div class="rowinfo" id="ki-' + i + '" style="display:none"></div></td>' +
+      "<td><b>" + fmt(g.pmAvg) + "</b></td>" +
+      "<td>" + fmt(g.pmAvg * 3.3058) + "</td>" +
+      "<td>" + g.cnt + "</td>" +
+      "<td>" + String(g.last.ym).slice(0, 4) + "." + (g.last.ym % 100) + " · " + eok(g.last.amount) + " · " + g.last.floor + "층</td>" +
+      "<td>" + (g.buildYear || "—") + "</td>" +
+      '<td style="white-space:nowrap"><button class="btn sm ghost" data-act="info" data-i="' + i + '">단지정보</button> ' +
+        '<button class="btn sm" data-act="cart" data-i="' + i + '"' + (inCart ? " disabled" : "") + ">" +
+        (inCart ? "담김" : "담기") + "</button></td></tr>";
+  }).join("");
+  tb.querySelectorAll("button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var g = rows[Number(b.dataset.i)];
+      if (b.dataset.act === "info") loadKaptInfo(g, Number(b.dataset.i));
+      else addToCart(g, b);
+    });
+  });
+}
+
+/* K-apt 매칭: 이름 정규화 후 목록에서 검색 */
+function normName(s) { return String(s).replace(/[\s()\[\]0-9단지차동아파트]/g, "").toLowerCase(); }
+function loadKaptInfo(g, i) {
+  var box = document.getElementById("ki-" + i);
+  box.style.display = ""; box.textContent = "K-apt 조회 중…";
+  var listP = DJ.kaptList
+    ? Promise.resolve(DJ.kaptList)
+    : fetch("/api/apt?kind=list&lawd=" + DJ.lawd).then(function (r) { return r.json(); })
+        .then(function (j) { if (j.error) throw new Error(j.error); DJ.kaptList = j.items || []; return DJ.kaptList; });
+  listP.then(function (list) {
+    var n = normName(g.apt);
+    var hit = null;
+    for (var x = 0; x < list.length; x++) {
+      var m = normName(list[x].name);
+      if (m && (m.indexOf(n) >= 0 || n.indexOf(m) >= 0)) { hit = list[x]; break; }
+    }
+    if (!hit) { box.textContent = "K-apt 목록에서 같은 이름을 찾지 못했습니다 (오피스텔·나홀로 단지는 미등록일 수 있음)."; return null; }
+    return fetch("/api/apt?kind=info&kapt=" + hit.kaptCode).then(function (r) { return r.json(); });
+  }).then(function (j) {
+    if (!j) return;
+    if (j.error) throw new Error(j.error);
+    var inf = j.info;
+    g.kapt = inf;
+    var parts = [];
+    if (inf.households) parts.push("세대수 <b>" + fmt(inf.households) + "</b>" + (inf.households >= 500 ? " ✓" : ""));
+    if (inf.parkingTotal) parts.push("주차 " + fmt(inf.parkingTotal) + "대" +
+      (inf.households ? " (세대당 " + (inf.parkingTotal / inf.households).toFixed(2) + ")" : ""));
+    if (inf.builder) parts.push("시공 " + inf.builder);
+    if (inf.useDate) parts.push("승인 " + String(inf.useDate).slice(0, 4) + "." + String(inf.useDate).slice(4, 6));
+    if (inf.subwayLine || inf.subwayStation) parts.push("지하철 " + [inf.subwayLine, inf.subwayStation].filter(Boolean).join(" "));
+    if (inf.heat) parts.push(inf.heat);
+    box.innerHTML = parts.length ? parts.join(" · ") : "상세 정보 없음";
+  }).catch(function (e) { box.textContent = "K-apt 조회 실패: " + e.message; });
+}
+
+function addToCart(g, btn) {
+  var cart = getCart();
+  var id = DJ.lawd + "|" + g.id;
+  if (cart.some(function (c) { return c.id === id; })) return;
+  cart.push({
+    id: id, lawd: DJ.lawd, regionKey: DJ.regionKey, apt: g.apt, dong: g.dong,
+    pmAvg: Math.round(g.pmAvg), cnt: g.cnt, buildYear: g.buildYear,
+    households: g.kapt ? g.kapt.households : null,
+    lastAmount: g.last.amount, lastYm: g.last.ym
+  });
+  setCart(cart);
+  btn.disabled = true; btn.textContent = "담김";
+  renderCart();
+}
+
+function renderCart() {
+  var cart = getCart();
+  var cc = document.getElementById("cart-count");
+  if (cc) cc.textContent = cart.length + "곳";
+  var tb = document.querySelector("#cart-table tbody");
+  if (!tb) return;
+  tb.innerHTML = cart.length ? cart.map(function (c, i) {
+    return "<tr><td><b>" + c.apt + "</b> <span style='color:var(--ink-soft);font-size:.76rem'>" + c.dong + "</span></td>" +
+      "<td>" + (c.regionKey ? disp(c.regionKey) : c.lawd) + "</td>" +
+      "<td>" + fmt(c.pmAvg) + "</td>" +
+      "<td>" + (c.households ? fmt(c.households) : "—") + "</td>" +
+      '<td><button class="btn sm ghost" data-i="' + i + '">빼기</button></td></tr>';
+  }).join("") : '<tr><td colspan="5" style="color:var(--miss)">아직 담은 단지가 없습니다.</td></tr>';
+  tb.querySelectorAll("button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var cart2 = getCart();
+      cart2.splice(Number(b.dataset.i), 1);
+      setCart(cart2);
+      renderCart();
+      renderDanjiTable();
+    });
+  });
 }
 
 /* ══ 기준·설정 탭 ═════════════════════════════ */

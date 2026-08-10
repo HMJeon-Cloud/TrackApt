@@ -169,9 +169,9 @@ document.addEventListener("DOMContentLoaded", function () {
     nav.appendChild(b);
     var s = document.createElement("section");
     s.className = "tab"; s.id = "tab-" + t.id;
+    main.appendChild(s);   /* build 전에 먼저 DOM에 붙여야 getElementById가 동작 */
     if (t.build) t.build(s);
     else s.innerHTML = '<div class="placeholder">「' + t.name + '」 화면은 다음 버전에서 구현됩니다.</div>';
-    main.appendChild(s);
   });
   showTab("start");
   loadData();

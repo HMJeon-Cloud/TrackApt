@@ -7,6 +7,8 @@
 <title>TrackApt</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#f7f8fa; --panel:#ffffff; --ink:#1c2430; --ink-soft:#5b6675;
@@ -83,6 +85,11 @@ tr:last-child td{border-bottom:0}
 .callout.warn{border-color:var(--down);background:#fbf4e8}
 .callout b{font-weight:800}
 .btn.sm{width:auto;padding:6px 10px;font-size:.76rem;border-radius:7px}
+.expbar{display:flex;gap:8px;margin:8px 0 10px}
+.capturing .expbar,.capturing button{display:none!important}
+.grade{font-size:1.5rem;font-weight:800;min-width:44px;text-align:center;border-radius:10px;padding:6px 0}
+.grade.A{background:#e4f3ef;color:var(--up)} .grade.B{background:#eaf2f4;color:var(--brand)}
+.grade.C{background:#fbf4e8;color:var(--down)} .grade.D{background:#f1f3f6;color:var(--miss)}
 .btn.sm.ghost{border-width:1px}
 .rowinfo{font-size:.74rem;color:var(--ink-soft);background:var(--bg);border-radius:6px;padding:6px 8px;margin-top:4px;line-height:1.5}
 .reco{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
@@ -105,7 +112,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v0.7</span>
+    <span class="ver">v0.8</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
 </header>
@@ -462,7 +469,7 @@ function buildRank(root) {
       '<p class="desc">막대가 필요현금, 주황 점선이 내 현금입니다. 점선보다 짧은 청록 막대가 살 수 있는 곳이고, ' +
         '그중 가장 위가 1순위입니다.</p>' +
       '<div style="position:relative"><canvas id="rk-chart"></canvas></div></div>' +
-    '<div class="card"><div class="eyebrow">Table</div><h2>급지표 전체</h2>' +
+    '<div class="card"><div class="eyebrow">Table</div><h2>급지표 전체</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="급지표">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="rk-table" data-name="급지표">엑셀 저장</button></div>' +
       '<div class="tblwrap"><table id="rk-table"><thead><tr>' +
       '<th>서열</th><th>지역</th><th>㎡당가</th><th>매수가</th><th>대출</th><th>필요현금</th><th>꼬리표</th><th>전세가율</th></tr>' +
       '</thead><tbody></tbody></table></div>' +
@@ -673,7 +680,7 @@ function buildGap(root) {
     '<div class="card"><div class="eyebrow">Band</div><h2>전세가율 추이</h2>' +
       '<p class="desc">회색 영역이 최근 10년 밴드, 점선이 밴드 중앙값입니다.</p>' +
       '<div class="chartbox"><canvas id="gp-chart"></canvas></div></div>' +
-    '<div class="card"><div class="eyebrow">Table</div><h2>전국 갭투자 표 (서열순)</h2>' +
+    '<div class="card"><div class="eyebrow">Table</div><h2>전국 갭투자 표 (서열순)</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="갭투자">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="gp-table" data-name="갭투자">엑셀 저장</button></div>' +
       '<p class="desc">갭 = (매매 − 전세) × 기준 면적. 필요현금은 갭 + 취득세·중개보수·부대비이며 ' +
         '<b>대출 없이 전세를 낀 매수</b> 기준입니다. 예산(내 조건의 현금) 안이면 하이라이트됩니다.</p>' +
       '<div class="tblwrap"><table id="gp-table"><thead><tr>' +
@@ -766,7 +773,7 @@ function buildMove(root) {
       '<p class="desc">회색 영역이 최근 10년 밴드, 점선이 밴드 중앙값입니다. 선이 영역 아래쪽일수록 ' +
         '갈아타기에 유리한 격차입니다.</p>' +
       '<div class="chartbox"><canvas id="mv-chart"></canvas></div></div>' +
-    '<div class="card"><div class="eyebrow">Table</div><h2>상급지 전체 (서열순)</h2>' +
+    '<div class="card"><div class="eyebrow">Table</div><h2>상급지 전체 (서열순)</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="갈아타기">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="mv-table" data-name="갈아타기">엑셀 저장</button></div>' +
       '<p class="desc">내 지역보다 ㎡당가가 높은 모든 지역의 현재 배율과 밴드 위치, 단순 추가금입니다. ' +
         '추가금 = (목표 − 내 지역) ㎡당가 차이 × 기준 면적 + 목표 지역 취득세·중개보수·부대비. ' +
         '<b>대출·양도세는 포함하지 않은 단순 비교</b>입니다.</p>' +
@@ -955,7 +962,7 @@ function buildReco(root) {
         '타이밍과 수급은 점수 범위를 좁혀(40~100 / 20~100) 같은 급지 안에서 순서만 조정합니다 — ' +
         '전세가율이 바닥이라고 상급지가 하급지 밑으로 내려가는 일은 없습니다. ' +
         '<b>서열 높은 순</b>과 <b>종합 점수 순</b>의 1위가 다르면, 그 차이가 곧 "지금 사도 되는가"에 대한 정보입니다.</div></div>' +
-    '<div class="card"><div class="eyebrow">Table</div><h2>전체 채점표</h2>' +
+    '<div class="card"><div class="eyebrow">Table</div><h2>전체 채점표</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="맞춤추천">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="rc-table" data-name="맞춤추천">엑셀 저장</button></div>' +
       '<div class="tblwrap"><table id="rc-table"><thead><tr>' +
       '<th>#</th><th>지역</th><th>종합</th><th>급지</th><th>성과</th><th>수급</th><th>타이밍</th><th>자금</th><th>필요현금</th></tr>' +
       '</thead><tbody></tbody></table></div>' +
@@ -1152,7 +1159,10 @@ function buildDanji(root) {
         '신고 지연·정정으로 실제와 다를 수 있습니다.</div></div>' +
     '<div class="card">' +
       '<div class="eyebrow">Cart</div><h2>장바구니 <span class="badge ok" id="cart-count"></span></h2>' +
-      '<p class="desc">담은 단지 목록입니다. 최종 채점·비교 보고서는 다음 버전에서 붙습니다.</p>' +
+      '<p class="desc">담은 단지를 6개 축(급지·장기성과·수급·타이밍·단지·자금)으로 채점해 등급을 매깁니다.</p>' +
+      '<div class="expbar"><button class="btn sm" id="cart-score">채점 보고서 만들기</button>' +
+        '<button class="btn sm ghost" data-exp="img" data-name="단지보고서" id="cart-img" style="display:none">보고서 이미지 저장</button></div>' +
+      '<div id="cart-report"></div>' +
       '<div class="tblwrap"><table id="cart-table"><thead><tr>' +
       '<th>단지</th><th>지역</th><th>㎡당가</th><th>세대수</th><th></th></tr></thead><tbody></tbody></table></div></div>';
 
@@ -1165,6 +1175,7 @@ function buildDanji(root) {
     });
   });
   root.querySelector("#dj-area").addEventListener("change", function () { DJ.areaFilter = this.value; renderDanjiTable(); });
+  root.querySelector("#cart-score").addEventListener("click", renderCartReport);
   root.querySelector("#dj-mincnt").addEventListener("change", function () { DJ.minCnt = Number(this.value); renderDanjiTable(); });
 }
 
@@ -1322,6 +1333,8 @@ function addToCart(g, btn) {
     id: id, lawd: DJ.lawd, regionKey: DJ.regionKey, apt: g.apt, dong: g.dong,
     pmAvg: Math.round(g.pmAvg), cnt: g.cnt, buildYear: g.buildYear,
     households: g.kapt ? g.kapt.households : null,
+    parkingTotal: g.kapt ? g.kapt.parkingTotal : null,
+    builder: g.kapt ? g.kapt.builder : null,
     lastAmount: g.last.amount, lastYm: g.last.ym
   });
   setCart(cart);
@@ -1351,6 +1364,127 @@ function renderCart() {
       renderDanjiTable();
     });
   });
+}
+
+/* ══ 내보내기 (이미지·엑셀) ═══════════════════ */
+document.addEventListener("click", function (ev) {
+  var b = ev.target.closest ? ev.target.closest("[data-exp]") : null;
+  if (!b) return;
+  var name = "TrackApt_" + (b.dataset.name || "표") + "_" + new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  if (b.dataset.exp === "xlsx") {
+    if (typeof XLSX === "undefined") { alert("엑셀 라이브러리를 아직 불러오지 못했습니다. 잠시 후 다시 시도하세요."); return; }
+    var tbl = document.getElementById(b.dataset.table);
+    if (!tbl) return;
+    var wb = XLSX.utils.table_to_book(tbl, { sheet: b.dataset.name || "표" });
+    XLSX.writeFile(wb, name + ".xlsx");
+  } else {
+    if (typeof html2canvas === "undefined") { alert("이미지 라이브러리를 아직 불러오지 못했습니다. 잠시 후 다시 시도하세요."); return; }
+    var card = b.closest(".card");
+    if (!card) return;
+    card.classList.add("capturing");
+    html2canvas(card, { backgroundColor: "#ffffff", scale: 2, useCORS: true }).then(function (canvas) {
+      card.classList.remove("capturing");
+      var a = document.createElement("a");
+      a.download = name + ".png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    }).catch(function () { card.classList.remove("capturing"); alert("이미지 저장에 실패했습니다."); });
+  }
+});
+
+/* ══ 장바구니 채점 보고서 (6축) ═══════════════ */
+/* 가중치: 급지25 · 장기성과20 · 타이밍15 · 수급10 · 단지15 · 자금15 */
+var CART_W = { rank: 25, perf: 20, timing: 15, supply: 10, danji: 15, cash: 15 };
+
+function scoreDanjiAxis(c) {
+  var s = 50, notes = [];
+  if (c.households != null) {
+    if (c.households >= 500) { s += 20; notes.push("세대수 " + fmt(c.households) + " ✓"); }
+    else if (c.households < 300) { s -= 10; notes.push("세대수 " + fmt(c.households) + " (소규모)"); }
+    else notes.push("세대수 " + fmt(c.households));
+    if (c.parkingTotal) {
+      var pr = c.parkingTotal / c.households;
+      if (pr >= 1.2) s += 15; else if (pr >= 1.0) s += 5; else if (pr < 0.7) s -= 10;
+      notes.push("세대당 주차 " + pr.toFixed(2));
+    }
+  } else notes.push("K-apt 정보 없음 (담기 전 단지정보를 누르면 반영)");
+  if (c.buildYear) {
+    var age = new Date().getFullYear() - c.buildYear;
+    if (age <= 15) s += 15; else if (age >= 30) s += 5;   /* 신축 프리미엄 / 재건축 기대 */
+    notes.push(c.buildYear + "년식");
+  }
+  return { score: clamp(s, 0, 100), note: notes.join(" · ") };
+}
+
+function scoreCartItem(c, cond, homePmArr) {
+  var axes = {}, notes = {};
+  var idx = c.regionKey ? RANKED.indexOf(c.regionKey) : -1;
+  if (idx >= 0) {
+    var r = scoreRegion(c.regionKey, idx, cond, homePmArr);
+    axes.rank = r.s.rank; axes.perf = r.s.perf; axes.supply = r.s.supply; axes.timing = r.s.timing;
+    notes.rank = "서열 " + r.rank + "위"; notes.perf = r.cagr != null ? pct(r.cagr, 1) + "/년" : "—";
+    notes.timing = r.timingNote;
+  } else {
+    axes.rank = axes.perf = axes.supply = axes.timing = 50;
+    notes.rank = notes.perf = notes.timing = "지역 미상 (코드 직접 입력 조회)";
+  }
+  var dj = scoreDanjiAxis(c);
+  axes.danji = dj.score; notes.danji = dj.note;
+
+  var price = c.pmAvg * cond.area;
+  var fin = finance(c.regionKey || "", price, cond);
+  axes.cash = (cond.cash > 0 && fin.need > 0) ? clamp(cond.cash / fin.need * 100, 0, 100) : 50;
+  notes.cash = "필요현금 " + eok(fin.need) + " (" + fin.tag + ")";
+
+  var wSum = 0, total = 0;
+  Object.keys(CART_W).forEach(function (k) { wSum += CART_W[k]; total += axes[k] * CART_W[k]; });
+  total /= wSum;
+  var grade = total >= 80 ? "A" : (total >= 65 ? "B" : (total >= 50 ? "C" : "D"));
+  var weakest = Object.keys(CART_W).sort(function (a, b) { return axes[a] - axes[b]; })[0];
+  return { axes: axes, notes: notes, total: total, grade: grade, weakest: weakest, fin: fin, price: price };
+}
+
+var AXIS_NAME = { rank: "급지", perf: "장기성과", supply: "수급", timing: "타이밍", danji: "단지", cash: "자금" };
+
+function renderCartReport() {
+  var cart = getCart();
+  var box = document.getElementById("cart-report");
+  if (!cart.length) { box.innerHTML = '<div class="callout warn">담은 단지가 없습니다. 단지 목록에서 먼저 담아주세요.</div>'; return; }
+  var cond = getCond();
+  var homePmArr = (cond.own !== "none" && cond.home && DB.salePm.series[cond.home])
+    ? pmSeries("salePm", cond.home) : null;
+  var scored = cart.map(function (c) {
+    var s = scoreCartItem(c, cond, homePmArr);
+    s.item = c; return s;
+  }).sort(function (a, b) { return b.total - a.total; });
+
+  box.innerHTML =
+    '<div class="callout">채점 기준 — 급지 25 · 장기성과 20 · 타이밍 15 · 수급 10 · 단지 15 · 자금 15. ' +
+      '내 조건: 현금 ' + (cond.cash > 0 ? eok(cond.cash) : "미입력") + " · " + cond.area + "㎡</div>" +
+    scored.map(function (s, i) {
+      var c = s.item;
+      return '<div class="reco' + (i === 0 ? " best" : "") + '">' +
+        '<div class="grade ' + s.grade + '">' + s.grade + "</div>" +
+        '<div class="body"><div class="name">' + c.apt +
+          ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">' +
+          (c.regionKey ? disp(c.regionKey) : c.lawd) + " " + c.dong + " · ㎡당 " + fmt(c.pmAvg) + "만원</span></div>" +
+        '<div class="chips">' +
+          Object.keys(CART_W).map(function (k) {
+            return '<span class="chip">' + AXIS_NAME[k] + ' <b>' + s.axes[k].toFixed(0) + "</b>" +
+              (s.notes[k] ? " (" + s.notes[k] + ")" : "") + "</span>";
+          }).join("") +
+        "</div>" +
+        '<div class="rowinfo">약한 축: <b>' + AXIS_NAME[s.weakest] + "</b>" +
+          (s.weakest === "cash" && cond.cash > 0 && s.fin.need > cond.cash
+            ? " — 부족액 " + eok(s.fin.need - cond.cash) + ". 평형을 낮추거나 갭투자 탭에서 전세 낀 매수를 검토하세요."
+            : (s.weakest === "danji" && c.households == null
+              ? " — K-apt 정보를 불러오면 점수가 정확해집니다."
+              : " — 같은 예산이면 이 축이 강한 대안을 추천 탭에서 찾아보세요.")) + "</div>" +
+        "</div>" +
+        '<div class="money"><div class="score">' + s.total.toFixed(1) + "</div>" +
+        '<div class="need">' + eok(s.price) + " · 필요 " + eok(s.fin.need) + "</div></div></div>";
+    }).join("");
+  document.getElementById("cart-img").style.display = "";
 }
 
 /* ══ 기준·설정 탭 ═════════════════════════════ */
@@ -1470,7 +1604,7 @@ function buildMarket(root) {
     '<div class="card"><div class="eyebrow">Index</div><h2>지수 추이</h2>' +
       '<p class="desc">누적 지수 자체를 봅니다. 기울기가 곧 그 구간의 속도입니다.</p>' +
       '<div class="chartbox"><canvas id="mk-index"></canvas></div></div>' +
-    '<div class="card"><div class="eyebrow">Year by Year</div><h2>연도별 기록</h2>' +
+    '<div class="card"><div class="eyebrow">Year by Year</div><h2>연도별 기록</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="연도별기록">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="mk-table" data-name="연도별기록">엑셀 저장</button></div>' +
       '<div class="tblwrap"><table id="mk-table"><thead><tr>' +
       '<th>연도</th><th>매매</th><th>전세</th><th>매매지수</th><th>전세지수</th></tr></thead><tbody></tbody></table></div></div>' +
     '<div class="card"><div class="eyebrow">2-Year</div><h2>2년 단위 수익률</h2>' +

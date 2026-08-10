@@ -112,7 +112,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v0.9</span>
+    <span class="ver">v0.10</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
 </header>
@@ -176,6 +176,7 @@ var TABS = [
   { id: "start",   name: "시작",        build: buildStart },
   { id: "market",  name: "시장 현황",   build: buildMarket },
   { id: "quad",    name: "4분면",       build: buildQuad },
+  { id: "vol",     name: "거래량",      build: buildVol },
   { id: "rank",    name: "전국 급지표", build: buildRank },
   { id: "gap",     name: "갭투자",      build: buildGap },
   { id: "move",    name: "갈아타기",    build: buildMove },
@@ -216,6 +217,7 @@ function showTab(id) {
   if (id === "reco") renderReco();
   if (id === "danji") renderDanjiShell();
   if (id === "quad") renderQuad();
+  if (id === "vol") renderVolShell();
   if (id === "rota") renderRota();
   if (id === "calc") renderCalc();
 }
@@ -1098,6 +1100,167 @@ function renderReco() {
   }).join("");
 }
 
+/* ══ 거래량 탭 ═══════════════════════════════ */
+var VOL = { lawd: "", regionKey: "", months: 24, rows: [] };
+var chartVol = null;
+
+function buildVol(root) {
+  root.innerHTML =
+    '<div class="card">' +
+      '<div class="eyebrow">Volume</div><h2>거래량 · 국면 판정</h2>' +
+      '<p class="desc">가격은 호가만으로도 움직이지만 <b>거래량은 실제 손바뀜</b>입니다. ' +
+        '가격과 거래량의 조합으로 지금 국면을 판정합니다 — 가격↑거래↑는 강한 상승, 가격↑거래↓는 ' +
+        '호가만 오르는 상승 동력 둔화입니다.</p>' +
+      '<div class="grid">' +
+        '<div class="field"><label for="vl-region">지역</label><select id="vl-region"></select></div>' +
+        '<div class="field"><label for="vl-lawd">법정동코드 직접 입력 (선택)</label>' +
+          '<input id="vl-lawd" type="text" inputmode="numeric" maxlength="5" placeholder="5자리"></div>' +
+        '<div class="field"><label>조회 기간</label><div class="seg" id="vl-months">' +
+          '<button data-m="12">12개월</button><button data-m="24" class="on">24개월</button></div></div>' +
+        '<div class="field"><label>&nbsp;</label><button class="btn" id="vl-go">거래량 불러오기</button></div>' +
+      '</div>' +
+      '<div class="status" id="vl-kpi" style="margin-top:12px"></div>' +
+      '<div class="note" id="vl-read" style="margin-top:10px;display:none"></div></div>' +
+    '<div class="card" id="vl-chartcard" style="display:none"><div class="eyebrow">Trend</div><h2>월별 거래건수</h2>' +
+      '<p class="desc">막대는 월 거래건수, 선은 12개월 이동평균입니다. 선이 우상향이면 손바뀜이 늘고 있는 국면입니다.</p>' +
+      '<div class="chartbox"><canvas id="vl-chart"></canvas></div></div>' +
+    '<div class="card" id="vl-tablecard" style="display:none"><div class="eyebrow">Monthly</div><h2>월별 기록</h2>' +
+      '<div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="거래량">이미지 저장</button>' +
+      '<button class="btn sm ghost" data-exp="xlsx" data-table="vl-table" data-name="거래량">엑셀 저장</button></div>' +
+      '<div class="tblwrap"><table id="vl-table"><thead><tr>' +
+      '<th>월</th><th>거래건수</th><th>전월 대비</th><th>12개월 평균</th><th>평당가 중위</th></tr></thead><tbody></tbody></table></div>' +
+      '<div class="note"><b>주의</b> — 실거래 신고 기한(계약 후 30일) 때문에 최근 1~2개월은 실제보다 적게 ' +
+        '집계됩니다. 마지막 막대가 낮은 건 하락이 아니라 <b>아직 다 들어오지 않은 것</b>일 수 있습니다.</div></div>';
+
+  root.querySelector("#vl-go").addEventListener("click", loadVol);
+  root.querySelectorAll("#vl-months button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      VOL.months = Number(b.dataset.m);
+      root.querySelectorAll("#vl-months button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    });
+  });
+}
+
+function renderVolShell() {
+  if (!DB || !RANKED.length) return;
+  var sel = document.getElementById("vl-region");
+  if (sel && !sel.options.length) {
+    RANKED.forEach(function (k) {
+      if (!LAWD[k]) return;
+      var o = document.createElement("option");
+      o.value = k; o.textContent = disp(k);
+      sel.appendChild(o);
+    });
+  }
+}
+
+function median(arr) {
+  if (!arr.length) return null;
+  var s = arr.slice().sort(function (a, b) { return a - b; });
+  var m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+function loadVol() {
+  var manual = (document.getElementById("vl-lawd").value || "").trim();
+  var regionKey = document.getElementById("vl-region").value;
+  var lawd = /^\d{5}$/.test(manual) ? manual : LAWD[regionKey];
+  if (!lawd) { alert("지역을 선택하거나 5자리 법정동코드를 입력하세요."); return; }
+  VOL.lawd = lawd;
+  var btn = document.getElementById("vl-go");
+  btn.disabled = true;
+  var months = ymList(VOL.months).reverse();   /* 과거→현재 순 */
+  var done = 0;
+  btn.textContent = "불러오는 중… (0/" + months.length + ")";
+  Promise.all(months.map(function (ym) {
+    return fetch("/api/trades?kind=sale&lawd=" + lawd + "&ym=" + ym)
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        done++; btn.textContent = "불러오는 중… (" + done + "/" + months.length + ")";
+        if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
+        var deals = (j.items || []).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; });
+        return { ym: ym, cnt: deals.length,
+                 pyMed: median(deals.map(function (t) { return t.amount / t.area * 3.3058; })) };
+      });
+  })).then(function (rows) {
+    VOL.rows = rows;
+    renderVolResult();
+  }).catch(function (e) {
+    alert("거래량 조회 실패: " + e.message);
+  }).finally(function () {
+    btn.disabled = false; btn.textContent = "거래량 불러오기";
+  });
+}
+
+function renderVolResult() {
+  var rows = VOL.rows;
+  /* 12개월 이동평균 */
+  rows.forEach(function (r, i) {
+    if (i >= 11) {
+      var s = 0;
+      for (var j = i - 11; j <= i; j++) s += rows[j].cnt;
+      r.ma = s / 12;
+    } else r.ma = null;
+  });
+  /* 최근 1개월은 신고 지연으로 제외하고 판정 */
+  var solid = rows.slice(0, -1);
+  var last3 = solid.slice(-3), prev3 = solid.slice(-6, -3);
+  var avg3 = last3.reduce(function (a, r) { return a + r.cnt; }, 0) / last3.length;
+  var ma12 = solid[solid.length - 1].ma;
+  var ratio = ma12 ? avg3 / ma12 : null;
+  var p3 = median(last3.map(function (r) { return r.pyMed; }).filter(function (v) { return v != null; }));
+  var p3prev = median(prev3.map(function (r) { return r.pyMed; }).filter(function (v) { return v != null; }));
+  var priceChg = (p3 && p3prev) ? (p3 / p3prev - 1) * 100 : null;
+
+  var phase, phaseC;
+  var volUp = ratio != null && ratio >= 1.0, priceUp = priceChg != null && priceChg > 0;
+  if (priceUp && volUp) { phase = "강한 상승"; phaseC = "up"; }
+  else if (priceUp) { phase = "상승 동력 둔화"; phaseC = "down"; }
+  else if (volUp) { phase = "손바뀜 · 바닥 탐색"; phaseC = "flat"; }
+  else { phase = "침체 지속"; phaseC = "flat"; }
+
+  document.getElementById("vl-kpi").innerHTML =
+    statBox("최근 3개월 월평균", Math.round(avg3) + "건") +
+    statBox("거래량 배율 (3m÷12m)", ratio != null ? ratio.toFixed(2) + "배" : "—", ratio != null ? (ratio >= 1.3 ? "up" : (ratio <= 0.7 ? "down" : "")) : "") +
+    statBox("평당가 3개월", priceChg != null ? pct(priceChg, 1) : "—", cls(priceChg)) +
+    statBox("국면 판정", phase, phaseC);
+
+  var read = document.getElementById("vl-read");
+  read.style.display = "";
+  read.innerHTML = "<b>가격 × 거래량 조합</b> — 가격↑거래↑ 강한 상승 (매수세가 실제로 붙음) · " +
+    "가격↑거래↓ 상승 동력 둔화 (호가만 오르고 손바뀜 없음) · 가격↓거래↑ 손바뀜·바닥 탐색 · 가격↓거래↓ 침체 지속. " +
+    "배율 1.3 이상이면 뚜렷한 유입, 0.7 이하면 관망입니다.";
+
+  var css = getComputedStyle(document.documentElement);
+  var cUp = css.getPropertyValue("--up").trim(), cDown = css.getPropertyValue("--down").trim();
+  document.getElementById("vl-chartcard").style.display = "";
+  if (chartVol) chartVol.destroy();
+  chartVol = new Chart(document.getElementById("vl-chart"), {
+    data: {
+      labels: rows.map(function (r) { return r.ym.slice(0, 4) + "." + Number(r.ym.slice(4)); }),
+      datasets: [
+        { type: "bar", label: "월 거래건수", data: rows.map(function (r) { return r.cnt; }),
+          backgroundColor: cUp + "99", borderRadius: 2, order: 2 },
+        { type: "line", label: "12개월 이동평균", data: rows.map(function (r) { return r.ma; }),
+          borderColor: cDown, borderWidth: 2, pointRadius: 0, tension: .2, order: 1 }
+      ]
+    },
+    options: chartOpts("건")
+  });
+
+  document.getElementById("vl-tablecard").style.display = "";
+  var tb = document.querySelector("#vl-table tbody");
+  tb.innerHTML = rows.slice().reverse().map(function (r, i, arr) {
+    var prev = arr[i + 1];
+    var chg = (prev && prev.cnt > 0) ? (r.cnt / prev.cnt - 1) * 100 : null;
+    return "<tr><td>" + r.ym.slice(0, 4) + "." + r.ym.slice(4) + "</td>" +
+      "<td><b>" + r.cnt + "건</b></td>" +
+      '<td class="' + cls(chg) + '">' + (chg != null ? pct(chg, 1) : "—") + "</td>" +
+      "<td>" + (r.ma != null ? r.ma.toFixed(1) + "건" : "—") + "</td>" +
+      "<td>" + (r.pyMed != null ? fmt(r.pyMed) + "만" : "—") + "</td></tr>";
+  }).join("");
+}
+
 /* ══ 단지 찾기 탭 ═════════════════════════════ */
 /* KB 지역 키 → 법정동 시군구코드(5자리). 신설 구 등 미등록 지역은 직접 입력으로 조회 */
 var LAWD = {
@@ -1176,9 +1339,10 @@ function buildDanji(root) {
           '<option value="3" selected>3건 이상</option><option value="5">5건 이상</option></select></div>' +
       '</div>' +
       '<div class="tblwrap" style="margin-top:10px"><table id="dj-table"><thead><tr>' +
-      '<th>#</th><th>단지</th><th>㎡당가</th><th>평당가</th><th>건수</th><th>최근 거래</th><th>연식</th><th></th>' +
+      '<th>#</th><th>단지</th><th>㎡당가</th><th>평당가</th><th>전세</th><th>갭</th><th>전세가율</th><th>건수</th><th>최근 거래</th><th>연식</th><th></th>' +
       '</tr></thead><tbody></tbody></table></div>' +
       '<div class="note">㎡당가는 조회 기간 실거래(해제 제외)의 <b>거래액÷전용면적 평균</b>입니다. ' +
+        '전세는 같은 단지·대표 평형(±8㎡)의 전세 보증금 중위값이고, 갭 = 매매 중위 − 전세 중위입니다. ' +
         '<b>단지정보</b>를 누르면 K-apt에서 세대수·주차·시공사·지하철을 불러와 행 아래에 표시합니다. ' +
         '신고 지연·정정으로 실제와 다를 수 있습니다.</div></div>' +
     '<div class="card">' +
@@ -1242,16 +1406,27 @@ function loadDanji() {
   var btn = document.getElementById("dj-go");
   btn.disabled = true; btn.textContent = "불러오는 중… (0/" + DJ.months + ")";
   var months = ymList(DJ.months);
-  var done = 0;
-  Promise.all(months.map(function (ym) {
+  var total = DJ.months * 2, done = 0;
+  function tick() { done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")"; }
+  var saleP = Promise.all(months.map(function (ym) {
     return fetch("/api/trades?kind=sale&lawd=" + lawd + "&ym=" + ym)
       .then(function (r) { return r.json(); })
       .then(function (j) {
-        done++; btn.textContent = "불러오는 중… (" + done + "/" + DJ.months + ")";
+        tick();
         if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
         return j.items || [];
       });
-  })).then(function (lists) {
+  }));
+  var rentP = Promise.all(months.map(function (ym) {
+    return fetch("/api/trades?kind=rent&lawd=" + lawd + "&ym=" + ym)
+      .then(function (r) { return r.json(); })
+      .then(function (j) { tick(); return j.error ? [] : (j.items || []); })
+      .catch(function () { tick(); return []; });   /* 전세 실패해도 매매는 표시 */
+  }));
+  Promise.all([saleP, rentP]).then(function (both) {
+    var lists = both[0];
+    var rentAll = [].concat.apply([], both[1]).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; });
+    DJ.rentAll = rentAll;
     var all = [].concat.apply([], lists).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; });
     /* 단지(이름+법정동)별 집계 */
     var byApt = {};
@@ -1269,6 +1444,17 @@ function loadDanji() {
       g.areas = g.deals.map(function (t) { return t.area; });
       var last = g.deals.slice().sort(function (a, b) { return (b.ym * 100 + b.day) - (a.ym * 100 + a.day); })[0];
       g.last = last;
+      /* 전세 매칭: 같은 동·단지, 대표 면적 ±8㎡의 전세 보증금 중위 */
+      var medArea = median(g.areas);
+      g.amtMed = median(g.deals.filter(function (t) { return Math.abs(t.area - medArea) <= 8; })
+                        .map(function (t) { return t.amount; }));
+      var jv = rentAll.filter(function (t) {
+        return t.dong === g.dong && t.apt === g.apt && Math.abs(t.area - medArea) <= 8;
+      }).map(function (t) { return t.deposit; });
+      g.jeonse = median(jv);
+      g.jCnt = jv.length;
+      g.gap = (g.amtMed != null && g.jeonse != null) ? g.amtMed - g.jeonse : null;
+      g.jr = (g.amtMed && g.jeonse) ? g.jeonse / g.amtMed * 100 : null;
       return g;
     }).sort(function (a, b) { return b.pmAvg - a.pmAvg; });
     document.getElementById("dj-resultcard").style.display = "";
@@ -1298,6 +1484,9 @@ function renderDanjiTable() {
         '<div class="rowinfo" id="ki-' + i + '" style="display:none"></div></td>' +
       "<td><b>" + fmt(g.pmAvg) + "</b></td>" +
       "<td>" + fmt(g.pmAvg * 3.3058) + "</td>" +
+      "<td>" + (g.jeonse != null ? eok(g.jeonse) : "—") + "</td>" +
+      "<td>" + (g.gap != null ? "<b>" + eok(g.gap) + "</b>" : "—") + "</td>" +
+      '<td class="' + (g.jr != null && g.jr >= 70 ? "up" : "") + '">' + (g.jr != null ? g.jr.toFixed(0) + "%" : "—") + "</td>" +
       "<td>" + g.cnt + "</td>" +
       "<td>" + String(g.last.ym).slice(0, 4) + "." + (g.last.ym % 100) + " · " + eok(g.last.amount) + " · " + g.last.floor + "층</td>" +
       "<td>" + (g.buildYear || "—") + "</td>" +
@@ -1356,6 +1545,8 @@ function addToCart(g, btn) {
   cart.push({
     id: id, lawd: DJ.lawd, regionKey: DJ.regionKey, apt: g.apt, dong: g.dong,
     pmAvg: Math.round(g.pmAvg), cnt: g.cnt, buildYear: g.buildYear,
+    jeonse: g.jeonse != null ? Math.round(g.jeonse) : null,
+    gap: g.gap != null ? Math.round(g.gap) : null,
     households: g.kapt ? g.kapt.households : null,
     parkingTotal: g.kapt ? g.kapt.parkingTotal : null,
     builder: g.kapt ? g.kapt.builder : null,

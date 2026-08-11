@@ -160,7 +160,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v2.1</span>
+    <span class="ver">v2.2</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1237,6 +1237,35 @@ function buildReco(root) {
       '<p class="desc">전국 시·군·구를 급지·장기성과·수급·타이밍·자금 <b>5개 축</b>으로 채점해 순위를 매깁니다. ' +
         '내 조건(시작 탭)과 가중치·규제 기준(기준·설정 탭)이 그대로 반영됩니다.</p>' +
       '<div id="rc-callout"></div>' +
+      '<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;font-size:.86rem">' +
+        '다섯 개 축은 무엇으로 계산하나 (눌러서 펼치기)</summary>' +
+        '<div class="dict" style="margin-top:8px">' +
+        '<div class="di"><b>급지 <span style="color:var(--ink-soft)">가중치 ' + RULES.wRank + '%</span></b>' +
+          '<p>KB 월간 시계열의 <b>㎡당 아파트 평균 매매가</b>로 전국 시·군·구를 줄 세운 순위입니다. ' +
+          '가격 서열은 시장이 이미 매긴 평가라 입지·학군·교통·희소성이 전부 값에 반영돼 있다고 봅니다. ' +
+          '2016년 분위로 나눠 10년을 검증하면 상위 1~3분위 +177%, 중위 +87%, 하위 +60%로 거의 단조 정렬됩니다.</p></div>' +
+        '<div class="di"><b>장기 성과 <span style="color:var(--ink-soft)">가중치 ' + RULES.wPerf + '%</span></b>' +
+          '<p>같은 KB 지수의 <b>최근 10년 상승률</b>입니다. 10년에 두 배(연복리 7.2%)를 만점 기준으로 잡습니다. ' +
+          '이 선을 못 넘으면 물가와 시장 평균을 이기지 못한 구간으로 봅니다. 서울 아파트 40년 연복리가 5.7%, ' +
+          '최근 10년이 6.1%인 것과 비교해 보세요.</p></div>' +
+        '<div class="di"><b>수급 <span style="color:var(--ink-soft)">가중치 ' + RULES.wSupply + '%</span></b>' +
+          '<p>KB의 <b>매수우위지수·전세수급지수</b>를 시·도 단위로 가져와 20~100 범위로 환산합니다. ' +
+          '사려는 사람과 팔려는 사람 중 어느 쪽이 급한지를 나타내며, 값이 높을수록 매수자가 몰리는 국면입니다. ' +
+          '입주 물량까지 함께 보려면 입주 물량 탭을 확인하세요.</p></div>' +
+        '<div class="di"><b>진입 타이밍 <span style="color:var(--ink-soft)">가중치 ' + RULES.wTiming + '%</span></b>' +
+          '<p>무주택이면 <b>전세가율의 10년 밴드 백분위</b>, 유주택이면 <b>내 지역 대비 배율의 10년 밴드</b>를 씁니다. ' +
+          '전세가율이 높을수록(밴드 상단) 매매가에 기대가 덜 실려 갭이 얇고, 배율이 낮을수록 갈아타기 격차가 ' +
+          '좁혀진 시점입니다. 표본 24개월 미만이면 중립 처리합니다.</p></div>' +
+        '<div class="di"><b>자금 적합성 <span style="color:var(--ink-soft)">가중치 ' + RULES.wCash + '%</span></b>' +
+          '<p>내 현금 ÷ 필요현금입니다. 필요현금은 매수가 − 대출가능액 + 취득세 + 중개보수 + 등기·이사비이고, ' +
+          '대출은 LTV·총액상한·DSR 세 한도 중 <b>가장 낮은 값</b>을 씁니다. 규제지역·수도권·생애최초 여부와 ' +
+          '매수 방식(대출/전세 승계)이 모두 반영됩니다.</p></div>' +
+        '</div>' +
+        '<div class="note" style="margin-top:8px">점수는 순위표가 아니라 <b>여섯 축을 한눈에 보기 위한 요약</b>이고, ' +
+          '가중치는 임의 설정입니다(설정 탭에서 변경 가능). 총점보다 <b>어느 축이 낮은지</b>와 그 이유를 보세요. ' +
+          '지표 선택은 국내 헤도닉 가격모형 연구에서 반복적으로 유의하게 나온 변수(단지 규모·역세권·경과연수· ' +
+          '주차대수·전세가율)를 참고했지만, 연구 결과는 지역·시기별로 계수가 달라 <b>필터로만</b> 씁니다.</div>' +
+      '</details>' +
       '<div class="grid">' +
         '<div class="field full"><label>매수 방식</label><div class="seg" id="rc-buy">' +
           '<button data-b="auto" class="on">자동 (유리한 쪽)</button>' +
@@ -1554,7 +1583,9 @@ function loadVol() {
     }
     renderVolResult();
   }).catch(function (e) {
-    alert("거래량 조회 실패: " + e.message);
+    var m = String(e.message || e);
+    alert("거래량 조회 실패: " + m + (/제한|초과|502/i.test(m)
+      ? "\n\n공공데이터 서버 요청이 몰린 상태입니다. 20~30초 뒤 다시 시도하거나, 조회 기간을 12개월로 줄여보세요." : ""));
   }).finally(function () {
     btn.disabled = false; btn.textContent = "거래량 불러오기";
   });
@@ -1650,15 +1681,13 @@ var LAWD_GROUPS = [
     ["고양 일산서구","41287"],["과천시","41290"],["구리시","41310"],["남양주시","41360"],
     ["오산시","41370"],["시흥시","41390"],["군포시","41410"],["의왕시","41430"],["하남시","41450"],
     ["용인 처인구","41461"],["용인 기흥구","41463"],["용인 수지구","41465"],["파주시","41480"],
-    ["이천시","41500"],["안성시","41550"],["김포시","41570"],["화성 만세구","41591:41590:41592:41593:41594"],["화성 효행구","41592:41590:41591:41593:41594"],
-    ["화성 병점구","41593:41590:41591:41592:41594"],["화성 동탄구","41594:41590:41591:41592:41593"],
-    ["화성시 전체","41590:41591:41592:41593:41594"],["광주시","41610"],
+    ["이천시","41500"],["안성시","41550"],["김포시","41570"],["화성 동탄구","41590"],["화성 병점구","41590"],["화성 효행구","41590"],["화성 만세구","41590"],
+    ["화성시 전체","41590"],["광주시","41610"],
     ["양주시","41630"],["포천시","41650"],["여주시","41670"],["연천군","41800"],["가평군","41820"],
     ["양평군","41830"]] },
   { sido: "인천", items: [
     ["중구","28110"],["동구","28140"],["미추홀구","28177"],["연수구","28185"],["남동구","28200"],
-    ["부평구","28237"],["계양구","28245"],["서구","28260"],["강화군","28710"],["옹진군","28720"],
-    ["제물포구","28110:28177"],["영종구","28110"],["검단구","28260"],["서해구","28260"]] },
+    ["부평구","28237"],["계양구","28245"],["서구","28260"],["강화군","28710"],["옹진군","28720"]] },
   { sido: "부산", items: [
     ["중구","26110"],["서구","26140"],["동구","26170"],["영도구","26200"],["부산진구","26230"],
     ["동래구","26260"],["남구","26290"],["북구","26320"],["해운대구","26350"],["사하구","26380"],
@@ -1757,6 +1786,37 @@ function buildLawdMap() {
     for (var i = 0; i < cand.length; i++) if (idx[cand[i]]) { LAWD[k] = idx[cand[i]]; return; }
   });
 }
+/* 한 코드 안에서 구 단위로 갈라야 하는 지역 (2026.2 화성 분구).
+   실거래는 시 코드로 내려오므로 법정동 이름으로 걸러낸다. */
+var SUB_DISTRICT = {
+  "화성 동탄구": ["석우동", "반송동", "능동", "영천동", "오산동", "여울동", "청계동", "신동", "중동",
+                  "목동", "산척동", "방교동", "장지동", "금곡동", "송동"],
+  "화성 병점구": ["병점동", "진안동", "반월동", "화산동"],
+  "화성 효행구": ["기배동", "봉담", "동화리", "상리", "수영리", "왕림리", "내리", "유리", "분천리",
+                  "매송", "원리", "야목리", "천천리", "어천리", "비봉", "자안리", "삼화리", "구포리",
+                  "정남", "문학리", "보금리", "괘랑리", "발산리", "관항리"],
+  "화성 만세구": ["새솔동", "남양", "신외동", "온석동", "무송동", "북양동", "장덕동", "송림동",
+                  "향남", "발안리", "행정리", "구문천리", "상신리", "하길리", "백토리", "도이리", "요리",
+                  "우정", "조암리", "이화리", "멱우리", "장안", "마도", "송산", "사강리", "서신",
+                  "팔탄", "양감", "고포리", "덕우리"]
+};
+/* 이 지역이 구 단위 필터를 쓰는가 */
+function subFilterOf(name) {
+  if (!name) return null;
+  if (SUB_DISTRICT[name]) return SUB_DISTRICT[name];
+  /* "경기 화성 동탄구"처럼 시·도가 앞에 붙어도 인식 */
+  var keys = Object.keys(SUB_DISTRICT);
+  for (var i = 0; i < keys.length; i++) {
+    if (name.indexOf(keys[i]) >= 0) return SUB_DISTRICT[keys[i]];
+  }
+  return null;
+}
+function inSubDistrict(dong, list) {
+  if (!list) return true;
+  for (var i = 0; i < list.length; i++) if (String(dong).indexOf(list[i]) >= 0) return true;
+  return false;
+}
+
 /* 평면 조회용 맵 (표시명 → 코드) */
 var LAWD_FLAT = (function () {
   var o = {};
@@ -1957,25 +2017,69 @@ function kbKeyOfLawd(code) {
   return "";
 }
 
-/* "41590:41594" 형태의 복합 코드를 실제 조회용 후보 배열로 */
-function lawdCandidates(code) {
-  return String(code).split(":");
+/* ── 공공 API 호출 관리 ──
+   공공데이터포털은 초당 요청 수 제한이 있어 동시 호출을 3개로 묶고,
+   일시 오류(502/429/트래픽 초과)는 간격을 늘려가며 두 번까지 재시도한다. */
+var API_CONC = 3, apiActive = 0, apiQueue = [];
+function apiSlot() {
+  return new Promise(function (res) {
+    if (apiActive < API_CONC) { apiActive++; res(); }
+    else apiQueue.push(res);
+  });
 }
-/* 후보 코드를 순서대로 시도해 데이터가 있는 응답을 반환 (실패 시 마지막 응답) */
+function apiRelease() {
+  apiActive--;
+  if (apiQueue.length && apiActive < API_CONC) { apiActive++; apiQueue.shift()(); }
+}
+function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+function isBusyErr(j, status) {
+  if (status === 502 || status === 429 || status === 503) return true;
+  var e = j && (j.error || "") + " " + (j.msg || "") + " " + (j.detail || "");
+  return /제한|초과|LIMIT|BUSY|TRAFFIC|일시/i.test(e);
+}
+/* 재시도 포함 JSON 호출 */
+function apiGet(url) {
+  return apiSlot().then(function () {
+    function attempt(tryNo) {
+      var st = 0;
+      return fetch(url)
+        .then(function (r) { st = r.status; return r.json().catch(function () { return { error: "응답 형식 오류" }; }); })
+        .then(function (j) {
+          if (isBusyErr(j, st) && tryNo < 2) {
+            return sleep(500 * (tryNo + 1) + Math.random() * 300).then(function () { return attempt(tryNo + 1); });
+          }
+          return j;
+        })
+        .catch(function (e) {
+          if (tryNo < 2) return sleep(500 * (tryNo + 1)).then(function () { return attempt(tryNo + 1); });
+          return { error: "네트워크 오류", detail: String(e) };
+        });
+    }
+    return attempt(0);
+  }).then(function (j) { apiRelease(); return j; },
+          function (e) { apiRelease(); throw e; });
+}
+
+/* "41590:41594" 형태의 복합 코드 → 후보 배열 */
+function lawdCandidates(code) { return String(code).split(":"); }
+/* 후보 중 실제로 데이터가 나온 코드를 기억해 이후 호출은 그 코드만 쓴다 */
+var LAWD_RESOLVED = {};
 function fetchTrade(code, kind, ym) {
+  if (LAWD_RESOLVED[code]) {
+    return apiGet("/api/trades?kind=" + kind + "&lawd=" + LAWD_RESOLVED[code] + "&ym=" + ym);
+  }
   var cands = lawdCandidates(code);
+  if (cands.length === 1) return apiGet("/api/trades?kind=" + kind + "&lawd=" + cands[0] + "&ym=" + ym);
   var last = null;
   function attempt(i) {
     if (i >= cands.length) return Promise.resolve(last || { items: [] });
-    return fetch("/api/trades?kind=" + kind + "&lawd=" + cands[i] + "&ym=" + ym)
-      .then(function (r) { return r.json(); })
+    return apiGet("/api/trades?kind=" + kind + "&lawd=" + cands[i] + "&ym=" + ym)
       .then(function (j) {
         if (j.error) { last = j; return attempt(i + 1); }
-        if ((j.items || []).length) return j;
+        if ((j.items || []).length) { LAWD_RESOLVED[code] = cands[i]; return j; }
         last = j;
         return attempt(i + 1);
-      })
-      .catch(function () { return attempt(i + 1); });
+      });
   }
   return attempt(0);
 }
@@ -1992,6 +2096,8 @@ function loadDanji() {
   var lawd = document.getElementById("dj-region").value;
   if (!lawd) { alert("지역을 선택하세요."); return; }
   DJ.lawd = lawd;
+  DJ.subFilter = subFilterOf(document.getElementById("dj-region").selectedOptions[0].textContent);
+  DJ.regionName = lawdName(lawd);
   DJ.regionKey = kbKeyOfLawd(lawd);
   DJ.months = Number(document.getElementById("dj-months").value);
   DJ.kaptList = null; DJ.kaptMiss = 0;
@@ -2016,7 +2122,10 @@ function loadDanji() {
 
   Promise.all([saleP, rentP]).then(function (both) {
     var rentAll = [].concat.apply([], both[1]).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; });
-    var all = [].concat.apply([], both[0]).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; });
+    var all = [].concat.apply([], both[0]).filter(function (t) {
+      return !t.canceled && t.amount > 0 && t.area > 0 && inSubDistrict(t.dong, DJ.subFilter);
+    });
+    rentAll = rentAll.filter(function (t) { return inSubDistrict(t.dong, DJ.subFilter); });
     DJ.saleCount = all.length; DJ.rentCount = rentAll.length;
     var byApt = {};
     all.forEach(function (t) {
@@ -2036,6 +2145,7 @@ function loadDanji() {
     return attachKapt(btn);
   }).then(function () {
     var meta = DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
+    if (DJ.subFilter) meta += " · 화성시 실거래에서 해당 구 법정동만 추림";
     if (!DJ.kaptList || !DJ.kaptList.length) meta += " · K-apt 목록 없음(세대수·지하철 표시 불가)";
     else if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";
     document.getElementById("dj-meta").textContent = meta;
@@ -2057,8 +2167,7 @@ function attachKapt(btn) {
   }).filter(function (x) { return x.pm > 0; })
     .sort(function (a, b) { return b.pm - a.pm; }).slice(0, 40);
 
-  return fetch("/api/apt?kind=list&lawd=" + lawdCandidates(DJ.lawd)[0])
-    .then(function (r) { return r.json(); })
+  return apiGet("/api/apt?kind=list&lawd=" + lawdCandidates(DJ.lawd)[0])
     .then(function (j) { DJ.kaptList = j.error ? [] : (j.items || []); })
     .catch(function () { DJ.kaptList = []; })
     .then(function () {
@@ -2068,8 +2177,7 @@ function attachKapt(btn) {
           done++; btn.textContent = "단지정보 조회… (" + done + "/" + pre.length + ")";
           var hit = matchKapt(DJ.kaptList, x.g.apt, x.g.dong);
           if (!hit) { DJ.kaptMiss = (DJ.kaptMiss || 0) + 1; return null; }
-          return fetch("/api/apt?kind=info&kapt=" + hit.kaptCode)
-            .then(function (r) { return r.json(); })
+          return apiGet("/api/apt?kind=info&kapt=" + hit.kaptCode)
             .then(function (j2) { if (!j2.error) x.g.kapt = j2.info; })
             .catch(function () {});
         });
@@ -2433,12 +2541,12 @@ function renderCartReport() {
       var idx = Number(a.dataset.envload);
       var c = scored[idx].item;
       a.textContent = "불러오는 중…";
-      fetch("/api/apt?kind=list&lawd=" + lawdCandidates(c.lawd)[0])
-        .then(function (r) { return r.json(); })
+      apiGet("/api/apt?kind=list&lawd=" + lawdCandidates(c.lawd)[0])
         .then(function (j) {
+          if (j.error) throw new Error(j.error + (j.detail ? " · " + j.detail : ""));
           var hit = matchKapt(j.items || [], c.apt, c.dong);
           if (!hit) throw new Error("K-apt 목록에서 이 단지를 찾지 못했습니다");
-          return fetch("/api/apt?kind=info&kapt=" + hit.kaptCode).then(function (r2) { return r2.json(); });
+          return apiGet("/api/apt?kind=info&kapt=" + hit.kaptCode);
         })
         .then(function (j2) {
           if (j2.error) throw new Error(j2.error);
@@ -2460,8 +2568,15 @@ function renderCartReport() {
           renderCartReport();
         })
         .catch(function (e) {
-          a.parentElement.innerHTML = "주변 환경 정보를 가져오지 못했습니다 — " + e.message +
-            ". K-apt는 의무관리대상 단지만 등록되어 소규모 단지는 정보가 없습니다.";
+          var msg = String(e.message || e);
+          var hint = /제한|초과|502|일시|네트워크/i.test(msg)
+            ? "공공데이터 서버가 잠시 몰린 상태입니다. 20~30초 뒤 다시 눌러보세요."
+            : "K-apt는 의무관리대상(300세대 이상 등) 단지만 등록되어 소규모 단지는 정보가 없습니다.";
+          a.parentElement.innerHTML = "주변 환경 정보를 가져오지 못했습니다 — " + msg + "<br>" + hint +
+            ' <a href="#" data-envload="' + idx + '">다시 시도</a>';
+          a.parentElement.querySelector("a").addEventListener("click", function (ev2) {
+            ev2.preventDefault(); renderCartReport();
+          });
         });
     });
   });
@@ -3068,7 +3183,8 @@ function renderFlagShell() {
         '<label class="check" style="gap:6px"><input type="checkbox" data-sido="' + gi + '"> ' + g.sido + "</label>" +
         '<span class="cnt">' + g.items.length + "곳</span></div>" +
       '<div class="pbody">' + g.items.map(function (it) {
-        return '<button type="button" class="pitem" data-code="' + it[1] + '">' + it[0] + "</button>";
+        return '<button type="button" class="pitem" data-code="' + it[1] +
+          '" data-name="' + g.sido + " " + it[0] + '">' + it[0] + "</button>";
       }).join("") + "</div></div>";
   }).join("");
 
@@ -3082,19 +3198,19 @@ function renderFlagShell() {
   box.querySelectorAll("input[data-sido]").forEach(function (cb) {
     cb.addEventListener("change", function () {
       var g = LAWD_GROUPS[Number(cb.dataset.sido)];
-      var codes = g.items.map(function (it) { return it[1]; });
+      var names = g.items.map(function (it) { return g.sido + " " + it[0]; });
       if (cb.checked) {
-        codes.forEach(function (c) { if (FG.picked.indexOf(c) < 0) FG.picked.push(c); });
+        names.forEach(function (nm) { if (FG.picked.indexOf(nm) < 0) FG.picked.push(nm); });
       } else {
-        FG.picked = FG.picked.filter(function (c) { return codes.indexOf(c) < 0; });
+        FG.picked = FG.picked.filter(function (nm) { return names.indexOf(nm) < 0; });
       }
       renderPicker();
     });
   });
   box.querySelectorAll(".pitem").forEach(function (b) {
     b.addEventListener("click", function () {
-      var c = b.dataset.code, i = FG.picked.indexOf(c);
-      if (i >= 0) FG.picked.splice(i, 1); else FG.picked.push(c);
+      var nm = b.dataset.name, i = FG.picked.indexOf(nm);
+      if (i >= 0) FG.picked.splice(i, 1); else FG.picked.push(nm);
       renderPicker();
     });
   });
@@ -3106,28 +3222,34 @@ function renderPicker() {
   var box = document.getElementById("fg-picker");
   if (!box) return;
   box.querySelectorAll(".pitem").forEach(function (b) {
-    b.classList.toggle("on", FG.picked.indexOf(b.dataset.code) >= 0);
+    b.classList.toggle("on", FG.picked.indexOf(b.dataset.name) >= 0);
   });
   box.querySelectorAll("input[data-sido]").forEach(function (cb) {
     var g = LAWD_GROUPS[Number(cb.dataset.sido)];
-    var codes = g.items.map(function (it) { return it[1]; });
-    var sel = codes.filter(function (c) { return FG.picked.indexOf(c) >= 0; }).length;
-    cb.checked = sel === codes.length;
-    cb.indeterminate = sel > 0 && sel < codes.length;
+    var names = g.items.map(function (it) { return g.sido + " " + it[0]; });
+    var sel = names.filter(function (nm) { return FG.picked.indexOf(nm) >= 0; }).length;
+    cb.checked = sel === names.length;
+    cb.indeterminate = sel > 0 && sel < names.length;
     var cnt = cb.closest(".phead").querySelector(".cnt");
-    cnt.textContent = sel ? sel + " / " + codes.length + "곳" : codes.length + "곳";
+    cnt.textContent = sel ? sel + " / " + names.length + "곳" : names.length + "곳";
     cnt.style.color = sel ? "var(--up)" : "";
   });
   var ch = document.getElementById("fg-chosen");
   ch.innerHTML = FG.picked.length
-    ? FG.picked.slice(0, 12).map(function (c) { return '<span class="tag">' + lawdName(c) + "</span>"; }).join("") +
+    ? FG.picked.slice(0, 12).map(function (nm) { return '<span class="tag">' + nm + "</span>"; }).join("") +
       (FG.picked.length > 12 ? '<span class="tag">외 ' + (FG.picked.length - 12) + "곳</span>" : "")
     : '<span class="hint" style="margin:0">선택된 지역이 없습니다.</span>';
 }
 
 function loadFlag() {
-  var regions = FG.picked.slice();
-  if (!regions.length) { alert("지역을 하나 이상 선택하세요. 시·도 체크박스를 누르면 전체가 선택됩니다."); return; }
+  if (!FG.picked.length) { alert("지역을 하나 이상 선택하세요. 시·도 체크박스를 누르면 전체가 선택됩니다."); return; }
+  var nameToCode = {};
+  LAWD_GROUPS.forEach(function (g) {
+    g.items.forEach(function (it) { nameToCode[g.sido + " " + it[0]] = it[1]; });
+  });
+  var regions = FG.picked.map(function (nm) {
+    return { name: nm, code: nameToCode[nm], sub: subFilterOf(nm) };
+  }).filter(function (r) { return r.code; });
   var btn = document.getElementById("fg-go");
   btn.disabled = true;
   var total = regions.length * 12, done = 0;
@@ -3137,13 +3259,15 @@ function loadFlag() {
   /* 지역 순차 처리 (API 부하 완화) */
   var results = [];
   var chain = Promise.resolve();
-  regions.forEach(function (rk) {
+  regions.forEach(function (reg) {
+    var rk = reg.code;
     chain = chain.then(function () {
       return fetchMonths(rk, 6, tick).then(function (data) {
         var byApt = {};
         data.sale.forEach(function (m) {
           m.deals.forEach(function (t) {
             if (!inBand(t.area, FG.band)) return;
+            if (!inSubDistrict(t.dong, reg.sub)) return;
             var id = t.dong + "|" + t.apt;
             (byApt[id] = byApt[id] || { apt: t.apt, dong: t.dong, amounts: [], areas: [], buildYear: t.buildYear }).amounts.push(t.amount);
             byApt[id].areas.push(t.area);
@@ -3168,7 +3292,7 @@ function loadFlag() {
           g.cnt = g.amounts.length;
           return g;
         }).filter(Boolean).sort(function (a, b) { return b.py - a.py; }).slice(0, FG.top);
-        results.push({ region: rk, apts: apts });
+        results.push({ region: rk, regionName: reg.name, apts: apts });
       });
     });
   });
@@ -3191,7 +3315,7 @@ function renderFlagTable() {
       var cid = r.region + "|" + g.dong + "|" + g.apt;
       var inCart = cart.some(function (c) { return c.id === cid; });
       return '<tr class="' + (i === 0 ? "hit" : "") + '">' +
-        "<td>" + (i === 0 ? lawdName(r.region) : "") + (i === 0 ? "" : "&nbsp;&nbsp;└ " + (i + 1) + "위") + "</td>" +
+        "<td>" + (i === 0 ? (r.regionName || lawdName(r.region)) : "") + (i === 0 ? "" : "&nbsp;&nbsp;└ " + (i + 1) + "위") + "</td>" +
         "<td><b>" + g.apt + "</b> <span style='color:var(--ink-soft);font-size:.74rem'>" + g.dong + "</span></td>" +
         "<td><b>" + eok(g.med) + "</b></td>" +
         "<td>" + eok(g.max) + "</td>" +
@@ -3768,8 +3892,7 @@ function buildSupply(root) {
 function loadSupply() {
   var btn = document.getElementById("sp-go");
   btn.disabled = true; btn.textContent = "불러오는 중…";
-  fetch("/api/supply?sido=" + encodeURIComponent(SP.sido))
-    .then(function (r) { return r.json(); })
+  apiGet("/api/supply?sido=" + encodeURIComponent(SP.sido))
     .then(function (j) {
       if (j.error) throw new Error(j.error + (j.detail ? " · " + j.detail : "") + (j.hint ? "\n" + j.hint : ""));
       SP.data = j;

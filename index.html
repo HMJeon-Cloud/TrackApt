@@ -160,7 +160,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v2.0</span>
+    <span class="ver">v2.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -890,6 +890,10 @@ function buildGap(root) {
       '<div class="tblwrap"><table id="gp-table"><thead><tr>' +
       '<th>서열</th><th>지역</th><th>전세가율</th><th>밴드 위치</th><th>갭</th><th>필요현금</th><th>10년</th><th></th></tr>' +
       '</thead><tbody></tbody></table></div>' +
+      '<div class="note"><b>어떤 인사이트를 얻나</b> — 갭이 작은 곳을 찾는 게 아니라, <b>내 현금으로 닿는 곳 중 ' +
+        '가장 위쪽 급지</b>를 찾는 도구입니다. 전세를 끼면 대출 없이 들어갈 수 있어서, 현금이 모자라 못 닿던 ' +
+        '급지가 사정권에 들어오기도 합니다. 다만 규제지역은 실거주 의무로 막히고, 입주 물량이 몰리는 지역은 ' +
+        '2년 뒤 역전세 위험이 있으니 입주 물량 탭을 함께 보세요.</div>' +
       '<div class="note"><b>백분위 읽는 법</b> — 상단(70%↑)은 역대 대비 전세가율이 높아 진입 부담이 낮은 상태, ' +
         '하단(30%↓)은 역대 최저권이라 매매가가 상대적으로 고평가된 상태입니다. 밴드는 몇 년씩 눌린 채 ' +
         '유지될 수 있으니 타이밍 신호가 아니라 <b>부담의 위치</b>로만 읽으세요. 규제지역(⛔)은 전세 낀 매수에 ' +
@@ -984,6 +988,10 @@ function buildMove(root) {
       '<div class="note" id="mv-read" style="margin-top:10px;display:none"></div>' +
     '</div>' +
     '<div class="card"><div class="eyebrow">Multiple</div><h2>배율 추이</h2>' +
+      '<p class="desc">부동산은 상대가치가 잘 통하는 시장입니다. 비슷한 급지끼리는 함께 움직이다가 ' +
+        '한쪽이 먼저 튀면 나머지가 뒤따라 격차를 메우는 일이 반복됩니다. 이 선이 <b>위로 향하면 목표지가 ' +
+        '앞서가는 중</b>(갈아타기 비용 증가), <b>아래로 향하면 격차가 좁혀지는 중</b>(기회 구간)입니다. ' +
+        '점선인 10년 평균 아래에 있을 때가 역대 대비 싸게 올라타는 시점입니다.</p>' +
       '<p class="desc">회색 영역이 최근 10년 밴드, 점선이 밴드 중앙값입니다. 선이 영역 아래쪽일수록 ' +
         '갈아타기에 유리한 격차입니다.</p>' +
       '<div class="chartbox"><canvas id="mv-chart"></canvas></div></div>' +
@@ -1587,7 +1595,10 @@ function renderVolResult() {
 
   var read = document.getElementById("vl-read");
   read.style.display = "";
-  read.innerHTML = "<b>가격 × 거래량 조합</b> — 가격↑거래↑ 강한 상승 (매수세가 실제로 붙음) · " +
+  read.innerHTML = "<b>어떤 인사이트를 얻나</b> — 가격은 호가만으로도 오르지만 거래량은 거짓말을 못 합니다. " +
+    "실제로 사는 사람이 있는지, 파는 사람만 호가를 올려둔 것인지를 여기서 구분합니다. 매수는 거래가 붙기 " +
+    "시작하는 초입이, 매도는 거래가 마르기 전이 낫습니다.<br>" +
+    "<b>가격 × 거래량 조합</b> — 가격↑거래↑ 강한 상승 (매수세가 실제로 붙음) · " +
     "가격↑거래↓ 상승 동력 둔화 (호가만 오르고 손바뀜 없음) · 가격↓거래↑ 손바뀜·바닥 탐색 · 가격↓거래↓ 침체 지속. " +
     "배율 1.3 이상이면 뚜렷한 유입, 0.7 이하면 관망입니다.";
 
@@ -1798,7 +1809,10 @@ function buildDanji(root) {
       '<th data-sort="hh">세대수 ⇅</th><th data-sort="year">준공 ⇅</th><th data-sort="sub">지하철 ⇅</th>' +
       '<th data-sort="je">전세 ⇅</th><th data-sort="jr">전세가율 ⇅</th><th data-sort="gap">갭 ⇅</th>' +
       '<th data-sort="cnt">거래 ⇅</th><th>담기</th></tr></thead><tbody></tbody></table></div>' +
-      '<div class="note"><b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
+      '<div class="note"><b>어떤 인사이트를 얻나</b> — 같은 지역 안에서도 단지마다 10년 성과가 크게 갈립니다. ' +
+        '평당가 순으로 훑으면 그 동네의 서열이 그대로 보이고, 10년 열을 함께 보면 <b>비싼 값을 한 단지</b>와 ' +
+        '<b>이름값만 있던 단지</b>가 구분됩니다. 손품으로 후보를 좁힌 뒤 임장은 그 몇 곳만 다니면 됩니다.<br>' +
+        '<b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
         '평당가는 전용면적 기준(거래가 ÷ 전용㎡ × 3.3058)이라 공급면적 평당가보다 25%쯤 높으니 네이버 시세와 ' +
         '직접 비교하지 마세요. 지하철·세대수는 K-apt 정보이며 미제공 단지는 필터에서 빠집니다.</div></div>';
 
@@ -1830,7 +1844,9 @@ function buildCartTab(root) {
       '<div id="cart-report"></div>' +
       '<div id="cart-compare"></div></div>' +
     '<div class="card" id="cx2-pricecard" style="display:none"><div class="eyebrow">Price</div><h2>매매가 추이</h2>' +
-      '<p class="desc">월별 중위 거래가입니다. 선 사이 간격이 벌어지면 격차 확대, 좁아지면 따라잡는 중입니다.</p>' +
+      '<p class="desc">월별 중위 거래가입니다. 선 사이 간격이 벌어지면 격차 확대, 좁아지면 따라잡는 중입니다. ' +
+        '같은 단지의 59㎡와 84㎡를 함께 놓으면 <b>평형 갈아타기</b> 시점도 보입니다 — 두 선이 붙는 구간이 ' +
+        '적은 돈으로 큰 평형에 올라탈 기회이고, 상급지 아파트와 값이 닿는 순간도 마찬가지입니다.</p>' +
       '<div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="담은단지_매매가">이미지 저장</button></div>' +
       '<div class="chartbox"><canvas id="cx2-price"></canvas></div></div>' +
     '<div class="card" id="cx2-multcard" style="display:none"><div class="eyebrow">Timing</div><h2>배율 — 지금이 살 때인가</h2>' +
@@ -1978,7 +1994,7 @@ function loadDanji() {
   DJ.lawd = lawd;
   DJ.regionKey = kbKeyOfLawd(lawd);
   DJ.months = Number(document.getElementById("dj-months").value);
-  DJ.kaptList = null;
+  DJ.kaptList = null; DJ.kaptMiss = 0;
   var btn = document.getElementById("dj-go");
   btn.disabled = true;
   var total = DJ.months * 2, done = 0;
@@ -2019,8 +2035,10 @@ function loadDanji() {
     });
     return attachKapt(btn);
   }).then(function () {
-    document.getElementById("dj-meta").textContent =
-      DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
+    var meta = DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
+    if (!DJ.kaptList || !DJ.kaptList.length) meta += " · K-apt 목록 없음(세대수·지하철 표시 불가)";
+    else if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";
+    document.getElementById("dj-meta").textContent = meta;
     renderDanjiTable();
   }).catch(function (e) {
     alert("조회 실패: " + e.message);
@@ -2048,12 +2066,8 @@ function attachKapt(btn) {
       pre.forEach(function (x) {
         chain = chain.then(function () {
           done++; btn.textContent = "단지정보 조회… (" + done + "/" + pre.length + ")";
-          var n = normName(x.g.apt), hit = null;
-          for (var i = 0; i < DJ.kaptList.length; i++) {
-            var m = normName(DJ.kaptList[i].name);
-            if (m && (m.indexOf(n) >= 0 || n.indexOf(m) >= 0)) { hit = DJ.kaptList[i]; break; }
-          }
-          if (!hit) return null;
+          var hit = matchKapt(DJ.kaptList, x.g.apt, x.g.dong);
+          if (!hit) { DJ.kaptMiss = (DJ.kaptMiss || 0) + 1; return null; }
           return fetch("/api/apt?kind=info&kapt=" + hit.kaptCode)
             .then(function (r) { return r.json(); })
             .then(function (j2) { if (!j2.error) x.g.kapt = j2.info; })
@@ -2064,7 +2078,37 @@ function attachKapt(btn) {
     });
 }
 
-function normName(s) { return String(s).replace(/[\s()\[\]0-9단지차동아파트]/g, "").toLowerCase(); }
+/* 실거래 표기와 K-apt 표기의 차이를 흡수 (예: 향촌롯데 ↔ 향촌마을롯데) */
+function normName(s) {
+  return String(s)
+    .replace(/[\s()\[\]·,.\-]/g, "")
+    .replace(/아파트|주공아파트|마을|타운하우스|단지$/g, "")
+    .toLowerCase();
+}
+/* 두 이름의 유사도 (0~1) — 문자 집합 겹침 + 접두 일치 가산 */
+function nameScore(a, b) {
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  if (a.indexOf(b) >= 0 || b.indexOf(a) >= 0) return 0.95;
+  var setA = {}, common = 0;
+  for (var i = 0; i < a.length; i++) setA[a[i]] = (setA[a[i]] || 0) + 1;
+  for (var j = 0; j < b.length; j++) if (setA[b[j]] > 0) { setA[b[j]]--; common++; }
+  var jac = common / Math.max(a.length, b.length);
+  var pre = 0;
+  while (pre < Math.min(a.length, b.length) && a[pre] === b[pre]) pre++;
+  return jac * 0.75 + Math.min(pre / 4, 1) * 0.25;
+}
+/* 목록에서 가장 잘 맞는 단지 찾기 (동 이름으로 후보 좁힘) */
+function matchKapt(list, apt, dong) {
+  var n = normName(apt), best = null, bestS = 0;
+  list.forEach(function (it) {
+    var s = nameScore(n, normName(it.name));
+    /* 같은 법정동이면 가산점 */
+    if (dong && it.addr && it.addr.indexOf(dong) >= 0) s += 0.12;
+    if (s > bestS) { bestS = s; best = it; }
+  });
+  return bestS >= 0.62 ? best : null;
+}
 
 function subwayMin(k) {
   if (!k) return null;
@@ -2322,7 +2366,10 @@ function renderCartReport() {
           (c.busWay ? " · 버스정류장 " + c.busWay : "") + "</div>");
       if (c.education) env.push('<div class="rowinfo"><b>학군·교육</b> — ' + c.education + "</div>");
       if (c.convenient) env.push('<div class="rowinfo"><b>편의시설</b> — ' + c.convenient + "</div>");
-      if (!env.length) env.push('<div class="rowinfo">주변 환경 정보가 K-apt에 등록돼 있지 않은 단지입니다.</div>');
+      if (!env.length) env.push('<div class="rowinfo" id="env-' + i + '">' +
+        '주변 환경 정보를 아직 못 가져왔습니다. ' +
+        '<a href="#" data-envload="' + i + '">지금 불러오기</a> ' +
+        '<span style="color:var(--ink-soft)">— K-apt에 등록되지 않은 단지일 수도 있습니다.</span></div>');
 
       var bl = [];
       bl.push("<b>" + c.apt + "</b>은 " + (c.regionName || disp(rk || "")) + " " + c.dong + " 소재로, 평당 " +
@@ -2380,6 +2427,44 @@ function renderCartReport() {
         '<div class="need">필요 ' + eok(fin.need) + (jFin ? "<br>전세끼고 " + eok(jFin.need) : "") + "</div>" +
         '<button class="btn sm ghost" data-cdel="' + cart.indexOf(c) + '" style="margin-top:8px">빼기</button></div></div>';
     }).join("");
+  box.querySelectorAll("a[data-envload]").forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      var idx = Number(a.dataset.envload);
+      var c = scored[idx].item;
+      a.textContent = "불러오는 중…";
+      fetch("/api/apt?kind=list&lawd=" + lawdCandidates(c.lawd)[0])
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var hit = matchKapt(j.items || [], c.apt, c.dong);
+          if (!hit) throw new Error("K-apt 목록에서 이 단지를 찾지 못했습니다");
+          return fetch("/api/apt?kind=info&kapt=" + hit.kaptCode).then(function (r2) { return r2.json(); });
+        })
+        .then(function (j2) {
+          if (j2.error) throw new Error(j2.error);
+          var k = j2.info || {};
+          var cart2 = getCart();
+          cart2.forEach(function (x) {
+            if (x.id !== c.id) return;
+            x.households = k.households || x.households;
+            x.parkingTotal = k.parkingTotal || x.parkingTotal;
+            x.builder = k.builder || x.builder;
+            x.dongCnt = k.dongCnt || x.dongCnt;
+            x.heat = k.heat || x.heat; x.hall = k.hall || x.hall;
+            x.subwayLine = k.subwayLine; x.subwayStation = k.subwayStation;
+            x.busWay = k.busWay; x.education = k.education; x.convenient = k.convenient;
+            var mm = String(k.subwayWay || "").match(/(\d+)/);
+            if (mm) x.subwayMin = Number(mm[1]);
+          });
+          setCart(cart2);
+          renderCartReport();
+        })
+        .catch(function (e) {
+          a.parentElement.innerHTML = "주변 환경 정보를 가져오지 못했습니다 — " + e.message +
+            ". K-apt는 의무관리대상 단지만 등록되어 소규모 단지는 정보가 없습니다.";
+        });
+    });
+  });
   box.querySelectorAll("button[data-cdel]").forEach(function (b) {
     b.addEventListener("click", function () { removeFromCart(Number(b.dataset.cdel)); });
   });
@@ -2583,15 +2668,9 @@ function buildQuad(root) {
           '<button data-m="12" class="on">12개월</button><button data-m="24">24개월</button></div></div>' +
         '<div class="field"><label>범위</label><div class="seg" id="qd-scope">' +
           '<button data-s="metro" class="on">수도권</button><button data-s="all">전국</button></div></div>' +
-        '<div class="field full"><label>확대 / 축소 · 이동</label>' +
-          '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
-          '<div class="seg" id="qd-zoom">' +
-            '<button data-z="out">−</button><button data-z="reset" class="on">전체 보기</button>' +
-            '<button data-z="in">＋</button></div>' +
-          '<div class="seg" id="qd-pan" style="display:none">' +
-            '<button data-p="l">◀</button><button data-p="u">▲</button>' +
-            '<button data-p="d">▼</button><button data-p="r">▶</button></div></div>' +
-          '<span class="hint" id="qd-zoomlbl" style="margin-top:4px"></span></div>' +
+      '</div>' +
+      '<p class="hint" id="qd-zoomlbl" style="margin-top:6px"></p>' +
+      '<div style="display:none">' +
       '</div>' +
       '<div class="status" id="qd-kpi" style="margin-top:12px"></div>' +
       '<div class="chartbox" style="height:380px;margin-top:12px"><canvas id="qd-chart"></canvas></div></div>' +
@@ -2600,7 +2679,10 @@ function buildQuad(root) {
       '<button class="btn sm ghost" data-exp="xlsx" data-table="qd-table" data-name="4분면">엑셀 저장</button></div>' +
       '<div class="tblwrap"><table id="qd-table"><thead><tr>' +
       '<th>지역</th><th>매매</th><th>전세</th><th>국면</th><th>㎡당가</th><th>전세가율</th></tr></thead><tbody></tbody></table></div>' +
-      '<div class="note"><b>국면 읽는 법</b> — 동반 상승은 실수요와 기대가 함께 움직이는 가장 건강한 상승입니다. ' +
+      '<div class="note"><b>어떤 인사이트를 얻나</b> — 오른쪽 위(동반 상승)에 몰린 지역이 지금 주도권을 쥔 ' +
+        '곳입니다. 왼쪽 아래에 남은 지역은 아직 순서가 오지 않았거나 수요가 빠진 곳인데, <b>비슷한 급지인데 ' +
+        '한쪽만 오른쪽 위에 있다면</b> 나머지가 다음 오를 곳 후보입니다.<br>' +
+        '<b>국면 읽는 법</b> — 동반 상승은 실수요와 기대가 함께 움직이는 가장 건강한 상승입니다. ' +
         '매매 주도는 기대가 값에 먼저 실린 상태라 갭이 커지고 하방이 얇아집니다. 전세 주도는 사용가치가 먼저 ' +
         '움직이는 국면으로, 갭이 좁혀져 진입이 쉬워집니다.</div></div>';
 
@@ -2618,27 +2700,64 @@ function buildQuad(root) {
       renderQuad();
     });
   });
-  root.querySelectorAll("#qd-zoom button").forEach(function (b) {
-    b.addEventListener("click", function () {
-      if (b.dataset.z === "reset") { QD.zoom = 1; QD.panX = 0; QD.panY = 0; }
-      else if (b.dataset.z === "in") QD.zoom = Math.min(6, QD.zoom * 1.5);
-      else {
-        QD.zoom = Math.max(1, QD.zoom / 1.5);
-        if (QD.zoom === 1) { QD.panX = 0; QD.panY = 0; }
-      }
-      renderQuad();
-    });
+  /* 마우스 휠 = 확대·축소, 드래그 = 이동, 더블클릭 = 전체 보기 */
+  var cv = root.querySelector("#qd-chart");
+  cv.style.cursor = "grab";
+  cv.addEventListener("wheel", function (ev) {
+    ev.preventDefault();
+    var before = QD.zoom;
+    QD.zoom = Math.max(1, Math.min(8, QD.zoom * (ev.deltaY < 0 ? 1.18 : 1 / 1.18)));
+    if (QD.zoom === 1) { QD.panX = 0; QD.panY = 0; }
+    if (QD.zoom !== before) renderQuad();
+  }, { passive: false });
+  var drag = null;
+  cv.addEventListener("mousedown", function (ev) {
+    if (QD.zoom === 1) return;
+    drag = { x: ev.clientX, y: ev.clientY, px: QD.panX, py: QD.panY };
+    cv.style.cursor = "grabbing";
   });
-  root.querySelectorAll("#qd-pan button").forEach(function (b) {
-    b.addEventListener("click", function () {
-      var step = 0.35;   /* 화면 폭의 35%씩 이동 */
-      if (b.dataset.p === "l") QD.panX -= step;
-      if (b.dataset.p === "r") QD.panX += step;
-      if (b.dataset.p === "u") QD.panY += step;
-      if (b.dataset.p === "d") QD.panY -= step;
-      renderQuad();
-    });
+  window.addEventListener("mousemove", function (ev) {
+    if (!drag) return;
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 380;
+    QD.panX = drag.px - (ev.clientX - drag.x) / w * 2;
+    QD.panY = drag.py + (ev.clientY - drag.y) / h * 2;
+    renderQuad();
   });
+  window.addEventListener("mouseup", function () {
+    if (drag) { drag = null; cv.style.cursor = "grab"; }
+  });
+  cv.addEventListener("dblclick", function () {
+    QD.zoom = 1; QD.panX = 0; QD.panY = 0; renderQuad();
+  });
+  /* 모바일: 두 손가락 확대 + 한 손가락 이동 */
+  var touch = null;
+  cv.addEventListener("touchstart", function (ev) {
+    if (ev.touches.length === 2) {
+      var d = Math.hypot(ev.touches[0].clientX - ev.touches[1].clientX,
+                         ev.touches[0].clientY - ev.touches[1].clientY);
+      touch = { mode: "pinch", d: d, z: QD.zoom };
+    } else if (ev.touches.length === 1 && QD.zoom > 1) {
+      touch = { mode: "pan", x: ev.touches[0].clientX, y: ev.touches[0].clientY, px: QD.panX, py: QD.panY };
+    }
+  }, { passive: true });
+  cv.addEventListener("touchmove", function (ev) {
+    if (!touch) return;
+    if (touch.mode === "pinch" && ev.touches.length === 2) {
+      ev.preventDefault();
+      var d = Math.hypot(ev.touches[0].clientX - ev.touches[1].clientX,
+                         ev.touches[0].clientY - ev.touches[1].clientY);
+      QD.zoom = Math.max(1, Math.min(8, touch.z * (d / touch.d)));
+      if (QD.zoom === 1) { QD.panX = 0; QD.panY = 0; }
+      renderQuad();
+    } else if (touch.mode === "pan" && ev.touches.length === 1) {
+      ev.preventDefault();
+      var w2 = cv.clientWidth || 360, h2 = cv.clientHeight || 320;
+      QD.panX = touch.px - (ev.touches[0].clientX - touch.x) / w2 * 2;
+      QD.panY = touch.py + (ev.touches[0].clientY - touch.y) / h2 * 2;
+      renderQuad();
+    }
+  }, { passive: false });
+  cv.addEventListener("touchend", function () { touch = null; }, { passive: true });
 }
 
 function renderQuad() {
@@ -2683,12 +2802,10 @@ function renderQuad() {
   var cx2 = xc + QD.panX * xw * 2, cy2 = yc + QD.panY * yw * 2;
   var xMin = QD.zoom === 1 ? xr[0] : cx2 - xw, xMax = QD.zoom === 1 ? xr[1] : cx2 + xw;
   var yMin = QD.zoom === 1 ? yr[0] : cy2 - yw, yMax = QD.zoom === 1 ? yr[1] : cy2 + yw;
-  var pan = document.getElementById("qd-pan");
-  if (pan) pan.style.display = QD.zoom === 1 ? "none" : "";
   var zl = document.getElementById("qd-zoomlbl");
   if (zl) zl.textContent = QD.zoom === 1
-    ? "전체 " + rows.length + "곳 표시 · ＋를 누르면 중앙 밀집 구간을 확대합니다"
-    : "확대 " + QD.zoom.toFixed(1) + "배 · 화살표로 이동할 수 있습니다";
+    ? "전체 " + rows.length + "곳 · 마우스 휠(모바일은 두 손가락)로 확대할 수 있습니다"
+    : "확대 " + QD.zoom.toFixed(1) + "배 · 끌어서 이동 · 더블클릭하면 전체 보기로 돌아갑니다";
 
   if (chartQuad) chartQuad.destroy();
   chartQuad = new Chart(document.getElementById("qd-chart"), {
@@ -2696,12 +2813,12 @@ function renderQuad() {
     data: { datasets: [{
       data: rows.map(function (r) { return { x: r.s, y: r.j, r: r.rad }; }),
       backgroundColor: rows.map(function (r) {
-        return r.ph.t === "동반 상승" ? cUp + "e6" : (r.ph.t === "매매 주도" ? cDown + "e6" : "#8a94a3e6");
+        return r.ph.t === "동반 상승" ? cUp + "26" : (r.ph.t === "매매 주도" ? cDown + "26" : "#8a94a326");
       }),
       borderColor: rows.map(function (r) {
-        return r.ph.t === "동반 상승" ? cUp : (r.ph.t === "매매 주도" ? cDown : "#6b7684");
+        return r.ph.t === "동반 상승" ? cUp + "99" : (r.ph.t === "매매 주도" ? cDown + "99" : "#8a94a399");
       }),
-      borderWidth: 1.5
+      borderWidth: 1
     }]},
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
@@ -2741,8 +2858,8 @@ function renderQuad() {
         ctx.font = "700 10px Pretendard Variable, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = "#fff";
         rows.forEach(function (r, i) {
+          ctx.fillStyle = r.ph.t === "동반 상승" ? cUp : (r.ph.t === "매매 주도" ? cDown : "#5b6675");
           var el = meta.data[i];
           if (!el) return;
           if (el.x < a2.left - r.rad || el.x > a2.right + r.rad ||
@@ -2789,7 +2906,11 @@ function buildRota(root) {
       '<div class="tblwrap"><table id="rt-table"><thead><tr>' +
       '<th>짝 지역</th><th>㎡당가</th><th>현재 배율</th><th>10년 평균</th><th>변동계수</th><th>밴드</th><th>회귀 여력</th><th>3년 상승률 차</th>' +
       '</tr></thead><tbody></tbody></table></div>' +
-      '<div class="note"><b>읽는 법</b> — 배율이 1이면 두 지역 가격이 똑같다는 뜻이고, 중요한 건 절대값이 아니라 ' +
+      '<div class="note"><b>어떤 인사이트를 얻나</b> — 비슷한 급지는 대체로 같이 움직이는데, 어느 한 곳이 ' +
+        '먼저 오르면 나머지가 뒤따라 <b>갭 메우기</b>를 하는 경향이 있습니다. 이 표는 "먼저 오른 곳"을 ' +
+        '기준으로 두고 평소 같이 가던 짝 중 <b>아직 안 오른 곳</b>을 찾아줍니다. 기회는 한 시점에만 있는 게 ' +
+        '아니라 짝마다 시차를 두고 계속 생기는데, 시기별로 챙겨보지 않으면 모르고 지나칠 뿐입니다.<br>' +
+        '<b>읽는 법</b> — 배율이 1이면 두 지역 가격이 똑같다는 뜻이고, 중요한 건 절대값이 아니라 ' +
         '<b>안정성</b>입니다. 변동계수가 작을수록 "같이 가던 동네"입니다. 밴드 0%는 상대 지역이 역대 가장 뒤처진 ' +
         '상태, 회귀 여력은 배율이 10년 평균으로만 돌아가도 몇 % 오를 여지가 있는지 — 목표가 아니라 <b>가설</b>입니다.</div>' +
       '<div class="note"><b>가장 큰 한계</b> — 격차가 신규 노선·재건축·일자리 유입 때문에 벌어졌다면 그건 ' +
@@ -3150,7 +3271,9 @@ function buildCmpx(root) {
       '<th>단지</th><th>평당가</th><th>매매 중위</th><th>전세</th><th>갭</th><th>기간 상승률</th><th>거래</th></tr></thead><tbody></tbody></table></div>' +
       '<div class="note" id="cx-read"></div></div>' +
     '<div class="card" id="cx-pricecard" style="display:none"><div class="eyebrow">Price</div><h2>매매가 추이</h2>' +
-      '<p class="desc">월별 중위 거래가입니다. 선 사이 간격이 벌어지면 격차 확대, 좁아지면 따라잡는 중입니다.</p>' +
+      '<p class="desc">월별 중위 거래가입니다. 선 사이 간격이 벌어지면 격차 확대, 좁아지면 따라잡는 중입니다. ' +
+        '같은 단지의 59㎡와 84㎡를 함께 놓으면 <b>평형 갈아타기</b> 시점도 보입니다 — 두 선이 붙는 구간이 ' +
+        '적은 돈으로 큰 평형에 올라탈 기회이고, 상급지 아파트와 값이 닿는 순간도 마찬가지입니다.</p>' +
       '<div class="chartbox"><canvas id="cx-price"></canvas></div></div>' +
     '<div class="card" id="cx-multcard" style="display:none"><div class="eyebrow">Timing</div><h2>배율 — A ÷ B</h2>' +
       '<p class="desc">갈아타기 탭의 지역 배율과 같은 개념을 단지 단위로 본 것입니다. 밴드가 낮을수록 B 대비 A가 싼 구간입니다.</p>' +
@@ -4271,6 +4394,9 @@ function buildMarket(root) {
       '<div class="callout warn" id="mk-fallback" style="display:none;margin-top:10px"></div>' +
       '<div class="status" id="mk-kpi" style="margin-top:12px"></div>' +
       '<div class="note" id="mk-read" style="margin-top:10px"></div>' +
+      '<div class="note"><b>연복리를 왜 보나</b> — 10억짜리를 샀는데 연복리 7%라면 <b>매년 평균 7천만원씩</b> ' +
+        '불어난다는 뜻입니다. 10년에 두 배(연복리 7.2%)를 통과선으로 쓰는 이유입니다. 10년 상승률을 단순히 ' +
+        '10으로 나누면 실제보다 부풀려지니 반드시 복리 기준으로 보세요.</div>' +
     '</div>' +
     '<div class="card"><div class="eyebrow">Annual</div><h2>연도별 상승률</h2>' +
       '<p class="desc">막대가 매매, 선이 전세입니다. 청록 막대가 상승, 호박 막대가 하락한 해입니다.</p>' +

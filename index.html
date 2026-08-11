@@ -136,7 +136,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v1.1</span>
+    <span class="ver">v1.2</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
 </header>
@@ -419,6 +419,7 @@ function onDataReady() {
     o.value = k; o.textContent = disp(k);
     sel.appendChild(o);
   });
+  buildLawdMap();
   restoreCond();
 
   var msel = document.getElementById("mk-region");
@@ -868,7 +869,7 @@ function renderGap() {
     b2.addEventListener("click", function () {
       showTab("danji");
       var sel = document.getElementById("dj-region");
-      if (sel && LAWD[b2.dataset.gdj]) sel.value = b2.dataset.gdj;
+      if (sel && LAWD[b2.dataset.gdj]) sel.value = LAWD[b2.dataset.gdj];
     });
   });
 }
@@ -1327,7 +1328,7 @@ function renderReco() {
         if (b.dataset.rc === "danji") {
           showTab("danji");
           var sel = document.getElementById("dj-region");
-          if (sel && LAWD[k2]) sel.value = k2;
+          if (sel && LAWD[k2]) sel.value = LAWD[k2];
         } else if (b.dataset.rc === "map") {
           showTab("mapx"); renderMapx();
           if (COORDS[k2]) showMapDetail(k2);
@@ -1420,18 +1421,7 @@ function buildVol(root) {
   });
 }
 
-function renderVolShell() {
-  if (!DB || !RANKED.length) return;
-  var sel = document.getElementById("vl-region");
-  if (sel && !sel.options.length) {
-    RANKED.forEach(function (k) {
-      if (!LAWD[k]) return;
-      var o = document.createElement("option");
-      o.value = k; o.textContent = disp(k);
-      sel.appendChild(o);
-    });
-  }
-}
+function renderVolShell() { if (DB) fillRegionSelects(["vl-region"]); }
 
 function median(arr) {
   if (!arr.length) return null;
@@ -1442,9 +1432,8 @@ function median(arr) {
 
 function loadVol() {
   var manual = (document.getElementById("vl-lawd").value || "").trim();
-  var regionKey = document.getElementById("vl-region").value;
-  var lawd = /^\d{5}$/.test(manual) ? manual : LAWD[regionKey];
-  if (!lawd) { alert("지역을 선택하거나 5자리 법정동코드를 입력하세요."); return; }
+  var lawd = /^\d{5}$/.test(manual) ? manual : document.getElementById("vl-region").value;
+  if (!lawd) { alert("지역을 선택하세요."); return; }
   VOL.lawd = lawd;
   var btn = document.getElementById("vl-go");
   btn.disabled = true;
@@ -1541,49 +1530,137 @@ function renderVolResult() {
 }
 
 /* ══ 단지 찾기 탭 ═════════════════════════════ */
-/* KB 지역 키 → 법정동 시군구코드(5자리). 신설 구 등 미등록 지역은 직접 입력으로 조회 */
-var LAWD = {
-  "강북14개구|종로구":"11110","강북14개구|중구":"11140","강북14개구|용산구":"11170",
-  "강북14개구|성동구":"11200","강북14개구|광진구":"11215","강북14개구|동대문구":"11230",
-  "강북14개구|중랑구":"11260","강북14개구|성북구":"11290","강북14개구|강북구":"11305",
-  "강북14개구|도봉구":"11320","강북14개구|노원구":"11350","강북14개구|은평구":"11380",
-  "강북14개구|서대문구":"11410","강북14개구|마포구":"11440",
-  "강남11개구|양천구":"11470","강남11개구|강서구":"11500","강남11개구|구로구":"11530",
-  "강남11개구|금천구":"11545","강남11개구|영등포구":"11560","강남11개구|동작구":"11590",
-  "강남11개구|관악구":"11620","강남11개구|서초구":"11650","강남11개구|강남구":"11680",
-  "강남11개구|송파구":"11710","강남11개구|강동구":"11740",
-  "부산광역시|중구":"26110","부산광역시|서구":"26140","부산광역시|동구":"26170",
-  "부산광역시|영도구":"26200","부산광역시|부산진구":"26230","부산광역시|동래구":"26260",
-  "부산광역시|남구":"26290","부산광역시|북구":"26320","부산광역시|해운대구":"26350",
-  "부산광역시|사하구":"26380","부산광역시|금정구":"26410","부산광역시|강서구":"26440",
-  "부산광역시|연제구":"26470","부산광역시|수영구":"26500","부산광역시|사상구":"26530",
-  "부산광역시|기장군":"26710",
-  "대구광역시|중구":"27110","대구광역시|동구":"27140","대구광역시|서구":"27170",
-  "대구광역시|남구":"27200","대구광역시|북구":"27230","대구광역시|수성구":"27260",
-  "대구광역시|달서구":"27290","대구광역시|달성군":"27710",
-  "인천광역시|미추홀구":"28177","인천광역시|연수구":"28185","인천광역시|남동구":"28200",
-  "인천광역시|부평구":"28237","인천광역시|계양구":"28245",
-  "(구)광주광역시|동구":"29110","(구)광주광역시|서구":"29140","(구)광주광역시|남구":"29155",
-  "(구)광주광역시|북구":"29170","(구)광주광역시|광산구":"29200",
-  "대전광역시|동구":"30110","대전광역시|중구":"30140","대전광역시|서구":"30170",
-  "대전광역시|유성구":"30200","대전광역시|대덕구":"30230",
-  "울산광역시|중구":"31110","울산광역시|남구":"31140","울산광역시|동구":"31170",
-  "울산광역시|북구":"31200","울산광역시|울주군":"31710",
-  "세종특별자치시":"36110",
-  "수원시|장안구":"41111","수원시|권선구":"41113","수원시|팔달구":"41115","수원시|영통구":"41117",
-  "성남시|수정구":"41131","성남시|중원구":"41133","성남시|분당구":"41135",
-  "의정부시":"41150","안양시|만안구":"41171","안양시|동안구":"41173",
-  "부천시|원미구":"41192","부천시|소사구":"41194","부천시|오정구":"41196",
-  "광명시":"41210","평택시":"41220","동두천":"41250",
-  "안산시|상록구":"41271","안산시|단원구":"41273",
-  "고양시|덕양구":"41281","고양시|일산동구":"41285","고양시|일산서구":"41287",
-  "과천시":"41290","구리시":"41310","남양주시":"41360","오산시":"41370","시흥시":"41390",
-  "군포시":"41410","의왕시":"41430","하남시":"41450",
-  "용인시|처인구":"41461","용인시|기흥구":"41463","용인시|수지구":"41465",
-  "파주시":"41480","이천시":"41500","안성시":"41550","김포시":"41570",
-  "양주시":"41630","광주시":"41610"
-};
-var DJ = { lawd: "", regionKey: "", months: 3, rows: [], kaptList: null, minCnt: 3, areaFilter: "my" };
+/* 법정동 시군구코드 — 시·도 그룹 구조. 실거래·K-apt 조회의 기준 */
+var LAWD_GROUPS = [
+  { sido: "서울", items: [
+    ["종로구","11110"],["중구","11140"],["용산구","11170"],["성동구","11200"],["광진구","11215"],
+    ["동대문구","11230"],["중랑구","11260"],["성북구","11290"],["강북구","11305"],["도봉구","11320"],
+    ["노원구","11350"],["은평구","11380"],["서대문구","11410"],["마포구","11440"],["양천구","11470"],
+    ["강서구","11500"],["구로구","11530"],["금천구","11545"],["영등포구","11560"],["동작구","11590"],
+    ["관악구","11620"],["서초구","11650"],["강남구","11680"],["송파구","11710"],["강동구","11740"]] },
+  { sido: "경기", items: [
+    ["수원 장안구","41111"],["수원 권선구","41113"],["수원 팔달구","41115"],["수원 영통구","41117"],
+    ["성남 수정구","41131"],["성남 중원구","41133"],["성남 분당구","41135"],["의정부시","41150"],
+    ["안양 만안구","41171"],["안양 동안구","41173"],["부천 원미구","41192"],["부천 소사구","41194"],
+    ["부천 오정구","41196"],["광명시","41210"],["평택시","41220"],["동두천시","41250"],
+    ["안산 상록구","41271"],["안산 단원구","41273"],["고양 덕양구","41281"],["고양 일산동구","41285"],
+    ["고양 일산서구","41287"],["과천시","41290"],["구리시","41310"],["남양주시","41360"],
+    ["오산시","41370"],["시흥시","41390"],["군포시","41410"],["의왕시","41430"],["하남시","41450"],
+    ["용인 처인구","41461"],["용인 기흥구","41463"],["용인 수지구","41465"],["파주시","41480"],
+    ["이천시","41500"],["안성시","41550"],["김포시","41570"],["화성시","41590"],["광주시","41610"],
+    ["양주시","41630"],["포천시","41650"],["여주시","41670"],["연천군","41800"],["가평군","41820"],
+    ["양평군","41830"]] },
+  { sido: "인천", items: [
+    ["중구","28110"],["동구","28140"],["미추홀구","28177"],["연수구","28185"],["남동구","28200"],
+    ["부평구","28237"],["계양구","28245"],["서구","28260"],["강화군","28710"],["옹진군","28720"]] },
+  { sido: "부산", items: [
+    ["중구","26110"],["서구","26140"],["동구","26170"],["영도구","26200"],["부산진구","26230"],
+    ["동래구","26260"],["남구","26290"],["북구","26320"],["해운대구","26350"],["사하구","26380"],
+    ["금정구","26410"],["강서구","26440"],["연제구","26470"],["수영구","26500"],["사상구","26530"],
+    ["기장군","26710"]] },
+  { sido: "대구", items: [
+    ["중구","27110"],["동구","27140"],["서구","27170"],["남구","27200"],["북구","27230"],
+    ["수성구","27260"],["달서구","27290"],["달성군","27710"],["군위군","27720"]] },
+  { sido: "광주", items: [
+    ["동구","29110"],["서구","29140"],["남구","29155"],["북구","29170"],["광산구","29200"]] },
+  { sido: "대전", items: [
+    ["동구","30110"],["중구","30140"],["서구","30170"],["유성구","30200"],["대덕구","30230"]] },
+  { sido: "울산", items: [
+    ["중구","31110"],["남구","31140"],["동구","31170"],["북구","31200"],["울주군","31710"]] },
+  { sido: "세종", items: [["세종시","36110"]] },
+  { sido: "강원", items: [
+    ["춘천시","51110"],["원주시","51130"],["강릉시","51150"],["동해시","51170"],["태백시","51190"],
+    ["속초시","51210"],["삼척시","51230"],["홍천군","51720"],["횡성군","51730"],["영월군","51750"],
+    ["평창군","51760"],["정선군","51770"],["철원군","51780"],["화천군","51790"],["양구군","51800"],
+    ["인제군","51810"],["고성군","51820"],["양양군","51830"]] },
+  { sido: "충북", items: [
+    ["청주 상당구","43111"],["청주 서원구","43112"],["청주 흥덕구","43113"],["청주 청원구","43114"],
+    ["충주시","43130"],["제천시","43150"],["보은군","43720"],["옥천군","43730"],["영동군","43740"],
+    ["증평군","43745"],["진천군","43750"],["괴산군","43760"],["음성군","43770"],["단양군","43800"]] },
+  { sido: "충남", items: [
+    ["천안 동남구","44131"],["천안 서북구","44133"],["공주시","44150"],["보령시","44180"],
+    ["아산시","44200"],["서산시","44210"],["논산시","44230"],["계룡시","44250"],["당진시","44270"],
+    ["금산군","44710"],["부여군","44760"],["서천군","44770"],["청양군","44790"],["홍성군","44800"],
+    ["예산군","44810"],["태안군","44825"]] },
+  { sido: "전북", items: [
+    ["전주 완산구","52111"],["전주 덕진구","52113"],["군산시","52130"],["익산시","52140"],
+    ["정읍시","52180"],["남원시","52190"],["김제시","52210"],["완주군","52710"],["진안군","52720"],
+    ["무주군","52730"],["장수군","52740"],["임실군","52750"],["순창군","52770"],["고창군","52790"],
+    ["부안군","52800"]] },
+  { sido: "전남", items: [
+    ["목포시","46110"],["여수시","46130"],["순천시","46150"],["나주시","46170"],["광양시","46230"],
+    ["담양군","46710"],["곡성군","46720"],["구례군","46730"],["고흥군","46770"],["보성군","46780"],
+    ["화순군","46790"],["장흥군","46800"],["강진군","46810"],["해남군","46820"],["영암군","46830"],
+    ["무안군","46840"],["함평군","46860"],["영광군","46870"],["장성군","46880"],["완도군","46890"],
+    ["진도군","46900"],["신안군","46910"]] },
+  { sido: "경북", items: [
+    ["포항 남구","47111"],["포항 북구","47113"],["경주시","47130"],["김천시","47150"],["안동시","47170"],
+    ["구미시","47190"],["영주시","47210"],["영천시","47230"],["상주시","47250"],["문경시","47280"],
+    ["경산시","47290"],["의성군","47730"],["청송군","47750"],["영양군","47760"],["영덕군","47770"],
+    ["청도군","47820"],["고령군","47830"],["성주군","47840"],["칠곡군","47850"],["예천군","47900"],
+    ["봉화군","47920"],["울진군","47930"],["울릉군","47940"]] },
+  { sido: "경남", items: [
+    ["창원 의창구","48121"],["창원 성산구","48123"],["창원 마산합포구","48125"],["창원 마산회원구","48127"],
+    ["창원 진해구","48129"],["진주시","48170"],["통영시","48220"],["사천시","48240"],["김해시","48250"],
+    ["밀양시","48270"],["거제시","48310"],["양산시","48330"],["의령군","48720"],["함안군","48730"],
+    ["창녕군","48740"],["고성군","48820"],["남해군","48840"],["하동군","48850"],["산청군","48860"],
+    ["함양군","48870"],["거창군","48880"],["합천군","48890"]] },
+  { sido: "제주", items: [["제주시","50110"],["서귀포시","50130"]] }
+];
+
+/* KB 지역키 → 코드 (기존 호출 호환). onDataReady에서 채움 */
+var LAWD = {};
+var NEW_DISTRICT = { "인천광역시|제물포구": "중구", "인천광역시|영종구": "중구",
+  "인천광역시|검단구": "서구", "인천광역시|서해구": "서구" };
+var PARENT_CITY = { "화성시": "경기|화성" };
+var KB_SIDO = { "강북14개구": "서울", "강남11개구": "서울", "부산광역시": "부산", "대구광역시": "대구",
+  "인천광역시": "인천", "(구)광주광역시": "광주", "전남광주통합특별시": "광주", "대전광역시": "대전",
+  "울산광역시": "울산", "세종특별자치시": "세종", "강원특별자치도": "강원", "충청북도": "충북",
+  "충청남도": "충남", "전북특별자치도": "전북", "(구)전라남도": "전남", "경상북도": "경북",
+  "경상남도": "경남", "제주특별자치도": "제주" };
+function buildLawdMap() {
+  var idx = {};
+  function norm(s) { return String(s).replace(/\s/g, "").replace(/시$/, ""); }
+  LAWD_GROUPS.forEach(function (g) {
+    g.items.forEach(function (it) {
+      idx[g.sido + "|" + norm(it[0])] = it[1];
+      var parts = it[0].split(" ");
+      if (parts.length === 2) idx[g.sido + "|" + norm(parts[0] + parts[1])] = it[1];
+    });
+  });
+  LAWD = {};
+  if (!DB) return;
+  Object.keys(DB.salePm.series).forEach(function (k) {
+    var top = k.indexOf("|") >= 0 ? k.split("|")[0] : k;
+    var sub = k.indexOf("|") >= 0 ? k.split("|")[1] : "";
+    var sido = KB_SIDO[top];
+    var cand = [];
+    if (sido && !sub) { cand.push(sido + "|" + norm(sido)); cand.push(sido + "|" + norm(top)); }
+    else if (sido) { cand.push(sido + "|" + norm(sub)); cand.push(sido + "|" + norm(NEW_DISTRICT[k] || "")); }
+    else if (sub) {
+      ["경기", "충북", "충남", "전북", "경북", "경남", "강원"].forEach(function (s) {
+        cand.push(s + "|" + norm(top) + norm(sub));
+        cand.push(s + "|" + norm(sub));
+      });
+    } else {
+      ["경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"].forEach(function (s) {
+        cand.push(s + "|" + norm(top));
+      });
+    }
+    if (sub && PARENT_CITY[top]) cand.push(PARENT_CITY[top]);
+    for (var i = 0; i < cand.length; i++) if (idx[cand[i]]) { LAWD[k] = idx[cand[i]]; return; }
+  });
+}
+/* 평면 조회용 맵 (표시명 → 코드) */
+var LAWD_FLAT = (function () {
+  var o = {};
+  LAWD_GROUPS.forEach(function (g) {
+    g.items.forEach(function (it) { o[g.sido + " " + it[0]] = it[1]; });
+  });
+  return o;
+})();
+var DJ = { lawd: "", regionKey: "", months: 6, rows: [], view: [], kaptList: null,
+           sortKey: "py", sortAsc: false, saleCount: 0, rentCount: 0 };
 var LS_CART = "trackapt_cart_v1";
 
 function getCart() {
@@ -1594,120 +1671,147 @@ function setCart(c) { try { localStorage.setItem(LS_CART, JSON.stringify(c)); } 
 function buildDanji(root) {
   root.innerHTML =
     '<div class="card">' +
-      '<div class="eyebrow">Complex</div><h2>단지 찾기 · 실거래 기반</h2>' +
-      '<p class="desc">국토부 실거래가로 최근 거래를 모아 <b>단지별 평당가 순</b>으로 세우고, ' +
-        'K-apt에서 세대수·주차·시공사를 붙입니다. 마음에 들면 <b>담기</b> — 담은 단지는 아래 장바구니에 모입니다.</p>' +
-      '<div class="grid">' +
-        '<div class="field"><label for="dj-region">지역 (코드 등록된 시·군·구)</label><select id="dj-region"></select></div>' +
-        '<div class="field"><label for="dj-lawd">법정동코드 직접 입력 (5자리 · 선택)</label>' +
-          '<input id="dj-lawd" type="text" inputmode="numeric" maxlength="5" placeholder="신설 구 등 미등록 지역용"></div>' +
-        '<div class="field"><label>조회 기간</label><div class="seg" id="dj-months">' +
-          '<button data-m="3" class="on">3개월</button><button data-m="6">6개월</button>' +
-          '<button data-m="12">12개월</button></div></div>' +
-        '<div class="field"><label>&nbsp;</label><button class="btn" id="dj-go">실거래 불러오기</button></div>' +
+      '<div class="eyebrow">Complex</div><h2>단지 솔팅</h2>' +
+      '<p class="desc">고른 지역 안에서 <b>비싼 단지부터</b> 훑되, 세대수·역세권·연식으로 거릅니다. ' +
+        'K-apt 단지 정보는 불러올 때 상위 단지에 자동으로 붙습니다.</p>' +
+      '<div class="grid3">' +
+        '<div class="field"><label for="dj-region">지역</label><select id="dj-region"></select></div>' +
+        '<div class="field"><label for="dj-months">조회 기간</label><select id="dj-months">' +
+          '<option value="3">최근 3개월</option><option value="6" selected>최근 6개월</option>' +
+          '<option value="12">최근 12개월</option></select></div>' +
+        '<div class="field"><label for="dj-hh">최소 세대수</label><select id="dj-hh">' +
+          '<option value="0" selected>제한 없음</option><option value="300">300세대 이상</option>' +
+          '<option value="500">500세대 이상</option><option value="1000">1,000세대 이상</option></select></div>' +
+        '<div class="field"><label for="dj-sub">지하철 도보</label><select id="dj-sub">' +
+          '<option value="0" selected>제한 없음</option><option value="10">10분 이내</option>' +
+          '<option value="15">15분 이내 (≒1km)</option><option value="20">20분 이내</option></select></div>' +
+        '<div class="field"><label for="dj-age">최대 연식</label><select id="dj-age">' +
+          '<option value="0" selected>제한 없음</option><option value="5">5년 이내</option>' +
+          '<option value="10">10년 이내</option><option value="20">20년 이내</option>' +
+          '<option value="30">30년 이내</option></select></div>' +
+        '<div class="field"><label for="dj-band">평형</label><select id="dj-band">' +
+          '<option value="0">전체 평형</option><option value="36">36㎡대 (20~45)</option>' +
+          '<option value="46">46㎡대 (45~55)</option><option value="59">59㎡대 (55~70)</option>' +
+          '<option value="84" selected>84㎡대 (70~95)</option><option value="101">101㎡대 (95~120)</option></select></div>' +
       '</div>' +
-      '<div id="dj-note" class="hint"></div>' +
-    '</div>' +
-    '<div class="card" id="dj-resultcard" style="display:none">' +
-      '<div class="eyebrow">Result</div><h2>단지 목록 <span class="badge ok" id="dj-count"></span></h2>' +
-      '<div class="grid">' +
-        '<div class="field"><label for="dj-area">면적 필터</label><select id="dj-area">' +
-          '<option value="my">내 기준 면적 ±8㎡</option><option value="all">전체 면적</option></select></div>' +
-        '<div class="field"><label for="dj-mincnt">최소 거래 건수</label><select id="dj-mincnt">' +
-          '<option value="1">1건 이상</option><option value="2">2건 이상</option>' +
-          '<option value="3" selected>3건 이상</option><option value="5">5건 이상</option></select></div>' +
-      '</div>' +
-      '<div class="tblwrap" style="margin-top:10px"><table id="dj-table"><thead><tr>' +
-      '<th>#</th><th>단지</th><th>㎡당가</th><th>평당가</th><th>전세</th><th>갭</th><th>전세가율</th><th>건수</th><th>최근 거래</th><th>연식</th><th></th>' +
-      '</tr></thead><tbody></tbody></table></div>' +
-      '<div class="note">㎡당가는 조회 기간 실거래(해제 제외)의 <b>거래액÷전용면적 평균</b>입니다. ' +
-        '전세는 같은 단지·대표 평형(±8㎡)의 전세 보증금 중위값이고, 갭 = 매매 중위 − 전세 중위입니다. ' +
-        '<b>단지정보</b>를 누르면 K-apt에서 세대수·주차·시공사·지하철을 불러와 행 아래에 표시합니다. ' +
-        '신고 지연·정정으로 실제와 다를 수 있습니다.</div></div>' +
+      '<div class="btnrow"><button class="btn" id="dj-go" style="width:auto">단지 불러오기</button>' +
+        '<button class="btn sm ghost" data-exp="img" data-name="단지솔팅">이미지 저장</button>' +
+        '<button class="btn sm ghost" data-exp="xlsx" data-table="dj-table" data-name="단지솔팅">엑셀 저장</button>' +
+        '<span class="hint" id="dj-meta" style="align-self:center;margin:0"></span></div>' +
+      '<div class="tblwrap" style="margin-top:12px"><table id="dj-table"><thead><tr>' +
+      '<th data-sort="apt">단지 ⇅</th><th data-sort="amt">최근 실거래 ⇅</th><th data-sort="py">평당가 ⇅</th>' +
+      '<th data-sort="hh">세대수 ⇅</th><th data-sort="year">준공 ⇅</th><th data-sort="sub">지하철 ⇅</th>' +
+      '<th data-sort="je">전세 ⇅</th><th data-sort="jr">전세가율 ⇅</th><th data-sort="gap">갭 ⇅</th>' +
+      '<th data-sort="cnt">거래 ⇅</th><th>담기</th></tr></thead><tbody></tbody></table></div>' +
+      '<div class="note"><b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
+        '평당가는 전용면적 기준(거래가 ÷ 전용㎡ × 3.3058)이라 공급면적 평당가보다 25%쯤 높으니 네이버 시세와 ' +
+        '직접 비교하지 마세요. 지하철·세대수는 K-apt 정보이며 미제공 단지는 필터에서 빠집니다.</div></div>' +
     '<div class="card">' +
-      '<div class="eyebrow">Cart</div><h2>장바구니 <span class="badge ok" id="cart-count"></span></h2>' +
-      '<p class="desc">담은 단지를 6개 축(급지·장기성과·수급·타이밍·단지·자금)으로 채점해 등급을 매깁니다.</p>' +
+      '<div class="eyebrow">Cart</div><h2>최종 검토 <span class="badge ok" id="cart-count"></span></h2>' +
+      '<p class="desc">담은 단지를 6개 축으로 채점하고, 단지 정보·주변 환경·자금까지 한 장에 정리합니다.</p>' +
       '<div class="expbar"><button class="btn sm" id="cart-score">채점 보고서 만들기</button>' +
-        '<button class="btn sm ghost" data-exp="img" data-name="단지보고서" id="cart-img" style="display:none">보고서 이미지 저장</button></div>' +
+        '<button class="btn sm ghost" data-exp="img" data-name="단지보고서" id="cart-img" style="display:none">보고서 이미지 저장</button>' +
+        '<button class="btn sm ghost" id="cart-clear">전체 비우기</button></div>' +
       '<div id="cart-report"></div>' +
-      '<div class="tblwrap"><table id="cart-table"><thead><tr>' +
-      '<th>단지</th><th>지역</th><th>㎡당가</th><th>세대수</th><th></th></tr></thead><tbody></tbody></table></div></div>';
+      '<div class="tblwrap" style="margin-top:10px"><table id="cart-table"><thead><tr>' +
+      '<th>단지</th><th>지역</th><th>평당가</th><th>세대수</th><th></th></tr></thead><tbody></tbody></table></div></div>';
 
-  var sel = root.querySelector("#dj-region");
   root.querySelector("#dj-go").addEventListener("click", loadDanji);
-  root.querySelectorAll("#dj-months button").forEach(function (b) {
-    b.addEventListener("click", function () {
-      DJ.months = Number(b.dataset.m);
-      root.querySelectorAll("#dj-months button").forEach(function (x) { x.classList.toggle("on", x === b); });
+  ["dj-hh", "dj-sub", "dj-age", "dj-band"].forEach(function (id) {
+    root.querySelector("#" + id).addEventListener("change", renderDanjiTable);
+  });
+  root.querySelector("#cart-score").addEventListener("click", renderCartReport);
+  root.querySelector("#cart-clear").addEventListener("click", function () {
+    if (!getCart().length) return;
+    setCart([]);
+    document.getElementById("cart-report").innerHTML = "";
+    document.getElementById("cart-img").style.display = "none";
+    renderCart(); renderDanjiTable();
+  });
+  root.querySelectorAll("#dj-table thead th[data-sort]").forEach(function (th) {
+    th.style.cursor = "pointer";
+    th.addEventListener("click", function () {
+      var key = th.dataset.sort;
+      if (DJ.sortKey === key) DJ.sortAsc = !DJ.sortAsc;
+      else { DJ.sortKey = key; DJ.sortAsc = (key === "apt" || key === "year" || key === "sub"); }
+      renderDanjiTable();
     });
   });
-  root.querySelector("#dj-area").addEventListener("change", function () { DJ.areaFilter = this.value; renderDanjiTable(); });
-  root.querySelector("#cart-score").addEventListener("click", renderCartReport);
-  root.querySelector("#dj-mincnt").addEventListener("change", function () { DJ.minCnt = Number(this.value); renderDanjiTable(); });
 }
 
-function renderDanjiShell() {
-  if (!DB || !RANKED.length) return;
-  var sel = document.getElementById("dj-region");
-  if (sel && !sel.options.length) {
-    RANKED.forEach(function (k) {
-      if (!LAWD[k]) return;
-      var o = document.createElement("option");
-      o.value = k; o.textContent = disp(k) + " (" + LAWD[k] + ")";
-      sel.appendChild(o);
+/* 지역 셀렉트: 시·도 그룹(optgroup)으로 접히는 구조. 값은 법정동코드 */
+function fillRegionSelects(ids) {
+  ids.forEach(function (id) {
+    var sel = document.getElementById(id);
+    if (!sel || sel.options.length) return;
+    LAWD_GROUPS.forEach(function (g) {
+      var og = document.createElement("optgroup");
+      og.label = g.sido;
+      g.items.forEach(function (it) {
+        var o = document.createElement("option");
+        o.value = it[1]; o.textContent = it[0];
+        og.appendChild(o);
+      });
+      sel.appendChild(og);
     });
-    var note = document.getElementById("dj-note");
-    var missing = RANKED.filter(function (k) { return !LAWD[k]; });
-    note.textContent = "코드 미등록 지역 " + missing.length + "곳(신설 구·도 단위 등)은 법정동코드를 직접 입력해 조회하세요.";
-  }
+  });
+}
+function renderDanjiShell() {
+  if (!DB) return;
+  fillRegionSelects(["dj-region"]);
   renderCart();
+}
+function lawdName(code) {
+  for (var i = 0; i < LAWD_GROUPS.length; i++) {
+    var g = LAWD_GROUPS[i];
+    for (var j = 0; j < g.items.length; j++) if (g.items[j][1] === code) return g.sido + " " + g.items[j][0];
+  }
+  return code;
+}
+function kbKeyOfLawd(code) {
+  var keys = Object.keys(LAWD);
+  for (var i = 0; i < keys.length; i++) if (LAWD[keys[i]] === code) return keys[i];
+  return "";
 }
 
 function ymList(n) {
   var now = new Date();
   var y = now.getFullYear(), m = now.getMonth() + 1;
   var out = [];
-  for (var i = 0; i < n; i++) {
-    out.push(String(y * 100 + m));
-    m--; if (m === 0) { m = 12; y--; }
-  }
+  for (var i = 0; i < n; i++) { out.push(String(y * 100 + m)); m--; if (m === 0) { m = 12; y--; } }
   return out;
 }
 
 function loadDanji() {
-  var manual = (document.getElementById("dj-lawd").value || "").trim();
-  var regionKey = document.getElementById("dj-region").value;
-  var lawd = /^\d{5}$/.test(manual) ? manual : LAWD[regionKey];
-  if (!lawd) { alert("지역을 선택하거나 5자리 법정동코드를 입력하세요."); return; }
+  var lawd = document.getElementById("dj-region").value;
+  if (!lawd) { alert("지역을 선택하세요."); return; }
   DJ.lawd = lawd;
-  DJ.regionKey = /^\d{5}$/.test(manual) ? "" : regionKey;
+  DJ.regionKey = kbKeyOfLawd(lawd);
+  DJ.months = Number(document.getElementById("dj-months").value);
   DJ.kaptList = null;
   var btn = document.getElementById("dj-go");
-  btn.disabled = true; btn.textContent = "불러오는 중… (0/" + DJ.months + ")";
-  var months = ymList(DJ.months);
+  btn.disabled = true;
   var total = DJ.months * 2, done = 0;
-  function tick() { done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")"; }
+  function tick() { done++; btn.textContent = "실거래 조회… (" + done + "/" + total + ")"; }
+  btn.textContent = "실거래 조회… (0/" + total + ")";
+  var months = ymList(DJ.months);
+
   var saleP = Promise.all(months.map(function (ym) {
     return fetch("/api/trades?kind=sale&lawd=" + lawd + "&ym=" + ym)
       .then(function (r) { return r.json(); })
-      .then(function (j) {
-        tick();
-        if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
-        return j.items || [];
-      });
+      .then(function (j) { tick(); if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : "")); return j.items || []; });
   }));
   var rentP = Promise.all(months.map(function (ym) {
     return fetch("/api/trades?kind=rent&lawd=" + lawd + "&ym=" + ym)
       .then(function (r) { return r.json(); })
       .then(function (j) { tick(); return j.error ? [] : (j.items || []); })
-      .catch(function () { tick(); return []; });   /* 전세 실패해도 매매는 표시 */
+      .catch(function () { tick(); return []; });
   }));
+
   Promise.all([saleP, rentP]).then(function (both) {
-    var lists = both[0];
     var rentAll = [].concat.apply([], both[1]).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; });
-    DJ.rentAll = rentAll;
-    var all = [].concat.apply([], lists).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; });
-    /* 단지(이름+법정동)별 집계 */
+    var all = [].concat.apply([], both[0]).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; });
+    DJ.saleCount = all.length; DJ.rentCount = rentAll.length;
     var byApt = {};
     all.forEach(function (t) {
       var id = t.dong + "|" + t.apt;
@@ -1717,119 +1821,153 @@ function loadDanji() {
     });
     DJ.rows = Object.keys(byApt).map(function (id) {
       var g = byApt[id];
-      var pmVals = g.deals.map(function (t) { return t.amount / t.area; });
-      g.pmAvg = pmVals.reduce(function (a, b) { return a + b; }, 0) / pmVals.length;
       g.cnt = g.deals.length;
       g.areas = g.deals.map(function (t) { return t.area; });
-      var last = g.deals.slice().sort(function (a, b) { return (b.ym * 100 + b.day) - (a.ym * 100 + a.day); })[0];
-      g.last = last;
-      /* 전세 매칭: 같은 동·단지, 대표 면적 ±8㎡의 전세 보증금 중위 */
-      var medArea = median(g.areas);
-      g.amtMed = median(g.deals.filter(function (t) { return Math.abs(t.area - medArea) <= 8; })
-                        .map(function (t) { return t.amount; }));
-      var jv = rentAll.filter(function (t) {
-        return t.dong === g.dong && t.apt === g.apt && Math.abs(t.area - medArea) <= 8;
-      }).map(function (t) { return t.deposit; });
-      g.jeonse = median(jv);
-      g.jCnt = jv.length;
-      g.gap = (g.amtMed != null && g.jeonse != null) ? g.amtMed - g.jeonse : null;
-      g.jr = (g.amtMed && g.jeonse) ? g.jeonse / g.amtMed * 100 : null;
+      g.last = g.deals.slice().sort(function (a, b) { return (b.ym * 100 + b.day) - (a.ym * 100 + a.day); })[0];
+      g.rentDeals = rentAll.filter(function (t) { return t.dong === g.dong && t.apt === g.apt; });
       return g;
-    }).sort(function (a, b) { return b.pmAvg - a.pmAvg; });
-    document.getElementById("dj-resultcard").style.display = "";
+    });
+    return attachKapt(btn);
+  }).then(function () {
+    document.getElementById("dj-meta").textContent =
+      DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
     renderDanjiTable();
   }).catch(function (e) {
-    alert("실거래 조회 실패: " + e.message + "\n\nVercel 환경변수 MOLIT_API_KEY가 설정돼 있는지, /api/trades가 배포됐는지 확인하세요.");
+    alert("조회 실패: " + e.message);
   }).finally(function () {
-    btn.disabled = false; btn.textContent = "실거래 불러오기";
+    btn.disabled = false; btn.textContent = "단지 불러오기";
   });
+}
+
+/* K-apt 목록 1회 + 평당가 상위 단지 상세 순차 조회 */
+function attachKapt(btn) {
+  var band = Number(document.getElementById("dj-band").value) || 0;
+  var pre = DJ.rows.map(function (g) {
+    var deals = band ? g.deals.filter(function (t) { return inBand(t.area, band); }) : g.deals;
+    var pmv = deals.length ? median(deals.map(function (t) { return t.amount / t.area; })) : 0;
+    return { g: g, pm: pmv };
+  }).filter(function (x) { return x.pm > 0; })
+    .sort(function (a, b) { return b.pm - a.pm; }).slice(0, 40);
+
+  return fetch("/api/apt?kind=list&lawd=" + DJ.lawd)
+    .then(function (r) { return r.json(); })
+    .then(function (j) { DJ.kaptList = j.error ? [] : (j.items || []); })
+    .catch(function () { DJ.kaptList = []; })
+    .then(function () {
+      var chain = Promise.resolve(), done = 0;
+      pre.forEach(function (x) {
+        chain = chain.then(function () {
+          done++; btn.textContent = "단지정보 조회… (" + done + "/" + pre.length + ")";
+          var n = normName(x.g.apt), hit = null;
+          for (var i = 0; i < DJ.kaptList.length; i++) {
+            var m = normName(DJ.kaptList[i].name);
+            if (m && (m.indexOf(n) >= 0 || n.indexOf(m) >= 0)) { hit = DJ.kaptList[i]; break; }
+          }
+          if (!hit) return null;
+          return fetch("/api/apt?kind=info&kapt=" + hit.kaptCode)
+            .then(function (r) { return r.json(); })
+            .then(function (j2) { if (!j2.error) x.g.kapt = j2.info; })
+            .catch(function () {});
+        });
+      });
+      return chain;
+    });
+}
+
+function normName(s) { return String(s).replace(/[\s()\[\]0-9단지차동아파트]/g, "").toLowerCase(); }
+
+function subwayMin(k) {
+  if (!k) return null;
+  var m = String(k.subwayWay || "").match(/(\d+)/);
+  return m ? Number(m[1]) : null;
 }
 
 function renderDanjiTable() {
-  var cond = getCond();
-  var rows = DJ.rows.filter(function (g) { return g.cnt >= DJ.minCnt; });
-  if (DJ.areaFilter === "my") {
-    rows = rows.filter(function (g) {
-      return g.areas.some(function (a) { return Math.abs(a - cond.area) <= 8; });
-    });
-  }
-  document.getElementById("dj-count").textContent = rows.length + "단지";
+  if (!DJ.rows.length) return;
+  var band = Number(document.getElementById("dj-band").value) || 0;
+  var minHH = Number(document.getElementById("dj-hh").value) || 0;
+  var maxSub = Number(document.getElementById("dj-sub").value) || 0;
+  var maxAge = Number(document.getElementById("dj-age").value) || 0;
+  var thisYear = new Date().getFullYear();
+
+  var rows = DJ.rows.map(function (g) {
+    var deals = band ? g.deals.filter(function (t) { return inBand(t.area, band); }) : g.deals;
+    if (!deals.length) return null;
+    var r = { g: g, apt: g.apt, dong: g.dong, cnt: deals.length, year: g.buildYear || null };
+    r.pm = median(deals.map(function (t) { return t.amount / t.area; }));
+    r.py = r.pm * 3.3058;
+    r.amt = median(deals.map(function (t) { return t.amount; }));
+    r.last = deals.slice().sort(function (a, b) { return (b.ym * 100 + b.day) - (a.ym * 100 + a.day); })[0];
+    var jd = band ? g.rentDeals.filter(function (t) { return inBand(t.area, band); }) : g.rentDeals;
+    r.je = jd.length ? median(jd.map(function (t) { return t.deposit; })) : null;
+    r.jr = r.je != null ? r.je / r.amt * 100 : null;
+    r.gap = r.je != null ? r.amt - r.je : null;
+    r.hh = g.kapt ? g.kapt.households : null;
+    r.sub = subwayMin(g.kapt);
+    r.builder = g.kapt ? g.kapt.builder : null;
+    r.parking = (g.kapt && g.kapt.parkingTotal) ? g.kapt.parkingTotal : null;
+    return r;
+  }).filter(Boolean).filter(function (r) {
+    if (minHH && (r.hh == null || r.hh < minHH)) return false;
+    if (maxSub && (r.sub == null || r.sub > maxSub)) return false;
+    if (maxAge && (r.year == null || thisYear - r.year > maxAge)) return false;
+    return true;
+  });
+
+  var key = DJ.sortKey || "py", asc = !!DJ.sortAsc;
+  rows.sort(function (a, b) {
+    if (key === "apt") return asc ? a.apt.localeCompare(b.apt) : b.apt.localeCompare(a.apt);
+    var x = a[key], y = b[key];
+    if (x == null) return 1;
+    if (y == null) return -1;
+    return asc ? x - y : y - x;
+  });
+  DJ.view = rows;
+
   var cart = getCart();
   var tb = document.querySelector("#dj-table tbody");
-  tb.innerHTML = rows.map(function (g, i) {
-    var inCart = cart.some(function (c) { return c.id === DJ.lawd + "|" + g.id; });
-    return '<tr data-id="' + g.id + '"><td>' + (i + 1) + "</td>" +
-      "<td><b>" + g.apt + "</b> <span style='color:var(--ink-soft);font-size:.76rem'>" + g.dong + "</span>" +
-        '<div class="rowinfo" id="ki-' + i + '" style="display:none"></div></td>' +
-      "<td><b>" + fmt(g.pmAvg) + "</b></td>" +
-      "<td>" + fmt(g.pmAvg * 3.3058) + "</td>" +
-      "<td>" + (g.jeonse != null ? eok(g.jeonse) : "—") + "</td>" +
-      "<td>" + (g.gap != null ? "<b>" + eok(g.gap) + "</b>" : "—") + "</td>" +
-      '<td class="' + (g.jr != null && g.jr >= 70 ? "up" : "") + '">' + (g.jr != null ? g.jr.toFixed(0) + "%" : "—") + "</td>" +
-      "<td>" + g.cnt + "</td>" +
-      "<td>" + String(g.last.ym).slice(0, 4) + "." + (g.last.ym % 100) + " · " + eok(g.last.amount) + " · " + g.last.floor + "층</td>" +
-      "<td>" + (g.buildYear || "—") + "</td>" +
-      '<td style="white-space:nowrap"><button class="btn sm ghost" data-act="info" data-i="' + i + '">단지정보</button> ' +
-        '<button class="btn sm" data-act="cart" data-i="' + i + '"' + (inCart ? " disabled" : "") + ">" +
-        (inCart ? "담김" : "담기") + "</button></td></tr>";
-  }).join("");
-  tb.querySelectorAll("button").forEach(function (b) {
-    b.addEventListener("click", function () {
-      var g = rows[Number(b.dataset.i)];
-      if (b.dataset.act === "info") loadKaptInfo(g, Number(b.dataset.i));
-      else addToCart(g, b);
-    });
+  tb.innerHTML = rows.map(function (r, i) {
+    var cid = DJ.lawd + "|" + r.g.id;
+    var inCart = cart.some(function (c) { return c.id === cid; });
+    var age = r.year ? thisYear - r.year : null;
+    return "<tr><td><b>" + r.apt + "</b>" +
+        (r.hh != null && r.hh >= 1000 ? ' <span class="tagmini ok">대단지</span>' : "") +
+        " <span style='color:var(--ink-soft);font-size:.74rem'>" + r.dong + "</span></td>" +
+      "<td>" + eok(r.amt) + "</td>" +
+      "<td><b>" + fmt(r.py) + "</b></td>" +
+      "<td>" + (r.hh != null ? fmt(r.hh) : "—") + "</td>" +
+      "<td>" + (r.year ? r.year + " (" + age + "년)" : "—") + "</td>" +
+      "<td>" + (r.sub != null ? "도보 " + r.sub + "분" : "—") + "</td>" +
+      "<td>" + (r.je != null ? eok(r.je) : "—") + "</td>" +
+      '<td class="' + (r.jr != null && r.jr >= 70 ? "up" : "") + '">' + (r.jr != null ? r.jr.toFixed(1) + "%" : "—") + "</td>" +
+      "<td>" + (r.gap != null ? eok(r.gap) : "—") + "</td>" +
+      "<td>" + r.cnt + "건</td>" +
+      '<td><button class="btn sm" data-djc="' + i + '"' + (inCart ? " disabled>담김" : ">담기") + "</button></td></tr>";
+  }).join("") || '<tr><td colspan="11" style="color:var(--miss)">조건에 맞는 단지가 없습니다. 세대수·지하철·연식 조건을 완화해보세요.</td></tr>';
+
+  tb.querySelectorAll("button[data-djc]").forEach(function (b) {
+    b.addEventListener("click", function () { addToCart(DJ.view[Number(b.dataset.djc)], b); });
   });
 }
 
-/* K-apt 매칭: 이름 정규화 후 목록에서 검색 */
-function normName(s) { return String(s).replace(/[\s()\[\]0-9단지차동아파트]/g, "").toLowerCase(); }
-function loadKaptInfo(g, i) {
-  var box = document.getElementById("ki-" + i);
-  box.style.display = ""; box.textContent = "K-apt 조회 중…";
-  var listP = DJ.kaptList
-    ? Promise.resolve(DJ.kaptList)
-    : fetch("/api/apt?kind=list&lawd=" + DJ.lawd).then(function (r) { return r.json(); })
-        .then(function (j) { if (j.error) throw new Error(j.error); DJ.kaptList = j.items || []; return DJ.kaptList; });
-  listP.then(function (list) {
-    var n = normName(g.apt);
-    var hit = null;
-    for (var x = 0; x < list.length; x++) {
-      var m = normName(list[x].name);
-      if (m && (m.indexOf(n) >= 0 || n.indexOf(m) >= 0)) { hit = list[x]; break; }
-    }
-    if (!hit) { box.textContent = "K-apt 목록에서 같은 이름을 찾지 못했습니다 (오피스텔·나홀로 단지는 미등록일 수 있음)."; return null; }
-    return fetch("/api/apt?kind=info&kapt=" + hit.kaptCode).then(function (r) { return r.json(); });
-  }).then(function (j) {
-    if (!j) return;
-    if (j.error) throw new Error(j.error);
-    var inf = j.info;
-    g.kapt = inf;
-    var parts = [];
-    if (inf.households) parts.push("세대수 <b>" + fmt(inf.households) + "</b>" + (inf.households >= 500 ? " ✓" : ""));
-    if (inf.parkingTotal) parts.push("주차 " + fmt(inf.parkingTotal) + "대" +
-      (inf.households ? " (세대당 " + (inf.parkingTotal / inf.households).toFixed(2) + ")" : ""));
-    if (inf.builder) parts.push("시공 " + inf.builder);
-    if (inf.useDate) parts.push("승인 " + String(inf.useDate).slice(0, 4) + "." + String(inf.useDate).slice(4, 6));
-    if (inf.subwayLine || inf.subwayStation) parts.push("지하철 " + [inf.subwayLine, inf.subwayStation].filter(Boolean).join(" "));
-    if (inf.heat) parts.push(inf.heat);
-    box.innerHTML = parts.length ? parts.join(" · ") : "상세 정보 없음";
-  }).catch(function (e) { box.textContent = "K-apt 조회 실패: " + e.message; });
-}
-
-function addToCart(g, btn) {
+function addToCart(r, btn) {
   var cart = getCart();
-  var id = DJ.lawd + "|" + g.id;
+  var id = DJ.lawd + "|" + r.g.id;
   if (cart.some(function (c) { return c.id === id; })) return;
+  var k = r.g.kapt || {};
   cart.push({
-    id: id, lawd: DJ.lawd, regionKey: DJ.regionKey, apt: g.apt, dong: g.dong,
-    pmAvg: Math.round(g.pmAvg), cnt: g.cnt, buildYear: g.buildYear,
-    jeonse: g.jeonse != null ? Math.round(g.jeonse) : null,
-    gap: g.gap != null ? Math.round(g.gap) : null,
-    households: g.kapt ? g.kapt.households : null,
-    parkingTotal: g.kapt ? g.kapt.parkingTotal : null,
-    builder: g.kapt ? g.kapt.builder : null,
-    lastAmount: g.last.amount, lastYm: g.last.ym
+    id: id, lawd: DJ.lawd, regionKey: DJ.regionKey, regionName: lawdName(DJ.lawd),
+    apt: r.apt, dong: r.dong, pmAvg: Math.round(r.pm), py: Math.round(r.py),
+    amt: Math.round(r.amt), cnt: r.cnt, buildYear: r.year,
+    jeonse: r.je != null ? Math.round(r.je) : null,
+    gap: r.gap != null ? Math.round(r.gap) : null,
+    jr: r.jr != null ? Math.round(r.jr * 10) / 10 : null,
+    households: r.hh, parkingTotal: r.parking, builder: r.builder,
+    subwayMin: r.sub, subwayLine: k.subwayLine || null, subwayStation: k.subwayStation || null,
+    busWay: k.busWay || null, education: k.education || null, convenient: k.convenient || null,
+    heat: k.heat || null, hall: k.hall || null, dongCnt: k.dongCnt || null,
+    lastAmount: r.last ? r.last.amount : null, lastYm: r.last ? r.last.ym : null,
+    lastFloor: r.last ? r.last.floor : null
   });
   setCart(cart);
   btn.disabled = true; btn.textContent = "담김";
@@ -1843,19 +1981,16 @@ function renderCart() {
   var tb = document.querySelector("#cart-table tbody");
   if (!tb) return;
   tb.innerHTML = cart.length ? cart.map(function (c, i) {
-    return "<tr><td><b>" + c.apt + "</b> <span style='color:var(--ink-soft);font-size:.76rem'>" + c.dong + "</span></td>" +
-      "<td>" + (c.regionKey ? disp(c.regionKey) : c.lawd) + "</td>" +
-      "<td>" + fmt(c.pmAvg) + "</td>" +
+    return "<tr><td><b>" + c.apt + "</b> <span style='color:var(--ink-soft);font-size:.74rem'>" + c.dong + "</span></td>" +
+      "<td>" + (c.regionName || (c.regionKey ? disp(c.regionKey) : c.lawd)) + "</td>" +
+      "<td>" + fmt(c.py || c.pmAvg * 3.3058) + "</td>" +
       "<td>" + (c.households ? fmt(c.households) : "—") + "</td>" +
-      '<td><button class="btn sm ghost" data-i="' + i + '">빼기</button></td></tr>';
+      '<td><button class="btn sm ghost" data-ci="' + i + '">빼기</button></td></tr>';
   }).join("") : '<tr><td colspan="5" style="color:var(--miss)">아직 담은 단지가 없습니다.</td></tr>';
-  tb.querySelectorAll("button").forEach(function (b) {
+  tb.querySelectorAll("button[data-ci]").forEach(function (b) {
     b.addEventListener("click", function () {
-      var cart2 = getCart();
-      cart2.splice(Number(b.dataset.i), 1);
-      setCart(cart2);
-      renderCart();
-      renderDanjiTable();
+      var c2 = getCart(); c2.splice(Number(b.dataset.ci), 1); setCart(c2);
+      renderCart(); renderDanjiTable();
     });
   });
 }
@@ -1943,7 +2078,7 @@ var AXIS_NAME = { rank: "급지", perf: "장기성과", supply: "수급", timing
 function renderCartReport() {
   var cart = getCart();
   var box = document.getElementById("cart-report");
-  if (!cart.length) { box.innerHTML = '<div class="callout warn">담은 단지가 없습니다. 단지 목록에서 먼저 담아주세요.</div>'; return; }
+  if (!cart.length) { box.innerHTML = '<div class="callout warn">담은 단지가 없습니다. 위 표에서 먼저 담아주세요.</div>'; return; }
   var cond = getCond();
   var homePmArr = (cond.own !== "none" && cond.home && DB.salePm.series[cond.home])
     ? pmSeries("salePm", cond.home) : null;
@@ -1952,31 +2087,95 @@ function renderCartReport() {
     s.item = c; return s;
   }).sort(function (a, b) { return b.total - a.total; });
 
+  var thisYear = new Date().getFullYear();
+  function axRow(name, v, sub) {
+    return '<div class="axis"><span class="axname">' + name + '</span>' +
+      '<div class="axtrack"><div class="axfill" style="width:' + v.toFixed(0) + '%"></div></div>' +
+      "<b>" + v.toFixed(0) + "</b>" + (sub ? "<small>" + sub + "</small>" : "") + "</div>";
+  }
+  function kv(k, v) { return v ? '<span class="chip">' + k + " <b>" + v + "</b></span>" : ""; }
+
   box.innerHTML =
-    '<div class="callout">채점 기준 — 급지 25 · 장기성과 20 · 타이밍 15 · 수급 10 · 단지 15 · 자금 15. ' +
-      '내 조건: 현금 ' + (cond.cash > 0 ? eok(cond.cash) : "미입력") + " · " + cond.area + "㎡</div>" +
+    '<div class="callout">채점 기준 — 급지 25 · 장기성과 20 · 진입 타이밍 15 · 수급 10 · 단지 경쟁력 15 · 자금 적합성 15. ' +
+      "내 조건: 현금 " + (cond.cash > 0 ? eok(cond.cash) : "미입력") + " · " + cond.area + "㎡ · " +
+      { none: "무주택", switch: "갈아타기", add: "추가매수", multi: "다주택" }[cond.own] + "</div>" +
     scored.map(function (s, i) {
       var c = s.item;
-      return '<div class="reco' + (i === 0 ? " best" : "") + '">' +
+      var age = c.buildYear ? thisYear - c.buildYear : null;
+      var parkRatio = (c.parkingTotal && c.households) ? (c.parkingTotal / c.households) : null;
+      var rk = c.regionKey;
+      var price = c.amt || c.pmAvg * cond.area;
+      var pmRegion = (rk && DB.salePm.series[rk]) ? lastVal("salePm", rk) : null;
+      var vsRegion = (pmRegion && c.pmAvg) ? (c.pmAvg / pmRegion - 1) * 100 : null;
+      var r10 = rk ? idxChange("sale", ik(rk), 120) : null;
+      var fin = finance(rk || "", price, cond);
+      var jFin = rk ? financeJeonse(rk, price, cond) : null;
+      var dist = (cond.home && rk) ? distKm(cond.home, rk) : null;
+
+      var env = [];
+      if (c.subwayLine || c.subwayStation || c.subwayMin != null)
+        env.push('<div class="rowinfo"><b>대중교통</b> — ' +
+          [c.subwayLine, c.subwayStation].filter(Boolean).join(" ") +
+          (c.subwayMin != null ? " 도보 " + c.subwayMin + "분" : "") +
+          (c.busWay ? " · 버스정류장 " + c.busWay : "") + "</div>");
+      if (c.education) env.push('<div class="rowinfo"><b>학군·교육</b> — ' + c.education + "</div>");
+      if (c.convenient) env.push('<div class="rowinfo"><b>편의시설</b> — ' + c.convenient + "</div>");
+      if (!env.length) env.push('<div class="rowinfo">주변 환경 정보가 K-apt에 등록돼 있지 않은 단지입니다.</div>');
+
+      var bl = [];
+      bl.push("<b>" + c.apt + "</b>은 " + (c.regionName || disp(rk || "")) + " " + c.dong + " 소재로, 평당 " +
+        fmt(c.py || c.pmAvg * 3.3058) + "만원 · 매매 중위 " + eok(price) +
+        (vsRegion != null ? " — 지역 평균 대비 <b>" + pct(vsRegion, 0) + "</b>" : "") + "입니다.");
+      if (c.households) bl.push("단지 규모 " + fmt(c.households) + "세대" +
+        (c.dongCnt ? " · " + c.dongCnt + "개 동" : "") +
+        (parkRatio ? " · 세대당 주차 " + parkRatio.toFixed(2) + "대" + (parkRatio >= 1.2 ? " (여유)" : (parkRatio < 0.7 ? " (부족)" : "")) : "") +
+        (c.builder ? " · 시공 " + c.builder : "") + ".");
+      if (age != null) bl.push("준공 " + c.buildYear + "년(" + age + "년차)" +
+        (age <= 10 ? " — 신축 프리미엄 구간입니다." : (age >= 30 ? " — 재건축 기대를 함께 보는 구간입니다." : " — 중간 연식입니다.")));
+      if (c.jr != null) bl.push("전세 " + eok(c.jeonse) + " · 전세가율 " + c.jr + "% · 갭 <b>" + eok(c.gap) + "</b>" +
+        (jFin ? " — 전세 끼고 매수 시 필요현금 " + eok(jFin.need) : (rk && isRegulated(rk) ? " — 규제지역이라 실거주 의무로 전세 승계는 막힙니다" : "")) + ".");
+      bl.push("대출 매수 시 " + fin.tag + " 기준 대출 " + eok(fin.loan) + " · 필요현금 <b>" + eok(fin.need) + "</b>" +
+        (cond.cash > 0 ? (fin.need <= cond.cash ? " <b>(실행 가능)</b>" : " (부족 " + eok(fin.need - cond.cash) + ")") : "") + ".");
+      if (r10 != null) bl.push("지역 10년 상승률 " + pct(r10, 1) +
+        (r10 >= 100 ? " — 통과선(100%)을 넘겼습니다." : " — 통과선 100%에 미달합니다.") +
+        (dist != null ? " 내 지역에서 " + dist + "km." : ""));
+      bl.push("가장 약한 축은 <b>" + AXIS_NAME[s.weakest] + "</b>입니다 — " +
+        (s.weakest === "cash" ? "자금이 병목이니 평형을 낮추거나 전세 승계를 검토하세요."
+         : s.weakest === "danji" ? "단지 규모·주차·연식이 약하거나 정보가 부족합니다. 같은 지역 다른 단지와 비교해보세요."
+         : s.weakest === "timing" ? "지금이 역대 대비 유리한 진입 시점은 아닙니다. 갭투자·갈아타기 탭에서 밴드를 확인하세요."
+         : s.weakest === "perf" ? "지역의 장기 성과가 통과선에 못 미칩니다. 급지가 더 높은 대안을 추천 탭에서 찾아보세요."
+         : "이 축이 강한 대안을 추천 탭에서 비교해보세요."));
+
+      return '<div class="reco' + (i === 0 ? " best" : "") + '" style="flex-wrap:wrap">' +
         '<div class="grade ' + s.grade + '">' + s.grade + "</div>" +
-        '<div class="body"><div class="name">' + c.apt +
-          ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">' +
-          (c.regionKey ? disp(c.regionKey) : c.lawd) + " " + c.dong + " · ㎡당 " + fmt(c.pmAvg) + "만원</span></div>" +
-        '<div class="chips">' +
-          Object.keys(CART_W).map(function (k) {
-            return '<span class="chip">' + AXIS_NAME[k] + ' <b>' + s.axes[k].toFixed(0) + "</b>" +
-              (s.notes[k] ? " (" + s.notes[k] + ")" : "") + "</span>";
-          }).join("") +
-        "</div>" +
-        '<div class="rowinfo">약한 축: <b>' + AXIS_NAME[s.weakest] + "</b>" +
-          (s.weakest === "cash" && cond.cash > 0 && s.fin.need > cond.cash
-            ? " — 부족액 " + eok(s.fin.need - cond.cash) + ". 평형을 낮추거나 갭투자 탭에서 전세 낀 매수를 검토하세요."
-            : (s.weakest === "danji" && c.households == null
-              ? " — K-apt 정보를 불러오면 점수가 정확해집니다."
-              : " — 같은 예산이면 이 축이 강한 대안을 추천 탭에서 찾아보세요.")) + "</div>" +
+        '<div class="body">' +
+          '<div class="name">' + c.apt +
+            ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">' +
+            (c.regionName || disp(rk || c.lawd)) + " " + c.dong +
+            (c.buildYear ? " · " + c.buildYear + "년" : "") + (c.households ? " · " + fmt(c.households) + "세대" : "") + "</span></div>" +
+          '<div class="chips" style="margin:6px 0">' +
+            kv("평당", fmt(c.py || c.pmAvg * 3.3058) + "만") +
+            kv("매매", eok(price)) +
+            kv("전세", c.jeonse != null ? eok(c.jeonse) : "") +
+            kv("전세가율", c.jr != null ? c.jr + "%" : "") +
+            kv("갭", c.gap != null ? eok(c.gap) : "") +
+            kv("지하철", c.subwayMin != null ? "도보 " + c.subwayMin + "분" : "") +
+            kv("주차", parkRatio ? parkRatio.toFixed(2) + "대/세대" : "") +
+            kv("난방", c.heat) + kv("구조", c.hall) +
+          "</div>" +
+          axRow("급지", s.axes.rank, s.notes.rank) +
+          axRow("성과", s.axes.perf, s.notes.perf) +
+          axRow("타이밍", s.axes.timing, s.notes.timing) +
+          axRow("수급", s.axes.supply, "") +
+          axRow("단지", s.axes.danji, "") +
+          axRow("자금", s.axes.cash, s.notes.cash) +
+          env.join("") +
+          '<div class="rowinfo" style="margin-top:8px"><b>검토 메모</b>' +
+            "<ul style='margin:6px 0 0 16px;line-height:1.7'>" +
+            bl.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul></div>" +
         "</div>" +
         '<div class="money"><div class="score">' + s.total.toFixed(1) + "</div>" +
-        '<div class="need">' + eok(s.price) + " · 필요 " + eok(s.fin.need) + "</div></div></div>";
+        '<div class="need">필요 ' + eok(fin.need) + (jFin ? "<br>전세끼고 " + eok(jFin.need) : "") + "</div></div></div>";
     }).join("");
   document.getElementById("cart-img").style.display = "";
 }
@@ -2300,23 +2499,12 @@ function buildFlag(root) {
   root.querySelector("#fg-go").addEventListener("click", loadFlag);
 }
 
-function renderFlagShell() {
-  if (!DB || !RANKED.length) return;
-  var sel = document.getElementById("fg-region");
-  if (sel && !sel.options.length) {
-    RANKED.forEach(function (k) {
-      if (!LAWD[k]) return;
-      var o = document.createElement("option");
-      o.value = k; o.textContent = disp(k);
-      sel.appendChild(o);
-    });
-  }
-}
+function renderFlagShell() { if (DB) fillRegionSelects(["fg-region"]); }
 
 function loadFlag() {
   var regions = FG.scope === "one"
     ? [document.getElementById("fg-region").value]
-    : RANKED.filter(function (k) { return LAWD[k]; }).slice(0, FG.scope);
+    : RANKED.filter(function (k) { return LAWD[k]; }).slice(0, FG.scope).map(function (k) { return LAWD[k]; });
   var btn = document.getElementById("fg-go");
   btn.disabled = true;
   var total = regions.length * 12, done = 0;
@@ -2328,7 +2516,7 @@ function loadFlag() {
   var chain = Promise.resolve();
   regions.forEach(function (rk) {
     chain = chain.then(function () {
-      return fetchMonths(LAWD[rk], 6, tick).then(function (data) {
+      return fetchMonths(rk, 6, tick).then(function (data) {
         var byApt = {};
         data.sale.forEach(function (m) {
           m.deals.forEach(function (t) {
@@ -2377,10 +2565,10 @@ function renderFlagTable() {
   var rowsHtml = FG.results.map(function (r) {
     return r.apts.map(function (g, i) {
       nApts++;
-      var cid = LAWD[r.region] + "|" + g.dong + "|" + g.apt;
+      var cid = r.region + "|" + g.dong + "|" + g.apt;
       var inCart = cart.some(function (c) { return c.id === cid; });
       return '<tr class="' + (i === 0 ? "hit" : "") + '">' +
-        "<td>" + (i === 0 ? (isRegulated(r.region) ? "⛔ " : "") + disp(r.region) : "") + (i === 0 ? "" : "&nbsp;&nbsp;└ " + (i + 1) + "위") + "</td>" +
+        "<td>" + (i === 0 ? lawdName(r.region) : "") + (i === 0 ? "" : "&nbsp;&nbsp;└ " + (i + 1) + "위") + "</td>" +
         "<td><b>" + g.apt + "</b> <span style='color:var(--ink-soft);font-size:.74rem'>" + g.dong + "</span></td>" +
         "<td><b>" + eok(g.med) + "</b></td>" +
         "<td>" + eok(g.max) + "</td>" +
@@ -2404,11 +2592,13 @@ function renderFlagTable() {
       var r = FG.results.filter(function (x) { return x.region === rk; })[0];
       var g = r.apts.filter(function (x) { return x.dong === dong && x.apt === apt; })[0];
       var cart2 = getCart();
-      var cid = LAWD[rk] + "|" + dong + "|" + apt;
+      var cid = rk + "|" + dong + "|" + apt;
       if (cart2.some(function (c) { return c.id === cid; })) return;
       cart2.push({
-        id: cid, lawd: LAWD[rk], regionKey: rk, apt: apt, dong: dong,
-        pmAvg: Math.round(g.med / g.areaMed), cnt: g.cnt, buildYear: g.buildYear,
+        id: cid, lawd: rk, regionKey: kbKeyOfLawd(rk), regionName: lawdName(rk), apt: apt, dong: dong,
+        pmAvg: Math.round(g.med / g.areaMed), py: Math.round(g.med / g.areaMed * 3.3058),
+        amt: Math.round(g.med), jr: g.jr != null ? Math.round(g.jr * 10) / 10 : null,
+        cnt: g.cnt, buildYear: g.buildYear,
         jeonse: g.jeonse != null ? Math.round(g.jeonse) : null,
         gap: g.gap != null ? Math.round(g.gap) : null,
         households: null, parkingTotal: null, builder: null,
@@ -2488,18 +2678,11 @@ function buildCmpx(root) {
 }
 
 function renderCmpxShell() {
-  if (!DB || !RANKED.length) return;
+  if (!DB) return;
+  fillRegionSelects(["cx-r0", "cx-r1", "cx-r2"]);
   [0, 1, 2].forEach(function (i) {
     var sel = document.getElementById("cx-r" + i);
-    if (sel && !sel.options.length) {
-      RANKED.forEach(function (k) {
-        if (!LAWD[k]) return;
-        var o = document.createElement("option");
-        o.value = k; o.textContent = disp(k);
-        sel.appendChild(o);
-      });
-      CMP.slots[i].region = sel.value;
-    }
+    if (sel) CMP.slots[i].region = sel.value;
   });
 }
 
@@ -2510,7 +2693,7 @@ function loadCmpSlot(i) {
   var btn = document.getElementById("cx-load" + i);
   btn.disabled = true;
   var total = 48, done = 0;
-  fetchMonths(LAWD[s.region], 24, function () {
+  fetchMonths(s.region, 24, function () {
     done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")";
   }).then(function (data) {
     s.data = data;
@@ -2554,7 +2737,7 @@ function cmpSeries(s) {
   var p = s.apt.split("|");
   var saleArr = monthlyMedian(s.data.sale, p[1], p[0], s.band, "amount");
   var rentArr = monthlyMedian(s.data.rent, p[1], p[0], s.band, "deposit");
-  return { name: disp(s.region) + " " + p[1] + " " + s.band + "㎡대", sale: saleArr, rent: rentArr,
+  return { name: lawdName(s.region) + " " + p[1] + " " + s.band + "㎡대", sale: saleArr, rent: rentArr,
            labels: s.data.months.map(function (ym) { return ym.slice(0, 4) + "." + Number(ym.slice(4)); }) };
 }
 
@@ -2898,7 +3081,7 @@ function showMapDetail(k) {
   el.querySelector("#mx-todanji").addEventListener("click", function () {
     showTab("danji");
     var sel = document.getElementById("dj-region");
-    if (sel && LAWD[k]) sel.value = k;
+    if (sel && LAWD[k]) sel.value = LAWD[k];
   });
   if (el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -3060,19 +3243,10 @@ function buildBtest(root) {
 }
 
 function renderBtestShell() {
-  if (!DB || !RANKED.length) return;
-  ["bt-a", "bt-b"].forEach(function (id, i) {
-    var sel = document.getElementById(id);
-    if (sel && !sel.options.length) {
-      RANKED.forEach(function (k) {
-        if (!LAWD[k]) return;
-        var o = document.createElement("option");
-        o.value = k; o.textContent = disp(k);
-        sel.appendChild(o);
-      });
-      sel.selectedIndex = i === 0 ? 0 : Math.min(20, sel.options.length - 1);
-    }
-  });
+  if (!DB) return;
+  fillRegionSelects(["bt-a", "bt-b"]);
+  var b = document.getElementById("bt-b");
+  if (b && b.selectedIndex === 0 && b.options.length > 25) b.selectedIndex = 25;
 }
 
 function ymShift(ym, n) {
@@ -3131,10 +3305,10 @@ function runBtest() {
   tick(); done = 0; btn.textContent = "검증 중… (0/" + total + ")";
 
   Promise.all([
-    fetchOldQuarter(LAWD[BT.a], oldYms, tick),
-    fetchOldQuarter(LAWD[BT.b], oldYms, tick),
-    fetchMonths(LAWD[BT.a], 6, tick),
-    fetchMonths(LAWD[BT.b], 6, tick)
+    fetchOldQuarter(BT.a, oldYms, tick),
+    fetchOldQuarter(BT.b, oldYms, tick),
+    fetchMonths(BT.a, 6, tick),
+    fetchMonths(BT.b, 6, tick)
   ]).then(function (res) {
     var out = [];
     [[BT.a, res[0], res[2]], [BT.b, res[1], res[3]]].forEach(function (trio) {
@@ -3177,7 +3351,7 @@ function renderBtestResult(oldYms) {
   var out = BT.out;
   document.getElementById("bt-resultcard").style.display = "";
   document.querySelector("#bt-table tbody").innerHTML = out.map(function (g) {
-    var name = disp(g.region) + " " + g.tier + (g.tier === "대장" ? " (상위 20%)" : " (40~60%)");
+    var name = lawdName(g.region) + " " + g.tier + (g.tier === "대장" ? " (상위 20%)" : " (40~60%)");
     if (!g.cnt) return "<tr><td>" + name + '</td><td colspan="4" style="color:var(--miss)">표본 없음</td></tr>';
     return '<tr class="' + (g.tier === "중간" && g.region === BT.a ? "hit" : "") + '"><td>' + name + "</td>" +
       "<td>" + g.cnt + "곳</td>" +
@@ -3191,8 +3365,8 @@ function renderBtestResult(oldYms) {
   var v = document.getElementById("bt-verdict");
   if (aMid && bTop) {
     var diff = aMid.rise - bTop.rise;
-    v.innerHTML = "핵심 비교 — <b>" + disp(BT.a) + " 중간 " + pct(aMid.rise, 1) + "</b> vs <b>" +
-      disp(BT.b) + " 대장 " + pct(bTop.rise, 1) + "</b> (" + oldYms[0].slice(0, 4) + "년 → 현재). " +
+    v.innerHTML = "핵심 비교 — <b>" + lawdName(BT.a) + " 중간 " + pct(aMid.rise, 1) + "</b> vs <b>" +
+      lawdName(BT.b) + " 대장 " + pct(bTop.rise, 1) + "</b> (" + oldYms[0].slice(0, 4) + "년 → 현재). " +
       (diff > 3 ? "이 구간에서는 <b>상급지 중간 물건이 앞섰습니다</b> (" + pct(diff, 1) + "p). 당시 가격대가 비슷했다면 급지를 올리는 선택이 나았다는 뜻입니다."
         : diff < -3 ? "이 구간에서는 <b>중급지 대장이 앞섰습니다</b> (" + pct(-diff, 1) + "p). 급지 원칙의 예외 구간이니 왜 그랬는지(신축 공급·호재) 확인해볼 가치가 있습니다."
         : "두 선택의 차이가 " + pct(diff, 1) + "p로 크지 않았습니다. 이 조합에서는 급지보다 단지 선택이 결과를 갈랐습니다.");

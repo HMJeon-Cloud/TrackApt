@@ -160,7 +160,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v1.9</span>
+    <span class="ver">v2.0</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2575,7 +2575,8 @@ function buildQuad(root) {
       '<div class="eyebrow">Quadrant</div><h2>매매 · 전세 4분면</h2>' +
       '<p class="desc">가로가 매매, 세로가 전세 변화율입니다. 두 축의 조합이 그 지역의 국면을 말해줍니다 — ' +
         '<b>전세가 함께 오르는 상승</b>은 실수요가 받치는 국면이고, 매매만 오르면 기대가 앞서 갭이 벌어지는 국면입니다. ' +
-        '원이 클수록 ㎡당가가 비쌉니다.</p>' +
+        '원 색은 국면입니다 — 청록은 동반 상승, 주황은 매매 주도, 회색은 그 밖입니다. ' +
+        '원을 누르면 상세 수치가 나옵니다.</p>' +
       '<div class="grid">' +
         '<div class="field"><label>기간</label><div class="seg" id="qd-months">' +
           '<button data-m="3">3개월</button><button data-m="6">6개월</button>' +
@@ -2661,7 +2662,13 @@ function renderQuad() {
 
   var css = getComputedStyle(document.documentElement);
   var cUp = css.getPropertyValue("--up").trim(), cDown = css.getPropertyValue("--down").trim();
-  var pmMax = Math.max.apply(null, rows.map(function (r) { return r.pm; }));
+  /* 원 크기를 지역명이 들어갈 만큼 잡는다 (텍스트 폭 기준) */
+  var mctx = document.getElementById("qd-chart").getContext("2d");
+  mctx.font = "700 10px Pretendard Variable, sans-serif";
+  rows.forEach(function (r) {
+    r.label = disp(r.key).split(" ").pop();
+    r.rad = Math.max(15, mctx.measureText(r.label).width / 2 + 7);
+  });
 
   /* 확대: 데이터 밀집 중심(중앙값)을 기준으로 범위를 좁힌다 */
   var xs = rows.map(function (r) { return r.s; }), ys = rows.map(function (r) { return r.j; });
@@ -2687,10 +2694,14 @@ function renderQuad() {
   chartQuad = new Chart(document.getElementById("qd-chart"), {
     type: "bubble",
     data: { datasets: [{
-      data: rows.map(function (r) { return { x: r.s, y: r.j, r: 4 + Math.sqrt(r.pm / pmMax) * 14 }; }),
+      data: rows.map(function (r) { return { x: r.s, y: r.j, r: r.rad }; }),
       backgroundColor: rows.map(function (r) {
-        return r.ph.t === "동반 상승" ? cUp + "b3" : (r.ph.t === "매매 주도" ? cDown + "b3" : "#9aa4b099");
-      })
+        return r.ph.t === "동반 상승" ? cUp + "e6" : (r.ph.t === "매매 주도" ? cDown + "e6" : "#8a94a3e6");
+      }),
+      borderColor: rows.map(function (r) {
+        return r.ph.t === "동반 상승" ? cUp : (r.ph.t === "매매 주도" ? cDown : "#6b7684");
+      }),
+      borderWidth: 1.5
     }]},
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
@@ -2723,40 +2734,20 @@ function renderQuad() {
         ctx.textAlign = "left";  ctx.fillText("동반 하락", a.left + 6, a.bottom - 6);
         ctx.restore();
       },
-      /* 지역명 상시 표시 — 겹치면 생략 */
+      /* 원 안에 지역명 */
       afterDatasetsDraw: function (ch) {
-        var meta = ch.getDatasetMeta(0), ctx = ch.ctx, placed = [];
+        var meta = ch.getDatasetMeta(0), ctx = ch.ctx, a2 = ch.chartArea;
         ctx.save();
-        ctx.font = "600 10px Pretendard Variable, sans-serif";
+        ctx.font = "700 10px Pretendard Variable, sans-serif";
         ctx.textAlign = "center";
-        var order = rows.map(function (r, i) { return i; })
-          .sort(function (a, b) { return rows[b].pm - rows[a].pm; });   /* 비싼 지역 우선 */
-        order.forEach(function (i) {
-          var el = meta.data[i]; if (!el) return;
-          var name = disp(rows[i].key).split(" ").pop();
-          var w = ctx.measureText(name).width;
-          var a2 = ch.chartArea;
-          if (el.x < a2.left || el.x > a2.right || el.y < a2.top || el.y > a2.bottom) return;
-          var x = Math.min(Math.max(el.x, a2.left + w / 2 + 3), a2.right - w / 2 - 3);
-          var y = el.y - (el.options ? el.options.radius : 8) - 3;
-          if (y - 10 < a2.top) y = el.y + (el.options ? el.options.radius : 8) + 11;   /* 위가 좁으면 아래로 */
-          var box = { l: x - w / 2 - 2, r: x + w / 2 + 2, t: y - 10, b: y + 2 };
-          var hit = placed.some(function (p) {
-            return !(box.r < p.l || box.l > p.r || box.b < p.t || box.t > p.b);
-          });
-          if (hit) return;
-          placed.push(box);
-          /* 알약형 타원 배경 + 흰 글씨 */
-          var bg = rows[i].ph.t === "동반 상승" ? cUp : (rows[i].ph.t === "매매 주도" ? cDown : "#8a94a3");
-          var rw = w / 2 + 7, rh = 8.5, cy3 = y - 3.5;
-          ctx.beginPath();
-          ctx.ellipse(x, cy3, rw, rh, 0, 0, Math.PI * 2);
-          ctx.fillStyle = bg;
-          ctx.globalAlpha = 0.92;
-          ctx.fill();
-          ctx.globalAlpha = 1;
-          ctx.fillStyle = "#fff";
-          ctx.fillText(name, x, y);
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#fff";
+        rows.forEach(function (r, i) {
+          var el = meta.data[i];
+          if (!el) return;
+          if (el.x < a2.left - r.rad || el.x > a2.right + r.rad ||
+              el.y < a2.top - r.rad || el.y > a2.bottom + r.rad) return;
+          ctx.fillText(r.label, el.x, el.y);
         });
         ctx.restore();
       }
@@ -3415,16 +3406,31 @@ var COORDS = {
   "안동시":[36.5680,128.7290],"경주시":[35.8560,129.2250],"진주시":[35.1800,128.1080],
   "거제시":[34.8800,128.6210],"통영시":[34.8540,128.4330],"목포":[34.8118,126.3920]
 };
+/* ──────────────────────────────────────────────────────────
+   카카오맵 JavaScript 키 — 여기에 넣으면 앱에서 입력할 필요가 없습니다.
+   예) var KAKAO_JS_KEY = "0123456789abcdef0123456789abcdef";
+   JS 키는 공개되어도 카카오 콘솔의 플랫폼(Web) 도메인 제한으로 보호되므로
+   소스에 넣어도 됩니다. 반드시 배포 도메인을 콘솔에 등록하세요.
+   ────────────────────────────────────────────────────────── */
+var KAKAO_JS_KEY = "2d591b6ef9c70f94f369b7c55c91baa3";
+
 var MAPX = { scope: "metro", metric: "price", map: null, overlays: [], sdkLoaded: false };
 var LS_KAKAO = "trackapt_kakao_key";
+/* 소스 상수 > 브라우저 저장값 순으로 사용 */
+function kakaoKey() {
+  if (KAKAO_JS_KEY) return KAKAO_JS_KEY;
+  try { return localStorage.getItem(LS_KAKAO) || ""; } catch (e) { return ""; }
+}
 
 function buildMapx(root) {
   root.innerHTML =
     '<div class="card" id="mx-keycard">' +
       '<div class="eyebrow">Setup</div><h2>카카오맵 키 설정</h2>' +
       '<p class="desc">지도를 쓰려면 카카오 디벨로퍼스의 <b>JavaScript 키</b>가 필요합니다. ' +
-        '키는 이 브라우저에만 저장됩니다. 카카오 콘솔 → 내 애플리케이션 → 플랫폼 → Web에 ' +
-        '<b>이 사이트의 Vercel 주소</b>가 등록돼 있어야 지도가 뜹니다 (미등록이면 회색 화면).</p>' +
+        '아래에 넣으면 이 브라우저에만 저장되고, <b>매번 안 넣으려면 index.html 상단의 ' +
+        '<code>KAKAO_JS_KEY</code></b> 값에 직접 적어두면 됩니다. 어느 쪽이든 카카오 콘솔 → ' +
+        '내 애플리케이션 → 플랫폼 → Web에 <b>배포 주소</b>가 등록돼 있어야 지도가 뜹니다 ' +
+        '(미등록이면 회색 화면). JS 키는 도메인 제한으로 보호되므로 소스에 넣어도 안전합니다.</p>' +
       '<div class="grid"><div class="field full"><label for="mx-key">JavaScript 키</label>' +
         '<input id="mx-key" type="text" placeholder="예: 0123abcd..."></div></div>' +
       '<div class="btnrow"><button class="btn" id="mx-keysave">저장하고 지도 열기</button></div></div>' +
@@ -3499,8 +3505,7 @@ function mapPinData(scope) {
 }
 
 function kakaoReady(cb) {
-  var key = null;
-  try { key = localStorage.getItem(LS_KAKAO); } catch (e) {}
+  var key = kakaoKey();
   if (!key) return false;
   if (window.kakao && window.kakao.maps && MAPX.sdkLoaded) { cb(); return true; }
   var s = document.createElement("script");
@@ -3514,8 +3519,7 @@ function kakaoReady(cb) {
 }
 
 function renderMapx() {
-  var key = null;
-  try { key = localStorage.getItem(LS_KAKAO); } catch (e) {}
+  var key = kakaoKey();
   if (!key) {
     document.getElementById("mx-keycard").style.display = "";
     document.getElementById("mx-mapcard").style.display = "none";
@@ -3523,6 +3527,8 @@ function renderMapx() {
   }
   document.getElementById("mx-keycard").style.display = "none";
   document.getElementById("mx-mapcard").style.display = "";
+  var kr = document.getElementById("mx-keyreset");
+  if (kr) kr.parentElement.style.display = KAKAO_JS_KEY ? "none" : "";
   kakaoReady(function () {
     if (!MAPX.map) {
       MAPX.map = new kakao.maps.Map(document.getElementById("mx-map"),

@@ -147,6 +147,11 @@ tr:last-child td{border-bottom:0}
 .tagmini{display:inline-block;font-size:.66rem;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:4px;vertical-align:1px}
 .tagmini.ok{background:rgba(47,191,155,.14);color:var(--up)} .tagmini.no{background:var(--chip);color:var(--miss)}
 .tagmini.gold{background:rgba(212,175,106,.16);color:var(--brand)}
+.tagmini.reg{background:rgba(224,140,58,.16);color:var(--down);border:1px solid rgba(224,140,58,.35)}
+.tagmini.me{background:var(--gold-grad);color:var(--brand-ink);font-weight:800}
+.rgn.mine{color:var(--brand);font-weight:800}
+tr.mine td{background:rgba(212,175,106,.10)!important;
+  box-shadow:inset 3px 0 0 var(--brand)}
 .grade{font-size:1.5rem;font-weight:800;min-width:44px;text-align:center;border-radius:10px;padding:6px 0}
 .grade.A{background:rgba(47,191,155,.14);color:var(--up)} .grade.B{background:rgba(212,175,106,.14);color:var(--brand)}
 .grade.C{background:rgba(224,140,58,.14);color:var(--down)} .grade.D{background:var(--chip);color:var(--miss)}
@@ -180,7 +185,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v2.6</span>
+    <span class="ver">v2.7</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -712,11 +717,14 @@ function renderRank() {
   chartRank = new Chart(canvas, {
     type: "bar",
     data: {
-      labels: rows.map(function (r) { return (r.reg ? "⛔" : "") + disp(r.key); }),
+      labels: rows.map(function (r) { return regionLabel(r.key); }),
       datasets: [{
         label: "필요현금",
         data: rows.map(function (r) { return r.need; }),
-        backgroundColor: rows.map(function (r) { return (cash > 0 && r.need <= cash) ? cUp : cMiss; }),
+        backgroundColor: rows.map(function (r) {
+          if (isMine(r.key)) return getComputedStyle(document.documentElement).getPropertyValue("--brand").trim();
+          return (cash > 0 && r.need <= cash) ? cUp : cMiss;
+        }),
         borderRadius: 2, barThickness: 12
       }]
     },
@@ -738,11 +746,12 @@ function renderRank() {
   });
 
   /* 급지표 표 */
+  var condRk = getCond();
   var tb = document.querySelector("#rk-table tbody");
   tb.innerHTML = rows.map(function (r) {
     var hit = cash > 0 && r.need <= cash;
-    return '<tr class="' + (hit ? "hit" : "") + '"><td>' + r.rank + "</td>" +
-      "<td>" + (r.reg ? "⛔ " : "") + disp(r.key) + "</td>" +
+    return '<tr class="' + (hit ? "hit " : "") + (isMine(r.key) ? "mine" : "") + '"><td>' + r.rank + "</td>" +
+      "<td>" + regionCell(r.key) + "</td>" +
       "<td>" + fmt(r.pm) + "</td>" +
       "<td>" + eok(r.price) + "</td>" +
       "<td>" + (r.loan > 0 ? eok(r.loan) : "—") + "</td>" +
@@ -991,8 +1000,8 @@ function renderGap() {
     var t = tagOf(b, false);
     var hit = cash > 0 && need != null && need <= cash;
     var barCell = (b && b.count >= 24) ? bandBar(b.pctile, false) : t.t;
-    return '<tr class="' + (hit ? "hit" : "") + '"><td>' + (i + 1) + "</td>" +
-      "<td>" + (isRegulated(key) ? "⛔ " : "") + disp(key) + "</td>" +
+    return '<tr class="' + (hit ? "hit " : "") + (isMine(key) ? "mine" : "") + '"><td>' + (i + 1) + "</td>" +
+      "<td>" + regionCell(key) + "</td>" +
       "<td>" + (b ? b.cur.toFixed(1) + "%" : "—") + "</td>" +
       "<td>" + barCell + "</td>" +
       "<td>" + (g != null ? eok(g) : "—") + "</td>" +
@@ -1167,8 +1176,9 @@ function renderMove() {
       : b.pctile >= 90 ? '<span class="down">역대 최고권</span>'
       : b.pctile >= 70 ? '<span class="down">상단</span>' : '<span class="flat">중립</span>';
     var barCell = (b && b.count >= 24) ? bandBar(b.pctile, true) : "—";
-    return '<tr class="' + (b && b.count >= 24 && b.pctile <= 25 ? "hit" : "") + '"><td>' + (RANKED.indexOf(key) + 1) + "</td>" +
-      "<td>" + (isRegulated(key) ? "⛔ " : "") + disp(key) + "</td>" +
+    return '<tr class="' + (b && b.count >= 24 && b.pctile <= 25 ? "hit " : "") + (isMine(key) ? "mine" : "") +
+      '"><td>' + (RANKED.indexOf(key) + 1) + "</td>" +
+      "<td>" + regionCell(key) + "</td>" +
       "<td>" + (b ? b.cur.toFixed(2) + "x" : "—") + "</td>" +
       "<td>" + (b ? b.med.toFixed(2) + "x" : "—") + "</td>" +
       "<td>" + barCell + "</td>" +
@@ -1470,7 +1480,7 @@ function renderReco() {
                    ["타이밍", r.timingNote], ["필요현금", eok(r.fin.need)]]);
       return '<div class="reco' + (i === 0 ? " best" : "") + '" style="flex-wrap:wrap">' +
         '<div class="no">' + (i + 1) + "</div>" +
-        '<div class="body"><div class="name">' + (r.fin.reg ? "⛔ " : "") + disp(r.key) +
+        '<div class="body"><div class="name">' + regionCell(r.key) +
           ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">서열 ' + r.rank + "위 · " + fmt(r.pm) + "만/㎡" +
           (r.dist != null ? " · 내 지역에서 " + r.dist + "km" : "") + (isRegulated(r.key) ? " · 규제지역" : "") + "</span></div>" +
         '<div class="rowinfo" style="margin:4px 0 6px">' + r.fin.modeName + " · 필요현금 <b>" + eok(r.fin.need) + "</b>" +
@@ -1529,8 +1539,8 @@ function renderReco() {
   var tb = document.querySelector("#rc-table tbody");
   tb.innerHTML = list.map(function (r, i) {
     var hit = cond.cash > 0 && r.fin.need <= cond.cash;
-    return '<tr class="' + (hit ? "hit" : "") + '"><td>' + (i + 1) + "</td>" +
-      "<td>" + (r.fin.reg ? "⛔ " : "") + disp(r.key) + "</td>" +
+    return '<tr class="' + (hit ? "hit " : "") + (isMine(r.key) ? "mine" : "") + '"><td>' + (i + 1) + "</td>" +
+      "<td>" + regionCell(r.key) + "</td>" +
       "<td><b>" + r.total.toFixed(1) + "</b></td>" +
       "<td>" + r.s.rank.toFixed(0) + "</td>" +
       "<td>" + r.s.perf.toFixed(0) + "</td>" +
@@ -1854,6 +1864,26 @@ function inSubDistrict(dong, list) {
   return false;
 }
 
+/* 표·차트에 쓰는 지역명 — 규제 배지와 "내 지역" 배지를 함께 붙인다 */
+function isMine(k) {
+  var c = getCond();
+  return !!(c.home && k === c.home);
+}
+function regionCell(k, opt) {
+  opt = opt || {};
+  var cond = getCond();
+  var mine = cond.home && k === cond.home;
+  return '<span class="rgn' + (mine ? " mine" : "") + '">' +
+    (isRegulated(k) ? '<span class="tagmini reg">규제</span> ' : "") +
+    (opt.short ? kbLabel(k) : disp(k)) +
+    (mine ? ' <span class="tagmini me">내 지역</span>' : "") + "</span>";
+}
+/* 차트 축 라벨용 (HTML 불가) */
+function regionLabel(k) {
+  var cond = getCond();
+  return (isRegulated(k) ? "[규제] " : "") + disp(k) + (cond.home && k === cond.home ? " ★내 지역" : "");
+}
+
 /* 내 거주 지역을 목록에서 강조 (★ + 골드). 조건이 바뀌면 다시 호출 */
 function refreshHomeMarks() {
   var cond = getCond();
@@ -1878,11 +1908,7 @@ function refreshHomeMarks() {
         isHome = codeCount[homeCode] === 1 || o.textContent === homeLabel ||
                  o.textContent.indexOf(homeLabel) >= 0;
       }
-      if (isHome) {
-        o.dataset.orig = o.textContent;
-        o.textContent = "★ " + o.textContent + " (내 지역)";
-        o.style.cssText = "color:var(--brand);font-weight:700";
-      }
+      if (isHome) o.style.cssText = "color:var(--brand);font-weight:700";
     });
   });
   /* 대장 아파트 체크 목록 */
@@ -3139,7 +3165,7 @@ function renderQuad() {
 
   var tb = document.querySelector("#qd-table tbody");
   tb.innerHTML = rows.slice().sort(function (a, b) { return b.s - a.s; }).map(function (r) {
-    return "<tr><td>" + (isRegulated(r.key) ? "⛔ " : "") + disp(r.key) + "</td>" +
+    return "<tr><td>" + regionCell(r.key) + "</td>" +
       '<td class="' + cls(r.s) + '">' + pct(r.s) + "</td>" +
       '<td class="' + cls(r.j) + '">' + pct(r.j) + "</td>" +
       '<td class="' + r.ph.c + '">' + r.ph.t + "</td>" +
@@ -3233,7 +3259,8 @@ function renderRota() {
 
   var tb = document.querySelector("#rt-table tbody");
   tb.innerHTML = out.map(function (r) {
-    return '<tr class="' + (r.band <= 10 ? "hit" : "") + '"><td>' + (isRegulated(r.key) ? "⛔ " : "") + disp(r.key) + "</td>" +
+    return '<tr class="' + (r.band <= 10 ? "hit " : "") + (isMine(r.key) ? "mine" : "") + '"><td>' +
+      regionCell(r.key) + "</td>" +
       "<td>" + fmt(r.pm) + "</td>" +
       "<td>" + r.cur.toFixed(3) + "</td>" +
       "<td>" + r.mean.toFixed(3) + "</td>" +

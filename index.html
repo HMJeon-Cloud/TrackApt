@@ -66,6 +66,11 @@ section.tab{display:none} section.tab.on{display:block}
 .gstep .no{font-size:1.2rem;font-weight:800;color:var(--brand);min-width:26px;text-align:center}
 .gstep .t{font-weight:800;font-size:.92rem}
 .gstep .d{font-size:.8rem;color:var(--ink-soft);margin-top:2px;line-height:1.5}
+.stepbar{display:flex;align-items:center;gap:8px;background:#eef4f5;border:1px solid var(--line);
+  border-left:4px solid var(--brand);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.82rem}
+.stepbar .lbl{font-weight:700;color:var(--brand);flex:1;min-width:0}
+.stepbar .lbl small{display:block;color:var(--ink-soft);font-weight:600;font-size:.74rem;margin-top:1px}
+.stepbar button{flex:none}
 .picker{border:1px solid var(--line);border-radius:10px;max-height:300px;overflow-y:auto;background:#fff}
 .pgroup{border-bottom:1px solid var(--line)}
 .pgroup:last-child{border-bottom:0}
@@ -155,7 +160,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v1.5</span>
+    <span class="ver">v1.6</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
   <nav id="subnav" aria-label="하위 메뉴"></nav>
@@ -218,8 +223,8 @@ var RULES = JSON.parse(JSON.stringify(DEFAULT_RULES));
 
 var GROUPS = [
   { id: "g1", name: "시작하기", tabs: [
-    { id: "reco",    name: "추천 받기",   build: buildReco },
     { id: "start",   name: "내 조건",     build: buildStart },
+    { id: "reco",    name: "추천 받기",   build: buildReco },
     { id: "guide",   name: "사용법",      build: buildGuide } ] },
   { id: "g2", name: "시장 공부", tabs: [
     { id: "market",  name: "시장 흐름",   build: buildMarket },
@@ -249,6 +254,7 @@ var CURGROUP = "g1";
 
 document.addEventListener("DOMContentLoaded", function () {
   loadRules();
+  restoreTour();
   var nav = document.getElementById("nav");
   var sub = document.getElementById("subnav");
   var main = document.getElementById("main");
@@ -274,7 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
     else s.innerHTML = '<div class="placeholder">「' + t.name + '」 화면은 다음 버전에서 구현됩니다.</div>';
   });
 
-  showTab("reco");
+  showTab("start");
   loadData();
 });
 
@@ -316,6 +322,7 @@ function showTab(id) {
   if (id === "mapx") renderMapx();
   if (id === "btest") renderBtestShell();
   if (id === "cart") renderCart();
+  renderStepBar();
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */
@@ -3782,51 +3789,140 @@ function renderCalc() {
 }
 
 /* ══ 사용법 탭 ═══════════════════════════════ */
+/* 안내 경로: 무주택 / 유주택 두 갈래 */
+var TOURS = {
+  none: { name: "무주택 · 첫 집", steps: [
+    { go: "start", t: "내 조건 넣기",
+      d: "현금·거주 지역·평형·소득·이동 가능 범위를 넣습니다. 이 값이 모든 탭의 계산에 그대로 쓰입니다." },
+    { go: "rank", t: "내 서열 확인하기",
+      d: "필요현금 사다리에서 주황 점선(내 현금)에 닿는 가장 위쪽 지역을 봅니다. 그게 지금 내 자리입니다." },
+    { go: "reco", t: "추천 받기",
+      d: "5개 축 채점으로 후보를 좁힙니다. 서열순 1위와 점수순 1위가 다르면 그 차이가 곧 타이밍 정보입니다." },
+    { go: "gap", t: "못 닿으면 전세 끼고",
+      d: "예산이 모자라면 전세를 승계해 갭만으로 들어가는 길을 봅니다. 전세가율 밴드가 높을수록 부담이 적습니다." },
+    { go: "danji", t: "아파트까지 내려가기",
+      d: "고른 지역의 실거래를 불러와 세대수·역세권·연식으로 거르고, 마음에 들면 담습니다." },
+    { go: "cart", t: "최종 검토 받기",
+      d: "담은 아파트를 6개 축으로 채점하고 비교 해석·차트로 마지막 점검을 합니다." } ] },
+  own: { name: "유주택 · 갈아타기", steps: [
+    { go: "start", t: "내 조건 넣기",
+      d: "지금 사는 지역과 보유 상태(갈아타기/추가매수)를 정확히 넣습니다. 내 집이 기준점이 됩니다." },
+    { go: "move", t: "갈아타기 격차 보기",
+      d: "목표 지역과 내 지역의 배율이 10년 밴드에서 어디쯤인지 봅니다. 하단이면 역대 대비 적은 추가금으로 올라갑니다." },
+    { go: "rota", t: "다음 오를 곳 찾기",
+      d: "내 지역이 이미 많이 올랐다면, 같이 움직이던 동네 중 아직 안 오른 곳이 있는지 확인합니다." },
+    { go: "vol", t: "지금 국면 확인하기",
+      d: "거래량과 가격의 조합으로 지금이 매물이 붙는 장인지 관망 장인지 봅니다. 파는 쪽 타이밍이기도 합니다." },
+    { go: "calc", t: "갈아타기 자금 계산",
+      d: "기존 집을 팔고 올라갈 때 실제로 더 필요한 돈을 계산합니다. 15억·25억 문턱을 넘는지가 관건입니다." },
+    { go: "danji", t: "아파트 고르고 담기",
+      d: "목표 지역의 실거래로 단지를 추리고 담습니다." },
+    { go: "cart", t: "최종 검토 받기",
+      d: "담은 아파트를 6개 축으로 채점하고 비교 해석·차트로 마지막 점검을 합니다." } ] }
+};
+var TOUR = { mode: null, idx: -1 };   /* 진행 중인 안내 */
+
+function startTour(mode, idx) {
+  TOUR.mode = mode; TOUR.idx = idx;
+  try { localStorage.setItem("trackapt_tour", JSON.stringify(TOUR)); } catch (e) {}
+  showTab(TOURS[mode].steps[idx].go);
+  window.scrollTo(0, 0);
+}
+function stopTour() {
+  TOUR.mode = null; TOUR.idx = -1;
+  try { localStorage.removeItem("trackapt_tour"); } catch (e) {}
+  renderStepBar();
+}
+function restoreTour() {
+  try {
+    var t = JSON.parse(localStorage.getItem("trackapt_tour") || "null");
+    if (t && TOURS[t.mode]) TOUR = t;
+  } catch (e) {}
+}
+/* 현재 탭 위에 이전/다음 단계 바를 그린다 */
+function renderStepBar() {
+  document.querySelectorAll(".stepbar").forEach(function (el) { el.remove(); });
+  if (!TOUR.mode || TOUR.idx < 0) return;
+  var steps = TOURS[TOUR.mode].steps;
+  var cur = steps[TOUR.idx];
+  var onTab = document.querySelector("section.tab.on");
+  if (!onTab || onTab.id !== "tab-" + cur.go) return;   /* 안내에서 벗어나면 숨김 */
+
+  var bar = document.createElement("div");
+  bar.className = "stepbar";
+  bar.innerHTML =
+    '<div class="lbl">' + TOURS[TOUR.mode].name + " · " + (TOUR.idx + 1) + "/" + steps.length +
+      " 단계 — " + cur.t + "<small>" + cur.d + "</small></div>" +
+    (TOUR.idx > 0 ? '<button class="btn sm ghost" data-tour="prev">← 이전</button>' : "") +
+    (TOUR.idx < steps.length - 1
+      ? '<button class="btn sm" data-tour="next">다음: ' + steps[TOUR.idx + 1].t + " →</button>"
+      : '<button class="btn sm" data-tour="done">안내 마치기</button>') +
+    '<button class="btn sm ghost" data-tour="exit">✕</button>';
+  onTab.insertBefore(bar, onTab.firstChild);
+  bar.querySelectorAll("button[data-tour]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var a = b.dataset.tour;
+      if (a === "prev") startTour(TOUR.mode, TOUR.idx - 1);
+      else if (a === "next") startTour(TOUR.mode, TOUR.idx + 1);
+      else { stopTour(); if (a === "done") showTab("guide"); }
+    });
+  });
+}
+
 function buildGuide(root) {
-  function step(n, go, t, d) {
-    return '<div class="gstep" data-go="' + go + '"><div class="no">' + n + '</div>' +
-      '<div><div class="t">' + t + '</div><div class="d">' + d + "</div></div></div>";
-  }
   function di(t, d) { return '<div class="di"><b>' + t + "</b><p>" + d + "</p></div>"; }
+  function tourCard(mode) {
+    var tr = TOURS[mode];
+    return '<div class="card">' +
+      '<div class="eyebrow">' + (mode === "none" ? "First Home" : "Move Up") + '</div>' +
+      "<h2>" + tr.name + "</h2>" +
+      '<p class="desc">' + (mode === "none"
+        ? "집이 없다면 <b>내 돈이 닿는 가장 위쪽</b>을 찾는 게 핵심입니다. 못 닿으면 전세를 끼는 길을 봅니다."
+        : "집이 있다면 절대 가격이 아니라 <b>내 집과 목표의 격차</b>가 핵심입니다. 격차가 좁혀졌을 때가 올라탈 때입니다.") + "</p>" +
+      tr.steps.map(function (s, i) {
+        return '<div class="gstep" data-tourmode="' + mode + '" data-touridx="' + i + '">' +
+          '<div class="no">' + (i + 1) + '</div><div><div class="t">' + s.t + '</div>' +
+          '<div class="d">' + s.d + "</div></div></div>";
+      }).join("") +
+      '<div class="btnrow"><button class="btn" data-tourstart="' + mode + '" style="width:auto">' +
+        "1단계부터 따라가기</button></div></div>";
+  }
+
   root.innerHTML =
     '<div class="card">' +
-      '<div class="eyebrow">Guide</div><h2>처음이세요? 이 순서로만 보세요</h2>' +
+      '<div class="eyebrow">Guide</div><h2>이 순서로 보세요</h2>' +
       '<p class="desc">TrackApt는 "싼 곳을 찾아주는" 도구가 아닙니다. 전국 가격 서열을 시장이 내린 집계 평가로 ' +
         '받아들이고, <b>내 돈이 닿는 범위에서 가장 위쪽</b>을 위에서부터 훑어 내려오는 도구입니다. ' +
-        '카드를 누르면 해당 탭으로 이동합니다.</p>' +
-      step(1, "start", "내 조건 넣기", "현금·거주 지역·평형·소득·보유 상태를 넣습니다. 이 값이 모든 탭의 계산에 그대로 쓰입니다.") +
-      step(2, "rank", "첫 집 서열 보기", "필요현금 사다리에서 주황 점선(내 현금)에 닿는 가장 위쪽 지역을 찾습니다. 그게 내 서열입니다.") +
-      step(3, "reco", "맞춤 추천 받기", "5개 축 채점으로 후보를 좁힙니다. 서열순과 점수순의 1위가 다르면 그 차이가 곧 타이밍 정보입니다.") +
-      step(4, "danji", "단지까지 내려가기", "고른 지역의 실거래를 불러와 세대수·역세권·전세·갭으로 거르고, 마음에 들면 담습니다.") +
-      step(5, "cart", "채점 보고서 받기", "담은 단지를 6개 축으로 채점해 등급과 약한 축을 확인합니다. 이미지로 저장해 어디든 공유하세요.") +
-      '<div class="note" style="margin-top:10px">이미 집이 있다면 — <b>갈아타기</b> 탭에서 내 지역과 상급지의 배율을 10년 밴드로 보고, ' +
-        '지금이 올라타기 좋은 격차인지 판단합니다. 나머지 탭(시장·4분면·거래량·수급·순환매·백테스트)은 이 판단을 보조하는 관측 도구입니다.</div></div>' +
+        '집이 있는지에 따라 봐야 할 순서가 다릅니다 — 아래 두 갈래 중 내 상황을 고르세요. ' +
+        '단계 카드를 누르면 그 화면으로 이동하고, 화면 위에 <b>이전/다음 단계 버튼</b>이 따라다닙니다.</p></div>' +
+    tourCard("none") + tourCard("own") +
     '<div class="card">' +
-      '<div class="eyebrow">Thesis</div><h2>전략의 근거</h2>' +
+      '<div class="eyebrow">Thesis</div><h2>왜 이렇게 보나</h2>' +
       '<div class="note"><b>1. 가격은 그 자체로 정보다</b> — 지역 단위 평균가는 수만 건의 거래가 누적된 집계 판단입니다. ' +
         '입지·학군·일자리에 대한 수많은 사람의 평가가 이미 값에 실려 있다고 보고, 숨은 보석 찾기를 시도하지 않습니다.</div>' +
-      '<div class="note"><b>2. 귀납이 아니라 연역으로</b> — 매물을 하나씩 보면 표본이 편향됩니다. 전국 서열 → 내 자금이 닿는 구간 → ' +
-        '그 구간의 최상단 지역 → 지역 안에서 조건을 통과한 단지 순서로, 위에서 아래로 좁힙니다.</div>' +
+      '<div class="note"><b>2. 하나씩 보지 않고 위에서 좁힌다</b> — 매물을 하나씩 보면 표본이 편향됩니다. 전국 서열 → ' +
+        '내 자금이 닿는 구간 → 그 구간의 최상단 지역 → 지역 안에서 조건을 통과한 단지 순서로 좁힙니다.</div>' +
       '<div class="note"><b>3. 절대값이 아니라 상대값</b> — 가격 수준은 매년 달라져 비교가 어렵습니다. 그래서 배율(지역 간 격차), ' +
         '백분위(10년 분포에서의 위치), 전세가율 밴드처럼 <b>비율과 위치</b>로 읽습니다.</div>' +
       '<div class="note"><b>4. 시장 평균을 못 이기면 의미가 없다</b> — 10년 상승률 100%(연복리 약 7.2%)를 합격선으로 씁니다. ' +
-        '이 기준에 못 미치는 선택은 통장, 호텔은 경제라는 오래된 농담을 피하기 어렵습니다.</div></div>' +
+        '이 기준에 못 미치는 선택은 원금을 지켰을 뿐 시장을 따라가지 못한 것으로 봅니다.</div></div>' +
     '<div class="card">' +
-      '<div class="eyebrow">Dictionary</div><h2>지표 사전</h2>' +
+      '<div class="eyebrow">How</div><h2>계산은 이렇게 합니다</h2>' +
+      '<p class="desc">앱이 숫자를 만드는 방식입니다. 기준값은 설정 탭에서 바꿀 수 있습니다.</p>' +
       '<div class="dict">' +
-      di("㎡당가", "KB 조사의 전용면적 1㎡당 평균 매매가(만원). 평당가로 보려면 3.3058을 곱합니다. 지역 평균이라 대장 단지는 30~50% 비싼 게 보통입니다.") +
-      di("필요현금", "매수가 − 대출가능액 + 취득세 + 중개보수 + 등기·이사비. 통장에서 실제로 빠지는 돈입니다.") +
-      di("대출 꼬리표", "LTV·총액상한·DSR 세 한도 중 실제로 대출을 막은 가장 낮은 값이 무엇인지 표시합니다.") +
+      di("㎡당가", "KB 조사의 전용면적 1㎡당 평균 매매가(만원). 평당가는 여기에 3.3058을 곱합니다. 지역 평균이라 1등 아파트는 30~50% 비싼 게 보통입니다.") +
+      di("필요현금", "매수가 − 대출가능액 + 취득세 + 중개보수 + 등기·이사비. 대출은 LTV·총액상한·DSR 세 한도 중 가장 낮은 값을 씁니다.") +
+      di("대출 꼬리표", "실제로 대출을 막은 한도가 무엇인지 표시합니다. DSR이 뜨면 소득이, 총액상한이 뜨면 집값 구간이 병목입니다.") +
       di("전세가율 밴드", "전세÷매매 비율이 최근 10년 분포에서 어디쯤인지. 상단(70%↑)은 갭이 얇아 진입이 쉽고, 하단(30%↓)은 매매가에 기대가 많이 실린 상태입니다.") +
       di("배율", "목표지역 ㎡당가 ÷ 내 지역 ㎡당가. 갈아타기 비용의 본질은 절대 가격이 아니라 이 격차입니다.") +
-      di("백분위 (밴드 위치)", "현재 값이 과거 10년 값들 중 몇 %를 아래에 두는지. 0%는 역대 최저, 100%는 역대 최고입니다.") +
-      di("변동계수", "배율이 10년간 얼마나 흔들렸는지를 %로 잰 값. 작을수록 「같이 가던 동네」라 순환매 짝으로 신뢰할 만합니다.") +
+      di("백분위 (밴드 위치)", "현재 값이 과거 10년 값들 중 몇 %를 아래에 두는지. 0%는 역대 최저, 100%는 역대 최고입니다. 표본 24개월 미만은 계산하지 않습니다.") +
+      di("변동계수", "배율이 10년간 얼마나 흔들렸는지를 %로 잰 값. 작을수록 함께 움직인 동네라 순환매 짝으로 신뢰할 만합니다.") +
       di("회귀 여력", "배율이 10년 평균으로만 돌아가도 상대 지역이 몇 % 오를 여지가 있는지. 목표가 아니라 가설입니다.") +
       di("국면 판정", "가격과 거래량의 조합. 가격↑거래↑ 강한 상승, 가격↑거래↓ 상승 동력 둔화, 가격↓거래↑ 손바뀜, 가격↓거래↓ 침체.") +
       di("합격 / 미달", "10년 상승률 100%(연 7.2%) 기준 통과 여부. 시장 평균을 이겼는지를 묻는 최소 기준입니다.") +
       "</div></div>" +
     '<div class="card">' +
-      '<div class="eyebrow">Plain Words</div><h2>쉬운 용어 사전</h2>' +
+      '<div class="eyebrow">Plain Words</div><h2>처음 듣는 말 풀이</h2>' +
       '<p class="desc">이 앱에 나오는 말들을 한 줄로 풀었습니다.</p>' +
       '<div class="dict">' +
       di("평당가", "1평(3.3㎡)당 가격. 크기가 다른 집을 같은 잣대로 비교할 때 씁니다. 이 앱은 전용면적 기준이라 네이버 시세(공급면적)보다 25%쯤 높게 나옵니다.") +
@@ -3857,7 +3953,12 @@ function buildGuide(root) {
         '실거래·K-apt·청약홈은 조회할 때마다 실시간입니다.</div></div>';
 
   root.querySelectorAll(".gstep").forEach(function (el) {
-    el.addEventListener("click", function () { showTab(el.dataset.go); window.scrollTo(0, 0); });
+    el.addEventListener("click", function () {
+      startTour(el.dataset.tourmode, Number(el.dataset.touridx));
+    });
+  });
+  root.querySelectorAll("button[data-tourstart]").forEach(function (b) {
+    b.addEventListener("click", function () { startTour(b.dataset.tourstart, 0); });
   });
 }
 

@@ -136,7 +136,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v1.0</span>
+    <span class="ver">v1.1</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
 </header>
@@ -274,6 +274,10 @@ function buildStart(root) {
         '<div class="field"><label for="f-own">보유 주택 상태</label><select id="f-own">' +
           '<option value="none" selected>무주택</option><option value="switch">1주택 · 갈아타기 (기존 처분)</option>' +
           '<option value="add">1주택 · 추가 매수 (유지)</option><option value="multi">2주택 이상</option></select></div>' +
+        '<div class="field"><label for="f-range">이동 가능 범위</label><select id="f-range">' +
+          '<option value="auto" selected>자동 (규제지역만 60km 이내)</option>' +
+          '<option value="0">제한 없음 (전국)</option><option value="30">30km 이내</option>' +
+          '<option value="50">50km 이내</option><option value="100">100km 이내</option></select></div>' +
         '<div class="field"><label>&nbsp;</label><label class="check"><input type="checkbox" id="f-first"> 생애최초 구입</label></div>' +
       '</div>' +
       '<p class="hint" id="save-hint">값은 이 브라우저에만 저장됩니다.</p>' +
@@ -284,7 +288,7 @@ function buildStart(root) {
       '<p class="desc">KB부동산 월간 시계열이 정상적으로 붙었는지 확인하는 패널입니다.</p>' +
       '<div class="status" id="data-status"></div>' +
     '</div>';
-  ["f-cash","f-area","f-home","f-income","f-rate","f-own","f-first"].forEach(function (id) {
+  ["f-cash","f-area","f-home","f-income","f-rate","f-own","f-first","f-range"].forEach(function (id) {
     root.querySelector("#" + id).addEventListener("change", saveCond);
   });
 }
@@ -297,7 +301,8 @@ function getCond() {
     income: Number(val("f-income")) || 0,
     rate:   Number(val("f-rate")) || 4.0,
     own:    val("f-own") || "none",
-    first:  !!(document.getElementById("f-first") && document.getElementById("f-first").checked)
+    first:  !!(document.getElementById("f-first") && document.getElementById("f-first").checked),
+    range:  val("f-range") || "auto"
   };
 }
 function saveCond() {
@@ -315,6 +320,7 @@ function restoreCond() {
     var c = JSON.parse(raw);
     setVal("f-cash", c.cash); setVal("f-area", c.area); setVal("f-home", c.home);
     setVal("f-income", c.income); setVal("f-rate", c.rate); setVal("f-own", c.own);
+    setVal("f-range", c.range);
     var f = document.getElementById("f-first"); if (f) f.checked = !!c.first;
   } catch (e) {}
 }
@@ -459,6 +465,30 @@ function onDataReady() {
 }
 function statBox(k, v, c) {
   return '<div class="stat"><div class="k">' + k + '</div><div class="v ' + (c || "") + '">' + v + "</div></div>";
+}
+
+/* ══ 거리·이동 범위 ═══════════════════════════ */
+function distKm(a, b) {
+  var A = COORDS[a], B = COORDS[b];
+  if (!A || !B) return null;
+  var R = 6371, dLat = (B[0] - A[0]) * Math.PI / 180, dLng = (B[1] - A[1]) * Math.PI / 180;
+  var la1 = A[0] * Math.PI / 180, la2 = B[0] * Math.PI / 180;
+  var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+}
+/* 내 조건의 이동 범위 안에 있는 지역인가 (자동 = 규제지역만 60km) */
+function inRange(k, cond) {
+  if (!cond.home || !COORDS[cond.home]) return true;
+  var d = distKm(cond.home, k);
+  if (d == null) return true;
+  if (cond.range === "auto") return isRegulated(k) ? d <= 60 : true;
+  var lim = Number(cond.range);
+  return !lim || d <= lim;
+}
+function rangeLabel(cond) {
+  return cond.range === "auto" ? "규제지역만 60km 이내 (실거주 의무 반영)"
+    : (Number(cond.range) ? Number(cond.range) + "km 이내" : "제한 없음");
 }
 
 /* ══ 자금 계산 (모든 탭 공용) ═════════════════ */
@@ -1014,7 +1044,30 @@ function renderMove() {
 }
 
 /* ══ 맞춤 추천 탭 ═════════════════════════════ */
-var RECO = { sort: "rank", budgetOnly: false };
+var RECO = { sort: "rank", budgetOnly: false, buy: "auto" };
+
+/* 전세 끼고 매수: 필요현금 = 갭 + 취득세 + 중개보수 + 부대비 (대출 없음)
+   규제지역은 실거주 의무로 전세 승계가 막히므로 불가 처리 */
+function financeJeonse(k, price, cond) {
+  var pm = lastVal("salePm", k), jpm = lastVal("jeonsePm", k);
+  if (pm == null || jpm == null) return null;
+  if (isRegulated(k)) return null;
+  var f = finance(k, price, cond);
+  var gap = (pm - jpm) * cond.area;
+  return { need: gap + f.acq + f.broker + f.etc, gap: gap, tag: "전세 끼고",
+           jr: jpm / pm * 100, acq: f.acq, broker: f.broker, etc: f.etc, reg: false };
+}
+/* 매수 방식 결정: auto면 필요현금이 적은 쪽 */
+function buyPlan(k, price, cond, mode) {
+  var loanF = finance(k, price, cond);
+  loanF.mode = "loan"; loanF.modeName = "대출 매수";
+  var jF = financeJeonse(k, price, cond);
+  if (jF) { jF.mode = "jeonse"; jF.modeName = "전세 끼고"; jF.loan = 0; jF.price = price; }
+  if (mode === "loan") return loanF;
+  if (mode === "jeonse") return jF;
+  if (!jF) return loanF;
+  return jF.need < loanF.need ? jF : loanF;
+}
 
 /* 시군구 → 수급조사(시도 단위) 키 매핑 */
 function surveyKey(k) {
@@ -1064,16 +1117,18 @@ function scoreRegion(k, idx, cond, homePmArr) {
     if (b2 && b2.count >= 24) { sTiming = 40 + (100 - b2.pctile) * 0.6; timingNote = "배율 " + b2.pctile.toFixed(0) + "%"; }
   }
 
-  /* ⑤ 자금: 현금/필요현금 */
+  /* ⑤ 자금: 현금/필요현금 (매수 방식 반영) */
+  var plan = buyPlan(k, pm * cond.area, cond, RECO.buy) || f;
   var sCash = 50;
-  if (cond.cash > 0 && f.need > 0) sCash = clamp(cond.cash / f.need * 100, 0, 100);
+  if (cond.cash > 0 && plan.need > 0) sCash = clamp(cond.cash / plan.need * 100, 0, 100);
 
   var W = RULES;
   var wSum = W.wRank + W.wPerf + W.wSupply + W.wTiming + W.wCash;
   var total = (sRank * W.wRank + sPerf * W.wPerf + sSupply * W.wSupply +
                sTiming * W.wTiming + sCash * W.wCash) / wSum;
 
-  return { key: k, rank: idx + 1, pm: pm, fin: f, cagr: cagr,
+  return { key: k, rank: idx + 1, pm: pm, fin: plan, loanFin: f, cagr: cagr,
+           dist: cond.home ? distKm(cond.home, k) : null,
            s: { rank: sRank, perf: sPerf, supply: sSupply, timing: sTiming, cash: sCash },
            timingNote: timingNote, total: total };
 }
@@ -1086,6 +1141,10 @@ function buildReco(root) {
         '내 조건(시작 탭)과 가중치·규제 기준(기준·설정 탭)이 그대로 반영됩니다.</p>' +
       '<div id="rc-callout"></div>' +
       '<div class="grid">' +
+        '<div class="field full"><label>매수 방식</label><div class="seg" id="rc-buy">' +
+          '<button data-b="auto" class="on">자동 (유리한 쪽)</button>' +
+          '<button data-b="loan">대출 매수만</button>' +
+          '<button data-b="jeonse">전세 끼고만</button></div></div>' +
         '<div class="field"><label>정렬</label><div class="seg" id="rc-sort">' +
           '<button data-s="rank" class="on">서열 높은 순</button>' +
           '<button data-s="score">종합 점수 순</button>' +
@@ -1104,7 +1163,7 @@ function buildReco(root) {
         '<b>서열 높은 순</b>과 <b>종합 점수 순</b>의 1위가 다르면, 그 차이가 곧 "지금 사도 되는가"에 대한 정보입니다.</div></div>' +
     '<div class="card"><div class="eyebrow">Table</div><h2>전체 채점표</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="맞춤추천">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="rc-table" data-name="맞춤추천">엑셀 저장</button></div>' +
       '<div class="tblwrap"><table id="rc-table"><thead><tr>' +
-      '<th>#</th><th>지역</th><th>종합</th><th>급지</th><th>성과</th><th>수급</th><th>타이밍</th><th>자금</th><th>필요현금</th></tr>' +
+      '<th>#</th><th>지역</th><th>종합</th><th>급지</th><th>성과</th><th>수급</th><th>타이밍</th><th>자금</th><th>방식</th><th>필요현금</th><th>거리</th></tr>' +
       '</thead><tbody></tbody></table></div>' +
       '<div class="note">추천 카드의 필요현금은 <b>그 지역 ㎡당 평균가</b> 기준입니다. 실제 단지는 평균 위아래로 ' +
         '흩어져 있고 대장 단지는 평균보다 30~50% 비싼 경우가 흔합니다 — 단지 단위 확인은 단지 찾기 탭(다음 버전)에서 합니다.</div></div>';
@@ -1119,6 +1178,13 @@ function buildReco(root) {
   root.querySelector("#rc-budget").addEventListener("change", function () {
     RECO.budgetOnly = this.checked; renderReco();
   });
+  root.querySelectorAll("#rc-buy button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      RECO.buy = b.dataset.b;
+      root.querySelectorAll("#rc-buy button").forEach(function (x) { x.classList.toggle("on", x === b); });
+      renderReco();
+    });
+  });
 }
 
 function renderReco() {
@@ -1127,7 +1193,8 @@ function renderReco() {
   var homePmArr = (cond.own !== "none" && cond.home && DB.salePm.series[cond.home])
     ? pmSeries("salePm", cond.home) : null;
 
-  var rows = RANKED.map(function (k, i) { return scoreRegion(k, i, cond, homePmArr); });
+  var rows = RANKED.map(function (k, i) { return scoreRegion(k, i, cond, homePmArr); })
+    .filter(function (r) { return r.fin && inRange(r.key, cond); });
 
   /* 콜아웃: 조건 요약 */
   var co = document.getElementById("rc-callout");
@@ -1138,7 +1205,8 @@ function renderReco() {
     co.innerHTML = '<div class="callout">현금 <b>' + eok(cond.cash) + "</b> · " + cond.area + "㎡ · " +
       { none: "무주택", switch: "갈아타기", add: "추가매수", multi: "다주택" }[cond.own] +
       (cond.own !== "none" && cond.home ? " (내 지역 " + disp(cond.home) + ")" : "") +
-      " — 예산 내 <b>" + nHit + "곳</b></div>";
+      " · " + rangeLabel(cond) +
+      " — 검토 대상 <b>" + rows.length + "곳</b> 중 예산 내 <b>" + nHit + "곳</b></div>";
   }
 
   /* 정렬·필터 */
@@ -1156,32 +1224,89 @@ function renderReco() {
   /* 상위 5 카드 */
   var topEl = document.getElementById("rc-top");
   if (!list.length) {
-    topEl.innerHTML = '<div class="callout warn">조건에 맞는 지역이 없습니다. 예산 필터를 끄거나 평형·현금을 조정해보세요.</div>';
+    topEl.innerHTML = '<div class="callout warn">조건에 맞는 지역이 없습니다. 예산 필터를 끄거나 ' +
+      '이동 가능 범위·평형·현금을 조정해보세요.</div>';
   } else {
+    /* 히어로: 1순위 요약 4장 */
+    var h = list[0];
+    var hGrade = h.total >= 80 ? "A" : (h.total >= 65 ? "B" : (h.total >= 50 ? "C" : "D"));
+    var jeonseOk = rows.filter(function (r) { return !isRegulated(r.key); }).length;
+    var maxP = maxPriceForCash(cond, { reg: false, metro: !!METRO[h.key] });
+    var heroHtml =
+      '<div class="status" style="margin-bottom:10px">' +
+      '<div class="stat" style="background:var(--panel);border:2px solid var(--up);grid-column:1/-1">' +
+        '<div class="k">예산으로 되는 최상단</div>' +
+        '<div class="v" style="font-size:1.5rem">' + disp(h.key) + "</div>" +
+        '<div class="k" style="margin-top:4px">' + hGrade + "등급 " + h.total.toFixed(0) + "점 · 전국 " + h.rank +
+          "위 · " + h.fin.modeName + " 필요현금 " + eok(h.fin.need) + "</div></div>" +
+      statBox("내 조건", eok(cond.cash) + " · " + cond.area + "㎡",
+        cond.own === "none" ? "" : "") +
+      statBox("검토 대상", rows.length + "곳") +
+      statBox("전세 끼고 가능", jeonseOk + "곳 (비규제)") +
+      statBox("예산으로 최대", maxP != null ? eok(maxP) : "—") +
+      "</div>";
     var AXN = { rank: "급지", perf: "성과", supply: "수급", timing: "타이밍", cash: "자금" };
     function axRow(name, v, sub) {
       return '<div class="axis"><span class="axname">' + name + '</span>' +
         '<div class="axtrack"><div class="axfill" style="width:' + v.toFixed(0) + '%"></div></div>' +
         "<b>" + v.toFixed(0) + "</b>" + (sub ? "<small>" + sub + "</small>" : "") + "</div>";
     }
-    topEl.innerHTML = list.slice(0, 5).map(function (r, i) {
+    topEl.innerHTML = heroHtml + list.slice(0, 5).map(function (r, i) {
       var grade = r.total >= 80 ? "A" : (r.total >= 65 ? "B" : (r.total >= 50 ? "C" : "D"));
       var rationale = "";
       if (i === 0) {
         var axArr = Object.keys(AXN).map(function (k2) { return [k2, r.s[k2]]; })
           .sort(function (a, b) { return b[1] - a[1]; });
-        rationale = '<div class="rowinfo" style="margin-top:8px"><b>추천 근거</b> — ' +
-          disp(r.key) + "가 " + grade + "등급 " + r.total.toFixed(0) + "점으로 1순위입니다. " +
-          "가장 강한 축은 <b>" + AXN[axArr[0][0]] + " " + axArr[0][1].toFixed(0) + "점</b>, " +
-          "가장 약한 축은 <b>" + AXN[axArr[axArr.length - 1][0]] + " " + axArr[axArr.length - 1][1].toFixed(0) + "점</b>입니다. " +
-          (r.cagr != null ? "10년 연복리 " + r.cagr.toFixed(1) + "% · " : "") +
-          "타이밍 " + r.timingNote + " · 필요현금 " + eok(r.fin.need) +
-          (cond.cash > 0 ? (r.fin.need <= cond.cash ? " <b>(실행 가능)</b>" : " (부족 " + eok(r.fin.need - cond.cash) + ")") : "") + "</div>";
+        var r10v = idxChange("sale", ik(r.key), 120);
+        var jrv = (function () {
+          var pmv = lastVal("salePm", r.key), jv = lastVal("jeonsePm", r.key);
+          return (pmv && jv) ? jv / pmv * 100 : null;
+        })();
+        var jb = bandStats(ratioSeries(pmSeries("jeonsePm", r.key), pmSeries("salePm", r.key), 100), 120);
+        var tier = Math.min(10, Math.floor(r.rank / RANKED.length * 10) + 1);
+        /* 같은 예산으로 전세 끼고 가능한 다른 후보 3곳 */
+        var alts = rows.filter(function (x) {
+          var j = financeJeonse(x.key, x.pm * cond.area, cond);
+          return j && cond.cash > 0 && j.need <= cond.cash && x.key !== r.key;
+        }).slice(0, 3).map(function (x) {
+          var j = financeJeonse(x.key, x.pm * cond.area, cond);
+          return disp(x.key) + " " + eok(j.need);
+        });
+        var bl = [];
+        bl.push("<b>" + disp(r.key) + "</b>가 " + grade + "등급 " + r.total.toFixed(0) + "점으로 1순위입니다. " +
+          "전국 " + tier + "분위 · 10년 " + (r10v != null ? pct(r10v, 1) : "—") +
+          (jrv != null ? " · 전세가율 " + jrv.toFixed(0) + "%" : "") +
+          " · " + r.fin.modeName + " 필요현금 " + eok(r.fin.need) +
+          (cond.cash > 0 && r.fin.need <= cond.cash ? " <b>(실행 가능)</b>" : "") + ".");
+        bl.push("가장 강한 축은 <b>" + AXN[axArr[0][0]] + " " + axArr[0][1].toFixed(0) + "점</b>" +
+          (axArr[0][0] === "perf" && r.cagr != null ? "(10년 " + pct(r10v, 1) + " · 연복리 " + r.cagr.toFixed(1) + "% · " +
+            (r10v >= 100 ? "통과" : "미달") + ")" : "") +
+          ", 가장 약한 축은 <b>" + AXN[axArr[axArr.length - 1][0]] + " " + axArr[axArr.length - 1][1].toFixed(0) + "점</b>입니다.");
+        if (r.dist != null) bl.push("거리 필터 — " + rangeLabel(cond) + ". 내 지역에서 <b>" + r.dist + "km</b> 떨어져 있습니다." +
+          (cond.range === "auto" ? " 규제지역은 실거주 의무가 있어 60km 이내만 후보로 봅니다. 비규제지역은 전세를 끼고 살 수 있어 거리 제한을 두지 않습니다." : ""));
+        bl.push(r.fin.mode === "jeonse"
+          ? "<b>전세를 끼면 들어갈 수 있는 곳</b>입니다 — 갭 " + eok(r.fin.gap) + "만 있으면 되고 대출 없이 전세를 승계하는 방식입니다. " +
+            "대출 매수(" + eok(r.loanFin.need) + ")보다 " + eok(r.loanFin.need - r.fin.need) + " 적게 듭니다." +
+            (alts.length ? " 같은 예산의 다른 후보: " + alts.join(" · ") + "." : "")
+          : "<b>대출 매수</b> 기준입니다 — " + r.loanFin.tag + "에 걸려 대출 " + eok(r.loanFin.loan) + ", 자기자금 " +
+            eok(r.fin.need) + "이 필요합니다." + (isRegulated(r.key) ? " 규제지역이라 실거주 의무가 있어 전세 끼고 매수는 막힙니다." : ""));
+        if (jb && jb.count >= 24) bl.push("진입 타이밍 — 전세가율이 10년 밴드의 <b>" + jb.pctile.toFixed(0) + "%</b> 지점입니다. " +
+          (jb.pctile >= 70 ? "역대 대비 높아 갭이 얇은, 진입 부담이 낮은 구간입니다." :
+           jb.pctile <= 30 ? "역대 최저권이라 매매가에 기대가 많이 실린 상태입니다." : "중립 구간입니다."));
+        bl.push("이 순위는 5개 축의 가중 합계입니다. 점수 자체보다 <b>어느 축이 낮은지</b>를 보고, 단지 단계로 내려가 " +
+          "세대수·역세권 조건까지 맞추면 최종 검토 탭에서 6축 보고서를 받습니다.");
+        rationale = '<div class="rowinfo" style="margin-top:8px"><b>추천 근거</b>' +
+          "<ul style='margin:6px 0 0 16px;line-height:1.7'>" +
+          bl.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul></div>";
       }
       return '<div class="reco' + (i === 0 ? " best" : "") + '" style="flex-wrap:wrap">' +
         '<div class="no">' + (i + 1) + "</div>" +
         '<div class="body"><div class="name">' + (r.fin.reg ? "⛔ " : "") + disp(r.key) +
-          ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">서열 ' + r.rank + "위 · " + fmt(r.pm) + "만/㎡</span></div>" +
+          ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">서열 ' + r.rank + "위 · " + fmt(r.pm) + "만/㎡" +
+          (r.dist != null ? " · 내 지역에서 " + r.dist + "km" : "") + (isRegulated(r.key) ? " · 규제지역" : "") + "</span></div>" +
+        '<div class="rowinfo" style="margin:4px 0 6px">' + r.fin.modeName + " · 필요현금 <b>" + eok(r.fin.need) + "</b>" +
+          (r.fin.mode === "jeonse" ? " (갭 " + eok(r.fin.gap) + ")" : (r.loanFin.loan > 0 ? " · 대출 " + eok(r.loanFin.loan) : "")) +
+          (cond.cash > 0 ? (r.fin.need <= cond.cash ? ' <span class="tagmini ok">실행 가능</span>' : ' <span class="tagmini no">부족 ' + eok(r.fin.need - cond.cash) + "</span>") : "") + "</div>" +
         axRow("급지", r.s.rank, "전국 " + r.rank + "위") +
         axRow("성과", r.s.perf, r.cagr != null ? "연복리 " + r.cagr.toFixed(1) + "%" : "") +
         axRow("수급", r.s.supply, "") +
@@ -1248,7 +1373,9 @@ function renderReco() {
       "<td>" + r.s.supply.toFixed(0) + "</td>" +
       "<td>" + r.s.timing.toFixed(0) + "</td>" +
       "<td>" + r.s.cash.toFixed(0) + "</td>" +
-      "<td>" + eok(r.fin.need) + "</td></tr>";
+      "<td>" + r.fin.modeName + "</td>" +
+      "<td><b>" + eok(r.fin.need) + "</b></td>" +
+      "<td>" + (r.dist != null ? r.dist + "km" : "—") + "</td></tr>";
   }).join("");
 }
 
@@ -1865,6 +1992,7 @@ function renderCondBar() {
   parts.push(c.area + "㎡");
   parts.push({ none: "무주택", switch: "갈아타기", add: "추가매수", multi: "다주택" }[c.own]);
   if (c.first) parts.push("생애최초");
+  parts.push(rangeLabel(c));
   el.innerHTML = "내 조건 — <b style='color:var(--ink)'>" + parts.join(" · ") + "</b> (누르면 수정)";
   el.onclick = function () { showTab("start"); window.scrollTo(0, 0); };
 }
@@ -2566,7 +2694,32 @@ var COORDS = {
   "시흥시":[37.3801,126.8029],"군포시":[37.3617,126.9352],"의왕시":[37.3446,126.9683],"하남시":[37.5393,127.2148],
   "용인시|처인구":[37.2342,127.2019],"용인시|기흥구":[37.2803,127.1148],"용인시|수지구":[37.3222,127.0978],
   "파주시":[37.7599,126.7800],"이천시":[37.2722,127.4350],"안성시":[37.0079,127.2797],"김포시":[37.6153,126.7156],
-  "양주시":[37.7852,127.0459],"광주시":[37.4293,127.2551]
+  "양주시":[37.7852,127.0459],"광주시":[37.4293,127.2551],
+  /* 2026 신설·미등록 지역 (거리 계산용 근사 좌표) */
+  "화성시|동탄구":[37.2010,127.0980],"화성시|병점구":[37.2070,127.0330],
+  "화성시|봉담구":[37.2120,126.9540],"화성시|우정구":[37.0830,126.8300],
+  "화성시|효행구":[37.2280,126.9900],"화성시":[37.1996,126.8310],
+  "인천광역시|제물포구":[37.4700,126.6400],"인천광역시|영종구":[37.4900,126.5200],
+  "인천광역시|검단구":[37.6060,126.6650],"인천광역시|서해구":[37.5450,126.6760],
+  "인천광역시|중구":[37.4736,126.6216],"인천광역시|동구":[37.4737,126.6432],
+  "인천광역시|서구":[37.5455,126.6759],"인천광역시|강화군":[37.7470,126.4880],
+  "시흥시|정왕구":[37.3450,126.7370],"남양주시|와부구":[37.6000,127.2000],
+  "의정부시|호원구":[37.7250,127.0450],"평택시|팽성구":[36.9600,127.0700],
+  "천안시|서북구":[36.8500,127.1100],"천안시|동남구":[36.7900,127.1600],
+  "청주시|상당구":[36.6350,127.4890],"청주시|서원구":[36.6100,127.4600],
+  "청주시|흥덕구":[36.6420,127.4210],"청주시|청원구":[36.6740,127.4900],
+  "전주시|완산구":[35.8120,127.1180],"전주시|덕진구":[35.8480,127.1300],
+  "포항시|남구":[36.0000,129.3600],"포항시|북구":[36.0530,129.3660],
+  "창원시|성산구":[35.2000,128.6800],"창원시|의창구":[35.2540,128.6400],
+  "창원시|마산회원구":[35.2260,128.5800],"창원시|마산합포구":[35.1970,128.5650],
+  "창원시|진해구":[35.1490,128.6620],"김해시":[35.2280,128.8890],"양산시":[35.3350,129.0370],
+  "구미시":[36.1190,128.3440],"경산시":[35.8250,128.7410],"아산시":[36.7900,127.0020],
+  "춘천시":[37.8810,127.7300],"원주시":[37.3420,127.9200],"강릉시":[37.7520,128.8760],
+  "제주시":[33.4996,126.5312],"서귀포시":[33.2540,126.5600],"목포시":[34.8118,126.3920],
+  "여수시":[34.7600,127.6620],"순천시":[34.9500,127.4870],"군산시":[35.9670,126.7370],
+  "익산시":[35.9480,126.9580],"충주시":[36.9910,127.9260],"제천시":[37.1320,128.1910],
+  "안동시":[36.5680,128.7290],"경주시":[35.8560,129.2250],"진주시":[35.1800,128.1080],
+  "거제시":[34.8800,128.6210],"통영시":[34.8540,128.4330],"목포":[34.8118,126.3920]
 };
 var MAPX = { scope: "metro", metric: "price", map: null, overlays: [], sdkLoaded: false };
 var LS_KAKAO = "trackapt_kakao_key";
@@ -3185,6 +3338,26 @@ function buildGuide(root) {
       di("회귀 여력", "배율이 10년 평균으로만 돌아가도 상대 지역이 몇 % 오를 여지가 있는지. 목표가 아니라 가설입니다.") +
       di("국면 판정", "가격과 거래량의 조합. 가격↑거래↑ 강한 상승, 가격↑거래↓ 상승 동력 둔화, 가격↓거래↑ 손바뀜, 가격↓거래↓ 침체.") +
       di("합격 / 미달", "10년 상승률 100%(연 7.2%) 기준 통과 여부. 시장 평균을 이겼는지를 묻는 최소 기준입니다.") +
+      "</div></div>" +
+    '<div class="card">' +
+      '<div class="eyebrow">Plain Words</div><h2>쉬운 용어 사전</h2>' +
+      '<p class="desc">이 앱에 나오는 말들을 한 줄로 풀었습니다.</p>' +
+      '<div class="dict">' +
+      di("평당가", "1평(3.3㎡)당 가격. 크기가 다른 집을 같은 잣대로 비교할 때 씁니다. 이 앱은 전용면적 기준이라 네이버 시세(공급면적)보다 25%쯤 높게 나옵니다.") +
+      di("분위 / 급지", "전국 시·군·구를 가격순으로 10등분한 것. 1분위가 가장 비싼 상위 10%입니다. 절대 가격은 매년 바뀌지만 분위는 잘 안 바뀝니다.") +
+      di("필요현금", "집을 살 때 통장에서 실제로 나가는 돈. 매매가 − 대출 + 취득세 + 중개보수 + 등기·이사비입니다. 집값과 다릅니다.") +
+      di("전세가율", "전세값 ÷ 매매값. 낮을수록 매매가에 미래 기대가 많이 실린 상태이고, 높을수록 실제 사용가치에 가깝습니다.") +
+      di("밴드 (백분위)", "지금 값이 지난 10년 안에서 몇 번째쯤인지를 0~100%로 편 것. 0%면 역대 최저, 100%면 역대 최고입니다.") +
+      di("배율", "목표 지역 가격 ÷ 내 지역 가격. 1.68이면 목표가 68% 비싸다는 뜻입니다. 갈아타기 비용은 절대 가격이 아니라 이 격차입니다.") +
+      di("갭", "매매가 − 전세보증금. 전세를 끼고 살 때 실제로 필요한 돈입니다.") +
+      di("LTV", "집값 대비 빌릴 수 있는 비율. 규제지역 40%, 비규제 70%가 기본이고 생애최초는 더 받습니다.") +
+      di("DSR", "내 소득으로 갚을 수 있는 한도. 소득을 입력하면 LTV보다 이쪽이 먼저 막히는 경우가 많습니다.") +
+      di("규제지역", "조정대상지역·투기과열지구·토지거래허가구역. 실거주 의무가 있어 전세 끼고 사는 게 막힙니다.") +
+      di("수급 / 입주물량", "앞으로 들어올 새 아파트 물량 ÷ 그 지역 수요. 1을 넘으면 공급이 많아 전세가 밀립니다.") +
+      di("준공후 미분양", "다 지어놓고도 안 팔린 물량. 가장 악성인 재고라 일반 미분양보다 신호가 강합니다.") +
+      di("10년 상승률 100%", "10년에 두 배(연복리 7.2%). 서울 아파트 장기 평균과 물가를 감안한 통과선입니다. 이 아래는 시장을 못 이긴 것으로 봅니다.") +
+      di("연복리 (CAGR)", "매년 몇 %씩 불어난 셈인지. 10년에 100% 오르면 연복리 7.2%입니다. 단순히 10으로 나누면 안 됩니다.") +
+      di("탑다운", "전국 서열 → 내 돈이 닿는 구간 → 그 안의 최상단 지역 → 조건을 통과한 단지 순으로 좁혀 내려가는 방식입니다.") +
       "</div></div>" +
     '<div class="card">' +
       '<div class="eyebrow">Limits</div><h2>이 도구가 못 하는 것</h2>' +

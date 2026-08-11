@@ -136,7 +136,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v1.2</span>
+    <span class="ver">v1.3</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
 </header>
@@ -1712,9 +1712,24 @@ function buildDanji(root) {
       '<div class="expbar"><button class="btn sm" id="cart-score">채점 보고서 만들기</button>' +
         '<button class="btn sm ghost" data-exp="img" data-name="단지보고서" id="cart-img" style="display:none">보고서 이미지 저장</button>' +
         '<button class="btn sm ghost" id="cart-clear">전체 비우기</button></div>' +
+      '<div id="cart-empty" class="rowinfo">아직 담은 단지가 없습니다. 위 표에서 담기를 눌러 최대 6곳까지 나란히 비교하세요.</div>' +
       '<div id="cart-report"></div>' +
-      '<div class="tblwrap" style="margin-top:10px"><table id="cart-table"><thead><tr>' +
-      '<th>단지</th><th>지역</th><th>평당가</th><th>세대수</th><th></th></tr></thead><tbody></tbody></table></div></div>';
+      '<div id="cart-compare"></div></div>' +
+    '<div class="card" id="cx2-pricecard" style="display:none"><div class="eyebrow">Price</div><h2>매매가 추이</h2>' +
+      '<p class="desc">월별 중위 거래가입니다. 선 사이 간격이 벌어지면 격차 확대, 좁아지면 따라잡는 중입니다.</p>' +
+      '<div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="담은단지_매매가">이미지 저장</button></div>' +
+      '<div class="chartbox"><canvas id="cx2-price"></canvas></div></div>' +
+    '<div class="card" id="cx2-multcard" style="display:none"><div class="eyebrow">Timing</div><h2>배율 — 지금이 살 때인가</h2>' +
+      '<p class="desc">1순위 ÷ 2순위 배율을 시계열로 봅니다. 갈아타기 탭의 지역 배율을 단지 단위로 적용한 것으로, ' +
+        '밴드가 낮을수록 1순위가 2순위 대비 싼 구간입니다.</p>' +
+      '<div class="status" id="cx2-multkpi"></div>' +
+      '<div class="chartbox" style="margin-top:10px"><canvas id="cx2-mult"></canvas></div>' +
+      '<div class="note" id="cx2-multread"></div></div>' +
+    '<div class="card" id="cx2-gapcard" style="display:none"><div class="eyebrow">Gap</div><h2>갭 추이 (매매 − 전세)</h2>' +
+      '<p class="desc">전세를 끼고 들어갈 때 실제로 필요한 돈입니다. 내려가면 진입 부담이 줄어드는 국면입니다.</p>' +
+      '<div class="chartbox"><canvas id="cx2-gap"></canvas></div>' +
+      '<div class="note">거래가 없는 달은 선이 이어지지 않습니다. 소규모 단지는 월 1~2건으로 중위값이 튈 수 있으니 ' +
+        '한두 달의 급변보다 <b>전체 방향</b>을 보세요.</div></div>';
 
   root.querySelector("#dj-go").addEventListener("click", loadDanji);
   ["dj-hh", "dj-sub", "dj-age", "dj-band"].forEach(function (id) {
@@ -1978,21 +1993,24 @@ function renderCart() {
   var cart = getCart();
   var cc = document.getElementById("cart-count");
   if (cc) cc.textContent = cart.length + "곳";
-  var tb = document.querySelector("#cart-table tbody");
-  if (!tb) return;
-  tb.innerHTML = cart.length ? cart.map(function (c, i) {
-    return "<tr><td><b>" + c.apt + "</b> <span style='color:var(--ink-soft);font-size:.74rem'>" + c.dong + "</span></td>" +
-      "<td>" + (c.regionName || (c.regionKey ? disp(c.regionKey) : c.lawd)) + "</td>" +
-      "<td>" + fmt(c.py || c.pmAvg * 3.3058) + "</td>" +
-      "<td>" + (c.households ? fmt(c.households) : "—") + "</td>" +
-      '<td><button class="btn sm ghost" data-ci="' + i + '">빼기</button></td></tr>';
-  }).join("") : '<tr><td colspan="5" style="color:var(--miss)">아직 담은 단지가 없습니다.</td></tr>';
-  tb.querySelectorAll("button[data-ci]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      var c2 = getCart(); c2.splice(Number(b.dataset.ci), 1); setCart(c2);
-      renderCart(); renderDanjiTable();
+  var empty = document.getElementById("cart-empty");
+  if (empty) empty.style.display = cart.length ? "none" : "";
+}
+function removeFromCart(i) {
+  var c = getCart();
+  c.splice(i, 1);
+  setCart(c);
+  renderCart();
+  renderDanjiTable();
+  if (c.length) renderCartReport();
+  else {
+    document.getElementById("cart-report").innerHTML = "";
+    document.getElementById("cart-compare").innerHTML = "";
+    ["cx2-pricecard", "cx2-multcard", "cx2-gapcard"].forEach(function (id) {
+      var el = document.getElementById(id); if (el) el.style.display = "none";
     });
-  });
+    document.getElementById("cart-img").style.display = "none";
+  }
 }
 
 /* ══ 내보내기 (이미지·엑셀) ═══════════════════ */
@@ -2175,9 +2193,162 @@ function renderCartReport() {
             bl.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul></div>" +
         "</div>" +
         '<div class="money"><div class="score">' + s.total.toFixed(1) + "</div>" +
-        '<div class="need">필요 ' + eok(fin.need) + (jFin ? "<br>전세끼고 " + eok(jFin.need) : "") + "</div></div></div>";
+        '<div class="need">필요 ' + eok(fin.need) + (jFin ? "<br>전세끼고 " + eok(jFin.need) : "") + "</div>" +
+        '<button class="btn sm ghost" data-cdel="' + cart.indexOf(c) + '" style="margin-top:8px">빼기</button></div></div>';
     }).join("");
+  box.querySelectorAll("button[data-cdel]").forEach(function (b) {
+    b.addEventListener("click", function () { removeFromCart(Number(b.dataset.cdel)); });
+  });
   document.getElementById("cart-img").style.display = "";
+  renderCartCompare(scored, cond);
+}
+
+/* ══ 담은 단지 비교 (해석 + 차트 3종) ══════════ */
+var chartC2Price = null, chartC2Mult = null, chartC2Gap = null;
+var C2_COLORS = ["#0f4c5c", "#4a90a4", "#c47f17", "#0e7c66", "#8a6d3b", "#7a5ea8"];
+
+function renderCartCompare(scored, cond) {
+  var box = document.getElementById("cart-compare");
+  var list = scored.slice(0, 6);
+  if (list.length < 2) {
+    box.innerHTML = '<div class="rowinfo" style="margin-top:10px">단지를 2곳 이상 담으면 ' +
+      '비교 해석과 매매가·배율·갭 추이 차트가 나옵니다.</div>';
+    ["cx2-pricecard", "cx2-multcard", "cx2-gapcard"].forEach(function (id) {
+      document.getElementById(id).style.display = "none";
+    });
+    return;
+  }
+
+  /* 1) 비교 해석 — 담은 단지들 사이의 상대 관계 */
+  var a = list[0], b = list[1];
+  var pyA = a.item.py || a.item.pmAvg * 3.3058, pyB = b.item.py || b.item.pmAvg * 3.3058;
+  var mult = pyB ? pyA / pyB : null;
+  var lines = [];
+  if (mult) lines.push("<b>" + a.item.apt + "</b>는 <b>" + b.item.apt + "</b>의 " + mult.toFixed(2) +
+    "배입니다 — 평당 " + fmt(pyA) + "만 vs " + fmt(pyB) + "만, 차이 " + fmt(Math.abs(pyA - pyB)) + "만원.");
+  var amtA = a.item.amt || 0, amtB = b.item.amt || 0;
+  if (amtA && amtB) lines.push("현재 매매가 차이는 <b>" + eok(Math.abs(amtA - amtB)) + "</b>입니다.");
+  list.forEach(function (s) {
+    var c = s.item;
+    if (c.gap != null) lines.push("<b>" + c.apt + "</b> 갭 " + eok(c.gap) +
+      (c.jr != null ? " (전세가율 " + c.jr + "%)" : "") + " — 전세 끼고 들어갈 때 필요한 돈입니다.");
+  });
+  var best = list[0], worst = list[list.length - 1];
+  lines.push("채점 종합은 <b>" + best.item.apt + " " + best.total.toFixed(0) + "점(" + best.grade + ")</b>이 가장 높고, " +
+    "<b>" + worst.item.apt + " " + worst.total.toFixed(0) + "점(" + worst.grade + ")</b>이 가장 낮습니다.");
+  var cheap = list.slice().sort(function (x, y) {
+    var fx = finance(x.item.regionKey || "", x.item.amt || x.item.pmAvg * cond.area, cond);
+    var fy = finance(y.item.regionKey || "", y.item.amt || y.item.pmAvg * cond.area, cond);
+    return fx.need - fy.need;
+  })[0];
+  var cheapFin = finance(cheap.item.regionKey || "", cheap.item.amt || cheap.item.pmAvg * cond.area, cond);
+  lines.push("필요현금이 가장 적은 곳은 <b>" + cheap.item.apt + " " + eok(cheapFin.need) + "</b>입니다" +
+    (cond.cash > 0 ? (cheapFin.need <= cond.cash ? " — 지금 예산으로 실행 가능합니다." : " — 그래도 " + eok(cheapFin.need - cond.cash) + " 부족합니다.") : "."));
+  box.innerHTML = '<div class="note" style="margin-top:12px"><b>비교 해석</b>' +
+    "<ul style='margin:6px 0 0 16px;line-height:1.75'>" +
+    lines.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul></div>";
+
+  /* 2) 차트용 월별 시계열 — 지역별 24개월 실거래를 캐시 활용해 조회 */
+  var lawds = {};
+  list.forEach(function (s) { lawds[s.item.lawd] = true; });
+  var keys = Object.keys(lawds);
+  Promise.all(keys.map(function (lw) { return fetchMonths(lw, 24, null).catch(function () { return null; }); }))
+    .then(function (datas) {
+      var byLawd = {};
+      keys.forEach(function (lw, i) { byLawd[lw] = datas[i]; });
+      var labels = null;
+      var series = list.map(function (s, i) {
+        var c = s.item, d = byLawd[c.lawd];
+        if (!d) return null;
+        if (!labels) labels = d.months.map(function (ym) { return ym.slice(0, 4) + "." + Number(ym.slice(4)); });
+        var band = guessBand(c);
+        return {
+          name: c.apt + " " + band + "㎡대",
+          color: C2_COLORS[i % C2_COLORS.length],
+          sale: monthlyMedian(d.sale, c.apt, c.dong, band, "amount"),
+          rent: monthlyMedian(d.rent, c.apt, c.dong, band, "deposit")
+        };
+      }).filter(Boolean);
+      if (series.length < 2 || !labels) return;
+      drawCartCharts(series, labels);
+    });
+}
+/* 담은 단지의 대표 평형대 추정 (매매 중위가 ÷ ㎡당가) */
+function guessBand(c) {
+  var area = (c.amt && c.pmAvg) ? c.amt / c.pmAvg : 84;
+  var bands = [36, 46, 59, 84, 101];
+  for (var i = 0; i < bands.length; i++) if (inBand(area, bands[i])) return bands[i];
+  return 84;
+}
+
+function drawCartCharts(series, labels) {
+  /* 매매가 추이 */
+  document.getElementById("cx2-pricecard").style.display = "";
+  if (chartC2Price) chartC2Price.destroy();
+  chartC2Price = new Chart(document.getElementById("cx2-price"), {
+    type: "line",
+    data: { labels: labels, datasets: series.map(function (s) {
+      return { label: s.name, data: s.sale, borderColor: s.color, borderWidth: 2,
+               pointRadius: 2, spanGaps: true, tension: .15 };
+    })},
+    options: chartOpts("만")
+  });
+
+  /* 배율 A÷B */
+  var a = series[0], b = series[1];
+  var mult = a.sale.map(function (v, i) {
+    return (v != null && b.sale[i] != null && b.sale[i] !== 0) ? v / b.sale[i] : null;
+  });
+  var vals = mult.filter(function (v) { return v != null; });
+  if (vals.length >= 6) {
+    var cur = vals[vals.length - 1];
+    var mean = vals.reduce(function (x, y) { return x + y; }, 0) / vals.length;
+    var sorted = vals.slice().sort(function (x, y) { return x - y; });
+    var band = sorted.filter(function (v) { return v <= cur; }).length / sorted.length * 100;
+    var lastA = a.sale.filter(function (v) { return v != null; }).pop();
+    var revert = lastA ? lastA * (mean / cur) - lastA : null;
+    document.getElementById("cx2-multkpi").innerHTML =
+      statBox("현재 배율 (A÷B)", cur.toFixed(3)) +
+      statBox("기간 평균", mean.toFixed(3) + " (최저 " + sorted[0].toFixed(3) + " · 최고 " + sorted[sorted.length - 1].toFixed(3) + ")") +
+      statBox("밴드 위치", band.toFixed(0) + "%", band <= 30 ? "up" : (band >= 70 ? "down" : "")) +
+      statBox("평균 회귀 시 A 가격", revert != null ? (revert >= 0 ? "+" : "") + eok(revert) : "—", revert != null && revert < 0 ? "up" : "");
+    document.getElementById("cx2-multread").innerHTML =
+      "배율 1.20은 A가 B보다 20% 비싸다는 뜻입니다. 이 값이 기간 평균보다 낮으면 <b>평소보다 A가 저렴해진 상태</b>이고, " +
+      "A로 갈아타기에 상대적으로 유리한 시점입니다. 현재 " + cur.toFixed(3) + "은 평균 " + mean.toFixed(3) + " 대비 " +
+      pct((cur / mean - 1) * 100, 1) + " 지점입니다.";
+    document.getElementById("cx2-multcard").style.display = "";
+    if (chartC2Mult) chartC2Mult.destroy();
+    chartC2Mult = new Chart(document.getElementById("cx2-mult"), {
+      type: "line",
+      data: { labels: labels, datasets: [{ label: "배율 (A÷B)", data: mult, borderColor: C2_COLORS[0],
+        borderWidth: 2, pointRadius: 2, spanGaps: true, tension: .15 }] },
+      options: chartOpts("x"),
+      plugins: [{
+        id: "c2mean",
+        beforeDatasetsDraw: function (ch) {
+          var y = ch.scales.y.getPixelForValue(mean), ar = ch.chartArea, ctx = ch.ctx;
+          if (y < ar.top || y > ar.bottom) return;
+          ctx.save(); ctx.strokeStyle = "#c47f17"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(ar.left, y); ctx.lineTo(ar.right, y); ctx.stroke(); ctx.restore();
+        }
+      }]
+    });
+  } else {
+    document.getElementById("cx2-multcard").style.display = "none";
+  }
+
+  /* 갭 추이 */
+  document.getElementById("cx2-gapcard").style.display = "";
+  if (chartC2Gap) chartC2Gap.destroy();
+  chartC2Gap = new Chart(document.getElementById("cx2-gap"), {
+    type: "line",
+    data: { labels: labels, datasets: series.map(function (s) {
+      return { label: s.name + " 갭",
+        data: s.sale.map(function (v, i) { return (v != null && s.rent[i] != null) ? v - s.rent[i] : null; }),
+        borderColor: s.color, borderWidth: 1.5, borderDash: [4, 3], pointRadius: 2, spanGaps: true, tension: .15 };
+    })},
+    options: chartOpts("만")
+  });
 }
 
 /* ══ 내 조건 요약 배너 ═══════════════════════ */

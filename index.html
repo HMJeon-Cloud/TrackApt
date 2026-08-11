@@ -32,6 +32,13 @@ nav::-webkit-scrollbar{display:none}
 nav button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink-soft);
   font:inherit;font-size:.82rem;font-weight:600;padding:7px 13px;border-radius:999px;cursor:pointer;white-space:nowrap}
 nav button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+nav#subnav{padding-bottom:10px}
+nav#subnav button{border-color:transparent;background:transparent;padding:6px 11px;font-size:.8rem}
+nav#subnav button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+nav#nav button.cart{border-color:var(--cash);color:var(--cash);background:#fff}
+nav#nav button.cart.on{background:var(--cash);border-color:var(--cash);color:#fff}
+nav#nav button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cash);margin-left:5px;vertical-align:1px}
+nav#nav button.on .dot{background:#fff}
 nav button:focus-visible,.seg button:focus-visible{outline:2px solid var(--cash);outline-offset:2px}
 main{max-width:860px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom) + 48px)}
 section.tab{display:none} section.tab.on{display:block}
@@ -148,9 +155,10 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v1.4</span>
+    <span class="ver">v1.5</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
+  <nav id="subnav" aria-label="하위 메뉴"></nav>
 </header>
 
 <div id="condbar" style="max-width:860px;margin:0 auto;padding:10px 16px 0;font-size:.78rem;color:var(--ink-soft);cursor:pointer" title="시작 탭으로 이동"></div>
@@ -208,64 +216,106 @@ var DEFAULT_RULES = {
 };
 var RULES = JSON.parse(JSON.stringify(DEFAULT_RULES));
 
-var TABS = [
-  { id: "start",   name: "시작",        build: buildStart },
-  { id: "market",  name: "시장 현황",   build: buildMarket },
-  { id: "quad",    name: "4분면",       build: buildQuad },
-  { id: "vol",     name: "거래량",      build: buildVol },
-  { id: "supply",  name: "수급",        build: buildSupply },
-  { id: "btest",   name: "백테스트",    build: buildBtest },
-  { id: "rank",    name: "전국 급지표", build: buildRank },
-  { id: "mapx",    name: "급지 지도",   build: buildMapx },
-  { id: "gap",     name: "갭투자",      build: buildGap },
-  { id: "move",    name: "갈아타기",    build: buildMove },
-  { id: "rota",    name: "순환매",      build: buildRota },
-  { id: "reco",    name: "맞춤 추천",   build: buildReco },
-  { id: "danji",   name: "단지 찾기",   build: buildDanji },
-  { id: "flag",    name: "대장 아파트", build: buildFlag },
-  { id: "cmpx",    name: "단지 비교",   build: buildCmpx },
-  { id: "calc",    name: "자금 계산기", build: buildCalc },
-  { id: "guide",   name: "사용법",      build: buildGuide },
-  { id: "setting", name: "기준·설정",   build: buildSetting }
+var GROUPS = [
+  { id: "g1", name: "시작하기", tabs: [
+    { id: "reco",    name: "추천 받기",   build: buildReco },
+    { id: "start",   name: "내 조건",     build: buildStart },
+    { id: "guide",   name: "사용법",      build: buildGuide } ] },
+  { id: "g2", name: "시장 공부", tabs: [
+    { id: "market",  name: "시장 흐름",   build: buildMarket },
+    { id: "vol",     name: "거래량",      build: buildVol },
+    { id: "quad",    name: "매매·전세 흐름", build: buildQuad },
+    { id: "supply",  name: "입주 물량",   build: buildSupply },
+    { id: "btest",   name: "과거 검증",   build: buildBtest } ] },
+  { id: "g3", name: "어디를 살까", tabs: [
+    { id: "rank",    name: "지역 순위",   build: buildRank },
+    { id: "mapx",    name: "지도로 보기", build: buildMapx },
+    { id: "gap",     name: "전세 끼고 사기", build: buildGap },
+    { id: "move",    name: "갈아타기",    build: buildMove },
+    { id: "rota",    name: "다음 오를 곳", build: buildRota } ] },
+  { id: "g4", name: "어떤 아파트", tabs: [
+    { id: "flag",    name: "지역 1등 아파트", build: buildFlag },
+    { id: "danji",   name: "아파트 찾기", build: buildDanji },
+    { id: "cmpx",    name: "아파트 비교", build: buildCmpx } ] },
+  { id: "g5", name: "돈·설정", tabs: [
+    { id: "calc",    name: "돈 계산",     build: buildCalc },
+    { id: "setting", name: "설정",        build: buildSetting } ] },
+  { id: "g6", name: "내 후보", cart: true, tabs: [
+    { id: "cart",    name: "최종 검토",   build: buildCartTab } ] }
 ];
+var TABS = [];
+GROUPS.forEach(function (g) { g.tabs.forEach(function (t) { t.group = g.id; TABS.push(t); }); });
+var CURGROUP = "g1";
 
 document.addEventListener("DOMContentLoaded", function () {
   loadRules();
   var nav = document.getElementById("nav");
+  var sub = document.getElementById("subnav");
   var main = document.getElementById("main");
+
+  GROUPS.forEach(function (g) {
+    var b = document.createElement("button");
+    b.innerHTML = g.name + (g.cart ? '<span class="dot"></span>' : "");
+    b.dataset.group = g.id;
+    if (g.cart) b.className = "cart";
+    b.addEventListener("click", function () { showGroup(g.id); });
+    nav.appendChild(b);
+  });
   TABS.forEach(function (t) {
     var b = document.createElement("button");
-    b.textContent = t.name; b.dataset.tab = t.id;
+    b.textContent = t.name;
+    b.dataset.tab = t.id;
     b.addEventListener("click", function () { showTab(t.id); });
-    nav.appendChild(b);
+    sub.appendChild(b);
     var s = document.createElement("section");
     s.className = "tab"; s.id = "tab-" + t.id;
-    main.appendChild(s);   /* build 전에 먼저 DOM에 붙여야 getElementById가 동작 */
+    main.appendChild(s);
     if (t.build) t.build(s);
     else s.innerHTML = '<div class="placeholder">「' + t.name + '」 화면은 다음 버전에서 구현됩니다.</div>';
   });
-  showTab("start");
+
+  showTab("reco");
   loadData();
 });
 
+function showGroup(gid) {
+  CURGROUP = gid;
+  var g = GROUPS.filter(function (x) { return x.id === gid; })[0];
+  if (g && g.tabs.length) showTab(g.tabs[0].id);
+}
+
 function showTab(id) {
-  document.querySelectorAll("nav button").forEach(function (b) { b.classList.toggle("on", b.dataset.tab === id); });
-  document.querySelectorAll("section.tab").forEach(function (s) { s.classList.toggle("on", s.id === "tab-" + id); });
+  var tab = TABS.filter(function (t) { return t.id === id; })[0];
+  if (!tab) return;
+  CURGROUP = tab.group;
+  document.querySelectorAll("#nav button").forEach(function (b) {
+    b.classList.toggle("on", b.dataset.group === CURGROUP);
+  });
+  /* 현재 그룹의 하위 탭만 노출 */
+  document.querySelectorAll("#subnav button").forEach(function (b) {
+    var t = TABS.filter(function (x) { return x.id === b.dataset.tab; })[0];
+    b.style.display = (t && t.group === CURGROUP) ? "" : "none";
+    b.classList.toggle("on", b.dataset.tab === id);
+  });
+  document.querySelectorAll("section.tab").forEach(function (s) {
+    s.classList.toggle("on", s.id === "tab-" + id);
+  });
   if (!DB) return;
   if (id === "market") renderMarket();
   if (id === "rank") renderRank();
-  if (id === "mapx") renderMapx();
   if (id === "gap") renderGap();
   if (id === "move") renderMove();
   if (id === "reco") renderReco();
   if (id === "danji") renderDanjiShell();
   if (id === "quad") renderQuad();
-  if (id === "vol") renderVolShell();
-  if (id === "btest") renderBtestShell();
-  if (id === "flag") renderFlagShell();
-  if (id === "cmpx") renderCmpxShell();
   if (id === "rota") renderRota();
   if (id === "calc") renderCalc();
+  if (id === "vol") renderVolShell();
+  if (id === "flag") renderFlagShell();
+  if (id === "cmpx") renderCmpxShell();
+  if (id === "mapx") renderMapx();
+  if (id === "btest") renderBtestShell();
+  if (id === "cart") renderCart();
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */
@@ -467,13 +517,9 @@ function onDataReady() {
   html += statBox("서울 매수우위지수", buyer != null ? buyer.toFixed(1) : "—", buyer != null ? (buyer >= 100 ? "up" : "down") : "");
   document.getElementById("data-status").innerHTML = html;
 
+  updateCartDot();
   var onTab = document.querySelector("section.tab.on");
-  if (onTab && onTab.id === "tab-market") renderMarket();
-  if (onTab && onTab.id === "tab-rank") renderRank();
-  if (onTab && onTab.id === "tab-gap") renderGap();
-  if (onTab && onTab.id === "tab-move") renderMove();
-  if (onTab && onTab.id === "tab-reco") renderReco();
-  renderDanjiShell();
+  if (onTab) showTab(onTab.id.replace("tab-", ""));
   renderCondBar();
 }
 function statBox(k, v, c) {
@@ -1717,7 +1763,26 @@ function buildDanji(root) {
       '<th data-sort="cnt">거래 ⇅</th><th>담기</th></tr></thead><tbody></tbody></table></div>' +
       '<div class="note"><b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
         '평당가는 전용면적 기준(거래가 ÷ 전용㎡ × 3.3058)이라 공급면적 평당가보다 25%쯤 높으니 네이버 시세와 ' +
-        '직접 비교하지 마세요. 지하철·세대수는 K-apt 정보이며 미제공 단지는 필터에서 빠집니다.</div></div>' +
+        '직접 비교하지 마세요. 지하철·세대수는 K-apt 정보이며 미제공 단지는 필터에서 빠집니다.</div></div>';
+
+  root.querySelector("#dj-go").addEventListener("click", loadDanji);
+  ["dj-hh", "dj-sub", "dj-age", "dj-band"].forEach(function (id) {
+    root.querySelector("#" + id).addEventListener("change", renderDanjiTable);
+  });
+  root.querySelectorAll("#dj-table thead th[data-sort]").forEach(function (th) {
+    th.style.cursor = "pointer";
+    th.addEventListener("click", function () {
+      var key = th.dataset.sort;
+      if (DJ.sortKey === key) DJ.sortAsc = !DJ.sortAsc;
+      else { DJ.sortKey = key; DJ.sortAsc = (key === "apt" || key === "year" || key === "sub"); }
+      renderDanjiTable();
+    });
+  });
+}
+
+/* ══ 최종 검토 탭 ═════════════════════════════ */
+function buildCartTab(root) {
+  root.innerHTML =
     '<div class="card">' +
       '<div class="eyebrow">Cart</div><h2>최종 검토 <span class="badge ok" id="cart-count"></span></h2>' +
       '<p class="desc">담은 단지를 6개 축으로 채점하고, 단지 정보·주변 환경·자금까지 한 장에 정리합니다.</p>' +
@@ -1743,26 +1808,17 @@ function buildDanji(root) {
       '<div class="note">거래가 없는 달은 선이 이어지지 않습니다. 소규모 단지는 월 1~2건으로 중위값이 튈 수 있으니 ' +
         '한두 달의 급변보다 <b>전체 방향</b>을 보세요.</div></div>';
 
-  root.querySelector("#dj-go").addEventListener("click", loadDanji);
-  ["dj-hh", "dj-sub", "dj-age", "dj-band"].forEach(function (id) {
-    root.querySelector("#" + id).addEventListener("change", renderDanjiTable);
-  });
   root.querySelector("#cart-score").addEventListener("click", renderCartReport);
   root.querySelector("#cart-clear").addEventListener("click", function () {
     if (!getCart().length) return;
     setCart([]);
     document.getElementById("cart-report").innerHTML = "";
+    document.getElementById("cart-compare").innerHTML = "";
+    ["cx2-pricecard", "cx2-multcard", "cx2-gapcard"].forEach(function (id) {
+      var el = document.getElementById(id); if (el) el.style.display = "none";
+    });
     document.getElementById("cart-img").style.display = "none";
     renderCart(); renderDanjiTable();
-  });
-  root.querySelectorAll("#dj-table thead th[data-sort]").forEach(function (th) {
-    th.style.cursor = "pointer";
-    th.addEventListener("click", function () {
-      var key = th.dataset.sort;
-      if (DJ.sortKey === key) DJ.sortAsc = !DJ.sortAsc;
-      else { DJ.sortKey = key; DJ.sortAsc = (key === "apt" || key === "year" || key === "sub"); }
-      renderDanjiTable();
-    });
   });
 }
 
@@ -1786,7 +1842,6 @@ function fillRegionSelects(ids) {
 function renderDanjiShell() {
   if (!DB) return;
   fillRegionSelects(["dj-region"]);
-  renderCart();
 }
 function lawdName(code) {
   for (var i = 0; i < LAWD_GROUPS.length; i++) {
@@ -1910,7 +1965,7 @@ function subwayMin(k) {
 }
 
 function renderDanjiTable() {
-  if (!DJ.rows.length) return;
+  if (!DJ.rows.length || !document.getElementById("dj-table")) return;
   var band = Number(document.getElementById("dj-band").value) || 0;
   var minHH = Number(document.getElementById("dj-hh").value) || 0;
   var maxSub = Number(document.getElementById("dj-sub").value) || 0;
@@ -1999,6 +2054,14 @@ function addToCart(r, btn) {
   setCart(cart);
   btn.disabled = true; btn.textContent = "담김";
   renderCart();
+  updateCartDot();
+}
+/* 상단 "내 후보" 버튼에 담은 개수 표시 */
+function updateCartDot() {
+  var b = document.querySelector('#nav button[data-group="g6"]');
+  if (!b) return;
+  var nCart = getCart().length;
+  b.innerHTML = "내 후보" + (nCart ? ' <span class="dot"></span>' + nCart : '<span class="dot"></span>');
 }
 
 function renderCart() {
@@ -2007,6 +2070,7 @@ function renderCart() {
   if (cc) cc.textContent = cart.length + "곳";
   var empty = document.getElementById("cart-empty");
   if (empty) empty.style.display = cart.length ? "none" : "";
+  updateCartDot();
 }
 function removeFromCart(i) {
   var c = getCart();
@@ -3734,7 +3798,7 @@ function buildGuide(root) {
       step(2, "rank", "첫 집 서열 보기", "필요현금 사다리에서 주황 점선(내 현금)에 닿는 가장 위쪽 지역을 찾습니다. 그게 내 서열입니다.") +
       step(3, "reco", "맞춤 추천 받기", "5개 축 채점으로 후보를 좁힙니다. 서열순과 점수순의 1위가 다르면 그 차이가 곧 타이밍 정보입니다.") +
       step(4, "danji", "단지까지 내려가기", "고른 지역의 실거래를 불러와 세대수·역세권·전세·갭으로 거르고, 마음에 들면 담습니다.") +
-      step(5, "danji", "채점 보고서 받기", "담은 단지를 6개 축으로 채점해 등급과 약한 축을 확인합니다. 이미지로 저장해 어디든 공유하세요.") +
+      step(5, "cart", "채점 보고서 받기", "담은 단지를 6개 축으로 채점해 등급과 약한 축을 확인합니다. 이미지로 저장해 어디든 공유하세요.") +
       '<div class="note" style="margin-top:10px">이미 집이 있다면 — <b>갈아타기</b> 탭에서 내 지역과 상급지의 배율을 10년 밴드로 보고, ' +
         '지금이 올라타기 좋은 격차인지 판단합니다. 나머지 탭(시장·4분면·거래량·수급·순환매·백테스트)은 이 판단을 보조하는 관측 도구입니다.</div></div>' +
     '<div class="card">' +

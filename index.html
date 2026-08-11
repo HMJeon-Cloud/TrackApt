@@ -160,7 +160,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v2.2</span>
+    <span class="ver">v2.3</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -497,7 +497,7 @@ function onDataReady() {
   fillKbRegionSelect("mk-region", Object.keys(DB.sale.series), MK.region);
 
   /* 갭투자 지역 셀렉트 (시·도 그룹) */
-  fillKbRegionSelect("gp-region", RANKED, GAP.region || RANKED[0]);
+  fillKbRegionSelect("gp-region", RANKED, GAP.region || RANKED[0], 24);
 
 
   updateCartDot();
@@ -1039,7 +1039,7 @@ function renderMove() {
   /* 목표 셀렉트: 상급지만, 기본값은 바로 위 급지(=가장 싼 상급지) */
   var prevTarget = MOVE.target;
   if (!prevTarget || uppers.indexOf(prevTarget) < 0) MOVE.target = uppers[uppers.length - 1];
-  fillKbRegionSelect("mv-target", uppers, MOVE.target);
+  fillKbRegionSelect("mv-target", uppers, MOVE.target, 24);
 
   /* 배율 시계열 + KPI */
   var mineArr = pmSeries("salePm", home);
@@ -1959,9 +1959,25 @@ function kbLabel(k) {
   return sub ? top.replace(/시$/, "") + " " + sub : top;   /* "수원 영통구", "과천시" */
 }
 /* KB 통계 기반 탭용: 시·도 그룹 + 정리된 이름, 값은 KB 키 */
-function fillKbRegionSelect(id, keys, selected) {
+/* minMonths를 주면 salePm 표본이 그보다 짧은 지역(신설구 등)은 목록에서 뺀다 */
+function fillKbRegionSelect(id, keys, selected, minMonths) {
   var sel = document.getElementById(id);
   if (!sel) return;
+  if (minMonths) {
+    var kept = [], parents = [];
+    keys.forEach(function (k) {
+      var s = DB.salePm.series[ik(k)] || DB.salePm.series[k];
+      if (s && s.v.length >= minMonths) { kept.push(k); return; }
+      /* 표본 부족으로 빠지는 하위 구 → 상위 지역으로 대체 (예: 화성 신설구 → 화성시) */
+      if (k.indexOf("|") >= 0) {
+        var p = k.split("|")[0];
+        var ps = DB.salePm.series[p];
+        if (ps && ps.v.length >= minMonths && kept.indexOf(p) < 0 && parents.indexOf(p) < 0 &&
+            keys.indexOf(p) < 0) parents.push(p);
+      }
+    });
+    keys = kept.concat(parents);
+  }
   var order = ["전국·권역"].concat(LAWD_GROUPS.map(function (g) { return g.sido; }));
   var byS = {};
   keys.forEach(function (k) {
@@ -2062,21 +2078,26 @@ function apiGet(url) {
 
 /* "41590:41594" 형태의 복합 코드 → 후보 배열 */
 function lawdCandidates(code) { return String(code).split(":"); }
+/* (kind|lawd|ym) → 응답 메모. 지난 달 실거래는 사실상 확정치라 세션 내 재사용해도 안전 */
+var TRADE_MEMO = {};
 /* 후보 중 실제로 데이터가 나온 코드를 기억해 이후 호출은 그 코드만 쓴다 */
 var LAWD_RESOLVED = {};
 function fetchTrade(code, kind, ym) {
+  var memoKey = kind + "|" + code + "|" + ym;
+  if (TRADE_MEMO[memoKey]) return Promise.resolve(TRADE_MEMO[memoKey]);
+  function memo(j) { if (j && !j.error) TRADE_MEMO[memoKey] = j; return j; }
   if (LAWD_RESOLVED[code]) {
-    return apiGet("/api/trades?kind=" + kind + "&lawd=" + LAWD_RESOLVED[code] + "&ym=" + ym);
+    return apiGet("/api/trades?kind=" + kind + "&lawd=" + LAWD_RESOLVED[code] + "&ym=" + ym).then(memo);
   }
   var cands = lawdCandidates(code);
-  if (cands.length === 1) return apiGet("/api/trades?kind=" + kind + "&lawd=" + cands[0] + "&ym=" + ym);
+  if (cands.length === 1) return apiGet("/api/trades?kind=" + kind + "&lawd=" + cands[0] + "&ym=" + ym).then(memo);
   var last = null;
   function attempt(i) {
     if (i >= cands.length) return Promise.resolve(last || { items: [] });
     return apiGet("/api/trades?kind=" + kind + "&lawd=" + cands[i] + "&ym=" + ym)
       .then(function (j) {
         if (j.error) { last = j; return attempt(i + 1); }
-        if ((j.items || []).length) { LAWD_RESOLVED[code] = cands[i]; return j; }
+        if ((j.items || []).length) { LAWD_RESOLVED[code] = cands[i]; return memo(j); }
         last = j;
         return attempt(i + 1);
       });
@@ -2134,32 +2155,46 @@ function loadDanji() {
       g.deals.push(t);
       if (t.buildYear && !g.buildYear) g.buildYear = t.buildYear;
     });
+    /* 전세를 (동|단지) 인덱스로 미리 묶는다 — 단지 96 × 전세 1,200건 반복 검색 제거 */
+    var rentIdx = {};
+    rentAll.forEach(function (t) {
+      var id = t.dong + "|" + t.apt;
+      (rentIdx[id] = rentIdx[id] || []).push(t);
+    });
     DJ.rows = Object.keys(byApt).map(function (id) {
       var g = byApt[id];
       g.cnt = g.deals.length;
-      g.areas = g.deals.map(function (t) { return t.area; });
       g.last = g.deals.slice().sort(function (a, b) { return (b.ym * 100 + b.day) - (a.ym * 100 + a.day); })[0];
-      g.rentDeals = rentAll.filter(function (t) { return t.dong === g.dong && t.apt === g.apt; });
+      g.rentDeals = rentIdx[id] || [];
       return g;
     });
-    return attachKapt(btn);
-  }).then(function () {
-    var meta = DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
-    if (DJ.subFilter) meta += " · 화성시 실거래에서 해당 구 법정동만 추림";
-    if (!DJ.kaptList || !DJ.kaptList.length) meta += " · K-apt 목록 없음(세대수·지하철 표시 불가)";
-    else if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";
-    document.getElementById("dj-meta").textContent = meta;
+    /* 실거래가 도착했으면 표부터 즉시 보여준다 */
+    updateDanjiMeta();
     renderDanjiTable();
+    btn.disabled = false; btn.textContent = "단지 불러오기";
+    /* K-apt 단지정보는 백그라운드에서 붙이고, 붙는 대로 표를 갱신한다 */
+    attachKapt();
   }).catch(function (e) {
     alert("조회 실패: " + e.message);
-  }).finally(function () {
     btn.disabled = false; btn.textContent = "단지 불러오기";
   });
 }
 
-/* K-apt 목록 1회 + 평당가 상위 단지 상세 순차 조회 */
-function attachKapt(btn) {
+function updateDanjiMeta(suffix) {
+  var meta = DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
+  if (DJ.subFilter) meta += " · 해당 구 법정동만 추림";
+  if (DJ.kaptList !== null) {
+    if (!DJ.kaptList.length) meta += " · K-apt 목록 없음";
+    else if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";
+  }
+  document.getElementById("dj-meta").textContent = meta + (suffix || "");
+}
+
+/* K-apt 목록 1회 + 평당가 상위 단지 상세를 병렬로 부착 (도착하는 대로 표 갱신) */
+var KAPT_INFO_MEMO = {};
+function attachKapt() {
   var band = Number(document.getElementById("dj-band").value) || 0;
+  var myLoad = DJ.loadSeq = (DJ.loadSeq || 0) + 1;   /* 새 조회가 시작되면 이전 부착은 버림 */
   var pre = DJ.rows.map(function (g) {
     var deals = band ? g.deals.filter(function (t) { return inBand(t.area, band); }) : g.deals;
     var pmv = deals.length ? median(deals.map(function (t) { return t.amount / t.area; })) : 0;
@@ -2171,18 +2206,36 @@ function attachKapt(btn) {
     .then(function (j) { DJ.kaptList = j.error ? [] : (j.items || []); })
     .catch(function () { DJ.kaptList = []; })
     .then(function () {
-      var chain = Promise.resolve(), done = 0;
-      pre.forEach(function (x) {
-        chain = chain.then(function () {
-          done++; btn.textContent = "단지정보 조회… (" + done + "/" + pre.length + ")";
-          var hit = matchKapt(DJ.kaptList, x.g.apt, x.g.dong);
-          if (!hit) { DJ.kaptMiss = (DJ.kaptMiss || 0) + 1; return null; }
-          return apiGet("/api/apt?kind=info&kapt=" + hit.kaptCode)
-            .then(function (j2) { if (!j2.error) x.g.kapt = j2.info; })
-            .catch(function () {});
-        });
+      if (DJ.loadSeq !== myLoad) return;
+      if (!DJ.kaptList.length) { updateDanjiMeta(); return; }
+      var done = 0, dirty = false;
+      updateDanjiMeta(" · 단지정보 붙이는 중 0/" + pre.length);
+      var jobs = pre.map(function (x) {
+        var hit = matchKapt(DJ.kaptList, x.g.apt, x.g.dong);
+        if (!hit) { DJ.kaptMiss = (DJ.kaptMiss || 0) + 1; done++; return Promise.resolve(); }
+        if (KAPT_INFO_MEMO[hit.kaptCode]) {           /* 같은 단지는 재조회 없이 */
+          x.g.kapt = KAPT_INFO_MEMO[hit.kaptCode]; done++; dirty = true;
+          return Promise.resolve();
+        }
+        return apiGet("/api/apt?kind=info&kapt=" + hit.kaptCode)
+          .then(function (j2) {
+            done++;
+            if (!j2.error && j2.info) { x.g.kapt = j2.info; KAPT_INFO_MEMO[hit.kaptCode] = j2.info; dirty = true; }
+          })
+          .catch(function () { done++; });
       });
-      return chain;
+      /* 0.5초마다 진행 표시 + 도착분 반영 (전 항목 재렌더 대신 배치 갱신) */
+      var timer = setInterval(function () {
+        if (DJ.loadSeq !== myLoad) { clearInterval(timer); return; }
+        updateDanjiMeta(" · 단지정보 붙이는 중 " + done + "/" + pre.length);
+        if (dirty) { dirty = false; renderDanjiTable(); }
+      }, 500);
+      return Promise.all(jobs).then(function () {
+        clearInterval(timer);
+        if (DJ.loadSeq !== myLoad) return;
+        updateDanjiMeta();
+        renderDanjiTable();
+      });
     });
 }
 
@@ -2897,11 +2950,13 @@ function renderQuad() {
   var css = getComputedStyle(document.documentElement);
   var cUp = css.getPropertyValue("--up").trim(), cDown = css.getPropertyValue("--down").trim();
   /* 원 크기를 지역명이 들어갈 만큼 잡는다 (텍스트 폭 기준) */
-  var mctx = document.getElementById("qd-chart").getContext("2d");
-  mctx.font = "700 10px Pretendard Variable, sans-serif";
+  var mctx = null;
+  try { mctx = document.getElementById("qd-chart").getContext("2d"); } catch (e) {}
+  if (mctx) mctx.font = "700 10px Pretendard Variable, sans-serif";
   rows.forEach(function (r) {
     r.label = disp(r.key).split(" ").pop();
-    r.rad = Math.max(15, mctx.measureText(r.label).width / 2 + 7);
+    var tw = mctx ? mctx.measureText(r.label).width : r.label.length * 10;
+    r.rad = Math.max(15, tw / 2 + 7);
   });
 
   /* 확대: 데이터 밀집 중심(중앙값)을 기준으로 범위를 좁힌다 */
@@ -3046,7 +3101,7 @@ function renderRota() {
   if (!DB || !RANKED.length) return;
   var sel = document.getElementById("rt-base");
   if (!sel.options.length) {
-    fillKbRegionSelect("rt-base", RANKED, RANKED[0]);
+    fillKbRegionSelect("rt-base", RANKED, RANKED[0], 36);
     RT.base = RANKED[0];
   }
   if (RT.base) sel.value = RT.base; else RT.base = sel.value;

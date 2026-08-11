@@ -59,6 +59,18 @@ section.tab{display:none} section.tab.on{display:block}
 .gstep .no{font-size:1.2rem;font-weight:800;color:var(--brand);min-width:26px;text-align:center}
 .gstep .t{font-weight:800;font-size:.92rem}
 .gstep .d{font-size:.8rem;color:var(--ink-soft);margin-top:2px;line-height:1.5}
+.picker{border:1px solid var(--line);border-radius:10px;max-height:300px;overflow-y:auto;background:#fff}
+.pgroup{border-bottom:1px solid var(--line)}
+.pgroup:last-child{border-bottom:0}
+.phead{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg);cursor:pointer;font-weight:700;font-size:.86rem}
+.phead .cnt{margin-left:auto;font-size:.72rem;color:var(--ink-soft);font-weight:600}
+.phead .arw{font-size:.7rem;color:var(--ink-soft)}
+.pbody{display:none;padding:6px 12px 10px;flex-wrap:wrap;gap:5px}
+.pgroup.open .pbody{display:flex}
+.pitem{font-size:.78rem;font-weight:600;border:1px solid var(--line);border-radius:6px;padding:4px 9px;cursor:pointer;background:#fff;color:var(--ink-soft)}
+.pitem.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.chosen{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.chosen .tag{font-size:.74rem;font-weight:700;background:#e4f3ef;color:var(--up);border-radius:6px;padding:3px 8px}
 .dict{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dict .di{background:var(--bg);border-radius:8px;padding:10px 12px}
 .dict .di b{font-size:.84rem}
@@ -136,7 +148,7 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v1.3</span>
+    <span class="ver">v1.4</span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
 </header>
@@ -2631,7 +2643,7 @@ function monthlyMedian(monthsData, apt, dong, band, field) {
 }
 
 /* ══ 대장 아파트 탭 ═══════════════════════════ */
-var FG = { scope: 5, region: "", band: 84 };
+var FG = { band: 84, top: 3, picked: [], results: [] };
 
 function buildFlag(root) {
   root.innerHTML =
@@ -2640,15 +2652,19 @@ function buildFlag(root) {
       '<p class="desc">국토부 실거래 기준으로 지역별 <b>평당가 1위 단지</b>를 뽑습니다. 호가나 브랜드가 아니라 ' +
         '<b>실제로 거래된 가격</b>이 기준입니다. 최근 6개월 · 거래 2건 미만 단지는 제외(단발 특이거래 배제).</p>' +
       '<div class="grid">' +
-        '<div class="field"><label>조회 범위</label><div class="seg" id="fg-scope">' +
-          '<button data-s="5" class="on">서열 상위 5곳</button><button data-s="10">상위 10곳</button>' +
-          '<button data-s="one">한 지역만</button></div></div>' +
-        '<div class="field"><label for="fg-region">지역 (한 지역만일 때)</label><select id="fg-region"></select></div>' +
         '<div class="field"><label for="fg-band">평형대</label><select id="fg-band">' +
           '<option value="36">36㎡대</option><option value="46">46㎡대</option><option value="59">59㎡대</option>' +
           '<option value="84" selected>84㎡대</option><option value="101">101㎡대</option></select></div>' +
-        '<div class="field"><label>&nbsp;</label><button class="btn" id="fg-go">대장 아파트 불러오기</button></div>' +
-      '</div></div>' +
+        '<div class="field"><label for="fg-top">지역당 표시</label><select id="fg-top">' +
+          '<option value="1">상위 1개 단지</option><option value="2">상위 2개 단지</option>' +
+          '<option value="3" selected>상위 3개 단지</option></select></div>' +
+      '</div>' +
+      '<div class="field full" style="margin-top:10px"><label>지역 (시·도를 누르면 전체 선택, 개별 선택도 가능)</label>' +
+        '<div class="picker" id="fg-picker"></div>' +
+        '<div class="chosen" id="fg-chosen"></div></div>' +
+      '<div class="btnrow"><button class="btn" id="fg-go" style="width:auto">대장 아파트 불러오기</button>' +
+        '<button class="btn ghost sm" id="fg-clear">선택 해제</button></div>' +
+      '<p class="hint">지역을 많이 고르면 조회에 시간이 걸립니다 (한 지역당 12회 호출). 10곳 이하를 권합니다.</p></div>' +
     '<div class="card" id="fg-resultcard" style="display:none">' +
       '<div class="eyebrow">Result</div><h2>대장 목록 <span class="badge ok" id="fg-count"></span></h2>' +
       '<div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="대장아파트">이미지 저장</button>' +
@@ -2660,22 +2676,83 @@ function buildFlag(root) {
         '지역당 상위 3개. 전세는 같은 단지·같은 평형대 실거래 중위이며 없으면 빈칸입니다. ' +
         '지역 평균(급지표)보다 대장이 30~50% 비싼 게 보통입니다 — 예산 검증은 담기 후 채점 보고서에서 하세요.</div></div>';
 
-  root.querySelectorAll("#fg-scope button").forEach(function (b) {
-    b.addEventListener("click", function () {
-      FG.scope = b.dataset.s === "one" ? "one" : Number(b.dataset.s);
-      root.querySelectorAll("#fg-scope button").forEach(function (x) { x.classList.toggle("on", x === b); });
-    });
-  });
   root.querySelector("#fg-band").addEventListener("change", function () { FG.band = Number(this.value); });
+  root.querySelector("#fg-top").addEventListener("change", function () { FG.top = Number(this.value); });
   root.querySelector("#fg-go").addEventListener("click", loadFlag);
+  root.querySelector("#fg-clear").addEventListener("click", function () {
+    FG.picked = []; renderPicker();
+  });
 }
 
-function renderFlagShell() { if (DB) fillRegionSelects(["fg-region"]); }
+function renderFlagShell() {
+  var box = document.getElementById("fg-picker");
+  if (!box || box.children.length) { renderPicker(); return; }
+  box.innerHTML = LAWD_GROUPS.map(function (g, gi) {
+    return '<div class="pgroup" data-gi="' + gi + '">' +
+      '<div class="phead"><span class="arw">▶</span>' +
+        '<label class="check" style="gap:6px"><input type="checkbox" data-sido="' + gi + '"> ' + g.sido + "</label>" +
+        '<span class="cnt">' + g.items.length + "곳</span></div>" +
+      '<div class="pbody">' + g.items.map(function (it) {
+        return '<button type="button" class="pitem" data-code="' + it[1] + '">' + it[0] + "</button>";
+      }).join("") + "</div></div>";
+  }).join("");
+
+  box.querySelectorAll(".phead").forEach(function (h) {
+    h.addEventListener("click", function (ev) {
+      if (ev.target.tagName === "INPUT") return;   /* 체크박스는 별도 처리 */
+      h.parentElement.classList.toggle("open");
+      h.querySelector(".arw").textContent = h.parentElement.classList.contains("open") ? "▼" : "▶";
+    });
+  });
+  box.querySelectorAll("input[data-sido]").forEach(function (cb) {
+    cb.addEventListener("change", function () {
+      var g = LAWD_GROUPS[Number(cb.dataset.sido)];
+      var codes = g.items.map(function (it) { return it[1]; });
+      if (cb.checked) {
+        codes.forEach(function (c) { if (FG.picked.indexOf(c) < 0) FG.picked.push(c); });
+      } else {
+        FG.picked = FG.picked.filter(function (c) { return codes.indexOf(c) < 0; });
+      }
+      renderPicker();
+    });
+  });
+  box.querySelectorAll(".pitem").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var c = b.dataset.code, i = FG.picked.indexOf(c);
+      if (i >= 0) FG.picked.splice(i, 1); else FG.picked.push(c);
+      renderPicker();
+    });
+  });
+  renderPicker();
+}
+
+/* 선택 상태를 화면에 반영 */
+function renderPicker() {
+  var box = document.getElementById("fg-picker");
+  if (!box) return;
+  box.querySelectorAll(".pitem").forEach(function (b) {
+    b.classList.toggle("on", FG.picked.indexOf(b.dataset.code) >= 0);
+  });
+  box.querySelectorAll("input[data-sido]").forEach(function (cb) {
+    var g = LAWD_GROUPS[Number(cb.dataset.sido)];
+    var codes = g.items.map(function (it) { return it[1]; });
+    var sel = codes.filter(function (c) { return FG.picked.indexOf(c) >= 0; }).length;
+    cb.checked = sel === codes.length;
+    cb.indeterminate = sel > 0 && sel < codes.length;
+    var cnt = cb.closest(".phead").querySelector(".cnt");
+    cnt.textContent = sel ? sel + " / " + codes.length + "곳" : codes.length + "곳";
+    cnt.style.color = sel ? "var(--up)" : "";
+  });
+  var ch = document.getElementById("fg-chosen");
+  ch.innerHTML = FG.picked.length
+    ? FG.picked.slice(0, 12).map(function (c) { return '<span class="tag">' + lawdName(c) + "</span>"; }).join("") +
+      (FG.picked.length > 12 ? '<span class="tag">외 ' + (FG.picked.length - 12) + "곳</span>" : "")
+    : '<span class="hint" style="margin:0">선택된 지역이 없습니다.</span>';
+}
 
 function loadFlag() {
-  var regions = FG.scope === "one"
-    ? [document.getElementById("fg-region").value]
-    : RANKED.filter(function (k) { return LAWD[k]; }).slice(0, FG.scope).map(function (k) { return LAWD[k]; });
+  var regions = FG.picked.slice();
+  if (!regions.length) { alert("지역을 하나 이상 선택하세요. 시·도 체크박스를 누르면 전체가 선택됩니다."); return; }
   var btn = document.getElementById("fg-go");
   btn.disabled = true;
   var total = regions.length * 12, done = 0;
@@ -2715,7 +2792,7 @@ function loadFlag() {
           g.gap = g.jeonse != null ? g.med - g.jeonse : null;
           g.cnt = g.amounts.length;
           return g;
-        }).filter(Boolean).sort(function (a, b) { return b.py - a.py; }).slice(0, 3);
+        }).filter(Boolean).sort(function (a, b) { return b.py - a.py; }).slice(0, FG.top);
         results.push({ region: rk, apts: apts });
       });
     });

@@ -160,7 +160,8 @@ tr:last-child td{border-bottom:0}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v1.6</span>
+    <span class="ver">v1.7</span>
+    <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
   <nav id="subnav" aria-label="하위 메뉴"></nav>
@@ -351,12 +352,7 @@ function buildStart(root) {
       '</div>' +
       '<p class="hint" id="save-hint">값은 이 브라우저에만 저장됩니다.</p>' +
     '</div>' +
-    '<div class="card">' +
-      '<div class="eyebrow">Data</div>' +
-      '<h2>데이터 상태 <span id="data-badge" class="badge err">로드 중</span></h2>' +
-      '<p class="desc">KB부동산 월간 시계열이 정상적으로 붙었는지 확인하는 패널입니다.</p>' +
-      '<div class="status" id="data-status"></div>' +
-    '</div>';
+'';
   ["f-cash","f-area","f-home","f-income","f-rate","f-own","f-first","f-range"].forEach(function (id) {
     root.querySelector("#" + id).addEventListener("change", saveCond);
   });
@@ -402,11 +398,9 @@ function loadData() {
     .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(function (j) { DB = j; onDataReady(); })
     .catch(function (e) {
-      var b = document.getElementById("data-badge");
-      if (b) { b.className = "badge err"; b.textContent = "로드 실패"; }
-      var s = document.getElementById("data-status");
-      if (s) s.innerHTML = '<div class="stat" style="grid-column:1/-1"><div class="k">원인</div>' +
-        '<div class="v" style="font-size:.85rem;font-weight:600">kb_data.json을 찾지 못했습니다 (' + e.message + ').</div></div>';
+      var di = document.getElementById("datainfo");
+      if (di) { di.textContent = "데이터 로드 실패"; di.style.color = "var(--down)"; }
+      alert("kb_data.json을 불러오지 못했습니다 (" + e.message + "). index.html과 같은 폴더에 있는지 확인하세요.");
     });
 }
 function ymNum(ym) { var p = ym.split("-"); return Number(p[0]) * 12 + Number(p[1]); }
@@ -447,7 +441,16 @@ function ik(k) {
   return IDXMAP[n] || IDXMAP[n.replace(/시$/, "")] || k;
 }
 function fmt(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
-function eok(n) { return (n / 10000).toFixed(n >= 100000 ? 0 : 1) + "억"; }
+/* 금액을 단위에 맞게: 1억 미만은 만원, 이상은 억 */
+function eok(n) {
+  if (n == null || isNaN(n)) return "—";
+  var neg = n < 0 ? "-" : "";
+  var v = Math.abs(n);
+  if (v < 10000) return neg + fmt(v) + "만";
+  var e = v / 10000;
+  if (v % 10000 === 0) return neg + fmt(e) + "억";
+  return neg + (e >= 10 ? e.toFixed(1) : e.toFixed(2)).replace(/\.?0+$/, "") + "억";
+}
 function pct(v, digits) {
   if (v == null) return "—";
   var d = digits == null ? 1 : digits;
@@ -456,8 +459,9 @@ function pct(v, digits) {
 function cls(v) { return v == null ? "flat" : (v > 0.05 ? "up" : (v < -0.05 ? "down" : "flat")); }
 
 function onDataReady() {
-  var badge = document.getElementById("data-badge");
-  badge.className = "badge ok"; badge.textContent = "정상";
+  var e0 = latestYM("sale");
+  var di = document.getElementById("datainfo");
+  if (di) di.textContent = "KB " + e0[0] + "." + (e0[1] < 10 ? "0" : "") + e0[1] + " · 시군구 " + Object.keys(DB.salePm.series).length + "곳";
 
   /* 급지표 대상 지역: 집계 지역·상위 시 제외, ㎡당가 내림차순 */
   var keys = Object.keys(DB.salePm.series);
@@ -509,20 +513,6 @@ function onDataReady() {
     gsel.appendChild(o);
   });
 
-  /* 데이터 상태 KPI */
-  var e = latestYM("sale");
-  var seoulPm = lastVal("salePm", "서울특별시");
-  var natS = lastVal("salePm", "전국"), natJ = lastVal("jeonsePm", "전국");
-  var jr = (natS && natJ) ? natJ / natS * 100 : null;
-  var buyer = getVal("buyerIdx", "서울특별시", e[0], e[1]);
-  var html = "";
-  html += statBox("시계열 기간", DB.sale.dates[0].replace("-", ".") + " ~ " + e[0] + "." + e[1]);
-  html += statBox("지수 지역 수", Object.keys(DB.sale.series).length + "곳");
-  html += statBox("급지표 지역 수", RANKED.length + "곳");
-  html += statBox("서울 ㎡당 매매가", seoulPm != null ? fmt(seoulPm) + " 만원" : "—");
-  html += statBox("전국 전세가율", jr != null ? jr.toFixed(1) + "%" : "—");
-  html += statBox("서울 매수우위지수", buyer != null ? buyer.toFixed(1) : "—", buyer != null ? (buyer >= 100 ? "up" : "down") : "");
-  document.getElementById("data-status").innerHTML = html;
 
   updateCartDot();
   var onTab = document.querySelector("section.tab.on");
@@ -796,6 +786,47 @@ function bandPlugin(getBand, color) {
     }
   };
 }
+/* 다각형 레이더 차트 (SVG) — 축 수만큼 오각형·육각형이 된다 */
+function radarSvg(axes, size, color) {
+  var N = axes.length, R = size / 2 - 26, cx = size / 2, cy = size / 2 + 2;
+  function pt(i, r) {
+    var a = -Math.PI / 2 + i * 2 * Math.PI / N;
+    return [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+  }
+  function poly(r) {
+    var p = [];
+    for (var i = 0; i < N; i++) p.push(pt(i, r).map(function (v) { return v.toFixed(1); }).join(","));
+    return p.join(" ");
+  }
+  var grid = "";
+  [0.25, 0.5, 0.75, 1].forEach(function (f) {
+    grid += '<polygon points="' + poly(R * f) + '" fill="none" stroke="#dfe4ea" stroke-width="1"/>';
+  });
+  for (var i = 0; i < N; i++) {
+    var p = pt(i, R);
+    grid += '<line x1="' + cx + '" y1="' + cy + '" x2="' + p[0].toFixed(1) + '" y2="' + p[1].toFixed(1) +
+      '" stroke="#dfe4ea" stroke-width="1"/>';
+  }
+  var vals = [], dots = "";
+  for (var j = 0; j < N; j++) {
+    var v = Math.max(0, Math.min(100, axes[j].v)) / 100;
+    var q = pt(j, R * v);
+    vals.push(q.map(function (x) { return x.toFixed(1); }).join(","));
+    dots += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="3" fill="' + color + '"/>';
+  }
+  var labels = "";
+  for (var k = 0; k < N; k++) {
+    var lp = pt(k, R + 16);
+    var anchor = Math.abs(lp[0] - cx) < 6 ? "middle" : (lp[0] > cx ? "start" : "end");
+    labels += '<text x="' + lp[0].toFixed(1) + '" y="' + (lp[1] + 4).toFixed(1) + '" text-anchor="' + anchor +
+      '" font-size="11" font-weight="700" fill="#5b6675">' + axes[k].n +
+      '<tspan font-size="10.5" fill="' + color + '"> ' + Math.round(axes[k].v) + "</tspan></text>";
+  }
+  return '<svg viewBox="0 0 ' + size + " " + (size + 6) + '" width="100%" style="max-width:' + size + 'px;display:block;margin:0 auto">' +
+    grid + '<polygon points="' + vals.join(" ") + '" fill="' + color + '33" stroke="' + color + '" stroke-width="2"/>' +
+    dots + labels + "</svg>";
+}
+
 /* 밴드 미니 바: 그라데이션 트랙 + 현재 위치 눈금 (lowGood: 왼쪽이 유리) */
 function bandBar(p, lowGood) {
   if (p == null) return "—";
@@ -1365,6 +1396,9 @@ function renderReco() {
           "<ul style='margin:6px 0 0 16px;line-height:1.7'>" +
           bl.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul></div>";
       }
+      var radar = (i === 0) ? '<div style="width:100%;max-width:300px;margin:6px auto 2px">' +
+        radarSvg([{ n: "급지", v: r.s.rank }, { n: "성과", v: r.s.perf }, { n: "수급", v: r.s.supply },
+                  { n: "타이밍", v: r.s.timing }, { n: "자금", v: r.s.cash }], 280, "#0f4c5c") + "</div>" : "";
       return '<div class="reco' + (i === 0 ? " best" : "") + '" style="flex-wrap:wrap">' +
         '<div class="no">' + (i + 1) + "</div>" +
         '<div class="body"><div class="name">' + (r.fin.reg ? "⛔ " : "") + disp(r.key) +
@@ -1373,6 +1407,7 @@ function renderReco() {
         '<div class="rowinfo" style="margin:4px 0 6px">' + r.fin.modeName + " · 필요현금 <b>" + eok(r.fin.need) + "</b>" +
           (r.fin.mode === "jeonse" ? " (갭 " + eok(r.fin.gap) + ")" : (r.loanFin.loan > 0 ? " · 대출 " + eok(r.loanFin.loan) : "")) +
           (cond.cash > 0 ? (r.fin.need <= cond.cash ? ' <span class="tagmini ok">실행 가능</span>' : ' <span class="tagmini no">부족 ' + eok(r.fin.need - cond.cash) + "</span>") : "") + "</div>" +
+        radar +
         axRow("급지", r.s.rank, "전국 " + r.rank + "위") +
         axRow("성과", r.s.perf, r.cagr != null ? "연복리 " + r.cagr.toFixed(1) + "%" : "") +
         axRow("수급", r.s.supply, "") +
@@ -1506,8 +1541,7 @@ function loadVol() {
   var done = 0;
   btn.textContent = "불러오는 중… (0/" + months.length + ")";
   Promise.all(months.map(function (ym) {
-    return fetch("/api/trades?kind=sale&lawd=" + lawd + "&ym=" + ym)
-      .then(function (r) { return r.json(); })
+    return fetchTrade(lawd, "sale", ym)
       .then(function (j) {
         done++; btn.textContent = "불러오는 중… (" + done + "/" + months.length + ")";
         if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
@@ -1612,12 +1646,14 @@ var LAWD_GROUPS = [
     ["고양 일산서구","41287"],["과천시","41290"],["구리시","41310"],["남양주시","41360"],
     ["오산시","41370"],["시흥시","41390"],["군포시","41410"],["의왕시","41430"],["하남시","41450"],
     ["용인 처인구","41461"],["용인 기흥구","41463"],["용인 수지구","41465"],["파주시","41480"],
-    ["이천시","41500"],["안성시","41550"],["김포시","41570"],["화성시","41590"],["광주시","41610"],
+    ["이천시","41500"],["안성시","41550"],["김포시","41570"],["화성 만세구","41590:41591"],["화성 효행구","41590:41592"],["화성 병점구","41590:41593"],
+    ["화성 동탄구","41590:41594"],["화성시 전체","41590"],["광주시","41610"],
     ["양주시","41630"],["포천시","41650"],["여주시","41670"],["연천군","41800"],["가평군","41820"],
     ["양평군","41830"]] },
   { sido: "인천", items: [
     ["중구","28110"],["동구","28140"],["미추홀구","28177"],["연수구","28185"],["남동구","28200"],
-    ["부평구","28237"],["계양구","28245"],["서구","28260"],["강화군","28710"],["옹진군","28720"]] },
+    ["부평구","28237"],["계양구","28245"],["서구","28260"],["강화군","28710"],["옹진군","28720"],
+    ["제물포구","28110:28177"],["영종구","28110"],["검단구","28260"],["서해구","28260"]] },
   { sido: "부산", items: [
     ["중구","26110"],["서구","26140"],["동구","26170"],["영도구","26200"],["부산진구","26230"],
     ["동래구","26260"],["남구","26290"],["북구","26320"],["해운대구","26350"],["사하구","26380"],
@@ -1863,6 +1899,29 @@ function kbKeyOfLawd(code) {
   return "";
 }
 
+/* "41590:41594" 형태의 복합 코드를 실제 조회용 후보 배열로 */
+function lawdCandidates(code) {
+  return String(code).split(":");
+}
+/* 후보 코드를 순서대로 시도해 데이터가 있는 응답을 반환 (실패 시 마지막 응답) */
+function fetchTrade(code, kind, ym) {
+  var cands = lawdCandidates(code);
+  var last = null;
+  function attempt(i) {
+    if (i >= cands.length) return Promise.resolve(last || { items: [] });
+    return fetch("/api/trades?kind=" + kind + "&lawd=" + cands[i] + "&ym=" + ym)
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j.error) { last = j; return attempt(i + 1); }
+        if ((j.items || []).length) return j;
+        last = j;
+        return attempt(i + 1);
+      })
+      .catch(function () { return attempt(i + 1); });
+  }
+  return attempt(0);
+}
+
 function ymList(n) {
   var now = new Date();
   var y = now.getFullYear(), m = now.getMonth() + 1;
@@ -1886,14 +1945,14 @@ function loadDanji() {
   var months = ymList(DJ.months);
 
   var saleP = Promise.all(months.map(function (ym) {
-    return fetch("/api/trades?kind=sale&lawd=" + lawd + "&ym=" + ym)
-      .then(function (r) { return r.json(); })
-      .then(function (j) { tick(); if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : "")); return j.items || []; });
+    return fetchTrade(lawd, "sale", ym).then(function (j) {
+      tick();
+      if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
+      return j.items || [];
+    });
   }));
   var rentP = Promise.all(months.map(function (ym) {
-    return fetch("/api/trades?kind=rent&lawd=" + lawd + "&ym=" + ym)
-      .then(function (r) { return r.json(); })
-      .then(function (j) { tick(); return j.error ? [] : (j.items || []); })
+    return fetchTrade(lawd, "rent", ym).then(function (j) { tick(); return j.items || []; })
       .catch(function () { tick(); return []; });
   }));
 
@@ -1938,7 +1997,7 @@ function attachKapt(btn) {
   }).filter(function (x) { return x.pm > 0; })
     .sort(function (a, b) { return b.pm - a.pm; }).slice(0, 40);
 
-  return fetch("/api/apt?kind=list&lawd=" + DJ.lawd)
+  return fetch("/api/apt?kind=list&lawd=" + lawdCandidates(DJ.lawd)[0])
     .then(function (r) { return r.json(); })
     .then(function (j) { DJ.kaptList = j.error ? [] : (j.items || []); })
     .catch(function () { DJ.kaptList = []; })
@@ -2264,6 +2323,10 @@ function renderCartReport() {
             kv("주차", parkRatio ? parkRatio.toFixed(2) + "대/세대" : "") +
             kv("난방", c.heat) + kv("구조", c.hall) +
           "</div>" +
+          '<div style="width:100%;max-width:300px;margin:6px auto 2px">' +
+            radarSvg([{ n: "급지", v: s.axes.rank }, { n: "성과", v: s.axes.perf }, { n: "타이밍", v: s.axes.timing },
+                      { n: "수급", v: s.axes.supply }, { n: "단지", v: s.axes.danji }, { n: "자금", v: s.axes.cash }],
+                     280, i === 0 ? "#0e7c66" : "#0f4c5c") + "</div>" +
           axRow("급지", s.axes.rank, s.notes.rank) +
           axRow("성과", s.axes.perf, s.notes.perf) +
           axRow("타이밍", s.axes.timing, s.notes.timing) +
@@ -2559,6 +2622,39 @@ function renderQuad() {
         ctx.save(); ctx.strokeStyle = "#c9d0d9"; ctx.lineWidth = 1;
         if (x0 >= a.left && x0 <= a.right) { ctx.beginPath(); ctx.moveTo(x0, a.top); ctx.lineTo(x0, a.bottom); ctx.stroke(); }
         if (y0 >= a.top && y0 <= a.bottom) { ctx.beginPath(); ctx.moveTo(a.left, y0); ctx.lineTo(a.right, y0); ctx.stroke(); }
+        /* 사분면 이름 */
+        ctx.font = "700 10px Pretendard Variable, sans-serif";
+        ctx.fillStyle = "#b3bcc7";
+        ctx.textAlign = "right"; ctx.fillText("동반 상승", a.right - 6, a.top + 14);
+        ctx.textAlign = "left";  ctx.fillText("전세 주도", a.left + 6, a.top + 14);
+        ctx.textAlign = "right"; ctx.fillText("매매 주도", a.right - 6, a.bottom - 6);
+        ctx.textAlign = "left";  ctx.fillText("동반 하락", a.left + 6, a.bottom - 6);
+        ctx.restore();
+      },
+      /* 지역명 상시 표시 — 겹치면 생략 */
+      afterDatasetsDraw: function (ch) {
+        var meta = ch.getDatasetMeta(0), ctx = ch.ctx, placed = [];
+        ctx.save();
+        ctx.font = "600 10px Pretendard Variable, sans-serif";
+        ctx.textAlign = "center";
+        var order = rows.map(function (r, i) { return i; })
+          .sort(function (a, b) { return rows[b].pm - rows[a].pm; });   /* 비싼 지역 우선 */
+        order.forEach(function (i) {
+          var el = meta.data[i]; if (!el) return;
+          var name = disp(rows[i].key).split(" ").pop();
+          var w = ctx.measureText(name).width;
+          var x = el.x, y = el.y - (el.options ? el.options.radius : 8) - 3;
+          var box = { l: x - w / 2 - 2, r: x + w / 2 + 2, t: y - 10, b: y + 2 };
+          var hit = placed.some(function (p) {
+            return !(box.r < p.l || box.l > p.r || box.b < p.t || box.t > p.b);
+          });
+          if (hit) return;
+          placed.push(box);
+          ctx.fillStyle = "#ffffffcc";
+          ctx.fillRect(box.l, box.t, box.r - box.l, box.b - box.t);
+          ctx.fillStyle = "#3d4753";
+          ctx.fillText(name, x, y);
+        });
         ctx.restore();
       }
     }]
@@ -2683,18 +2779,15 @@ function fetchMonths(lawd, nMonths, onTick) {
   if (TRADE_CACHE[key]) return Promise.resolve(TRADE_CACHE[key]);
   var months = ymList(nMonths).reverse();
   var saleP = Promise.all(months.map(function (ym) {
-    return fetch("/api/trades?kind=sale&lawd=" + lawd + "&ym=" + ym)
-      .then(function (r) { return r.json(); })
-      .then(function (j) {
-        if (onTick) onTick();
-        if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
-        return { ym: ym, deals: (j.items || []).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; }) };
-      });
+    return fetchTrade(lawd, "sale", ym).then(function (j) {
+      if (onTick) onTick();
+      if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
+      return { ym: ym, deals: (j.items || []).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; }) };
+    });
   }));
   var rentP = Promise.all(months.map(function (ym) {
-    return fetch("/api/trades?kind=rent&lawd=" + lawd + "&ym=" + ym)
-      .then(function (r) { return r.json(); })
-      .then(function (j) { if (onTick) onTick(); return { ym: ym, deals: j.error ? [] : (j.items || []).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; }) }; })
+    return fetchTrade(lawd, "rent", ym)
+      .then(function (j) { if (onTick) onTick(); return { ym: ym, deals: (j.items || []).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; }) }; })
       .catch(function () { if (onTick) onTick(); return { ym: ym, deals: [] }; });
   }));
   return Promise.all([saleP, rentP]).then(function (both) {
@@ -3580,8 +3673,7 @@ function fetchOldQuarter(lawd, yms, onTick) {
   var key = lawd + ":" + yms.join(",");
   if (OLD_CACHE[key]) { return Promise.resolve(OLD_CACHE[key]); }
   return Promise.all(yms.map(function (ym) {
-    return fetch("/api/trades?kind=sale&lawd=" + lawd + "&ym=" + ym)
-      .then(function (r) { return r.json(); })
+    return fetchTrade(lawd, "sale", ym)
       .then(function (j) {
         if (onTick) onTick();
         if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));

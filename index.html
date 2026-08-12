@@ -4677,6 +4677,51 @@ function loadRules() {
 }
 function saveRules() { try { localStorage.setItem(LS_RULES, JSON.stringify(RULES)); } catch (e) {} }
 
+/* 지역 코드 진단 — 어느 법정동코드로 실거래가 신고되는지 직접 확인 */
+function runDiag() {
+  var codes = (document.getElementById("dg-codes").value || "").split(/[,\s]+/)
+    .map(function (s) { return s.trim(); }).filter(function (s) { return /^\d{5}$/.test(s); });
+  var ym = (document.getElementById("dg-ym").value || "").trim();
+  if (!/^\d{6}$/.test(ym)) {
+    var t = new Date(); t.setMonth(t.getMonth() - 1);
+    ym = String(t.getFullYear() * 100 + t.getMonth() + 1);
+    document.getElementById("dg-ym").value = ym;
+  }
+  if (!codes.length) { alert("5자리 코드를 하나 이상 입력하세요."); return; }
+  var box = document.getElementById("dg-result");
+  var btn = document.getElementById("dg-go");
+  btn.disabled = true; btn.textContent = "조회 중…";
+  box.innerHTML = '<div class="rowinfo">조회 중입니다…</div>';
+
+  Promise.all(codes.map(function (c) {
+    return apiGet("/api/trades?kind=sale&lawd=" + c + "&ym=" + ym).then(function (j) {
+      var dongs = {};
+      (j.items || []).forEach(function (t) { dongs[t.dong] = (dongs[t.dong] || 0) + 1; });
+      return { code: c, err: j.error || "", msg: j.msg || j.code || "",
+               n: (j.items || []).length,
+               dongs: Object.keys(dongs).sort(function (a, b) { return dongs[b] - dongs[a]; })
+                 .slice(0, 10).map(function (d) { return d + "(" + dongs[d] + ")"; }) };
+    });
+  })).then(function (rows) {
+    box.innerHTML =
+      '<div class="tblwrap"><table><thead><tr><th>코드</th><th>결과</th><th>건수</th>' +
+      "<th>법정동 (건수)</th></tr></thead><tbody>" +
+      rows.map(function (r) {
+        var stat = r.err ? '<span class="tagmini no">오류</span> ' + r.err + (r.msg ? " · " + r.msg : "")
+          : (r.n ? '<span class="tagmini ok">데이터 있음</span>' : '<span class="tagmini no">0건</span>');
+        return "<tr><td><b>" + r.code + "</b></td><td>" + stat + "</td><td>" + r.n + "건</td>" +
+          '<td style="font-size:.78rem">' + (r.dongs.join(" · ") || "—") + "</td></tr>";
+      }).join("") + "</tbody></table></div>" +
+      '<div class="note"><b>읽는 법</b> — "데이터 있음"이 뜬 코드가 실제로 신고가 접수되는 코드입니다. ' +
+        '모든 코드가 0건이면 그 달에 거래가 없었거나 신고 기한(계약 후 30일) 전이라 아직 안 올라온 것이고, ' +
+        '전부 오류면 인증키나 요청 제한 문제입니다. 법정동 목록으로 어느 구 관할인지도 확인할 수 있습니다.</div>';
+  }).catch(function (e) {
+    box.innerHTML = '<div class="callout warn">조회 실패: ' + (e.message || e) + "</div>";
+  }).finally(function () {
+    btn.disabled = false; btn.textContent = "코드별로 조회해보기";
+  });
+}
+
 function buildSetting(root) {
   function num(id, label, v, step) {
     return '<div class="field"><label for="' + id + '">' + label + '</label>' +
@@ -4721,7 +4766,21 @@ function buildSetting(root) {
         '(예: <b>강남11개구 강남구</b>, <b>과천시</b>). 저장하면 몇 곳이 인식됐는지 표시됩니다.</p>' +
       '<div class="field full"><textarea id="r-regulated"></textarea></div>' +
       '<p class="hint" id="r-reghint"></p>' +
-    '</div>';
+    '</div>' +
+    '<div class="card"><div class="eyebrow">Diagnostic</div><h2>지역 코드 진단</h2>' +
+      '<p class="desc">특정 지역의 실거래가 어느 법정동코드로 신고되는지 직접 확인합니다. ' +
+        '조회가 비어 있을 때 원인이 <b>코드 문제</b>인지 <b>거래 없음</b>인지 구분할 수 있습니다. ' +
+        '화성 신설 구를 확인하려면 아래 기본값 그대로 조회해보세요.</p>' +
+      '<div class="grid">' +
+        '<div class="field"><label for="dg-codes">확인할 코드 (쉼표로 구분)</label>' +
+          '<input id="dg-codes" type="text" value="41590,41591,41592,41593,41594"></div>' +
+        '<div class="field"><label for="dg-ym">조회 월 (YYYYMM)</label>' +
+          '<input id="dg-ym" type="text" placeholder="비우면 지난달"></div>' +
+        '<div class="field"><label>&nbsp;</label><button class="btn" id="dg-go">코드별로 조회해보기</button></div>' +
+      '</div>' +
+      '<div id="dg-result" style="margin-top:10px"></div></div>';
+
+  document.getElementById("dg-go").addEventListener("click", runDiag);
 
   document.getElementById("r-regulated").value =
     RULES.regulated.map(disp).join("\n");

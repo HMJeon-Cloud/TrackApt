@@ -358,6 +358,7 @@ function showTab(id) {
   if (id === "mapx") renderMapx();
   if (id === "btest") renderBtestShell();
   if (id === "supply") autoLoadSupply();
+  if (id === "faq") faqRefresh(false);
   if (id === "cart") renderCart();
   renderStepBar();
 }
@@ -431,6 +432,7 @@ function setVal(id, v) { var el = document.getElementById(id); if (el && v != nu
 
 /* ══ 데이터 유틸 ═════════════════════════════ */
 function loadData() {
+  loadSupplyExt();
   fetch("kb_data.json")
     .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(function (j) { DB = j; onDataReady(); })
@@ -441,6 +443,25 @@ function loadData() {
     });
 }
 function ymNum(ym) { var p = ym.split("-"); return Number(p[0]) * 12 + Number(p[1]); }
+
+/* ── 확장 수급 데이터 (선택) ──
+   kb_data.json처럼 사용자가 주기적으로 교체하는 정적 파일.
+   통계누리 미분양 · 준공실적, 부동산원 입주예정, 행안부 인구를 담는다.
+   없으면 청약홈 실시간 조회만으로 동작한다. */
+var SUPPLY_EXT = null;
+function loadSupplyExt() {
+  return fetch("supply_data.json")
+    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    .then(function (j) { SUPPLY_EXT = j; })
+    .catch(function () { SUPPLY_EXT = null; });
+}
+/* {dates:[from,to,n], series:{key:{o,v}}} 블록에서 지역의 최신값 */
+function extLast(blk, key) {
+  if (!blk || !blk.series || !blk.series[key]) return null;
+  var v = blk.series[key].v;
+  for (var i = v.length - 1; i >= 0; i--) if (v[i] != null) return v[i];
+  return null;
+}
 function getVal(key, region, y, m) {
   var blk = DB[key]; if (!blk) return null;
   var s = blk.series[region]; if (!s) return null;
@@ -4174,7 +4195,114 @@ function showMapDetail(k) {
 
 /* ══ 수급 탭 (청약홈 분양정보 기반 입주물량) ═══ */
 var SP = { sido: "전국", data: null };
-var chartSupply = null;
+var chartSupply = null, chartUnsold = null, chartYear = null;
+
+/* 시·도명 → KB 지수 키 (연도별 카드의 매매가격지수 선) */
+var SIDO_IDX = { "서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시",
+  "광주": "광주광역시", "대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시",
+  "경기": "경기도", "강원": "강원특별자치도", "충북": "충청북도", "충남": "충청남도",
+  "전북": "전북특별자치도", "전남": "전라남도", "경북": "경상북도", "경남": "경상남도", "제주": "제주특별자치도" };
+
+function renderSupplyExt() {
+  var uc = document.getElementById("sp-unsoldcard");
+  var yc = document.getElementById("sp-yearcard");
+  if (!SUPPLY_EXT) { if (uc) uc.style.display = "none"; if (yc) yc.style.display = "none"; return; }
+  var css = getComputedStyle(document.documentElement);
+  var cUp = css.getPropertyValue("--up").trim(), cDown = css.getPropertyValue("--down").trim();
+  var cBrand = css.getPropertyValue("--brand").trim();
+  var key = SP.sido;   /* "전국" 또는 시·도명 — 파일의 series 키와 일치시켜 만든다 */
+
+  /* 미분양 추이 */
+  var un = SUPPLY_EXT.unsold;
+  if (uc && un && un.series[key]) {
+    uc.style.display = "";
+    var s = un.series[key], t0 = ymNum(un.dates[0]);
+    var labels = [], vals = [];
+    for (var i = 0; i < s.v.length; i++) {
+      var t = t0 + s.o + i;
+      labels.push(Math.floor((t - 1) / 12) + "." + String(((t - 1) % 12) + 1).padStart(2, "0"));
+      vals.push(s.v[i]);
+    }
+    if (chartUnsold) chartUnsold.destroy();
+    chartUnsold = new Chart(document.getElementById("sp-unsold"), {
+      type: "line",
+      data: { labels: labels, datasets: [{ label: "미분양(호)", data: vals,
+        borderColor: cDown, backgroundColor: cDown + "22", fill: true, pointRadius: 0, tension: .25, borderWidth: 2 }] },
+      options: chartOpts("호")
+    });
+    var cur = null, mx = -1, mn = Infinity;
+    vals.forEach(function (v) { if (v == null) return; cur = v; if (v > mx) mx = v; if (v < mn) mn = v; });
+    var pos = mx > mn ? Math.round((cur - mn) / (mx - mn) * 100) : 0;
+    var doneNow = extLast(SUPPLY_EXT.unsoldDone, key);
+    document.getElementById("sp-unsoldread").innerHTML =
+      "<b>미분양 읽기</b><br>• " + key + " 미분양은 <b>" + fmt(cur) + "호</b>입니다. 기간 내 최고 " + fmt(mx) +
+      "호 · 최저 " + fmt(mn) + "호, 지금은 그 사이 <b>" + pos + "%</b> 지점입니다.<br>" +
+      (doneNow != null ? "• 준공후 미분양은 <b>" + fmt(doneNow) + "호</b> — 가장 악성인 재고라 점수 계산에는 이 값을 씁니다.<br>" : "") +
+      "• 미분양은 <b>매매에 먼저</b> 오고 영향이 2년 뒤까지 이어집니다. 대출로 사서 살 거면 이 지표를 더 무겁게 보세요.";
+  } else if (uc) uc.style.display = "none";
+
+  /* 연도별 공급·수요·가격 */
+  var cp = SUPPLY_EXT.completions;
+  if (yc && cp && cp.sido[key]) {
+    yc.style.display = "";
+    var years = cp.years.slice();
+    var comp = cp.sido[key].slice();
+    /* 입주예정(부동산원) 연도 합산 */
+    var expByY = {};
+    (SUPPLY_EXT.expected && SUPPLY_EXT.expected.items || []).forEach(function (it) {
+      if (key !== "전국" && it.sido !== key) return;
+      var y = Math.floor(Number(it.ym) / 100);
+      expByY[y] = (expByY[y] || 0) + it.households;
+    });
+    Object.keys(expByY).map(Number).sort().forEach(function (y) {
+      if (years.indexOf(y) < 0) { years.push(y); comp.push(null); }
+    });
+    var expArr = years.map(function (y) { return expByY[y] || null; });
+    /* 수요 점선 */
+    var popX = SUPPLY_EXT.population
+      ? (key === "전국" ? SUPPLY_EXT.population.total : SUPPLY_EXT.population.sido[key])
+      : (key === "전국" ? Object.keys(SIDO_POP).reduce(function (a, s) { return a + SIDO_POP[s]; }, 0) : SIDO_POP[key]);
+    var dem = popX ? Math.round(popX * 0.005) : null;
+    /* KB 매매지수 (연말값) */
+    var idxKey = key === "전국" ? "전국" : SIDO_IDX[key];
+    var idxArr = years.map(function (y) {
+      if (!idxKey) return null;
+      var v = getVal("sale", idxKey, y, 12);
+      if (v == null) for (var m = 11; m >= 1 && v == null; m--) v = getVal("sale", idxKey, y, m);
+      return v;
+    });
+    if (chartYear) chartYear.destroy();
+    chartYear = new Chart(document.getElementById("sp-year"), {
+      data: { labels: years,
+        datasets: [
+          { type: "bar", label: "준공 실적(호)", data: comp, backgroundColor: cUp + "88", borderRadius: 2, yAxisID: "y" },
+          { type: "bar", label: "입주 예정(세대)", data: expArr, backgroundColor: cBrand + "aa", borderRadius: 2, yAxisID: "y" },
+          { type: "line", label: "연간 추정 수요", data: years.map(function () { return dem; }),
+            borderColor: cDown, borderDash: [6, 4], pointRadius: 0, borderWidth: 1.5, yAxisID: "y" },
+          { type: "line", label: "매매가격지수(우)", data: idxArr,
+            borderColor: "#e8ecf2", pointRadius: 0, tension: .25, borderWidth: 2, yAxisID: "y2" }
+        ] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
+        scales: {
+          y: { grid: { color: "#1e2836" }, ticks: { font: { size: 10 } } },
+          y2: { position: "right", grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+    var recentIdx = [], longAvg = avg(comp.filter(function (v) { return v != null; }));
+    comp.forEach(function (v, i) { if (v != null && years[i] >= years[years.length - 1] - 4) recentIdx.push(v); });
+    var recent3 = avg(comp.filter(function (v, i) { return v != null && years[i] >= new Date().getFullYear() - 3; }));
+    document.getElementById("sp-yearread").innerHTML =
+      "<b>준공 사이클</b><br>• " + key + " 준공 실적은 연평균 <b>" + fmt(Math.round(longAvg)) + "호</b>" +
+      (dem ? " · 연간 추정 수요 " + fmt(dem) + "세대 대비 평균 " + (longAvg / dem).toFixed(2) + "배로 공급돼 왔습니다." : ".") +
+      (recent3 != null && longAvg ? "<br>• 최근 3년 평균은 " + fmt(Math.round(recent3)) + "호로 장기 평균 대비 <b>" +
+        pct(recent3 / longAvg - 1) + "</b>입니다." : "") +
+      "<br>• 물량 막대와 지수 선을 겹쳐 보면 물량이 쏟아진 시기와 가격이 눌린 시기가 맞물리는지 확인할 수 있습니다.";
+  } else if (yc) yc.style.display = "none";
+}
 /* 시도 인구 근사 (만명 → 명), 연간 추정 수요 = 인구 × 0.5% */
 var SIDO_POP = { "서울": 9330000, "부산": 3250000, "대구": 2360000, "인천": 3010000,
   "광주": 1410000, "대전": 1440000, "울산": 1100000, "세종": 390000, "경기": 13700000,
@@ -4196,7 +4324,26 @@ function buildSupply(root) {
         '<div class="field"><label>&nbsp;</label><button class="btn" id="sp-go">입주물량 불러오기</button></div>' +
       '</div>' +
       '<div class="status" id="sp-kpi" style="margin-top:12px"></div>' +
-      '<div class="note" id="sp-read" style="margin-top:10px;display:none"></div></div>' +
+      '<div class="note" id="sp-read" style="margin-top:10px;display:none"></div>' +
+      '<div class="callout warn" id="sp-extmiss" style="display:none;margin-top:10px">확장 데이터 파일 ' +
+        '(<b>supply_data.json</b>)이 없어 미분양·준공실적·인구 기반 분석이 꺼져 있습니다. ' +
+        '통계누리 미분양, 부동산원 입주예정, 행안부 인구 파일을 세션에 올려주시면 변환해 드립니다 ' +
+        '(PROJECT.md 갱신 절차 참고).</div></div>' +
+
+    '<div class="card" id="sp-unsoldcard" style="display:none">' +
+      '<div class="eyebrow">Unsold</div><h2>미분양 추이</h2>' +
+      '<p class="desc">안 팔리고 남은 물량입니다. 입주물량이 <b>전세를 먼저</b> 누른다면, 미분양은 ' +
+        '<b>매매를 먼저</b> 누릅니다 (FAQ Q10). 준공후 미분양은 다 지어놓고도 못 판 가장 악성인 재고입니다.</p>' +
+      '<div class="chartbox"><canvas id="sp-unsold"></canvas></div>' +
+      '<div class="note" id="sp-unsoldread" style="margin-top:10px"></div></div>' +
+
+    '<div class="card" id="sp-yearcard" style="display:none">' +
+      '<div class="eyebrow">Yearly</div><h2>공급 · 수요 · 매매가격</h2>' +
+      '<p class="desc">파란 막대는 <b>준공 실적</b>(국토부·아파트), 호박색 막대는 <b>입주 예정</b>(부동산원), ' +
+        '붉은 점선은 연간 추정 수요, 검은 선은 <b>매매가격지수</b>(우축, KB)입니다. 물량이 쏟아진 시기와 ' +
+        '가격이 눌린 시기가 겹치는지 한 화면에서 봅니다.</p>' +
+      '<div class="chartbox"><canvas id="sp-year"></canvas></div>' +
+      '<div class="note" id="sp-yearread" style="margin-top:10px"></div></div>' +
     '<div class="card" id="sp-chartcard" style="display:none"><div class="eyebrow">Monthly</div><h2>월별 입주물량</h2>' +
       '<p class="desc">특정 달에 물량이 몰리면 그 시기 전후로 전세가 눌립니다. 갭투자 진입·역전세 위험을 함께 봐야 하는 구간입니다.</p>' +
       '<div class="chartbox"><canvas id="sp-chart"></canvas></div></div>' +
@@ -4375,6 +4522,11 @@ function renderSupply() {
     options: chartOpts("세대")
   });
 
+  /* ── 확장 데이터 렌더 ── */
+  var extMiss = document.getElementById("sp-extmiss");
+  if (extMiss) extMiss.style.display = SUPPLY_EXT ? "none" : "";
+  renderSupplyExt();
+
   /* 시군구별 */
   var byRegion = {};
   items.forEach(function (it) {
@@ -4397,9 +4549,26 @@ function renderSupply() {
     }
   }
   document.getElementById("sp-tablecard").style.display = "";
+  var extPop = SUPPLY_EXT && SUPPLY_EXT.population && SUPPLY_EXT.population.sigungu;
+  var extUnD = SUPPLY_EXT && SUPPLY_EXT.unsoldDone;
+  var thead = document.querySelector("#sp-table thead tr");
+  if (thead) thead.innerHTML = "<th>시·군·구</th><th>12개월 물량</th><th>24개월</th><th>공고</th>" +
+    (extPop ? "<th>인구</th><th>추정 수요</th><th>자체 배율</th>" : "") +
+    (extUnD ? "<th>준공후 미분양</th>" : "");
   document.querySelector("#sp-table tbody").innerHTML = regions.map(function (g) {
-    return '<tr class="' + (g.n12 >= 5000 ? "hit" : "") + '"><td>' + g.r + "</td>" +
-      "<td><b>" + fmt(g.n12) + "</b></td><td>" + fmt(g.all) + "</td><td>" + g.cnt + "</td></tr>";
+    var full = g.r.indexOf(" ") > 0 || SP.sido === "전국" ? g.r : SP.sido + " " + g.r;
+    var popG = extPop ? (extPop[full] || extPop[g.r]) : null;
+    var demG = popG ? Math.round(popG * 0.005) : null;
+    var ratG = demG ? g.n12 / demG : null;
+    var unD = extUnD ? extLast(extUnD, full) : null;
+    if (unD == null && extUnD) unD = extLast(extUnD, g.r);
+    return '<tr class="' + (ratG != null ? (ratG >= 1.3 ? "hit" : "") : (g.n12 >= 5000 ? "hit" : "")) +
+      '"><td>' + g.r + "</td>" +
+      "<td><b>" + fmt(g.n12) + "</b></td><td>" + fmt(g.all) + "</td><td>" + g.cnt + "</td>" +
+      (extPop ? "<td>" + (popG ? fmt(popG) : "—") + "</td><td>" + (demG ? fmt(demG) : "—") + "</td><td>" +
+        (ratG != null ? '<span class="' + (ratG >= 1.3 ? "neg" : (ratG <= 0.7 ? "pos" : "")) + '">' +
+          ratG.toFixed(2) + "배</span>" : "—") + "</td>" : "") +
+      (extUnD ? "<td>" + (unD != null ? fmt(unD) + "호" : "—") + "</td>" : "") + "</tr>";
   }).join("");
 }
 
@@ -4742,6 +4911,27 @@ function renderStepBar() {
   });
 }
 
+function guideSourceTable() {
+  var ok = '<span class="tagmini ok">자동 (API 실시간)</span>';
+  var man = '<span class="tagmini gold">내가 교체</span>';
+  var off = '<span class="tagmini no">미장착</span>';
+  var extOn = function (blk) { return SUPPLY_EXT && SUPPLY_EXT[blk] ? man : off + " · supply_data.json"; };
+  return '<div class="card"><div class="eyebrow">Sources</div><h2>쓴 자료 전체</h2>' +
+    '<p class="desc">이 도구가 계산에 쓰는 원자료입니다. 남의 리포트를 인용한 게 아니라 원자료를 직접 계산한 값입니다.</p>' +
+    '<div class="tblwrap"><table><thead><tr><th>쓴 자료</th><th>어디서</th><th>범위</th><th>갱신</th></tr></thead><tbody>' +
+    "<tr><td>아파트 실거래</td><td>국토교통부 실거래가 공개시스템</td><td>공공데이터포털 API 실시간</td><td>" + ok + "</td></tr>" +
+    "<tr><td>단지 세대수·준공일·주변환경</td><td>한국부동산원 K-apt</td><td>공동주택관리정보시스템</td><td>" + ok + "</td></tr>" +
+    "<tr><td>분양 공고 (입주 예정 추정)</td><td>청약홈</td><td>공고 기준 실시간</td><td>" + ok + "</td></tr>" +
+    "<tr><td>지역 시세·가격지수</td><td>KB부동산 월간 시계열</td><td>시·군·구 ㎡당가 2013.4~ · 지수 1986.1~</td><td>" + man + " kb_data.json</td></tr>" +
+    "<tr><td>미분양 (준공후 포함)</td><td>국토교통부 통계누리</td><td>시·군·구 월별 2015.7~</td><td>" + extOn("unsold") + "</td></tr>" +
+    "<tr><td>준공 실적</td><td>국토교통부 통계누리</td><td>시·도 연간 2010~</td><td>" + extOn("completions") + "</td></tr>" +
+    "<tr><td>입주 예정 물량</td><td>한국부동산원</td><td>시·군·구 (향후 2년)</td><td>" + extOn("expected") + "</td></tr>" +
+    "<tr><td>인구·세대수</td><td>행정안전부 주민등록</td><td>시·군·구</td><td>" + extOn("population") + "</td></tr>" +
+    "</tbody></table></div>" +
+    '<div class="note">"내가 교체" 파일은 kb_data.json과 같은 방식입니다 — 새 자료를 받아 교체 업로드하면 ' +
+    '앱이 다음 로드 때 자동으로 최신 수치로 계산합니다(FAQ 라이브 문항 포함). 교체 절차는 PROJECT.md에 있습니다.</div></div>';
+}
+
 function buildGuide(root) {
   function di(t, d) { return '<div class="di"><b>' + t + "</b><p>" + d + "</p></div>"; }
   function tourCard(mode) {
@@ -4823,7 +5013,8 @@ function buildGuide(root) {
         '· 과거 패턴이 미래를 보장하지 않습니다. 백분위·회귀 여력은 전부 "지금이 과거 대비 어디쯤"일 뿐입니다.</div>' +
       '<div class="note"><b>데이터 갱신</b> — KB 시계열은 파일로 내장돼 있어 자동 갱신되지 않습니다. 매달 KB 데이터허브에서 ' +
         '월간 시계열 엑셀을 받아 kb_data.json을 다시 만들어 교체하면 됩니다 (PROJECT.md 참고). ' +
-        '실거래·K-apt·청약홈은 조회할 때마다 실시간입니다.</div></div>';
+        '실거래·K-apt·청약홈은 조회할 때마다 실시간입니다.</div></div>' +
+    guideSourceTable();
 
   root.querySelectorAll(".gstep").forEach(function (el) {
     el.addEventListener("click", function () {
@@ -4907,10 +5098,259 @@ function runDiag() {
 }
 
 
+
+/* ── FAQ 라이브 재계산 ──
+   Q1·Q2·Q12·Q15는 내장 KB 시계열만으로 재현 가능해서, 데이터가 갱신되면
+   수치를 다시 계산해 넣는다. 나머지 문항은 실거래·미분양·금리 등 별도
+   원자료가 필요한 고정 검증이라 그대로 둔다. */
+var LS_FAQ_PERIOD = "trackapt_faq_period";   /* auto | 7 | 30 | always */
+var LS_FAQ_CACHE  = "trackapt_faq_cache_v1";
+
+/* 인덱스 기반 시계열 접근 (blk: salePm 등) */
+function faqSeries(blkName) {
+  var blk = DB[blkName], t0 = ymNum(blk.dates[0]), nAll = blk.dates[2];
+  function at(key, i) {
+    var s = blk.series[key];
+    if (!s) return null;
+    var j = i - s.o;
+    return (j >= 0 && j < s.v.length) ? s.v[j] : null;
+  }
+  function ymOf(i) {
+    var t = t0 + i;
+    return Math.floor((t - 1) / 12) + "." + String(((t - 1) % 12) + 1).padStart(2, "0");
+  }
+  function idxOfYm(y, m) { return y * 12 + m - t0; }
+  return { at: at, ymOf: ymOf, idxOfYm: idxOfYm, n: nAll, keys: Object.keys(blk.series) };
+}
+function pct(x, d) { return (x >= 0 ? "+" : "") + (x * 100).toFixed(d == null ? 1 : d) + "%"; }
+function avg(a) { return a.length ? a.reduce(function (x, y) { return x + y; }, 0) / a.length : null; }
+
+function faqCompute() {
+  var pm = faqSeries("salePm");
+  var last = pm.n - 1, anchor = last - 120;             /* 10년 전 */
+  var out = { dataYm: pm.ymOf(last), anchorYm: pm.ymOf(anchor) };
+
+  /* 대상 지역: RANKED(집계·표본부족 제외) 중 10년 전 값이 있는 곳 */
+  var regs = RANKED.map(function (k) {
+    return { k: k, v0: pm.at(k, anchor), v1: pm.at(k, last) };
+  }).filter(function (r) { return r.v0 > 0 && r.v1 > 0; });
+  regs.sort(function (a, b) { return b.v0 - a.v0; });
+  var N = regs.length;
+  out.sample = N;
+
+  /* ── Q1: 10년 전 가격 10분위 → 10년 배수 ── */
+  var dec = [];
+  for (var d = 0; d < 10; d++) {
+    var seg = regs.slice(Math.round(N * d / 10), Math.round(N * (d + 1) / 10));
+    dec.push({
+      pm0: avg(seg.map(function (r) { return r.v0; })),
+      mult: avg(seg.map(function (r) { return r.v1 / r.v0; }))
+    });
+  }
+  var inv = 0;
+  for (var d2 = 1; d2 < 10; d2++) if (dec[d2].mult > dec[d2 - 1].mult) inv++;
+  var top30 = regs.slice(0, Math.round(N * 0.3));
+  var mid = regs.slice(Math.round(N * 0.4), Math.round(N * 0.6));
+  out.q1 = {
+    inv: inv,
+    rows: [
+      ["가장 비싼 10%", dec[0].pm0, dec[0].mult],
+      ["그 다음 10%", dec[1].pm0, dec[1].mult],
+      ["상위 30%까지", avg(top30.map(function (r) { return r.v0; })), avg(top30.map(function (r) { return r.v1 / r.v0; }))],
+      ["중간쯤", avg(mid.map(function (r) { return r.v0; })), avg(mid.map(function (r) { return r.v1 / r.v0; }))],
+      ["가장 싼 10%", dec[9].pm0, dec[9].mult]
+    ]
+  };
+
+  /* ── Q2: 모멘텀 역전 — 장기 지수(sale, 1986~)로 측정 ── */
+  var ix = faqSeries("sale");
+  var AGG2 = { "전국": 1, "수도권": 1, "6개광역시": 1, "5개광역시(인천外)": 1, "5개광역시": 1,
+               "기타지방": 1, "서울특별시": 1, "경기도": 1, "강남 11개구": 1, "강북 14개구": 1 };
+  var ixKeys = ix.keys.filter(function (k) { return !AGG2[k] && k.indexOf("|") >= 0; });
+  var pts = 0, revs = 0, topF = [], botF = [];
+  for (var t = 120; t + 36 <= ix.n - 1; t += 4) {
+    var rows2 = [];
+    for (var ki = 0; ki < ixKeys.length; ki++) {
+      var k2 = ixKeys[ki];
+      var a0 = ix.at(k2, t - 120), a1 = ix.at(k2, t), a2 = ix.at(k2, t + 36);
+      if (a0 > 0 && a1 > 0 && a2 > 0) rows2.push({ tr: a1 / a0, fw: a2 / a1 - 1 });
+    }
+    if (rows2.length < 20) continue;
+    rows2.sort(function (a, b) { return b.tr - a.tr; });
+    var q = Math.max(3, Math.round(rows2.length * 0.2));
+    var ft = avg(rows2.slice(0, q).map(function (r) { return r.fw; }));
+    var fb = avg(rows2.slice(-q).map(function (r) { return r.fw; }));
+    pts++; topF.push(ft); botF.push(fb);
+    if (ft < fb) revs++;
+  }
+  out.q2 = { pts: pts, revs: revs, topF: avg(topF), botF: avg(botF) };
+
+  /* ── Q12: 고점 대비 낙폭·기간·회복 (2020.01~2022.12 고점 기준) ── */
+  var pkFrom = pm.idxOfYm(2020, 1), pkTo = Math.min(pm.idxOfYm(2022, 12), last);
+  function drawdown(k) {
+    var pi = -1, pv = -1;
+    for (var i = pkFrom; i <= pkTo; i++) {
+      var v = pm.at(k, i);
+      if (v != null && v > pv) { pv = v; pi = i; }
+    }
+    if (pi < 0) return null;
+    var ti = pi, tv = pv;
+    for (var i2 = pi; i2 <= last; i2++) {
+      var v2 = pm.at(k, i2);
+      if (v2 != null && v2 < tv) { tv = v2; ti = i2; }
+    }
+    var cur = pm.at(k, last);
+    return { fall: tv / pv - 1, months: ti - pi, nowVs: cur / pv - 1, rec: cur >= pv };
+  }
+  function ddBucket(seg) {
+    var ds = seg.map(function (r) { return drawdown(r.k); }).filter(Boolean);
+    return { fall: avg(ds.map(function (x) { return x.fall; })),
+             months: avg(ds.map(function (x) { return x.months; })),
+             nowVs: avg(ds.map(function (x) { return x.nowVs; })),
+             rec: ds.filter(function (x) { return x.rec; }).length, n: ds.length };
+  }
+  out.q12 = {
+    rows: [
+      ["가장 비싼 10%", ddBucket(regs.slice(0, Math.round(N * 0.1)))],
+      ["그 다음 10%", ddBucket(regs.slice(Math.round(N * 0.1), Math.round(N * 0.2)))],
+      ["중간쯤", ddBucket(mid)],
+      ["가장 싼 10%", ddBucket(regs.slice(Math.round(N * 0.9)))]
+    ]
+  };
+
+  /* ── Q15: 국면별 3분위 성과 — 경계는 전국 지수의 저점·고점으로 자동 판정 ── */
+  function argExt(k, from, to, wantMax) {
+    var bi = -1, bv = wantMax ? -Infinity : Infinity;
+    for (var i = from; i <= to; i++) {
+      var v = pm.at(k, i);
+      if (v == null) continue;
+      if (wantMax ? v > bv : v < bv) { bv = v; bi = i; }
+    }
+    return bi;
+  }
+  var natKey = DB.salePm.series["전국"] ? "전국" : regs[0].k;
+  var b0 = Math.max(0, pm.idxOfYm(2016, 7));
+  var b1 = argExt(natKey, pm.idxOfYm(2018, 10), pm.idxOfYm(2019, 12), false);   /* 상승 초기 끝 = 2019 부근 저점 */
+  var peak = argExt(natKey, pm.idxOfYm(2021, 1), Math.min(pm.idxOfYm(2022, 12), last), true);
+  var trough = argExt(natKey, peak, Math.min(peak + 40, last), false);
+  if (b1 < 0) b1 = pm.idxOfYm(2019, 9);
+  var ter = [regs.slice(0, Math.round(N / 3)),
+             regs.slice(Math.round(N / 3), Math.round(2 * N / 3)),
+             regs.slice(Math.round(2 * N / 3))];
+  function phase(from, to) {
+    return ter.map(function (seg) {
+      return avg(seg.map(function (r) {
+        var a = pm.at(r.k, from), b = pm.at(r.k, to);
+        return (a > 0 && b > 0) ? b / a - 1 : null;
+      }).filter(function (x) { return x != null; }));
+    });
+  }
+  out.q15 = {
+    bounds: [pm.ymOf(b0), pm.ymOf(b1), pm.ymOf(peak), pm.ymOf(trough), pm.ymOf(last)],
+    rows: [
+      ["조용했던 상승 초기", phase(b0, b1)],
+      ["급등기", phase(b1, peak)],
+      ["하락기", phase(peak, trough)],
+      ["회복기", phase(trough, last)]
+    ]
+  };
+  return out;
+}
+
+/* 계산 결과를 FAQ 본문에 반영 */
+function faqRender(r) {
+  function tbl(head, rows) { return faqTbl(head, rows); }
+  var el;
+  el = document.getElementById("fb-q1");
+  if (el) el.innerHTML =
+    "10년 전(" + r.anchorYm + ") 가격으로 전국 시·군·구 " + r.sample + "곳을 비싼 순서대로 10칸으로 나눴습니다. " +
+    "지금 비싼 곳이 아니라 그때 비쌌던 곳으로 나눴기 때문에 결과를 보고 고른 게 아닙니다. " +
+    (r.q1.inv <= 1 ? "10칸 중 " + (r.q1.inv === 0 ? "한 번도 순서가 뒤집히지 않았습니다" : "딱 한 번만 순서가 뒤집혔습니다")
+      : "10칸 중 " + r.q1.inv + "번 순서가 뒤집혔을 뿐 큰 흐름은 비싼 순서였습니다") + "." +
+    tbl(["10년 전 가격대", "당시 평당가", "10년 뒤"],
+      r.q1.rows.map(function (row, i) {
+        var m = row[2].toFixed(1) + "배";
+        return [row[0], fmt(Math.round(row[1])) + "만/㎡", i === 0 ? "<b>" + m + "</b>" : m];
+      })) +
+    "그래서 이 도구는 동네 순위(급지)에 가장 큰 비중을 둡니다." +
+    faqSrc("내장 KB ㎡당가 시계열로 방금 재계산 · 기준 " + r.anchorYm + " → " + r.dataYm + " · " + r.sample + "곳");
+  el = document.getElementById("fb-q2");
+  if (el) el.innerHTML =
+    r.q2.pts + "번 측정해 <b>" + r.q2.revs + "번</b>(10번 중 " + Math.round(r.q2.revs / r.q2.pts * 10) +
+    "번)이 \"직전 10년 많이 오른 곳이 이후 3년 덜 올랐다\"였습니다." +
+    tbl(["비교 (측정 전체 평균)", "이후 3년"],
+      [["직전 10년 많이 오른 상위 20%", pct(r.q2.topF)],
+       ["직전 10년 덜 오른 하위 20%", "<b>" + pct(r.q2.botF) + "</b>"]]) +
+    "단, 두 가지를 구분해야 합니다. <b>\"싸니까 오르겠지\"는 틀렸습니다</b> — 싼 동네가 비싼 동네를 " +
+    "따라잡지 못했습니다(Q1). <b>\"같은 급인데 뒤처졌으니 따라오겠지\"는 맞았습니다</b> — 비슷한 가격대 " +
+    "안에서는 뒤처진 곳이 따라왔습니다. 그래서 이 도구는 10년에 두 배(100%)를 넘었는지만 보고, 더 " +
+    "올랐다고 점수를 더 주지 않습니다." +
+    faqSrc("내장 KB 장기 지수(1986~)로 방금 재계산 · 4개월 간격 " + r.q2.pts + "개 시점 · 같은 달 안에서만 비교해 국면 통제");
+  el = document.getElementById("fb-q12");
+  if (el) el.innerHTML =
+    "2022년 전후 고점부터 지금(" + r.dataYm + ")까지를 10년 전 가격 순서로 나눠 봤습니다." +
+    tbl(["10년 전 가격대", "떨어진 폭", "떨어진 기간", "지금 고점 대비", "고점 회복"],
+      r.q12.rows.map(function (row, i) {
+        var b = row[1];
+        return [row[0], pct(b.fall), (i === 0 ? "<b>" : "") + Math.round(b.months) + "개월" + (i === 0 ? "</b>" : ""),
+          pct(b.nowVs), b.rec + "곳 / " + b.n + "곳"];
+      })) +
+    "비싼 동네는 빨리 바닥을 찍고 돌아오는 반면, 싼 동네는 오래 흘러내리고 회복도 늦습니다. " +
+    "<b>싼 동네는 안 빠지는 게 아니라, 빠진 뒤 안 돌아옵니다.</b> 이게 이 도구가 급지에 큰 비중을 주는 " +
+    "진짜 이유입니다." +
+    faqSrc("내장 KB 데이터로 방금 재계산 · 2020.01~2022.12 구간 최고치를 고점으로 낙폭·기간·회복 계산");
+  el = document.getElementById("fb-q15");
+  if (el) el.innerHTML =
+    "10년을 네 국면으로 쪼개 봤습니다(경계는 전국 지수의 저점·고점으로 자동 판정: " +
+    r.q15.bounds.join(" → ") + "). 같은 10년인데 국면마다 완전히 다른 시장이었습니다." +
+    tbl(["국면", "비싼 동네", "중간", "싼 동네", "격차"],
+      r.q15.rows.map(function (row) {
+        var p = row[1], gap = p[0] - p[2];
+        return [row[0], pct(p[0], 0), pct(p[1], 0), pct(p[2], 0),
+          (Math.abs(gap) >= 0.25 ? "<b>" : "") + pct(gap, 0) + "p" + (Math.abs(gap) >= 0.25 ? "</b>" : "")];
+      })) +
+    "\"어디 사도 오른다\"가 사실인 건 급등기뿐입니다. 격차는 조용한 구간에서 벌어집니다 — 사고 싶어질 " +
+    "때는 어디를 사도 비슷하고, <b>사기 싫을 때 어디를 사느냐가 결과를 만듭니다.</b> 싼 동네의 상승은 " +
+    "사이클의 마지막에 옵니다. 그게 오면 늦은 것입니다." +
+    faqSrc("내장 KB 데이터로 방금 재계산 · 3등분 급지는 10년 전 시점 가격 기준");
+}
+
+/* 주기 판단 + 캐시 */
+function faqRefresh(force) {
+  if (!DB) return;
+  var cache = null;
+  try { cache = JSON.parse(localStorage.getItem(LS_FAQ_CACHE) || "null"); } catch (e) {}
+  var pmLast = faqSeries("salePm");
+  var curYm = pmLast.ymOf(pmLast.n - 1);
+  /* kb_data.json이 새 달로 교체되면 자동 재계산 */
+  var need = force || !cache || cache.dataYm !== curYm;
+  var r;
+  if (need) {
+    r = faqCompute();
+    r.at = Date.now();
+    try { localStorage.setItem(LS_FAQ_CACHE, JSON.stringify(r)); } catch (e) {}
+  } else r = cache;
+  faqRender(r);
+  var st = document.getElementById("fq-status");
+  if (st) {
+    var d = new Date(r.at);
+    st.innerHTML = "내장 KB 데이터 <b>" + r.dataYm + "</b> 기준 · 마지막 계산 " +
+      (d.getMonth() + 1) + "." + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" +
+      String(d.getMinutes()).padStart(2, "0") +
+      (need ? ' <span class="tagmini ok">방금 재계산됨</span>' : "") +
+      " — kb_data.json을 새 달로 교체하면 자동으로 다시 계산됩니다.";
+  }
+}
+
 /* ── FAQ · 데이터 검증 탭 ── */
+var FAQ_LIVE = { Q1: 1, Q2: 1, Q12: 1, Q15: 1 };
 function faqItem(q, a, body) {
-  return '<details class="faq"><summary><span class="fq">' + q + '</span> ' + a +
-    '</summary><div class="fbody">' + body + '</div></details>';
+  var live = FAQ_LIVE[q];
+  var badge = live ? ' <span class="tagmini ok">라이브</span>'
+                   : ' <span class="tagmini no">고정 검증</span>';
+  var bodyAttr = live ? ' id="fb-' + q.toLowerCase() + '"' : "";
+  return '<details class="faq"><summary><span class="fq">' + q + '</span> ' + a + badge +
+    '</summary><div class="fbody"' + bodyAttr + '>' + body + '</div></details>';
 }
 function faqTbl(head, rows) {
   return '<div class="tblwrap"><table><thead><tr>' +
@@ -4932,7 +5372,14 @@ function buildFaq(root) {
         '① 오르는 해에는 뭘 사도 오릅니다. 2021년처럼 다 오른 해를 섞으면 아무 전략이나 좋아 보입니다. ' +
         '그래서 <b>같은 시점에 있던 선택지끼리만</b> 비교했습니다.<br>' +
         '② 결과를 보고 고르면 안 됩니다. "지금 비싼 걸 골랐더니 많이 올랐네"는 당연합니다. 그래서 ' +
-        '<b>그 당시에 알 수 있었던 정보만으로</b> 골랐습니다.</div></div>' +
+        '<b>그 당시에 알 수 있었던 정보만으로</b> 골랐습니다.</div>' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px">' +
+        '<button class="btn ghost sm" id="fq-recalc" style="width:auto">지금 다시 계산</button>' +
+        '<span class="hint" id="fq-status"></span></div>' +
+      '<div class="note"><b>라이브와 고정의 차이</b> — <span class="tagmini ok">라이브</span> 문항은 내장 KB ' +
+        '시계열만으로 재현할 수 있어 데이터가 갱신되면 수치가 자동으로 다시 계산됩니다. ' +
+        '<span class="tagmini no">고정 검증</span> 문항은 단지별 실거래 10년치·미분양·금리처럼 별도 원자료가 ' +
+        '필요한 검증이라 결과를 고정 수록했습니다(검증 시점 2026.07).</div></div>' +
 
     '<div class="card">' +
     faqItem("Q1", "비싼 동네가 정말 더 오르나요? — 네. 거의 예외가 없었습니다.",
@@ -5150,6 +5597,8 @@ function buildFaq(root) {
       "④ KB 통계는 동네 평균이지 특정 아파트 시세가 아닙니다.<br>" +
       "⑤ 새 노선·재건축 단계·학군 같은 호재는 숫자 자료가 없어 계산에 못 넣었습니다.<br>" +
       "이건 <b>확률의 문제이지 보장이 아닙니다.</b> 같은 방식으로 골라도 개별 사례는 다르게 나옵니다.</div></div>";
+
+  root.querySelector("#fq-recalc").addEventListener("click", function () { faqRefresh(true); });
 }
 
 function buildSetting(root) {

@@ -1836,16 +1836,23 @@ function buildLawdMap() {
 /* 한 코드 안에서 구 단위로 갈라야 하는 지역 (2026.2 화성 분구).
    실거래는 시 코드로 내려오므로 법정동 이름으로 걸러낸다. */
 var SUB_DISTRICT = {
+  /* 동탄1·2신도시 일대 */
   "화성 동탄구": ["석우동", "반송동", "능동", "영천동", "오산동", "여울동", "청계동", "신동", "중동",
-                  "목동", "산척동", "방교동", "장지동", "금곡동", "송동"],
-  "화성 병점구": ["병점동", "진안동", "반월동", "화산동"],
-  "화성 효행구": ["기배동", "봉담", "동화리", "상리", "수영리", "왕림리", "내리", "유리", "분천리",
-                  "매송", "원리", "야목리", "천천리", "어천리", "비봉", "자안리", "삼화리", "구포리",
-                  "정남", "문학리", "보금리", "괘랑리", "발산리", "관항리"],
-  "화성 만세구": ["새솔동", "남양", "신외동", "온석동", "무송동", "북양동", "장덕동", "송림동",
+                  "목동", "산척동", "방교동", "장지동", "송동", "금곡동", "무봉리", "송산동"],
+  /* 병점·진안·반월·기배 일대 (동부) */
+  "화성 병점구": ["병점동", "진안동", "반월동", "기산동", "화산동", "안녕동", "황계동", "송산동",
+                  "기안동", "배양동", "송림동", "인지동", "안녕리"],
+  /* 봉담·매송·비봉·정남 (중서부 읍면) */
+  "화성 효행구": ["봉담", "와우리", "동화리", "상리", "수영리", "왕림리", "내리", "유리", "분천리",
+                  "덕리", "세곡리", "수기리", "매송", "원리", "야목리", "천천리", "어천리", "송라리",
+                  "비봉", "자안리", "삼화리", "구포리", "양노리", "쌍학리",
+                  "정남", "문학리", "보금리", "괘랑리", "발산리", "관항리", "귀래리", "덕절리",
+                  "기배동", "능리", "하곡리"],
+  /* 남양·향남·우정·장안·마도·송산·서신·팔탄·양감 (서남부) */
+  "화성 만세구": ["새솔동", "남양", "신남리", "신외동", "온석동", "무송동", "북양동", "장덕동",
                   "향남", "발안리", "행정리", "구문천리", "상신리", "하길리", "백토리", "도이리", "요리",
                   "우정", "조암리", "이화리", "멱우리", "장안", "마도", "송산", "사강리", "서신",
-                  "팔탄", "양감", "고포리", "덕우리"]
+                  "팔탄", "양감", "고포리", "덕우리", "활초리", "수직리", "청원리", "매향리"]
 };
 /* 이 지역이 구 단위 필터를 쓰는가 */
 function subFilterOf(name) {
@@ -2202,7 +2209,7 @@ var TRADE_MEMO = {};
    공표가 불확실하다. 그래서 2026.2 이후 달은 옛 코드 + 신설 후보 코드를
    함께 조회해 병합한다. 첫 달에 어떤 코드가 실제 데이터를 내는지 탐지해
    기억하고, 이후 달은 그 코드들만 부른다. */
-var HWA = { old: "41590", news: ["41591", "41592", "41593", "41594"],
+var HWA = { old: "41590", news: ["41591", "41592", "41593", "41594", "41595", "41596", "41597"],
             live: null, probing: null, SPLIT_YM: 202602 };
 function tradeUrl(kind, lawd, ym) {
   return "/api/trades?kind=" + kind + "&lawd=" + lawd + "&ym=" + ym;
@@ -2224,30 +2231,63 @@ function mergeTradeResults(results) {
   if (!anyOk && firstErr) return firstErr;
   return { items: items };
 }
+/* 구를 확실하게 특정하는 대표 법정동 (분구 공고 기준, 이견 없는 핵심 지명만) */
+var HWA_ANCHOR = {
+  "화성 동탄구": ["반송동", "석우동", "능동", "영천동", "청계동", "오산동", "산척동", "목동", "신동", "중동"],
+  "화성 병점구": ["병점동", "진안동", "반월동", "기산동", "안녕동", "황계동"],
+  "화성 효행구": ["봉담", "매송", "비봉", "정남", "와우리", "동화리", "기배동"],
+  "화성 만세구": ["남양", "새솔동", "향남", "우정", "장안", "마도", "송산", "서신", "팔탄", "양감", "신남리"]
+};
+/* 코드별 응답의 법정동 분포를 보고 그 코드가 어느 구인지 판정 */
+function guessHwaGu(items) {
+  var score = {};
+  (items || []).forEach(function (t) {
+    Object.keys(HWA_ANCHOR).forEach(function (gu) {
+      HWA_ANCHOR[gu].forEach(function (d) {
+        if (String(t.dong).indexOf(d) >= 0) score[gu] = (score[gu] || 0) + 1;
+      });
+    });
+  });
+  var best = "", bs = 0;
+  Object.keys(score).forEach(function (g) { if (score[g] > bs) { bs = score[g]; best = g; } });
+  return bs > 0 ? best : "";
+}
+
 /* 신설 코드 중 실제로 데이터를 내는 코드 탐지 (세션당 1회) */
 function probeHwaCodes(ym) {
   if (HWA.live) return Promise.resolve(HWA.live);
   if (HWA.probing) return HWA.probing;
-  HWA.probing = Promise.all(HWA.news.map(function (c) {
+  HWA.probing = Promise.all(HWA.news.concat([HWA.old]).map(function (c) {
     return apiGet(tradeUrl("sale", c, ym)).then(function (j) {
-      return { c: c, ok: !j.error && (j.items || []).length > 0 };
+      var items = (!j.error && j.items) ? j.items : [];
+      return { c: c, ok: items.length > 0, gu: guessHwaGu(items) };
     });
   })).then(function (res) {
-    HWA.live = res.filter(function (r) { return r.ok; }).map(function (r) { return r.c; });
+    HWA.live = res.filter(function (r) { return r.ok && r.c !== HWA.old; }).map(function (r) { return r.c; });
+    HWA.guOf = {};      /* 코드 → 구 이름 */
+    res.forEach(function (r) { if (r.ok && r.gu) HWA.guOf[r.c] = r.gu; });
+    HWA.oldAlive = res.filter(function (r) { return r.c === HWA.old && r.ok; }).length > 0;
     return HWA.live;
   });
   return HWA.probing;
 }
-/* 화성 조회: 분구 전 달은 옛 코드만, 이후 달은 옛+신설 병합 */
-function fetchHwa(kind, ym) {
-  var memoKey = kind + "|HWA|" + ym;
+/* 화성 조회: 분구 전 달은 옛 코드만, 이후 달은 살아있는 코드를 병합.
+   guName을 주면 그 구로 판정된 코드만 조회한다 (불필요한 호출·혼입 제거). */
+function fetchHwa(kind, ym, guName) {
+  var memoKey = kind + "|HWA|" + (guName || "ALL") + "|" + ym;
   if (TRADE_MEMO[memoKey]) return Promise.resolve(TRADE_MEMO[memoKey]);
   function memo(j) { if (j && !j.error) TRADE_MEMO[memoKey] = j; return j; }
   if (Number(ym) < HWA.SPLIT_YM) {
     return apiGet(tradeUrl(kind, HWA.old, ym)).then(memo);
   }
   return probeHwaCodes(ym).then(function (live) {
-    var codes = [HWA.old].concat(live);
+    var codes = live.slice();
+    if (HWA.oldAlive) codes.push(HWA.old);
+    if (guName && HWA.guOf) {
+      var only = codes.filter(function (c) { return HWA.guOf[c] === guName; });
+      if (only.length) codes = only;           /* 판정된 코드가 있으면 그것만 */
+    }
+    if (!codes.length) codes = [HWA.old];
     return Promise.all(codes.map(function (c) {
       return apiGet(tradeUrl(kind, c, ym));
     })).then(mergeTradeResults).then(memo);
@@ -2255,9 +2295,9 @@ function fetchHwa(kind, ym) {
 }
 /* 후보 중 실제로 데이터가 나온 코드를 기억해 이후 호출은 그 코드만 쓴다 */
 var LAWD_RESOLVED = {};
-function fetchTrade(code, kind, ym) {
+function fetchTrade(code, kind, ym, guName) {
   /* 화성시 계열은 병합 경로로 */
-  if (lawdCandidates(code)[0] === HWA.old) return fetchHwa(kind, ym);
+  if (lawdCandidates(code)[0] === HWA.old) return fetchHwa(kind, ym, guName);
   var memoKey = kind + "|" + code + "|" + ym;
   if (TRADE_MEMO[memoKey]) return Promise.resolve(TRADE_MEMO[memoKey]);
   function memo(j) { if (j && !j.error) TRADE_MEMO[memoKey] = j; return j; }
@@ -2292,8 +2332,10 @@ function loadDanji() {
   var lawd = document.getElementById("dj-region").value;
   if (!lawd) { alert("지역을 선택하세요."); return; }
   DJ.lawd = lawd;
-  DJ.subFilter = subFilterOf(document.getElementById("dj-region").selectedOptions[0].textContent);
-  DJ.regionName = lawdName(lawd);
+  var optText = document.getElementById("dj-region").selectedOptions[0].textContent
+    .replace(/^★\s*/, "").replace(/\s*\(내 지역\)$/, "").trim();
+  DJ.subFilter = subFilterOf(optText);
+  DJ.regionName = optText;          /* 예: "화성 동탄구" — 코드 판별에 사용 */
   DJ.regionKey = kbKeyOfLawd(lawd);
   DJ.months = Number(document.getElementById("dj-months").value);
   DJ.kaptList = null; DJ.kaptMiss = 0;
@@ -2304,24 +2346,31 @@ function loadDanji() {
   btn.textContent = "실거래 조회… (0/" + total + ")";
   var months = ymList(DJ.months);
 
+  var guName = DJ.regionName;
   var saleP = Promise.all(months.map(function (ym) {
-    return fetchTrade(lawd, "sale", ym).then(function (j) {
+    return fetchTrade(lawd, "sale", ym, guName).then(function (j) {
       tick();
       if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
       return j.items || [];
     });
   }));
   var rentP = Promise.all(months.map(function (ym) {
-    return fetchTrade(lawd, "rent", ym).then(function (j) { tick(); return j.items || []; })
+    return fetchTrade(lawd, "rent", ym, guName).then(function (j) { tick(); return j.items || []; })
       .catch(function () { tick(); return []; });
   }));
 
   Promise.all([saleP, rentP]).then(function (both) {
     var rentAll = [].concat.apply([], both[1]).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; });
+    /* 코드 단계에서 구가 갈렸으면 법정동 필터는 쓰지 않는다 (누락 방지) */
+    var codeSplit = !!(HWA.guOf && DJ.regionName && Object.keys(HWA.guOf).some(function (c) {
+      return HWA.guOf[c] === DJ.regionName;
+    }));
+    var useFilter = codeSplit ? null : DJ.subFilter;
+    DJ.usedCodeSplit = codeSplit;
     var all = [].concat.apply([], both[0]).filter(function (t) {
-      return !t.canceled && t.amount > 0 && t.area > 0 && inSubDistrict(t.dong, DJ.subFilter);
+      return !t.canceled && t.amount > 0 && t.area > 0 && inSubDistrict(t.dong, useFilter);
     });
-    rentAll = rentAll.filter(function (t) { return inSubDistrict(t.dong, DJ.subFilter); });
+    rentAll = rentAll.filter(function (t) { return inSubDistrict(t.dong, useFilter); });
     DJ.saleCount = all.length; DJ.rentCount = rentAll.length;
     var byApt = {};
     all.forEach(function (t) {
@@ -2357,7 +2406,8 @@ function loadDanji() {
 
 function updateDanjiMeta(suffix) {
   var meta = DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
-  if (DJ.subFilter) meta += " · 해당 구 법정동만 추림";
+  if (DJ.usedCodeSplit) meta += " · 구 전용 코드로 조회";
+  else if (DJ.subFilter) meta += " · 해당 구 법정동만 추림";
   if (DJ.kaptList !== null) {
     if (!DJ.kaptList.length) meta += " · K-apt 목록 없음";
     else if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";
@@ -3359,19 +3409,19 @@ function inBand(area, b) { return area >= BANDS[b][0] && area < BANDS[b][1]; }
 
 /* (lawd → 월별 매매·전세) 메모리 캐시 — 대장·비교 탭 공용 */
 var TRADE_CACHE = {};
-function fetchMonths(lawd, nMonths, onTick) {
-  var key = lawd + ":" + nMonths;
+function fetchMonths(lawd, nMonths, onTick, guName) {
+  var key = lawd + ":" + nMonths + ":" + (guName || "");
   if (TRADE_CACHE[key]) return Promise.resolve(TRADE_CACHE[key]);
   var months = ymList(nMonths).reverse();
   var saleP = Promise.all(months.map(function (ym) {
-    return fetchTrade(lawd, "sale", ym).then(function (j) {
+    return fetchTrade(lawd, "sale", ym, guName).then(function (j) {
       if (onTick) onTick();
       if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
       return { ym: ym, deals: (j.items || []).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; }) };
     });
   }));
   var rentP = Promise.all(months.map(function (ym) {
-    return fetchTrade(lawd, "rent", ym)
+    return fetchTrade(lawd, "rent", ym, guName)
       .then(function (j) { if (onTick) onTick(); return { ym: ym, deals: (j.items || []).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; }) }; })
       .catch(function () { if (onTick) onTick(); return { ym: ym, deals: [] }; });
   }));
@@ -4679,8 +4729,16 @@ function saveRules() { try { localStorage.setItem(LS_RULES, JSON.stringify(RULES
 
 /* 지역 코드 진단 — 어느 법정동코드로 실거래가 신고되는지 직접 확인 */
 function runDiag() {
-  var codes = (document.getElementById("dg-codes").value || "").split(/[,\s]+/)
-    .map(function (s) { return s.trim(); }).filter(function (s) { return /^\d{5}$/.test(s); });
+  var codes = [];
+  (document.getElementById("dg-codes").value || "").split(/[,\s]+/).forEach(function (s) {
+    s = s.trim();
+    var m = s.match(/^(\d{5})\s*-\s*(\d{5})$/);      /* 범위 지원 */
+    if (m) {
+      var a = Number(m[1]), b = Number(m[2]);
+      if (b - a > 40) b = a + 40;
+      for (var v = a; v <= b; v++) codes.push(String(v));
+    } else if (/^\d{5}$/.test(s)) codes.push(s);
+  });
   var ym = (document.getElementById("dg-ym").value || "").trim();
   if (!/^\d{6}$/.test(ym)) {
     var t = new Date(); t.setMonth(t.getMonth() - 1);
@@ -4700,17 +4758,23 @@ function runDiag() {
       return { code: c, err: j.error || "", msg: j.msg || j.code || "",
                n: (j.items || []).length,
                dongs: Object.keys(dongs).sort(function (a, b) { return dongs[b] - dongs[a]; })
-                 .slice(0, 10).map(function (d) { return d + "(" + dongs[d] + ")"; }) };
+                 .map(function (d) { return d + "(" + dongs[d] + ")"; }) };
     });
-  })).then(function (rows) {
+  })).then(function (all) {
+    var onlyHit = document.getElementById("dg-only").checked;
+    var rows = onlyHit ? all.filter(function (r) { return r.n > 0; }) : all;
+    if (!rows.length) rows = all;
     box.innerHTML =
+      '<div class="rowinfo">조회 ' + all.length + "개 코드 중 데이터 있음 " +
+      all.filter(function (r) { return r.n > 0; }).length + "개</div>" +
       '<div class="tblwrap"><table><thead><tr><th>코드</th><th>결과</th><th>건수</th>' +
       "<th>법정동 (건수)</th></tr></thead><tbody>" +
       rows.map(function (r) {
         var stat = r.err ? '<span class="tagmini no">오류</span> ' + r.err + (r.msg ? " · " + r.msg : "")
           : (r.n ? '<span class="tagmini ok">데이터 있음</span>' : '<span class="tagmini no">0건</span>');
         return "<tr><td><b>" + r.code + "</b></td><td>" + stat + "</td><td>" + r.n + "건</td>" +
-          '<td style="font-size:.78rem">' + (r.dongs.join(" · ") || "—") + "</td></tr>";
+          '<td style="font-size:.76rem;word-break:break-all;white-space:normal;max-width:none">' +
+          (r.dongs.join(" · ") || "—") + "</td></tr>";
       }).join("") + "</tbody></table></div>" +
       '<div class="note"><b>읽는 법</b> — "데이터 있음"이 뜬 코드가 실제로 신고가 접수되는 코드입니다. ' +
         '모든 코드가 0건이면 그 달에 거래가 없었거나 신고 기한(계약 후 30일) 전이라 아직 안 올라온 것이고, ' +
@@ -4772,11 +4836,13 @@ function buildSetting(root) {
         '조회가 비어 있을 때 원인이 <b>코드 문제</b>인지 <b>거래 없음</b>인지 구분할 수 있습니다. ' +
         '화성 신설 구를 확인하려면 아래 기본값 그대로 조회해보세요.</p>' +
       '<div class="grid">' +
-        '<div class="field"><label for="dg-codes">확인할 코드 (쉼표로 구분)</label>' +
-          '<input id="dg-codes" type="text" value="41590,41591,41592,41593,41594"></div>' +
+        '<div class="field"><label for="dg-codes">확인할 코드 (쉼표 구분 · 41590-41599 처럼 범위도 가능)</label>' +
+          '<input id="dg-codes" type="text" value="41590-41599"></div>' +
         '<div class="field"><label for="dg-ym">조회 월 (YYYYMM)</label>' +
           '<input id="dg-ym" type="text" placeholder="비우면 지난달"></div>' +
         '<div class="field"><label>&nbsp;</label><button class="btn" id="dg-go">코드별로 조회해보기</button></div>' +
+        '<div class="field full"><label class="check"><input type="checkbox" id="dg-only" checked> ' +
+          '데이터 있는 코드만 표에 표시</label></div>' +
       '</div>' +
       '<div id="dg-result" style="margin-top:10px"></div></div>';
 

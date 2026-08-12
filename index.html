@@ -185,7 +185,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v2.7</span>
+    <span class="ver">v2.8</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2196,9 +2196,68 @@ function apiGet(url) {
 function lawdCandidates(code) { return String(code).split(":"); }
 /* (kind|lawd|ym) → 응답 메모. 지난 달 실거래는 사실상 확정치라 세션 내 재사용해도 안전 */
 var TRADE_MEMO = {};
+
+/* ── 화성시 분구(2026.2) 대응 ──
+   실거래 신고가 옛 화성시 코드(41590)로 오는지, 신설 구 코드로 갈라졌는지
+   공표가 불확실하다. 그래서 2026.2 이후 달은 옛 코드 + 신설 후보 코드를
+   함께 조회해 병합한다. 첫 달에 어떤 코드가 실제 데이터를 내는지 탐지해
+   기억하고, 이후 달은 그 코드들만 부른다. */
+var HWA = { old: "41590", news: ["41591", "41592", "41593", "41594"],
+            live: null, probing: null, SPLIT_YM: 202602 };
+function tradeUrl(kind, lawd, ym) {
+  return "/api/trades?kind=" + kind + "&lawd=" + lawd + "&ym=" + ym;
+}
+/* 여러 코드 응답을 하나로 합치고 중복 신고 제거 */
+function mergeTradeResults(results) {
+  var seen = {}, items = [], firstErr = null, anyOk = false;
+  results.forEach(function (j) {
+    if (!j) return;
+    if (j.error) { if (!firstErr) firstErr = j; return; }
+    anyOk = true;
+    (j.items || []).forEach(function (t) {
+      var key = [t.ym, t.day, t.apt, t.dong, t.floor, t.amount || t.deposit, t.area].join("|");
+      if (seen[key]) return;
+      seen[key] = 1;
+      items.push(t);
+    });
+  });
+  if (!anyOk && firstErr) return firstErr;
+  return { items: items };
+}
+/* 신설 코드 중 실제로 데이터를 내는 코드 탐지 (세션당 1회) */
+function probeHwaCodes(ym) {
+  if (HWA.live) return Promise.resolve(HWA.live);
+  if (HWA.probing) return HWA.probing;
+  HWA.probing = Promise.all(HWA.news.map(function (c) {
+    return apiGet(tradeUrl("sale", c, ym)).then(function (j) {
+      return { c: c, ok: !j.error && (j.items || []).length > 0 };
+    });
+  })).then(function (res) {
+    HWA.live = res.filter(function (r) { return r.ok; }).map(function (r) { return r.c; });
+    return HWA.live;
+  });
+  return HWA.probing;
+}
+/* 화성 조회: 분구 전 달은 옛 코드만, 이후 달은 옛+신설 병합 */
+function fetchHwa(kind, ym) {
+  var memoKey = kind + "|HWA|" + ym;
+  if (TRADE_MEMO[memoKey]) return Promise.resolve(TRADE_MEMO[memoKey]);
+  function memo(j) { if (j && !j.error) TRADE_MEMO[memoKey] = j; return j; }
+  if (Number(ym) < HWA.SPLIT_YM) {
+    return apiGet(tradeUrl(kind, HWA.old, ym)).then(memo);
+  }
+  return probeHwaCodes(ym).then(function (live) {
+    var codes = [HWA.old].concat(live);
+    return Promise.all(codes.map(function (c) {
+      return apiGet(tradeUrl(kind, c, ym));
+    })).then(mergeTradeResults).then(memo);
+  });
+}
 /* 후보 중 실제로 데이터가 나온 코드를 기억해 이후 호출은 그 코드만 쓴다 */
 var LAWD_RESOLVED = {};
 function fetchTrade(code, kind, ym) {
+  /* 화성시 계열은 병합 경로로 */
+  if (lawdCandidates(code)[0] === HWA.old) return fetchHwa(kind, ym);
   var memoKey = kind + "|" + code + "|" + ym;
   if (TRADE_MEMO[memoKey]) return Promise.resolve(TRADE_MEMO[memoKey]);
   function memo(j) { if (j && !j.error) TRADE_MEMO[memoKey] = j; return j; }
@@ -2308,6 +2367,29 @@ function updateDanjiMeta(suffix) {
 
 /* K-apt 목록 1회 + 평당가 상위 단지 상세를 병렬로 부착 (도착하는 대로 표 갱신) */
 var KAPT_INFO_MEMO = {};
+var KAPT_LIST_MEMO = {};
+/* K-apt 단지 목록 — 화성(41590)은 옛+신설 코드를 합쳐서 */
+function fetchKaptList(lawd) {
+  if (KAPT_LIST_MEMO[lawd]) return Promise.resolve(KAPT_LIST_MEMO[lawd]);
+  var codes = [lawd];
+  if (lawd === HWA.old) codes = [HWA.old].concat(HWA.live || HWA.news);
+  return Promise.all(codes.map(function (c) {
+    return apiGet("/api/apt?kind=list&lawd=" + c)
+      .then(function (j) { return j.error ? [] : (j.items || []); })
+      .catch(function () { return []; });
+  })).then(function (lists) {
+    var seen = {}, out = [];
+    lists.forEach(function (arr) {
+      arr.forEach(function (it) {
+        if (seen[it.kaptCode]) return;
+        seen[it.kaptCode] = 1;
+        out.push(it);
+      });
+    });
+    KAPT_LIST_MEMO[lawd] = out;
+    return out;
+  });
+}
 function attachKapt() {
   var band = Number(document.getElementById("dj-band").value) || 0;
   var myLoad = DJ.loadSeq = (DJ.loadSeq || 0) + 1;   /* 새 조회가 시작되면 이전 부착은 버림 */
@@ -2318,8 +2400,8 @@ function attachKapt() {
   }).filter(function (x) { return x.pm > 0; })
     .sort(function (a, b) { return b.pm - a.pm; }).slice(0, 40);
 
-  return apiGet("/api/apt?kind=list&lawd=" + lawdCandidates(DJ.lawd)[0])
-    .then(function (j) { DJ.kaptList = j.error ? [] : (j.items || []); })
+  return fetchKaptList(lawdCandidates(DJ.lawd)[0])
+    .then(function (list) { DJ.kaptList = list; })
     .catch(function () { DJ.kaptList = []; })
     .then(function () {
       if (DJ.loadSeq !== myLoad) return;
@@ -2716,10 +2798,9 @@ function renderCartReport() {
       var idx = Number(a.dataset.envload);
       var c = scored[idx].item;
       a.textContent = "불러오는 중…";
-      apiGet("/api/apt?kind=list&lawd=" + lawdCandidates(c.lawd)[0])
-        .then(function (j) {
-          if (j.error) throw new Error(j.error + (j.detail ? " · " + j.detail : ""));
-          var hit = matchKapt(j.items || [], c.apt, c.dong);
+      fetchKaptList(lawdCandidates(c.lawd)[0])
+        .then(function (items) {
+          var hit = matchKapt(items, c.apt, c.dong);
           if (!hit) throw new Error("K-apt 목록에서 이 단지를 찾지 못했습니다");
           return apiGet("/api/apt?kind=info&kapt=" + hit.kaptCode);
         })

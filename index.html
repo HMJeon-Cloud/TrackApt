@@ -558,8 +558,9 @@ function onDataReady() {
   if (onTab) showTab(onTab.id.replace("tab-", ""));
   renderCondBar();
 }
-function statBox(k, v, c) {
-  return '<div class="stat"><div class="k">' + k + '</div><div class="v ' + (c || "") + '">' + v + "</div></div>";
+function statBox(k, v, c, sub) {
+  return '<div class="stat"><div class="k">' + k + '</div><div class="v ' + (c || "") + '">' + v + "</div>" +
+    (sub ? '<div class="k" style="margin-top:2px">' + sub + "</div>" : "") + "</div>";
 }
 
 /* ══ 거리·이동 범위 ═══════════════════════════ */
@@ -4172,7 +4173,7 @@ function showMapDetail(k) {
 }
 
 /* ══ 수급 탭 (청약홈 분양정보 기반 입주물량) ═══ */
-var SP = { sido: "경기", data: null };
+var SP = { sido: "전국", data: null };
 var chartSupply = null;
 /* 시도 인구 근사 (만명 → 명), 연간 추정 수요 = 인구 × 0.5% */
 var SIDO_POP = { "서울": 9330000, "부산": 3250000, "대구": 2360000, "인천": 3010000,
@@ -4187,13 +4188,15 @@ function buildSupply(root) {
       '<p class="desc">가격은 수요와 공급으로도 움직입니다. 청약홈 분양 공고의 <b>공급세대수 × 입주예정년월</b>을 ' +
         '모아 향후 입주물량을 추정하고, 인구 기반 추정 수요와 나란히 놓습니다.</p>' +
       '<div class="grid">' +
-        '<div class="field"><label for="sp-sido">시·도</label><select id="sp-sido">' +
+        '<div class="field"><label for="sp-sido">지역</label><select id="sp-sido">' +
+          '<option value="전국" selected>전국</option>' +
           Object.keys(SIDO_POP).map(function (s) {
-            return '<option value="' + s + '"' + (s === "경기" ? " selected" : "") + ">" + s + "</option>";
+            return '<option value="' + s + '">' + s + "</option>";
           }).join("") + "</select></div>" +
         '<div class="field"><label>&nbsp;</label><button class="btn" id="sp-go">입주물량 불러오기</button></div>' +
       '</div>' +
-      '<div class="status" id="sp-kpi" style="margin-top:12px"></div></div>' +
+      '<div class="status" id="sp-kpi" style="margin-top:12px"></div>' +
+      '<div class="note" id="sp-read" style="margin-top:10px;display:none"></div></div>' +
     '<div class="card" id="sp-chartcard" style="display:none"><div class="eyebrow">Monthly</div><h2>월별 입주물량</h2>' +
       '<p class="desc">특정 달에 물량이 몰리면 그 시기 전후로 전세가 눌립니다. 갭투자 진입·역전세 위험을 함께 봐야 하는 구간입니다.</p>' +
       '<div class="chartbox"><canvas id="sp-chart"></canvas></div></div>' +
@@ -4220,32 +4223,59 @@ function buildSupply(root) {
   root.querySelector("#sp-go").addEventListener("click", loadSupply);
 }
 
-/* 탭에 들어오면 자동 조회 — 내 지역의 시·도를 기본값으로 */
+/* 탭에 들어오면 자동 조회 — 참고 앱처럼 전국 집계가 기본 */
 function autoLoadSupply() {
   if (SP.data || SP.loading) return;
-  var cond = getCond();
-  if (cond.home) {
-    var sido = kbSido(cond.home);                  /* "경기" 등 */
-    var short = { "서울": "서울", "경기": "경기", "인천": "인천", "부산": "부산", "대구": "대구",
-                  "광주": "광주", "대전": "대전", "울산": "울산", "세종": "세종", "강원": "강원",
-                  "충북": "충북", "충남": "충남", "전북": "전북", "전남": "전남", "경북": "경북",
-                  "경남": "경남", "제주": "제주" }[sido];
-    if (short && SIDO_POP[short]) {
-      SP.sido = short;
-      var sel = document.getElementById("sp-sido");
-      if (sel) sel.value = short;
-    }
-  }
   loadSupply();
 }
 
+var SUPPLY_MEMO = {};
 function loadSupply() {
   SP.loading = true;
   var btn = document.getElementById("sp-go");
-  btn.disabled = true; btn.textContent = "불러오는 중…";
-  apiGet("/api/supply?sido=" + encodeURIComponent(SP.sido))
-    .then(function (j) {
+  btn.disabled = true;
+  var mySido = SP.sido;
+  function one(s) {
+    if (SUPPLY_MEMO[s]) return Promise.resolve(SUPPLY_MEMO[s]);
+    return apiGet("/api/supply?sido=" + encodeURIComponent(s)).then(function (j) {
+      if (!j.error) SUPPLY_MEMO[s] = j;
+      return j;
+    });
+  }
+  var p;
+  if (mySido === "전국") {
+    var sidos = Object.keys(SIDO_POP);
+    var done = 0;
+    btn.textContent = "전국 불러오는 중… (0/" + sidos.length + ")";
+    p = Promise.all(sidos.map(function (s) {
+      return one(s).then(function (j) {
+        done++;
+        btn.textContent = "전국 불러오는 중… (" + done + "/" + sidos.length + ")";
+        return { s: s, j: j };
+      });
+    })).then(function (res) {
+      var items = [], count = 0, from = "", errs = [];
+      res.forEach(function (x) {
+        if (x.j.error) { errs.push(x.s); return; }
+        count += x.j.count || 0;
+        from = x.j.from || from;
+        (x.j.items || []).forEach(function (it) {
+          it.sido = x.s;
+          items.push(it);
+        });
+      });
+      if (!items.length && errs.length) throw new Error("전 시·도 조회 실패 (" + errs.join(",") + ")");
+      return { sido: "전국", from: from, count: count, items: items, failed: errs };
+    });
+  } else {
+    p = one(mySido).then(function (j) {
       if (j.error) throw new Error(j.error + (j.detail ? " · " + j.detail : "") + (j.hint ? "\n" + j.hint : ""));
+      (j.items || []).forEach(function (it) { it.sido = mySido; });
+      return j;
+    });
+  }
+  p.then(function (j) {
+      if (SP.sido !== mySido) return;      /* 조회 중 지역이 바뀌면 버림 */
       SP.data = j;
       renderSupply();
     })
@@ -4285,15 +4315,53 @@ function renderSupply() {
   });
   var yms = Object.keys(byYm).map(Number).sort(function (a, b) { return a - b; });
 
-  var demand = Math.round(SIDO_POP[SP.sido] * 0.005);
+  var next24 = 0;
+  items.forEach(function (it) {
+    if (Number(it.moveInYm) <= ymAdd(curYm, 24)) next24 += it.households;
+  });
+  var pop = SP.sido === "전국"
+    ? Object.keys(SIDO_POP).reduce(function (a, s) { return a + SIDO_POP[s]; }, 0)
+    : SIDO_POP[SP.sido];
+  var demand = Math.round(pop * 0.005);
   var ratio = demand ? next12 / demand : null;
 
   document.getElementById("sp-kpi").innerHTML =
-    statBox("향후 12개월 물량", fmt(next12) + "세대") +
-    statBox("연간 추정 수요", fmt(demand) + "세대") +
+    statBox("향후 12개월 입주물량", fmt(next12) + "세대") +
+    statBox("24개월 누적", fmt(next24) + "세대") +
+    statBox("연간 추정 수요", fmt(demand) + "세대", "", "인구 " + fmt(pop) + "명 × 0.5% 가정") +
     statBox("수급 배율", ratio != null ? ratio.toFixed(2) + "배" : "—",
       ratio != null ? (ratio >= 1.3 ? "down" : (ratio <= 0.7 ? "up" : "")) : "") +
-    statBox("공고 기준", SP.data.count + "건 (" + SP.data.from + "~)");
+    statBox("공고 기준", SP.data.count + "건 (" + SP.data.from + "~)" +
+      (SP.data.failed && SP.data.failed.length ? " · 실패 " + SP.data.failed.join(",") : ""));
+
+  /* 수급 읽기 — 참고 앱 형식의 자동 요약 */
+  var readEl = document.getElementById("sp-read");
+  if (readEl) {
+    var lines = [];
+    lines.push("<b>" + SP.sido + "</b> 향후 12개월 입주물량은 <b>" + fmt(next12) + "세대</b>, 연간 추정 수요 " +
+      fmt(demand) + "세대 대비 <b>" + (ratio != null ? ratio.toFixed(2) + "배" : "—") + "</b>입니다. " +
+      (ratio == null ? "" : ratio >= 1.3 ? "공급이 수요를 크게 웃돌아 전세 하방 압력을 봐야 합니다."
+        : ratio <= 0.7 ? "공급이 부족한 편이라 물량 부담이 적습니다." : "수요와 공급이 대체로 균형입니다."));
+    if (SP.sido === "전국") {
+      /* 시·도별 배율 상·하위 */
+      var bySido = {};
+      items.forEach(function (it) {
+        if (Number(it.moveInYm) > horizon12) return;
+        bySido[it.sido] = (bySido[it.sido] || 0) + it.households;
+      });
+      var ranks = Object.keys(SIDO_POP).map(function (s) {
+        var d = SIDO_POP[s] * 0.005;
+        return { s: s, r: d ? (bySido[s] || 0) / d : 0 };
+      }).sort(function (a, b) { return b.r - a.r; });
+      var hi = ranks.slice(0, 3).map(function (x) { return x.s + " " + x.r.toFixed(2) + "배"; });
+      var lo = ranks.slice(-3).reverse().map(function (x) { return x.s + " " + x.r.toFixed(2) + "배"; });
+      lines.push("배율이 높은 곳(공급 과다) — " + hi.join(" · ") + ". 전세 하방 압력이 큰 지역입니다.");
+      lines.push("배율이 낮은 곳(공급 부족) — " + lo.join(" · ") + ". 물량 부담이 적은 지역입니다.");
+    }
+    readEl._lines = lines;
+    readEl.style.display = "";
+    readEl.innerHTML = "<b>수급 읽기</b><br>" + lines.map(function (l) { return "• " + l; }).join("<br>");
+  }
 
   var css = getComputedStyle(document.documentElement);
   var cUp = css.getPropertyValue("--up").trim();
@@ -4310,13 +4378,24 @@ function renderSupply() {
   /* 시군구별 */
   var byRegion = {};
   items.forEach(function (it) {
-    var r = sigunguOf(it.addr, SP.sido);
+    var r = sigunguOf(it.addr, it.sido || SP.sido);
+    if (SP.sido === "전국" && it.sido) r = it.sido + " " + r;
     var g = byRegion[r] = byRegion[r] || { r: r, n12: 0, all: 0, cnt: 0 };
     g.all += it.households; g.cnt++;
     if (Number(it.moveInYm) <= horizon12) g.n12 += it.households;
   });
   var regions = Object.keys(byRegion).map(function (r) { return byRegion[r]; })
     .sort(function (a, b) { return b.n12 - a.n12; });
+  if (readEl) {
+    var t3 = regions.slice(0, 3).filter(function (g) { return g.n12 > 0; })
+      .map(function (g) { return g.r + "(" + fmt(g.n12) + "세대)"; });
+    if (t3.length) {
+      var extra = "물량이 몰리는 곳은 <b>" + t3.join(" · ") + "</b>입니다. 입주 직전 6개월은 전세가 밀리는 " +
+        "구간이라 갭투자 진입 시점으로는 유리하지만, 역전세 위험도 같이 커집니다.";
+      readEl.innerHTML = "<b>수급 읽기</b><br>" +
+        readEl._lines.concat([extra]).map(function (l) { return "• " + l; }).join("<br>");
+    }
+  }
   document.getElementById("sp-tablecard").style.display = "";
   document.querySelector("#sp-table tbody").innerHTML = regions.map(function (g) {
     return '<tr class="' + (g.n12 >= 5000 ? "hit" : "") + '"><td>' + g.r + "</td>" +

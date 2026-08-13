@@ -236,7 +236,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v4.0</span>
+    <span class="ver">v4.3</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -312,7 +312,8 @@ var GROUPS = [
     { id: "vol",     name: "거래량",      build: buildVol },
     { id: "quad",    name: "매매·전세 흐름", build: buildQuad },
     { id: "supply",  name: "입주 물량",   build: buildSupply },
-    { id: "btest",   name: "과거 검증",   build: buildBtest } ] },
+    { id: "btest",   name: "과거 검증",   build: buildBtest },
+    { id: "fun",     name: "재미로 보기", build: buildFun } ] },
   { id: "g3", name: "어디를 살까", tabs: [
     { id: "rank",    name: "지역 순위",   build: buildRank },
     { id: "tiers",   name: "전국 등급표", build: buildTiers },
@@ -405,6 +406,7 @@ function showTab(id) {
   if (id === "mapx") renderMapx();
   if (id === "btest") renderBtestShell();
   if (id === "tiers") renderTiers();
+  if (id === "fun") renderFun();
   if (id === "supply") autoLoadSupply();
   if (id === "faq") faqRefresh(false);
   if (id === "cart") renderCart();
@@ -5196,6 +5198,533 @@ function renderTiers() {
       "<td>" + (isRegulated(r.k) ? '<span class="tagmini warn">규제</span>' : "") + "</td>" +
     "</tr>";
   }).join("") || '<tr><td colspan="14" style="color:var(--miss)">조건에 맞는 지역이 없습니다.</td></tr>';
+}
+
+
+/* ══ 재미로 보기 ══════════════════════════════
+   투자 판단용이 아니라 흥미용. KB 지수(1986.1~)와 ㎡당가(2013.4~)에
+   공개 상수(정권 기간·정책 일자·최저시급·연평균 환율)를 얹어 계산한다.
+   정치적 평가는 하지 않는다 — 숫자와 기간만 보여준다. */
+var FUN = { region: "전국", wageRegion: "", charts: {} };
+
+/* 대통령 임기 (지수 시작 1986.1 이전은 시작월로 클램프) */
+var FUN_TERMS = [
+  ["전두환", 198601, 198802, "· 지수 시작(1986.1)부터"],
+  ["노태우", 198802, 199302, "1기 신도시 200만호"],
+  ["김영삼", 199302, 199802, "금융실명제 · IMF 직전까지"],
+  ["김대중", 199802, 200302, "외환위기 부양 · 분양가 자율화"],
+  ["노무현", 200302, 200802, "종부세 · 투기지역 지정"],
+  ["이명박", 200802, 201302, "금융위기 · 보금자리주택"],
+  ["박근혜", 201302, 201703, "빚내서 집 사라(LTV·DTI 완화)"],
+  ["문재인", 201705, 202205, "규제 강화 · 임대차 3법"],
+  ["윤석열", 202205, 202504, "규제 해제 · 특례보금자리론"],
+  ["이재명", 202506, null,   "대출 총량 규제(6억 상한)"]
+];
+
+/* 주요 부동산 정책 (시행·발표 월 기준) */
+var FUN_POLICIES = [
+  [200310, "10·29 대책", "종합부동산세 도입 예고, 주택거래신고제"],
+  [200508, "8·31 대책", "종부세 강화 · 양도세 중과"],
+  [200811, "11·3 대책", "강남 3구 외 투기지역 해제 (완화)"],
+  [201304, "4·1 대책", "취득세 감면 · 양도세 한시 면제 (완화)"],
+  [201407, "7·24 대책", "LTV 70%·DTI 60% 일괄 완화"],
+  [201611, "11·3 대책", "청약 1순위·전매 제한 강화"],
+  [201708, "8·2 대책", "투기과열지구 부활 · 다주택 양도세 중과"],
+  [201809, "9·13 대책", "종부세 인상 · 규제지역 2주택 대출 금지"],
+  [201912, "12·16 대책", "15억 초과 주담대 금지 · 종부세 추가 인상"],
+  [202006, "6·17 대책", "규제지역 대폭 확대 · 갭투자 차단"],
+  [202007, "7·10 + 임대차3법", "다주택 취득세 12% · 계약갱신청구권"],
+  [202102, "2·4 공급대책", "공공주도 83만호 공급 계획"],
+  [202301, "1·3 대책", "강남 3구·용산 외 규제지역 전면 해제 (완화)"],
+  [202402, "스트레스 DSR", "1단계 시행 (9월 2단계)"],
+  [202506, "6·27 대출규제", "수도권 주담대 6억 총량 상한"],
+  [202510, "10·15 대책", "서울 전역 규제지역·토지거래허가 확대"],
+  [202607, "규제지역 추가", "화성 동탄구·용인 기흥구·구리시 지정"]
+];
+
+/* 최저시급 (원/시간, 고시 확정치) */
+var FUN_WAGE = { 2013: 4860, 2014: 5210, 2015: 5580, 2016: 6030, 2017: 6470,
+  2018: 7530, 2019: 8350, 2020: 8590, 2021: 8720, 2022: 9160, 2023: 9620,
+  2024: 9860, 2025: 10030, 2026: 10320 };
+/* 금 USD/oz · 비트코인 USD — 연말 종가 참고치 (2026은 진행 중이라 제외) */
+var FUN_GOLD = { 2013: 1202, 2014: 1184, 2015: 1061, 2016: 1152, 2017: 1303,
+  2018: 1282, 2019: 1517, 2020: 1898, 2021: 1829, 2022: 1824, 2023: 2063,
+  2024: 2641, 2025: 4320 };
+var FUN_BTC = { 2013: 754, 2014: 320, 2015: 430, 2016: 963, 2017: 13880,
+  2018: 3742, 2019: 7193, 2020: 28994, 2021: 46306, 2022: 16547, 2023: 42265,
+  2024: 93429, 2025: 87500 };
+/* 지수·주식 연말 종가 (참고치). 삼성전자·NVDA는 분할 조정가.
+   2025 확정: KOSPI 4214.17 · KOSDAQ 925.47 · S&P 6845.5 · NASDAQ 23242 ·
+   삼성전자 12만원 안착 · NVDA는 10월 $187.62 앵커 근사. */
+var FUN_KOSPI = { 2013: 2011, 2014: 1916, 2015: 1961, 2016: 2026, 2017: 2467,
+  2018: 2041, 2019: 2198, 2020: 2873, 2021: 2978, 2022: 2236, 2023: 2655,
+  2024: 2399, 2025: 4214 };
+var FUN_KOSDAQ = { 2013: 500, 2014: 543, 2015: 682, 2016: 631, 2017: 798,
+  2018: 676, 2019: 670, 2020: 968, 2021: 1034, 2022: 679, 2023: 867,
+  2024: 678, 2025: 925 };
+var FUN_SPX = { 2013: 1848, 2014: 2059, 2015: 2044, 2016: 2239, 2017: 2674,
+  2018: 2507, 2019: 3231, 2020: 3756, 2021: 4766, 2022: 3840, 2023: 4770,
+  2024: 5882, 2025: 6846 };
+var FUN_NASDAQ = { 2013: 4177, 2014: 4736, 2015: 5007, 2016: 5383, 2017: 6903,
+  2018: 6635, 2019: 8973, 2020: 12888, 2021: 15645, 2022: 10466, 2023: 15011,
+  2024: 19311, 2025: 23242 };
+var FUN_SAMSUNG = { 2013: 27440, 2014: 26540, 2015: 25200, 2016: 36040, 2017: 50960,
+  2018: 38700, 2019: 55800, 2020: 81000, 2021: 78300, 2022: 55300, 2023: 78500,
+  2024: 53200, 2025: 120000 };
+var FUN_NVDA = { 2013: 0.40, 2014: 0.50, 2015: 0.82, 2016: 2.67, 2017: 4.84,
+  2018: 3.34, 2019: 5.88, 2020: 13.06, 2021: 29.41, 2022: 14.61, 2023: 49.52,
+  2024: 134.29, 2025: 187 };
+/* 원/달러 연평균 (참고치 · 2026은 연중이라 제외) */
+var FUN_FX = { 2013: 1095, 2014: 1053, 2015: 1131, 2016: 1160, 2017: 1131,
+  2018: 1100, 2019: 1166, 2020: 1180, 2021: 1144, 2022: 1292, 2023: 1306,
+  2024: 1364, 2025: 1415 };
+
+function funIdxAt(arr, t0, ym, fwd) {
+  /* ym(YYYYMM)의 지수. 없으면 앞뒤 3개월 내에서 찾는다 */
+  var t = Math.floor(ym / 100) * 12 + (ym % 100);
+  for (var d = 0; d <= 3; d++) {
+    var i = t - t0 + (fwd ? d : -d);
+    if (i >= 0 && i < arr.length && arr[i] != null) return arr[i];
+  }
+  return null;
+}
+
+function buildFun(root) {
+  root.innerHTML =
+    '<div class="card">' +
+      '<div class="eyebrow">Fun</div><h2>재미로 보기</h2>' +
+      '<p class="desc">투자 판단용이 아니라 <b>흥미용</b>입니다. KB 지수(1986~)에 정권 기간·정책 일자·' +
+        '최저시급·환율 같은 공개 수치를 얹어봤습니다. 어떤 정치적 평가도 아니고, ' +
+        '<b>기간이 겹친 숫자</b>일 뿐입니다 — 집값은 정책 말고도 금리·공급·세계 경기가 함께 움직입니다.</p>' +
+      '<div class="grid"><div class="field"><label for="fun-region">지역 (지수 1986~)</label>' +
+        '<select id="fun-region"></select></div></div>' +
+    '</div>' +
+    '<div class="card"><div class="eyebrow">Presidents</div><h2>정권별 아파트 지수 변화</h2>' +
+      '<p class="desc">임기 시작 달과 끝 달의 KB 매매지수를 비교합니다. 임기 길이가 달라 ' +
+        '<b>연평균(연복리)</b>이 공정한 비교입니다.</p>' +
+      '<div class="chartbox"><canvas id="fun-terms"></canvas></div>' +
+      '<div class="tblwrap"><table id="fun-termtable"><thead><tr>' +
+        "<th>정권</th><th>기간</th><th>전국</th><th id=\"fun-th-region\">지역</th><th>연평균(지역)</th><th>메모</th>" +
+      "</tr></thead><tbody></tbody></table></div>" +
+      '<div class="note">전두환 정권은 지수 시작(1986.1) 이후 구간만. 박근혜(탄핵)·윤석열(파면)은 실제 종료 월 기준. ' +
+        '지역이 신도시·재편 지역이면 지수 편입 시점부터 계산됩니다.</div></div>' +
+    '<div class="card"><div class="eyebrow">Policies</div><h2>정책 연표 — 시행 후 시장은</h2>' +
+      '<p class="desc">주요 대책 시행 달 이후 <b>6개월·12개월</b> 지수 변화입니다. 정책 "효과"가 아니라 ' +
+        '"그 뒤 시장이 어땠나"입니다 — 인과와 상관은 다릅니다.</p>' +
+      '<div class="chartbox"><canvas id="fun-policy"></canvas></div>' +
+      '<div class="tblwrap"><table id="fun-poltable"><thead><tr>' +
+        "<th>시행</th><th>대책</th><th>내용</th><th>이후 6개월</th><th>12개월</th>" +
+      "</tr></thead><tbody></tbody></table></div></div>" +
+    '<div class="card"><div class="eyebrow">Wage &amp; FX</div><h2>최저시급·달러로 산 아파트</h2>' +
+      '<p class="desc">선택 지역 84㎡ 가격(KB ㎡당가)을 그해 <b>최저시급 노동시간</b>과 <b>달러</b>로 바꿔봅니다. ' +
+        '환율은 연평균 참고치(2026년은 진행 중이라 제외).</p>' +
+      '<div class="grid"><div class="field"><label for="fun-wreg">지역 (㎡당가 2013~)</label>' +
+        '<select id="fun-wreg"></select></div></div>' +
+      '<div class="status" id="fun-wkpi"></div>' +
+      '<div class="chartbox"><canvas id="fun-wage"></canvas></div>' +
+      '<div class="tblwrap"><table id="fun-wagetable"><thead><tr>' +
+        "<th>연도</th><th>84㎡ 가격</th><th>최저시급</th><th>필요 노동</th><th>달러 환산</th>" +
+      "</tr></thead><tbody></tbody></table></div>" +
+      '<div class="note">필요 노동 = 가격 ÷ 시급 (주 40시간 × 52주 = 연 2,080시간 기준 환산). 세금·생활비를 뺀 ' +
+        '순저축 가정이라 현실은 더 깁니다. 그게 포인트입니다.</div></div>' +
+    '<div class="card"><div class="eyebrow">Assets</div><h2>자산 대결 — 아파트 vs 금 vs 비트코인</h2>' +
+      '<p class="desc">같은 지역 84㎡ 가격을 그해 연말 <b>금</b>과 <b>비트코인</b>으로 바꿔봅니다. ' +
+        '자산 가격은 연말 종가 × 연평균 환율의 <b>참고치</b>고, 세금·수수료·변동성 리스크는 뺀 ' +
+        '단순 환산입니다. 비트코인의 낙폭(2018 −73%, 2022 −64%)을 견딜 수 있었는지는 별개 문제입니다.</p>' +
+      '<div class="status" id="fun-asskpi"></div>' +
+      '<div class="chartbox"><canvas id="fun-asset"></canvas></div>' +
+      '<div class="tblwrap"><table id="fun-assettable"><thead><tr>' +
+        "<th>연도</th><th>84㎡ 가격</th><th>금 환산</th><th>BTC 환산</th><th>금 시세</th><th>BTC 시세</th>" +
+      "</tr></thead><tbody></tbody></table></div>" +
+      '<div class="note">차트는 원화 기준 2013년 말 = 100 (<b>로그 축</b> — 비트코인이 수백 배라 일반 축으로는 ' +
+        '나머지가 바닥에 붙습니다). "몇 채" 계산은 첫해 아파트값으로 해당 자산을 사서 끝까지 들고 갔다는 가정입니다.</div></div>' +
+    '<div class="card"><div class="eyebrow">Race</div><h2>자산 레이스 — 아파트·지수·주식 총출동</h2>' +
+      '<p class="desc">2013년 말에 1을 넣었다면 지금 얼마가 됐나 — 전부 <b>연말 종가</b> 기준이고 배당·월세 같은 ' +
+        '현금흐름과 세금은 뺀 가격만의 비교입니다(참고치). 달러 자산은 그해 평균 환율로 원화 환산해 ' +
+        '환차익까지 포함합니다. 범례를 눌러 선을 켜고 끌 수 있습니다.</p>' +
+      '<label class="check" style="margin-bottom:8px"><input type="checkbox" id="fun-racefx" checked> ' +
+        '달러 자산을 원화로 환산 (끄면 현지 통화 기준)</label>' +
+      '<div class="chartbox tall"><canvas id="fun-race"></canvas></div>' +
+      '<div class="tblwrap"><table id="fun-racetable"><thead><tr>' +
+        "<th>순위</th><th>자산</th><th>2013→2025 배수</th><th>연복리</th>" +
+      "</tr></thead><tbody></tbody></table></div>" +
+      '<div class="btnrow" style="margin-top:10px">' +
+        '<button class="btn" id="fun-repgo" style="width:auto">대표 단지 실거래 얹기 (압구정 현대 · 부산 삼익비치)</button></div>' +
+      '<p class="hint" id="fun-rephint">국토부 실거래에서 매년 11·12월 거래를 불러와 단지 평당가 중위값으로 ' +
+        '선을 추가합니다 (약 60회 조회 · 30초 안팎, 재실행은 캐시).</p>' +
+      '<div class="note">차트는 <b>로그 축</b>입니다 — 비트코인·엔비디아가 수백 배라 일반 축으로는 나머지가 ' +
+        '바닥에 붙습니다. 대장 단지는 거래가 드문 해가 있어 선이 끊길 수 있고, 재건축 이슈(압구정)처럼 ' +
+        '가격에 개발 기대가 섞인 경우도 있습니다.</div></div>' +
+    '<div class="card"><div class="eyebrow">Gap</div><h2>강남은 전국의 몇 배인가</h2>' +
+      '<p class="desc">강남구 ㎡당가 ÷ 전국 ㎡당가. 격차가 벌어지는 시기가 곧 "급지 갈아타기가 어려워지는" 시기입니다.</p>' +
+      '<div class="status" id="fun-gapkpi"></div>' +
+      '<div class="chartbox"><canvas id="fun-gap"></canvas></div></div>';
+
+  root.querySelector("#fun-region").addEventListener("change", function () {
+    FUN.region = this.value; renderFun();
+  });
+  root.querySelector("#fun-wreg").addEventListener("change", function () {
+    FUN.wageRegion = this.value; renderFun();
+  });
+  root.querySelector("#fun-racefx").addEventListener("change", renderRace);
+  root.querySelector("#fun-repgo").addEventListener("click", loadRepComplexes);
+}
+
+/* 셀렉트는 DB 로드 후 첫 렌더에서 채운다 (buildFun은 부팅 시점이라 DB가 없다) */
+function fillFunSelects() {
+  var sel = document.getElementById("fun-region");
+  if (!sel || sel.options.length) return;
+  var groups = { "전국·권역": [], "서울": [], "그 외": [] };
+  Object.keys(DB.sale.series).forEach(function (k) {
+    if (k.indexOf("|") >= 0) { groups["서울"].push(k); return; }
+    if (/전국|수도권|광역시$|광역시\)|기타지방/.test(k) && k.indexOf("특별") < 0) groups["전국·권역"].push(k);
+    else if (/^서울|강북|강남/.test(k)) groups["서울"].push(k);
+    else groups["그 외"].push(k);
+  });
+  sel.innerHTML = Object.keys(groups).map(function (g) {
+    if (!groups[g].length) return "";
+    return "<optgroup label=\"" + g + "\">" + groups[g].map(function (k) {
+      return '<option value="' + k + '"' + (k === FUN.region ? " selected" : "") + ">" + k + "</option>";
+    }).join("") + "</optgroup>";
+  }).join("");
+  /* ㎡당가 지역 셀렉트 (RANKED, 시·도 그룹) */
+  var ws = document.getElementById("fun-wreg");
+  var bySido = {};
+  RANKED.forEach(function (k) {
+    var sd = kbSido(k);
+    (bySido[sd] = bySido[sd] || []).push(k);
+  });
+  if (!FUN.wageRegion) FUN.wageRegion = RANKED[0];
+  ws.innerHTML = Object.keys(bySido).map(function (sd) {
+    return "<optgroup label=\"" + sd + "\">" + bySido[sd].map(function (k) {
+      return '<option value="' + k + '"' + (k === FUN.wageRegion ? " selected" : "") + ">" + kbLabel(k) + "</option>";
+    }).join("") + "</optgroup>";
+  }).join("");
+  try { upgradeRegionSelects(sel.closest(".tab")); } catch (e) {}
+}
+
+function funChart(id, cfg) {
+  if (FUN.charts[id]) { try { FUN.charts[id].destroy(); } catch (e) {} }
+  var el = document.getElementById(id);
+  if (!el) return;
+  FUN.charts[id] = new Chart(el.getContext("2d"), cfg);
+}
+
+function renderFun() {
+  if (!DB || !document.getElementById("fun-termtable")) return;
+  fillFunSelects();
+  var t0 = ymNum(DB.sale.dates[0]);
+  var latest = latestYM("sale");
+  var latestYm = latest[0] * 100 + latest[1];
+  var nat = pmSeries("sale", "전국");
+  var reg = pmSeries("sale", ik(FUN.region)) || nat;
+
+  /* ── 정권별 ── */
+  var labels = [], barNat = [], barReg = [], rowsHtml = "";
+  FUN_TERMS.forEach(function (tm) {
+    var name = tm[0], a = tm[1], b = tm[2] || latestYm, memo = tm[3];
+    var months = (Math.floor(b / 100) * 12 + b % 100) - (Math.floor(a / 100) * 12 + a % 100);
+    function chg(arr) {
+      var v0 = funIdxAt(arr, t0, a, true), v1 = funIdxAt(arr, t0, b, false);
+      return (v0 && v1) ? (v1 / v0 - 1) * 100 : null;
+    }
+    function cagr(c) { return c == null ? null : (Math.pow(1 + c / 100, 12 / months) - 1) * 100; }
+    var cN = chg(nat), cR = chg(reg), gR = cagr(cR);
+    labels.push(name);
+    barNat.push(cagr(cN)); barReg.push(gR);
+    rowsHtml += "<tr><td><b>" + name + "</b></td><td>" +
+      Math.floor(a / 100) + "." + (a % 100) + "~" + (tm[2] ? Math.floor(b / 100) + "." + (b % 100) : "현재") +
+      "</td><td class=\"" + cls(cN) + "\">" + (cN != null ? pct(cN, 1) : "—") + "</td>" +
+      "<td class=\"" + cls(cR) + "\"><b>" + (cR != null ? pct(cR, 1) : "—") + "</b></td>" +
+      "<td class=\"" + cls(gR) + "\">" + (gR != null ? pct(gR, 1) + "/년" : "—") + "</td>" +
+      "<td style=\"color:var(--ink-soft)\">" + memo + "</td></tr>";
+  });
+  document.getElementById("fun-th-region").textContent = FUN.region;
+  document.querySelector("#fun-termtable tbody").innerHTML = rowsHtml;
+  funChart("fun-terms", { type: "bar", data: { labels: labels, datasets: [
+    { label: "전국 연평균", data: barNat, backgroundColor: "rgba(212,175,106,.35)" },
+    { label: FUN.region + " 연평균", data: barReg, backgroundColor: "#d4af6a" }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } },
+      scales: { y: { title: { display: true, text: "%/년 (연복리)" } } } } });
+
+  /* ── 정책 연표 ── */
+  var pol = FUN_POLICIES.map(function (p) {
+    function after(arr, m) {
+      var v0 = funIdxAt(arr, t0, p[0], true);
+      var t = Math.floor(p[0] / 100) * 12 + p[0] % 100 + m;
+      var yy = Math.floor((t - 1) / 12), mm = ((t - 1) % 12) + 1;
+      var v1 = funIdxAt(arr, t0, yy * 100 + mm, false);
+      return (v0 && v1) ? (v1 / v0 - 1) * 100 : null;
+    }
+    return { ym: p[0], name: p[1], desc: p[2], c6: after(reg, 6), c12: after(reg, 12) };
+  });
+  document.querySelector("#fun-poltable tbody").innerHTML = pol.map(function (p) {
+    return "<tr><td>" + Math.floor(p.ym / 100) + "." + (p.ym % 100) + "</td><td><b>" + p.name + "</b></td>" +
+      "<td style=\"color:var(--ink-soft)\">" + p.desc + "</td>" +
+      "<td class=\"" + cls(p.c6) + "\">" + (p.c6 != null ? pct(p.c6, 1) : "—") + "</td>" +
+      "<td class=\"" + cls(p.c12) + "\">" + (p.c12 != null ? pct(p.c12, 1) : "진행 중") + "</td></tr>";
+  }).join("");
+  /* 지수 라인 + 정책 점 */
+  var lineLabels = [], lineData = [], polPts = [];
+  for (var i = 0; i < reg.length; i += 2) {
+    var t = t0 + i, yy = Math.floor((t - 1) / 12), mm = ((t - 1) % 12) + 1;
+    lineLabels.push(yy + "." + mm); lineData.push(reg[i]);
+  }
+  FUN_POLICIES.forEach(function (p) {
+    var t = Math.floor(p[0] / 100) * 12 + p[0] % 100;
+    var i = Math.round((t - t0) / 2);
+    polPts.push({ x: i, y: (lineData[i] != null ? lineData[i] : null) });
+  });
+  funChart("fun-policy", { type: "line", data: { labels: lineLabels, datasets: [
+    { label: FUN.region + " 매매지수", data: lineData, borderColor: "#d4af6a", pointRadius: 0, borderWidth: 1.5 },
+    { label: "정책 시점", type: "scatter", showLine: false, pointRadius: 4,
+      pointBackgroundColor: "#e08c3a",
+      data: (function () { var arr = new Array(lineData.length).fill(null);
+        polPts.forEach(function (pt) { if (pt.x >= 0 && pt.x < arr.length) arr[pt.x] = pt.y; });
+        return arr; })() }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } }, scales: { x: { ticks: { maxTicksLimit: 12 } } } } });
+
+  /* ── 시급·환율 ── */
+  var wk = FUN.wageRegion, pmArr = pmSeries("salePm", wk);
+  var pt0 = ymNum(DB.salePm.dates[0]);
+  var years = Object.keys(FUN_WAGE).map(Number).sort();
+  var wrows = [], normA = [], normW = [], normF = [], wlabels = [];
+  var base = null;
+  years.forEach(function (y) {
+    /* 그해 12월(마지막 해는 최신월) ㎡당가 */
+    var idx = null;
+    for (var m = 12; m >= 1; m--) {
+      var i = y * 12 + m - pt0;
+      if (i >= 0 && i < pmArr.length && pmArr[i] != null) { idx = pmArr[i]; break; }
+    }
+    if (idx == null) return;
+    var price = idx * 84;                      /* 만원 */
+    var wage = FUN_WAGE[y], fx = FUN_FX[y];
+    var hours = price * 10000 / wage;
+    var yrs = hours / 2080;
+    var usd = fx ? price * 10000 / fx : null;
+    wrows.push({ y: y, price: price, wage: wage, hours: hours, yrs: yrs, usd: usd });
+    if (base == null) base = { p: price, w: wage, f: fx };
+    wlabels.push(y);
+    normA.push(price / base.p * 100);
+    normW.push(wage / base.w * 100);
+    normF.push(fx ? fx / base.f * 100 : null);
+  });
+  var lastW = wrows[wrows.length - 1], firstW = wrows[0];
+  document.getElementById("fun-wkpi").innerHTML = lastW ?
+    statBox("지금 " + kbLabel(wk) + " 84㎡", eok(lastW.price), "", lastW.y + "년 기준") +
+    statBox("최저시급 노동", lastW.yrs.toFixed(1) + "년치", "cash", "주 40시간 · 세전 전액 저축 가정") +
+    statBox("기간 상승", pct((lastW.price / firstW.price - 1) * 100, 0), cls(lastW.price - firstW.price),
+      firstW.y + "→" + lastW.y + " 아파트") +
+    statBox("같은 기간 시급", pct((lastW.wage / firstW.wage - 1) * 100, 0), "",
+      firstW.wage + "→" + lastW.wage + "원") : "";
+  document.querySelector("#fun-wagetable tbody").innerHTML = wrows.map(function (r) {
+    return "<tr><td>" + r.y + "</td><td><b>" + eok(r.price) + "</b></td><td>" + fmt(r.wage) + "원</td>" +
+      "<td>" + fmt(Math.round(r.hours)) + "시간 (" + r.yrs.toFixed(1) + "년)</td>" +
+      "<td>" + (r.usd ? "$" + fmt(Math.round(r.usd / 1000) * 1000) : "—") + "</td></tr>";
+  }).join("");
+  funChart("fun-wage", { type: "line", data: { labels: wlabels, datasets: [
+    { label: "84㎡ 가격", data: normA, borderColor: "#d4af6a", pointRadius: 2 },
+    { label: "최저시급", data: normW, borderColor: "#2fbf9b", pointRadius: 2 },
+    { label: "원/달러", data: normF, borderColor: "#8a93a6", pointRadius: 2, borderDash: [4, 3] }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } },
+      scales: { y: { title: { display: true, text: firstW ? firstW.y + "년 = 100" : "" } } } } });
+
+  /* ── 자산 대결 ── */
+  var arows = wrows.filter(function (r) { return FUN_GOLD[r.y] && FUN_FX[r.y]; });
+  if (arows.length) {
+    var a0 = arows[0], aN = arows[arows.length - 1];
+    function goldKrwG(y) { return FUN_GOLD[y] / 31.1035 * FUN_FX[y]; }        /* 원/g */
+    function btcKrw(y) { return FUN_BTC[y] * FUN_FX[y]; }                     /* 원/개 */
+    document.querySelector("#fun-assettable tbody").innerHTML = arows.map(function (r) {
+      var kg = r.price * 10000 / goldKrwG(r.y) / 1000;
+      var btc = r.price * 10000 / btcKrw(r.y);
+      return "<tr><td>" + r.y + "</td><td><b>" + eok(r.price) + "</b></td>" +
+        "<td>금 " + kg.toFixed(1) + "kg</td>" +
+        "<td>" + (btc >= 100 ? fmt(Math.round(btc)) : btc.toFixed(1)) + " BTC</td>" +
+        "<td style=\"color:var(--ink-soft)\">$" + fmt(FUN_GOLD[r.y]) + "/oz</td>" +
+        "<td style=\"color:var(--ink-soft)\">$" + fmt(FUN_BTC[r.y]) + "</td></tr>";
+    }).join("");
+    /* 첫해 아파트값으로 각 자산을 샀다면 지금 아파트 몇 채인가 */
+    var goldX = goldKrwG(aN.y) / goldKrwG(a0.y);
+    var btcX = btcKrw(aN.y) / btcKrw(a0.y);
+    var aptX = aN.price / a0.price;
+    document.getElementById("fun-asskpi").innerHTML =
+      statBox("아파트로 들고 있었다면", "1채 그대로", "", a0.y + "→" + aN.y + " ×" + aptX.toFixed(1)) +
+      statBox("금을 샀다면", (goldX / aptX).toFixed(1) + "채", cls(goldX - aptX), "금 ×" + goldX.toFixed(1)) +
+      statBox("비트코인을 샀다면", (btcX / aptX) >= 10 ? Math.round(btcX / aptX) + "채" :
+        (btcX / aptX).toFixed(1) + "채", cls(btcX - aptX), "BTC ×" + Math.round(btcX));
+    var alabels = arows.map(function (r) { return r.y; });
+    funChart("fun-asset", { type: "line", data: { labels: alabels, datasets: [
+      { label: "84㎡ 가격", data: arows.map(function (r) { return r.price / a0.price * 100; }),
+        borderColor: "#d4af6a", pointRadius: 2 },
+      { label: "금 (원)", data: arows.map(function (r) { return goldKrwG(r.y) / goldKrwG(a0.y) * 100; }),
+        borderColor: "#e8b04b", pointRadius: 2, borderDash: [5, 3] },
+      { label: "비트코인 (원)", data: arows.map(function (r) { return btcKrw(r.y) / btcKrw(a0.y) * 100; }),
+        borderColor: "#2fbf9b", pointRadius: 2 }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } },
+        scales: { y: { type: "logarithmic", title: { display: true, text: a0.y + "년 말 = 100 (로그)" } } } } });
+  }
+
+  /* ── 자산 레이스 ── */
+  renderRace();
+
+  /* ── 강남 배율 ── */
+  var gArr = pmSeries("salePm", "강남11개구|강남구"), nArr = pmSeries("salePm", "전국");
+  var gl = [], gd = [];
+  if (gArr && nArr) for (var j = 0; j < gArr.length; j++) {
+    if (gArr[j] != null && nArr[j] != null) {
+      var t2 = pt0 + j, y2 = Math.floor((t2 - 1) / 12), m2 = ((t2 - 1) % 12) + 1;
+      gl.push(y2 + "." + m2); gd.push(gArr[j] / nArr[j]);
+    }
+  }
+  var curMult = gd.length ? gd[gd.length - 1] : null;
+  var minMult = gd.length ? Math.min.apply(null, gd) : null;
+  var maxMult = gd.length ? Math.max.apply(null, gd) : null;
+  document.getElementById("fun-gapkpi").innerHTML = curMult ?
+    statBox("지금 배율", curMult.toFixed(2) + "배", "cash", "강남구 ÷ 전국 ㎡당가") +
+    statBox("역대 최저", minMult.toFixed(2) + "배", "", "2013~ 기준") +
+    statBox("역대 최고", maxMult.toFixed(2) + "배", "", "") : "";
+  funChart("fun-gap", { type: "line", data: { labels: gl, datasets: [
+    { label: "강남구 ÷ 전국 (㎡당가 배율)", data: gd, borderColor: "#d4af6a", pointRadius: 0, borderWidth: 1.5 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } }, scales: { x: { ticks: { maxTicksLimit: 10 } } } } });
+}
+
+
+/* ══ 자산 레이스 ══════════════════════════════ */
+var RACE = { rep: null };   /* rep: 대표 단지 {압구정:{y:v}, 삼익:{y:v}} */
+
+function raceSeries(useFx) {
+  var years = [];
+  for (var y = 2013; y <= 2025; y++) years.push(y);
+  function krw(tbl, y) { return tbl[y] != null && FUN_FX[y] ? tbl[y] * FUN_FX[y] : null; }
+  function raw(tbl, y) { return tbl[y] != null ? tbl[y] : null; }
+  var usd = useFx ? krw : raw;
+  var defs = [
+    { name: "강남구 84㎡ (KB)", color: "#d4af6a", get: null },
+    { name: "코스피", color: "#5b8def", get: function (y) { return raw(FUN_KOSPI, y); } },
+    { name: "코스닥", color: "#5b8def", dash: [4, 3], hide: 1, get: function (y) { return raw(FUN_KOSDAQ, y); } },
+    { name: "S&P500", color: "#c46be0", get: function (y) { return usd(FUN_SPX, y); } },
+    { name: "나스닥", color: "#c46be0", dash: [4, 3], hide: 1, get: function (y) { return usd(FUN_NASDAQ, y); } },
+    { name: "삼성전자", color: "#2fbf9b", get: function (y) { return raw(FUN_SAMSUNG, y); } },
+    { name: "엔비디아 (시총 1위)", color: "#76d672", get: function (y) { return usd(FUN_NVDA, y); } },
+    { name: "금", color: "#e8b04b", dash: [5, 3], get: function (y) { return usd(FUN_GOLD, y); } },
+    { name: "비트코인", color: "#e08c3a", get: function (y) { return usd(FUN_BTC, y); } }
+  ];
+  /* 강남 84㎡ — 그해 12월 KB ㎡당가 */
+  var pmArr = pmSeries("salePm", "강남11개구|강남구");
+  var pt0 = ymNum(DB.salePm.dates[0]);
+  defs[0].get = function (y) {
+    for (var m = 12; m >= 1; m--) {
+      var i = y * 12 + m - pt0;
+      if (i >= 0 && i < pmArr.length && pmArr[i] != null) return pmArr[i];
+    }
+    return null;
+  };
+  /* 대표 단지 (로드된 경우) */
+  if (RACE.rep) {
+    Object.keys(RACE.rep).forEach(function (nm) {
+      var tbl = RACE.rep[nm];
+      defs.push({ name: nm + " (실거래)", color: nm.indexOf("압구정") >= 0 ? "#f2d9a4" : "#9bb7d4",
+        get: function (y) { return tbl[y] != null ? tbl[y] : null; } });
+    });
+  }
+  return { years: years, defs: defs };
+}
+
+function renderRace() {
+  if (!document.getElementById("fun-race")) return;
+  var useFx = !document.getElementById("fun-racefx") || document.getElementById("fun-racefx").checked;
+  var rs = raceSeries(useFx);
+  var rows = [];
+  var datasets = rs.defs.map(function (d) {
+    var base = null, data = rs.years.map(function (y) {
+      var v = d.get(y);
+      if (v == null) return null;
+      if (base == null) base = v;
+      return v / base * 100;
+    });
+    var vals = data.filter(function (x) { return x != null; });
+    if (vals.length >= 2) {
+      var mult = vals[vals.length - 1] / 100;
+      var yrs = rs.years.length - 1;
+      rows.push({ name: d.name, mult: mult, cagr: (Math.pow(mult, 1 / yrs) - 1) * 100 });
+    }
+    return { label: d.name, data: data, borderColor: d.color, backgroundColor: d.color,
+      pointRadius: 2, borderWidth: 1.6, borderDash: d.dash || [], spanGaps: true,
+      hidden: !!d.hide };
+  });
+  funChart("fun-race", { type: "line", data: { labels: rs.years, datasets: datasets },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } },
+      scales: { y: { type: "logarithmic", title: { display: true, text: "2013년 말 = 100 (로그)" } } } } });
+  rows.sort(function (a, b) { return b.mult - a.mult; });
+  document.querySelector("#fun-racetable tbody").innerHTML = rows.map(function (r, i) {
+    return "<tr" + (r.name.indexOf("84㎡") >= 0 || r.name.indexOf("실거래") >= 0 ? ' class="hit"' : "") +
+      "><td>" + (i + 1) + "</td><td><b>" + r.name + "</b></td>" +
+      "<td>×" + (r.mult >= 20 ? Math.round(r.mult) : r.mult.toFixed(1)) + "</td>" +
+      '<td class="' + cls(r.cagr) + '">' + pct(r.cagr, 1) + "/년</td></tr>";
+  }).join("");
+}
+
+/* 대표 단지 실거래: 매년 11·12월 + 올해 최근 3개월, 이름 필터 중위 평당 */
+var RACE_TARGETS = [
+  { name: "압구정 현대", lawd: "11680", dong: "압구정동", match: /현대|신현대/ },
+  { name: "부산 삼익비치", lawd: "26500", dong: "남천동", match: /삼익/ }
+];
+function loadRepComplexes() {
+  var btn = document.getElementById("fun-repgo");
+  var hint = document.getElementById("fun-rephint");
+  btn.disabled = true;
+  var now = new Date();
+  var curYm = now.getFullYear() * 100 + (now.getMonth() + 1);
+  var done = 0, total = RACE_TARGETS.length * (13 * 2 + 3);
+  function tick() { done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")"; }
+  Promise.all(RACE_TARGETS.map(function (tg) {
+    var yms = [];
+    for (var y = 2013; y <= 2025; y++) yms.push([y, String(y * 100 + 11)], [y, String(y * 100 + 12)]);
+    for (var k = 3; k >= 1; k--) yms.push([Math.floor(ymShift(curYm, -k) / 100), String(ymShift(curYm, -k))]);
+    return Promise.all(yms.map(function (pair) {
+      return fetchTrade(tg.lawd, "sale", pair[1]).then(function (j) {
+        tick();
+        return { y: pair[0], items: (j && j.items) || [] };
+      }).catch(function () { tick(); return { y: pair[0], items: [] }; });
+    })).then(function (parts) {
+      var byYear = {};
+      parts.forEach(function (p) {
+        p.items.forEach(function (t) {
+          if (t.canceled) return;
+          if (String(t.dong).indexOf(tg.dong.replace("동", "")) < 0) return;
+          if (!tg.match.test(String(t.apt))) return;
+          (byYear[p.y] = byYear[p.y] || []).push(t.amount / t.area * 3.3058);
+        });
+      });
+      var out = {};
+      Object.keys(byYear).forEach(function (y) {
+        if (byYear[y].length >= 2) out[y] = median(byYear[y]);
+      });
+      return { name: tg.name, series: out, n: Object.keys(out).length };
+    });
+  })).then(function (res) {
+    RACE.rep = {};
+    var msgs = [];
+    res.forEach(function (r) {
+      if (r.n >= 4) { RACE.rep[r.name] = r.series; msgs.push(r.name + " " + r.n + "개 연도"); }
+      else msgs.push(r.name + " 표본 부족(" + r.n + "개 연도) — 제외");
+    });
+    if (!Object.keys(RACE.rep).length) RACE.rep = null;
+    hint.textContent = "완료 — " + msgs.join(" · ") + ". 같은 연도라도 거래된 평형 구성이 달라 들쭉날쭉할 수 있습니다.";
+    renderRace();
+  }).catch(function (e) {
+    hint.textContent = "불러오기 실패: " + (e.message || e);
+  }).finally(function () {
+    btn.disabled = false; btn.textContent = "대표 단지 실거래 얹기 (압구정 현대 · 부산 삼익비치)";
+  });
 }
 
 /* ══ 자금 계산기 탭 ═══════════════════════════ */

@@ -222,6 +222,13 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 .pkitem.on{background:var(--gold-grad,#d4af6a);color:#11161f;border-color:transparent;font-weight:700}
 .pkitem.solo{display:block;width:100%;margin:6px 0;text-align:left}
 @media(max-width:520px){.pkitems{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}}
+
+/* ── 10분위 배지 ── */
+.tier{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:700;
+  border:1px solid var(--line);color:var(--ink-soft);white-space:nowrap}
+.tier.t1{background:var(--gold-grad,#d4af6a);color:#11161f;border-color:transparent}
+.tier.t2{color:var(--brand);border-color:var(--brand)}
+.tier.t3{color:var(--brand)}
 </style>
 </head>
 <body>
@@ -229,7 +236,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v3.8</span>
+    <span class="ver">v3.9</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -308,6 +315,7 @@ var GROUPS = [
     { id: "btest",   name: "과거 검증",   build: buildBtest } ] },
   { id: "g3", name: "어디를 살까", tabs: [
     { id: "rank",    name: "지역 순위",   build: buildRank },
+    { id: "tiers",   name: "전국 등급표", build: buildTiers },
     { id: "mapx",    name: "지도로 보기", build: buildMapx },
     { id: "gap",     name: "전세 끼고 사기", build: buildGap },
     { id: "move",    name: "갈아타기",    build: buildMove },
@@ -396,6 +404,7 @@ function showTab(id) {
   if (id === "cmpx") renderCmpxShell();
   if (id === "mapx") renderMapx();
   if (id === "btest") renderBtestShell();
+  if (id === "tiers") renderTiers();
   if (id === "supply") autoLoadSupply();
   if (id === "faq") faqRefresh(false);
   if (id === "cart") renderCart();
@@ -4722,21 +4731,46 @@ function renderSupply() {
 }
 
 /* ══ 백테스트 탭 (상급지 중간 vs 중급지 대장) ══ */
-var BT = { a: "", b: "", band: 84 };
+var BT = { a: "", b: "", band: 84, mode: "rank", years: 10 };
+/* 비교 모드 정의 — cats: 표에 나올 그룹, pair: 판정에 쓸 [A그룹, B그룹] */
+var BT_MODES = {
+  rank: { name: "평당가 순위 (대장 vs 중간)", cats: ["대장", "중간"], pair: ["중간", "대장"],
+    note: "<b>평당가 순위 기준</b> — 검증 시작 시점 평당가로 줄 세워 상위 20%를 <b>대장</b>, " +
+      "40~60%를 <b>중간</b>으로 나눕니다. 핵심 비교는 \"상급지 중간 vs 중급지 대장\"입니다." },
+  size: { name: "세대수 (나홀로 vs 대단지)", cats: ["나홀로", "대단지"], pair: ["나홀로", "대단지"],
+    note: "<b>세대수 기준</b> — 300세대 미만을 <b>나홀로</b>, 1000세대 이상을 <b>대단지</b>로 나눕니다. " +
+      "K-apt에서 세대수를 조회하므로 시간이 조금 더 걸립니다." },
+  area: { name: "평형 (소형 vs 중형 vs 대형)", cats: ["소형", "중형", "대형"], pair: ["소형", "대형"],
+    note: "<b>평형 기준</b> — <b>소형</b> 55㎡ 미만(14·18평), <b>중형</b> 55~95㎡(59·84), " +
+      "<b>대형</b> 95㎡ 이상. 위 평형 선택은 무시하고 전체 거래를 봅니다." },
+  age: { name: "노후도 (신축 vs 구축)", cats: ["신축", "준구축", "구축"], pair: ["구축", "신축"],
+    note: "<b>노후도 기준</b> — <b>검증 시작 시점</b>의 연차로 나눕니다(지금 연차가 아닙니다). " +
+      "10년 미만 <b>신축</b>, 10~24년 <b>준구축</b>, 25년 이상 <b>구축</b>. 실거래에 딸려오는 " +
+      "건축년도를 쓰므로 추가 조회는 없습니다. <b>평형을 84㎡대로 고정</b>하고 돌려야 평형 효과와 " +
+      "섞이지 않습니다." }
+};
+function areaClass(a) { return a < 55 ? "소형" : (a < 95 ? "중형" : "대형"); }
+function ageClass(y) { return y < 10 ? "신축" : (y < 25 ? "준구축" : "구축"); }
+function sizeClass(hh) { return hh == null ? null : (hh < 300 ? "나홀로" : (hh >= 1000 ? "대단지" : null)); }
 
 function buildBtest(root) {
   root.innerHTML =
     '<div class="card">' +
-      '<div class="eyebrow">Backtest</div><h2>상급지 중간 vs 중급지 대장</h2>' +
-      '<p class="desc">같은 예산이면 더 좋은 동네의 평범한 아파트와 한 급 아래 동네의 최고 아파트 중 어느 쪽이 ' +
-        '나았는지, <b>10년 전 실거래를 직접 불러와</b> 검증합니다. 호출량을 줄이기 위해 10년 전은 같은 분기 ' +
-        '3개월만 샘플링합니다.</p>' +
+      '<div class="eyebrow">Backtest</div><h2>과거 검증</h2>' +
+      '<p class="desc">같은 예산으로 두 선택지 중 어느 쪽이 나았는지 실거래로 직접 검증합니다. ' +
+        '<b>평당가 순위</b>로 나누면 "상급지 중간 vs 중급지 대장", <b>세대수</b>로 나누면 ' +
+        '"최상급지 나홀로 vs 상급지 대단지", "상급지 구축 vs 중급지 신축"을 비교합니다.</p>' +
+      '<div class="seg" id="bt-modes" style="margin-bottom:12px"></div>' +
+      '<div class="callout" id="bt-modenote" style="margin-bottom:12px"></div>' +
       '<div class="grid">' +
         '<div class="field"><label for="bt-a">상급지 (A)</label><select id="bt-a"></select></div>' +
         '<div class="field"><label for="bt-b">중급지 (B)</label><select id="bt-b"></select></div>' +
-        '<div class="field"><label for="bt-band">평형대</label><select id="bt-band">' +
+        '<div class="field"><label for="bt-years">검증 기간</label><select id="bt-years">' +
+          '<option value="5">최근 5년</option><option value="10" selected>최근 10년</option>' +
+          '<option value="15">최근 15년</option></select></div>' +
+        '<div class="field"><label for="bt-band">평형</label><select id="bt-band">' +
           '<option value="59">59㎡대</option><option value="84" selected>84㎡대</option></select></div>' +
-        '<div class="field"><label>&nbsp;</label><button class="btn" id="bt-go">검증하기</button></div>' +
+        '<div class="field"><label>실행</label><button class="btn" id="bt-go">검증하기</button></div>' +
       '</div></div>' +
     '<div class="card" id="bt-resultcard" style="display:none">' +
       '<div class="eyebrow">Result</div><h2>검증 결과</h2>' +
@@ -4750,7 +4784,48 @@ function buildBtest(root) {
         '단지가 평균을 흔들 수 있으니 결과를 크게 읽지 마세요.</div></div>';
 
   root.querySelector("#bt-band").addEventListener("change", function () { BT.band = Number(this.value); });
+  root.querySelector("#bt-years").addEventListener("change", function () { BT.years = Number(this.value); });
   root.querySelector("#bt-go").addEventListener("click", runBtest);
+
+  var seg = root.querySelector("#bt-modes");
+  seg.innerHTML = Object.keys(BT_MODES).map(function (m) {
+    return '<button type="button" data-mode="' + m + '"' + (m === BT.mode ? ' class="on"' : "") + ">" +
+      BT_MODES[m].name + "</button>";
+  }).join("");
+  function setMode(m) {
+    BT.mode = m;
+    Array.prototype.forEach.call(seg.querySelectorAll("button"), function (b) {
+      b.classList.toggle("on", b.dataset.mode === m);
+    });
+    document.getElementById("bt-modenote").innerHTML = BT_MODES[m].note;
+    var band = document.getElementById("bt-band");
+    band.disabled = (m === "area");        /* 평형 모드는 전체 거래를 본다 */
+    band.title = m === "area" ? "평형 모드에서는 무시됩니다" : "";
+  }
+  seg.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-mode]");
+    if (b) setMode(b.dataset.mode);
+  });
+  setMode(BT.mode);
+}
+
+/* K-apt로 단지 세대수 채우기 (size 모드 전용, 후보 상한으로 호출 억제) */
+function attachHouseholds(region, groups, onTick) {
+  var top = groups.slice(0, 40);      /* 호출 상한: 평당가 상위 40개 단지 */
+  return fetchKaptList(lawdCandidates(region)[0]).then(function (list) {
+    return Promise.all(top.map(function (g) {
+      var hit = matchKapt(list, g.apt, g.dong);
+      if (!hit) { if (onTick) onTick(); return null; }
+      if (KAPT_INFO_MEMO[hit.kaptCode]) {
+        g.hh = KAPT_INFO_MEMO[hit.kaptCode].households || null;
+        if (onTick) onTick(); return null;
+      }
+      return apiGet("/api/apt?kind=info&kapt=" + hit.kaptCode).then(function (j) {
+        if (!j.error && j.info) { KAPT_INFO_MEMO[hit.kaptCode] = j.info; g.hh = j.info.households || null; }
+        if (onTick) onTick();
+      }).catch(function () { if (onTick) onTick(); });
+    }));
+  });
 }
 
 function renderBtestShell() {
@@ -4805,14 +4880,17 @@ function runBtest() {
   BT.a = document.getElementById("bt-a").value;
   BT.b = document.getElementById("bt-b").value;
   if (BT.a === BT.b) { alert("서로 다른 두 지역을 고르세요."); return; }
+  var mode = BT.mode, band = mode === "area" ? 0 : BT.band;
   var btn = document.getElementById("bt-go");
   btn.disabled = true;
   var now = new Date();
   var curYm = now.getFullYear() * 100 + (now.getMonth() + 1);
-  var oldYms = [ymShift(curYm, -122), ymShift(curYm, -121), ymShift(curYm, -120)].map(String);
-  var total = 6 + 24, done = 0;
-  function tick() { done++; btn.textContent = "검증 중… (" + done + "/" + total + ")"; }
-  tick(); done = 0; btn.textContent = "검증 중… (0/" + total + ")";
+  var mBack = BT.years * 12;
+  var oldYms = [ymShift(curYm, -(mBack + 2)), ymShift(curYm, -(mBack + 1)), ymShift(curYm, -mBack)].map(String);
+  var pastYear = Math.floor(Number(oldYms[2]) / 100);
+  var done = 0;
+  function tick() { done++; btn.textContent = "검증 중… (" + done + ")"; }
+  btn.textContent = "검증 중… (0)";
 
   Promise.all([
     fetchOldQuarter(BT.a, oldYms, tick),
@@ -4820,36 +4898,67 @@ function runBtest() {
     fetchMonths(BT.a, 6, tick),
     fetchMonths(BT.b, 6, tick)
   ]).then(function (res) {
-    var out = [];
-    [[BT.a, res[0], res[2]], [BT.b, res[1], res[3]]].forEach(function (trio) {
+    var work = [[BT.a, res[0], res[2]], [BT.b, res[1], res[3]]].map(function (trio) {
       var region = trio[0];
-      var oldG = groupComplexes(trio[1], BT.band);
+      var oldG = groupComplexesBt(trio[1], band, mode);
       var curDeals = [];
       trio[2].sale.forEach(function (m) { curDeals = curDeals.concat(m.deals); });
-      var curG = groupComplexes(curDeals, BT.band);
+      var curG = groupComplexesBt(curDeals, band, mode);
       var curMap = {};
       curG.forEach(function (g) { curMap[g.id] = g; });
-      /* 과거 분위 → 현재 매칭 */
-      var n = oldG.length;
-      oldG.forEach(function (g, i) {
-        var tier = i < n * 0.2 ? "대장" : (i >= n * 0.4 && i < n * 0.6 ? "중간" : "기타");
+      oldG.forEach(function (g) {
         var cur = curMap[g.id];
-        if (cur) g.rise = (cur.py / g.py - 1) * 100;
-        g.tier = tier; g.curPy = cur ? cur.py : null;
+        if (cur) { g.rise = (cur.py / g.py - 1) * 100; g.curPy = cur.py; }
       });
-      ["대장", "중간"].forEach(function (tier) {
-        var grp = oldG.filter(function (g) { return g.tier === tier && g.rise != null; });
-        if (!grp.length) { out.push({ region: region, tier: tier, cnt: 0 }); return; }
-        out.push({
-          region: region, tier: tier, cnt: grp.length,
-          oldPy: grp.reduce(function (s, g) { return s + g.py; }, 0) / grp.length,
-          curPy: grp.reduce(function (s, g) { return s + g.curPy; }, 0) / grp.length,
-          rise: grp.reduce(function (s, g) { return s + g.rise; }, 0) / grp.length
+      /* 상승률 계산 가능한 단지만 남긴다 (생존 표본) */
+      var alive = oldG.filter(function (g) { return g.rise != null; });
+      return { region: region, groups: alive };
+    });
+
+    /* 모드별 분류 라벨 부여 */
+    var classify = Promise.resolve();
+    if (mode === "size") {
+      classify = Promise.all(work.map(function (w) {
+        return attachHouseholds(w.region, w.groups, tick);
+      })).then(function () {
+        work.forEach(function (w) {
+          w.groups.forEach(function (g) { g.cat = sizeClass(g.hh); });
         });
       });
+    } else {
+      work.forEach(function (w) {
+        if (mode === "rank") {
+          var nn = w.groups.length;
+          w.groups.forEach(function (g, i) {
+            g.cat = i < nn * 0.2 ? "대장" : (i >= nn * 0.4 && i < nn * 0.6 ? "중간" : null);
+          });
+        } else if (mode === "area") {
+          w.groups.forEach(function (g) { g.cat = g.cls; });
+        } else {                     /* age */
+          w.groups.forEach(function (g) {
+            g.cat = g.buildYear ? ageClass(pastYear - g.buildYear) : null;
+          });
+        }
+      });
+    }
+
+    return classify.then(function () {
+      var out = [];
+      work.forEach(function (w) {
+        BT_MODES[mode].cats.forEach(function (cat) {
+          var grp = w.groups.filter(function (g) { return g.cat === cat; });
+          if (!grp.length) { out.push({ region: w.region, tier: cat, cnt: 0 }); return; }
+          out.push({
+            region: w.region, tier: cat, cnt: grp.length,
+            oldPy: grp.reduce(function (s, g) { return s + g.py; }, 0) / grp.length,
+            curPy: grp.reduce(function (s, g) { return s + g.curPy; }, 0) / grp.length,
+            rise: grp.reduce(function (s, g) { return s + g.rise; }, 0) / grp.length
+          });
+        });
+      });
+      BT.out = out; BT.outMode = mode;
+      renderBtestResult(oldYms);
     });
-    BT.out = out;
-    renderBtestResult(oldYms);
   }).catch(function (e) {
     alert("백테스트 실패: " + e.message);
   }).finally(function () {
@@ -4857,32 +4966,230 @@ function runBtest() {
   });
 }
 
+/* 백테스트용 단지 묶기 — 평형 모드는 (단지×평형대)로 쪼갠다 */
+function groupComplexesBt(deals, band, mode) {
+  var byApt = {};
+  deals.forEach(function (t) {
+    if (band && !inBand(t.area, band)) return;
+    var cls = mode === "area" ? areaClass(t.area) : "";
+    var id = t.dong + "|" + t.apt + (cls ? "|" + cls : "");
+    var g = byApt[id] || (byApt[id] = { id: id, apt: t.apt, dong: t.dong, cls: cls,
+                                        amounts: [], areas: [], buildYear: t.buildYear });
+    g.amounts.push(t.amount); g.areas.push(t.area);
+    if (t.buildYear && !g.buildYear) g.buildYear = t.buildYear;
+  });
+  return Object.keys(byApt).map(function (id) {
+    var g = byApt[id];
+    if (g.amounts.length < 2) return null;
+    g.py = median(g.amounts) / median(g.areas) * 3.3058;
+    return g;
+  }).filter(Boolean).sort(function (a, b) { return b.py - a.py; });
+}
+
+var BT_SUB = { "대장": " (상위 20%)", "중간": " (40~60%)", "나홀로": " (300세대↓)", "대단지": " (1000세대↑)",
+  "소형": " (55㎡↓)", "중형": " (55~95㎡)", "대형": " (95㎡↑)",
+  "신축": " (10년↓)", "준구축": " (10~24년)", "구축": " (25년↑)" };
 function renderBtestResult(oldYms) {
-  var out = BT.out;
+  var out = BT.out, md = BT_MODES[BT.outMode], pair = md.pair;
   document.getElementById("bt-resultcard").style.display = "";
   document.querySelector("#bt-table tbody").innerHTML = out.map(function (g) {
-    var name = lawdName(g.region) + " " + g.tier + (g.tier === "대장" ? " (상위 20%)" : " (40~60%)");
+    var name = lawdName(g.region) + " " + g.tier + (BT_SUB[g.tier] || "");
     if (!g.cnt) return "<tr><td>" + name + '</td><td colspan="4" style="color:var(--miss)">표본 없음</td></tr>';
-    return '<tr class="' + (g.tier === "중간" && g.region === BT.a ? "hit" : "") + '"><td>' + name + "</td>" +
+    var isKey = (g.region === BT.a && g.tier === pair[0]) || (g.region === BT.b && g.tier === pair[1]);
+    return '<tr class="' + (isKey ? "hit" : "") + '"><td>' + name + "</td>" +
       "<td>" + g.cnt + "곳</td>" +
       "<td>" + fmt(g.oldPy) + "만</td>" +
       "<td>" + fmt(g.curPy) + "만</td>" +
       '<td class="' + cls(g.rise) + '"><b>' + pct(g.rise, 1) + "</b></td></tr>";
   }).join("");
 
-  var aMid = out.filter(function (g) { return g.region === BT.a && g.tier === "중간" && g.cnt; })[0];
-  var bTop = out.filter(function (g) { return g.region === BT.b && g.tier === "대장" && g.cnt; })[0];
+  var aG = out.filter(function (g) { return g.region === BT.a && g.tier === pair[0] && g.cnt; })[0];
+  var bG = out.filter(function (g) { return g.region === BT.b && g.tier === pair[1] && g.cnt; })[0];
   var v = document.getElementById("bt-verdict");
-  if (aMid && bTop) {
-    var diff = aMid.rise - bTop.rise;
-    v.innerHTML = "핵심 비교 — <b>" + lawdName(BT.a) + " 중간 " + pct(aMid.rise, 1) + "</b> vs <b>" +
-      lawdName(BT.b) + " 대장 " + pct(bTop.rise, 1) + "</b> (" + oldYms[0].slice(0, 4) + "년 → 현재). " +
-      (diff > 3 ? "이 구간에서는 <b>상급지 중간 물건이 앞섰습니다</b> (" + pct(diff, 1) + "p). 당시 가격대가 비슷했다면 급지를 올리는 선택이 나았다는 뜻입니다."
-        : diff < -3 ? "이 구간에서는 <b>중급지 대장이 앞섰습니다</b> (" + pct(-diff, 1) + "p). 급지 원칙의 예외 구간이니 왜 그랬는지(신축 공급·호재) 확인해볼 가치가 있습니다."
-        : "두 선택의 차이가 " + pct(diff, 1) + "p로 크지 않았습니다. 이 조합에서는 급지보다 단지 선택이 결과를 갈랐습니다.");
+  if (aG && bG) {
+    var diff = aG.rise - bG.rise;
+    var aName = "<b>" + lawdName(BT.a) + " " + pair[0] + " " + pct(aG.rise, 1) + "</b>";
+    var bName = "<b>" + lawdName(BT.b) + " " + pair[1] + " " + pct(bG.rise, 1) + "</b>";
+    v.innerHTML = "핵심 비교 — " + aName + " vs " + bName +
+      " (" + oldYms[0].slice(0, 4) + "년 → 현재). " +
+      (diff > 3 ? "이 구간에서는 <b>" + lawdName(BT.a) + " " + pair[0] + "</b>이 앞섰습니다 (" + pct(diff, 1) + "p). " +
+          "당시 가격대가 비슷했다면 급지를 올리는 선택이 나았다는 뜻입니다."
+        : diff < -3 ? "이 구간에서는 <b>" + lawdName(BT.b) + " " + pair[1] + "</b>이 앞섰습니다 (" + pct(-diff, 1) + "p). " +
+          "급지 원칙의 예외 구간이니 왜 그랬는지(신축 공급·호재) 확인해볼 가치가 있습니다."
+        : "두 선택의 차이가 " + pct(diff, 1) + "p로 크지 않았습니다. 이 조합에서는 조건보다 개별 단지 선택이 결과를 갈랐습니다.");
   } else {
-    v.innerHTML = "표본이 부족해 핵심 비교를 만들 수 없습니다. 거래가 더 많은 지역 조합이나 84㎡대로 다시 시도해보세요.";
+    v.innerHTML = "표본이 부족해 핵심 비교를 만들 수 없습니다. 거래가 더 많은 지역 조합·긴 기간·84㎡대로 다시 시도해보세요." +
+      (BT.outMode === "size" ? " (세대수는 K-apt 등록 단지만 알 수 있습니다 — 소규모 단지가 많은 지역은 표본이 적습니다.)" : "");
   }
+}
+
+
+/* ══ 전국 등급표 · 10분위 ═════════════════════
+   KB 시계열만으로 계산 — API 호출 없음. 분위·서열은 항상 전국 기준으로 매기고,
+   시·도 칩은 그 안에서 걸러 보여주기만 한다. */
+var TIERS = { sido: "", area: 84, top3: false };
+
+function buildTiers(root) {
+  root.innerHTML =
+    '<div class="card">' +
+      '<div class="eyebrow">Tiers</div><h2>전국 급지표 · 10분위</h2>' +
+      '<p class="desc">KB 시계열이 커버하는 시·군·구 전체를 평당 매매가 순으로 세우고 10등분했습니다. ' +
+        '<b>1분위가 가장 비싼 상위 10%</b>입니다. 분위와 서열은 시·도로 걸러 봐도 전국 기준 그대로입니다.</p>' +
+      '<div class="status" id="tr-kpi"></div>' +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="seg" id="tr-sido" style="margin-bottom:10px"></div>' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">' +
+        '<div class="seg" id="tr-area" style="flex:none">' +
+          '<button type="button" data-a="84" class="on">84㎡ 기준</button>' +
+          '<button type="button" data-a="59">59㎡ 기준</button></div>' +
+        '<label class="check"><input type="checkbox" id="tr-top3"> 1~3분위만</label>' +
+      '</div>' +
+      '<div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="전국등급표">이미지 저장</button>' +
+      '<button class="btn sm ghost" data-exp="xlsx" data-table="tr-table" data-name="전국등급표">엑셀 저장</button></div>' +
+      '<div class="tblwrap"><table id="tr-table"><thead><tr>' +
+        "<th>지역</th><th>전국 서열</th><th>분위</th><th>평당가</th><th id=\"tr-salehd\">84㎡ 매매</th>" +
+        "<th>전세</th><th>전세가율</th><th>밴드 (10년)</th><th>3년</th><th>10년</th>" +
+        "<th>10Y CAGR</th><th>전체 CAGR</th><th>100%</th><th>규제</th>" +
+      "</tr></thead><tbody></tbody></table></div>" +
+      '<div class="note"><b>읽는 법</b> — <b>분위</b>는 평당가 10등분(1분위=상위 10%). <b>밴드</b>는 최근 120개월 ' +
+        '평당가 분포에서 지금이 어디쯤인지(낮을수록 역대 대비 저렴). <b>100%</b>는 10년 상승률이 두 배(연복리 7.2%)를 ' +
+        '넘었는지 — 이 앱의 장기 성과 통과선입니다. <b>전체 CAGR</b>은 KB 지수가 시작된 시점부터의 연복리라 지역마다 ' +
+        '기산점이 다릅니다(오래된 곳은 1986년, 신도시는 편입 시점부터).</div></div>';
+
+  root.querySelector("#tr-area").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-a]");
+    if (!b) return;
+    TIERS.area = Number(b.dataset.a);
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function (x) {
+      x.classList.toggle("on", x === b);
+    });
+    renderTiers();
+  });
+  root.querySelector("#tr-top3").addEventListener("change", function () {
+    TIERS.top3 = this.checked; renderTiers();
+  });
+  root.querySelector("#tr-sido").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-s]");
+    if (!b) return;
+    TIERS.sido = b.dataset.s;
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function (x) {
+      x.classList.toggle("on", x === b);
+    });
+    renderTiers();
+  });
+}
+
+/* 시·도 단위 KB 키 (집계 그룹 제외) */
+function tierSidoKeys() {
+  var skip = { "전국": 1, "수도권": 1, "6개광역시": 1, "5개광역시": 1, "기타지방": 1,
+               "전남광주 통합특별시": 1 };
+  return Object.keys(DB.salePm.series).filter(function (k) {
+    return k.indexOf("|") < 0 && !skip[k] && /(특별시|광역시|자치시|도)$/.test(k) &&
+      (DB.salePm.series[k].v || []).length >= 24;
+  }).sort(function (a, b) { return lastVal("salePm", b) - lastVal("salePm", a); });
+}
+
+/* 전체 기간 연복리 — 지수 시작(o)부터 최신까지 */
+function fullCagr(region) {
+  var arr = pmSeries("salePm", ik(region)) || pmSeries("salePm", region);
+  if (!arr) return null;
+  var i0 = -1, i1 = -1;
+  for (var i = 0; i < arr.length; i++) if (arr[i] != null) { if (i0 < 0) i0 = i; i1 = i; }
+  if (i0 < 0 || i1 - i0 < 24 || !arr[i0]) return null;
+  var yrs = (i1 - i0) / 12;
+  return (Math.pow(arr[i1] / arr[i0], 1 / yrs) - 1) * 100;
+}
+
+function tierRow(k, rankNo, decile, nAll) {
+  var pm = lastVal("salePm", k), jpm = lastVal("jeonsePm", k);
+  var arr = pmSeries("salePm", k);
+  var band = arr ? bandStats(arr, 120) : null;
+  var r3 = idxChange("sale", ik(k), 36);
+  var r10 = idxChange("sale", ik(k), 120);
+  var cagr10 = r10 != null ? (Math.pow(1 + r10 / 100, 1 / 10) - 1) * 100 : null;
+  var cagrAll = fullCagr(k);
+  return { k: k, rank: rankNo, decile: decile, nAll: nAll, pm: pm, jpm: jpm,
+           band: band, r3: r3, r10: r10, cagr10: cagr10, cagrAll: cagrAll,
+           jr: (pm && jpm) ? jpm / pm * 100 : null };
+}
+
+function renderTiers() {
+  if (!DB || !RANKED.length) return;
+  var kpi = document.getElementById("tr-kpi");
+  if (!kpi) return;
+
+  /* KPI — 통과 수·서울/전국 10년 */
+  var passN = 0;
+  RANKED.forEach(function (k) {
+    var v = idxChange("sale", ik(k), 120);
+    if (v != null && v >= 100) passN++;
+  });
+  var seoul10 = idxChange("sale", ik("서울특별시"), 120);
+  var nat10 = idxChange("sale", ik("전국"), 120);
+  function cagrSub(v) { return v == null ? "" : "CAGR " + ((Math.pow(1 + v / 100, 1 / 10) - 1) * 100).toFixed(1) + "%"; }
+  kpi.innerHTML =
+    statBox("10년 100% 통과", passN + " / " + RANKED.length, "", "시군구 중 10년간 두 배 이상 오른 곳") +
+    statBox("서울 평균 10년", seoul10 != null ? pct(seoul10, 1) : "—", cls(seoul10), cagrSub(seoul10)) +
+    statBox("전국 평균 10년", nat10 != null ? pct(nat10, 1) : "—", cls(nat10), cagrSub(nat10)) +
+    statBox("통과 기준", "100%", "cash", "10년 2배 = CAGR 7.2%");
+
+  /* 시·도 칩 (전국 순으로) */
+  var chips = document.getElementById("tr-sido");
+  if (chips && !chips.children.length) {
+    var sidos = [], seen = {};
+    RANKED.forEach(function (k) {
+      var sd = kbSido(k);
+      if (sd !== "기타" && !seen[sd]) { seen[sd] = 1; sidos.push(sd); }
+    });
+    chips.innerHTML =
+      '<button type="button" data-s="" class="on">전국 시군구</button>' +
+      sidos.map(function (sd) { return '<button type="button" data-s="' + sd + '">' + sd + "</button>"; }).join("") +
+      '<button type="button" data-s="__sido">시·도 단위 (' + tierSidoKeys().length + "곳)</button>";
+  }
+
+  /* 행 계산 — 서열·분위는 항상 전국 기준 */
+  var rows;
+  if (TIERS.sido === "__sido") {
+    var sk = tierSidoKeys();
+    rows = sk.map(function (k, i) { return tierRow(k, i + 1, Math.ceil((i + 1) / sk.length * 10), sk.length); });
+  } else {
+    var nAll = RANKED.length;
+    rows = RANKED.map(function (k, i) {
+      return tierRow(k, i + 1, Math.min(10, Math.ceil((i + 1) / nAll * 10)), nAll);
+    }).filter(function (r) {
+      return !TIERS.sido || kbSido(r.k) === TIERS.sido;
+    });
+  }
+  if (TIERS.top3) rows = rows.filter(function (r) { return r.decile <= 3; });
+
+  var hd = document.getElementById("tr-salehd");
+  if (hd) hd.textContent = TIERS.area + "㎡ 매매";
+  var cond = getCond();
+  document.querySelector("#tr-table tbody").innerHTML = rows.map(function (r) {
+    var sale = r.pm ? r.pm * TIERS.area : null;
+    var je = r.jpm ? r.jpm * TIERS.area : null;
+    var bandCell = (r.band && r.band.count >= 24) ? bandBar(r.band.pctile, false)
+      : '<span style="color:var(--miss)">표본 부족</span>';
+    return '<tr class="' + (cond.home === r.k ? "mine" : "") + '">' +
+      "<td>" + regionCell(r.k) + "</td>" +
+      "<td>" + r.rank + "</td>" +
+      '<td><span class="tier t' + r.decile + '">' + r.decile + "분위</span></td>" +
+      "<td>" + (r.pm ? fmt(r.pm * 3.3058) : "—") + "</td>" +
+      "<td>" + (sale ? eok(sale) : "—") + "</td>" +
+      "<td>" + (je ? eok(je) : "—") + "</td>" +
+      "<td>" + (r.jr ? r.jr.toFixed(1) + "%" : "—") + "</td>" +
+      "<td>" + bandCell + "</td>" +
+      '<td class="' + cls(r.r3) + '">' + (r.r3 != null ? pct(r.r3, 1) : "—") + "</td>" +
+      '<td class="' + cls(r.r10) + '">' + (r.r10 != null ? "<b>" + pct(r.r10, 1) + "</b><br>" +
+        '<span style="font-size:.72rem;color:var(--ink-soft)">연복리 ' + r.cagr10.toFixed(1) + "%</span>" : "—") + "</td>" +
+      "<td>" + (r.cagr10 != null ? r.cagr10.toFixed(1) + "%" : "—") + "</td>" +
+      "<td>" + (r.cagrAll != null ? r.cagrAll.toFixed(1) + "%" : "—") + "</td>" +
+      "<td>" + (r.r10 == null ? "—" : (r.r10 >= 100 ? '<span class="tagmini ok">합격</span>'
+        : '<span class="tagmini no">미달</span>')) + "</td>" +
+      "<td>" + (isRegulated(r.k) ? '<span class="tagmini warn">규제</span>' : "") + "</td>" +
+    "</tr>";
+  }).join("") || '<tr><td colspan="14" style="color:var(--miss)">조건에 맞는 지역이 없습니다.</td></tr>';
 }
 
 /* ══ 자금 계산기 탭 ═══════════════════════════ */
@@ -5223,7 +5530,9 @@ function faqSeries(blkName) {
   function idxOfYm(y, m) { return y * 12 + m - t0; }
   return { at: at, ymOf: ymOf, idxOfYm: idxOfYm, n: nAll, keys: Object.keys(blk.series) };
 }
-function pct(x, d) { return (x >= 0 ? "+" : "") + (x * 100).toFixed(d == null ? 1 : d) + "%"; }
+/* FAQ 전용: 분수(0.28) 입력 — 전역 pct(퍼센트 입력)와 다르다. v3.9에서 이름 충돌 수정:
+   이전엔 전역 pct를 덮어써 앱 전체 %% 표시가 100배 부풀려졌다. */
+function fpct(x, d) { return (x >= 0 ? "+" : "") + (x * 100).toFixed(d == null ? 1 : d) + "%"; }
 function avg(a) { return a.length ? a.reduce(function (x, y) { return x + y; }, 0) / a.length : null; }
 
 function faqCompute() {
@@ -5380,8 +5689,8 @@ function faqRender(r) {
     r.q2.pts + "번 측정해 <b>" + r.q2.revs + "번</b>(10번 중 " + Math.round(r.q2.revs / r.q2.pts * 10) +
     "번)이 \"직전 10년 많이 오른 곳이 이후 3년 덜 올랐다\"였습니다." +
     tbl(["비교 (측정 전체 평균)", "이후 3년"],
-      [["직전 10년 많이 오른 상위 20%", pct(r.q2.topF)],
-       ["직전 10년 덜 오른 하위 20%", "<b>" + pct(r.q2.botF) + "</b>"]]) +
+      [["직전 10년 많이 오른 상위 20%", fpct(r.q2.topF)],
+       ["직전 10년 덜 오른 하위 20%", "<b>" + fpct(r.q2.botF) + "</b>"]]) +
     "단, 두 가지를 구분해야 합니다. <b>\"싸니까 오르겠지\"는 틀렸습니다</b> — 싼 동네가 비싼 동네를 " +
     "따라잡지 못했습니다(Q1). <b>\"같은 급인데 뒤처졌으니 따라오겠지\"는 맞았습니다</b> — 비슷한 가격대 " +
     "안에서는 뒤처진 곳이 따라왔습니다. 그래서 이 도구는 10년에 두 배(100%)를 넘었는지만 보고, 더 " +
@@ -5393,8 +5702,8 @@ function faqRender(r) {
     tbl(["10년 전 가격대", "떨어진 폭", "떨어진 기간", "지금 고점 대비", "고점 회복"],
       r.q12.rows.map(function (row, i) {
         var b = row[1];
-        return [row[0], pct(b.fall), (i === 0 ? "<b>" : "") + Math.round(b.months) + "개월" + (i === 0 ? "</b>" : ""),
-          pct(b.nowVs), b.rec + "곳 / " + b.n + "곳"];
+        return [row[0], fpct(b.fall), (i === 0 ? "<b>" : "") + Math.round(b.months) + "개월" + (i === 0 ? "</b>" : ""),
+          fpct(b.nowVs), b.rec + "곳 / " + b.n + "곳"];
       })) +
     "비싼 동네는 빨리 바닥을 찍고 돌아오는 반면, 싼 동네는 오래 흘러내리고 회복도 늦습니다. " +
     "<b>싼 동네는 안 빠지는 게 아니라, 빠진 뒤 안 돌아옵니다.</b> 이게 이 도구가 급지에 큰 비중을 주는 " +
@@ -5407,8 +5716,8 @@ function faqRender(r) {
     tbl(["국면", "비싼 동네", "중간", "싼 동네", "격차"],
       r.q15.rows.map(function (row) {
         var p = row[1], gap = p[0] - p[2];
-        return [row[0], pct(p[0], 0), pct(p[1], 0), pct(p[2], 0),
-          (Math.abs(gap) >= 0.25 ? "<b>" : "") + pct(gap, 0) + "p" + (Math.abs(gap) >= 0.25 ? "</b>" : "")];
+        return [row[0], fpct(p[0], 0), fpct(p[1], 0), fpct(p[2], 0),
+          (Math.abs(gap) >= 0.25 ? "<b>" : "") + fpct(gap, 0) + "p" + (Math.abs(gap) >= 0.25 ? "</b>" : "")];
       })) +
     "\"어디 사도 오른다\"가 사실인 건 급등기뿐입니다. 격차는 조용한 구간에서 벌어집니다 — 사고 싶어질 " +
     "때는 어디를 사도 비슷하고, <b>사기 싫을 때 어디를 사느냐가 결과를 만듭니다.</b> 싼 동네의 상승은 " +

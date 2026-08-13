@@ -1,7 +1,7 @@
 # TrackApt 인수인계 (HANDOFF)
 
 > 새 세션에서 이 파일 + `index.html` + `kb_data.json` + `PROJECT.md`를 올리면 그대로 이어서 작업할 수 있습니다.
-> 현재 버전: **v3.8** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
+> 현재 버전: **v3.9** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
 
 ---
 
@@ -122,6 +122,15 @@
   - 카트 주변환경 재조회에 `envTried` 플래그 — K-apt 항목이 원래 비어 있는 경우를
     "다시 눌러보세요"와 구분해 표시.
   - 추적 방지(엣지·사파리)로 IndexedDB 저장이 막힐 수 있음을 데이터 탭에 안내.
+- **v3.9**:
+  - **전앱 % 버그 수정**: v3.3의 FAQ용 전역 `pct(x·분수)`가 호이스팅으로 본래
+    `pct(v·퍼센트)`를 덮어써 모든 % 표시가 ×100이던 문제 → `fpct`로 개명.
+    ("+549.4%/년" 같은 값이 보이면 이 버그 재발 신호. 전역에 pct 재선언 금지.)
+  - **과거 검증 4모드**(`BT_MODES`·`groupComplexesBt`): 평당가/세대수/평형/노후도,
+    기간 5·10·15년. size 모드만 K-apt 호출(상위 40단지 상한), age는 실거래
+    buildYear로 무호출.
+  - **전국 등급표 탭**(`tiers`·`renderTiers`): 10분위, KB만으로 계산, 시·도 필터는
+    표시만 거르고 서열·분위는 전국 고정. 전체 CAGR은 `fullCagr`(기산점 상이 주의).
 - **v3.8**: **데이터 업로드 탭·IndexedDB·CSV 변환기 전부 제거**. kb_data는 다중 시트
   엑셀이라 브라우저 변환이 불가능해 경로를 하나로 통일했다. 갱신은 항상
   `원본 → 세션에서 변환 → GitHub 교체 → Vercel 배포`. `loadData`/`loadSupplyExt`는
@@ -160,4 +169,4 @@
 
 ---
 
-*이 문서는 v3.8 시점 스냅샷입니다. 세부 변경 이력은 PROJECT.md의 버전별 섹션을 참고하세요.*
+*이 문서는 v3.9 시점 스냅샷입니다. 세부 변경 이력은 PROJECT.md의 버전별 섹션을 참고하세요.*

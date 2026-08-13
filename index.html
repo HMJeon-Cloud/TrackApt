@@ -194,7 +194,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v3.4</span>
+    <span class="ver">v3.5</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -280,7 +280,8 @@ var GROUPS = [
     { id: "cmpx",    name: "아파트 비교", build: buildCmpx } ] },
   { id: "g5", name: "돈·설정", tabs: [
     { id: "calc",    name: "돈 계산",     build: buildCalc },
-    { id: "setting", name: "설정",        build: buildSetting } ] },
+    { id: "setting", name: "설정",        build: buildSetting },
+    { id: "data",    name: "데이터 관리", build: buildData } ] },
   { id: "g6", name: "내 후보", cart: true, tabs: [
     { id: "cart",    name: "최종 검토",   build: buildCartTab } ] }
 ];
@@ -342,6 +343,7 @@ function showTab(id) {
   document.querySelectorAll("section.tab").forEach(function (s) {
     s.classList.toggle("on", s.id === "tab-" + id);
   });
+  if (id === "data") renderDataTab();
   if (!DB) return;
   if (id === "market") renderMarket();
   if (id === "rank") renderRank();
@@ -430,17 +432,62 @@ function restoreCond() {
 function val(id) { var el = document.getElementById(id); return el ? el.value : ""; }
 function setVal(id, v) { var el = document.getElementById(id); if (el && v != null && v !== "") el.value = v; }
 
+/* ══ 업로드 데이터 보관 (IndexedDB) ══════════
+   kb_data.json · supply_data.json은 API가 아니라 사용자가 주기적으로 교체하는
+   파일이다. 브라우저에 저장해두면 GitHub에 올리지 않아도 이 기기에서 바로 쓴다.
+   저장본이 있으면 저장본이 우선, 없으면 같은 폴더의 정적 파일을 쓴다. */
+var IDB_NAME = "trackapt", IDB_STORE = "files";
+var DATA_SRC = { kb: "none", supply: "none" };   /* none | file | upload */
+var LS_DATAMETA = "trackapt_datameta";
+function idbOpen() {
+  return new Promise(function (res, rej) {
+    if (!window.indexedDB) { rej(new Error("이 브라우저는 저장 기능(IndexedDB)을 지원하지 않습니다.")); return; }
+    var rq = indexedDB.open(IDB_NAME, 1);
+    rq.onupgradeneeded = function () { rq.result.createObjectStore(IDB_STORE); };
+    rq.onsuccess = function () { res(rq.result); };
+    rq.onerror = function () { rej(rq.error || new Error("저장소를 열지 못했습니다.")); };
+  });
+}
+function idbTx(mode, fn) {
+  return idbOpen().then(function (db) {
+    return new Promise(function (res, rej) {
+      var rq = fn(db.transaction(IDB_STORE, mode).objectStore(IDB_STORE));
+      rq.onsuccess = function () { res(rq.result); };
+      rq.onerror = function () { rej(rq.error || new Error("저장소 접근 실패")); };
+    });
+  });
+}
+function idbGet(k) {
+  return idbTx("readonly", function (st) { return st.get(k); }).catch(function () { return null; });
+}
+function idbSet(k, v) { return idbTx("readwrite", function (st) { return st.put(v, k); }); }
+function idbDel(k) { return idbTx("readwrite", function (st) { return st["delete"](k); }); }
+function dataMeta() {
+  try { return JSON.parse(localStorage.getItem(LS_DATAMETA) || "{}"); } catch (e) { return {}; }
+}
+function setDataMeta(kind, obj) {
+  var m = dataMeta();
+  if (obj) m[kind] = obj; else delete m[kind];
+  try { localStorage.setItem(LS_DATAMETA, JSON.stringify(m)); } catch (e) {}
+}
+
 /* ══ 데이터 유틸 ═════════════════════════════ */
 function loadData() {
   loadSupplyExt();
-  fetch("kb_data.json")
-    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-    .then(function (j) { DB = j; onDataReady(); })
-    .catch(function (e) {
-      var di = document.getElementById("datainfo");
-      if (di) { di.textContent = "데이터 로드 실패"; di.style.color = "var(--down)"; }
-      alert("kb_data.json을 불러오지 못했습니다 (" + e.message + "). index.html과 같은 폴더에 있는지 확인하세요.");
-    });
+  idbGet("kb_data").then(function (up) {
+    if (up && up.salePm && up.salePm.series) {
+      DB = up; DATA_SRC.kb = "upload"; onDataReady();
+      return null;
+    }
+    return fetch("kb_data.json")
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (j) { DB = j; DATA_SRC.kb = "file"; onDataReady(); });
+  }).catch(function (e) {
+    var di = document.getElementById("datainfo");
+    if (di) { di.textContent = "데이터 로드 실패"; di.style.color = "var(--down)"; }
+    alert("kb_data.json을 불러오지 못했습니다 (" + e.message + ").\n" +
+      "같은 폴더에 파일이 있는지 확인하거나, [돈·설정 → 데이터 관리] 탭에서 파일을 올리세요.");
+  });
 }
 function ymNum(ym) { var p = ym.split("-"); return Number(p[0]) * 12 + Number(p[1]); }
 
@@ -450,10 +497,14 @@ function ymNum(ym) { var p = ym.split("-"); return Number(p[0]) * 12 + Number(p[
    없으면 청약홈 실시간 조회만으로 동작한다. */
 var SUPPLY_EXT = null;
 function loadSupplyExt() {
-  return fetch("supply_data.json")
-    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
-    .then(function (j) { SUPPLY_EXT = j; })
-    .catch(function () { SUPPLY_EXT = null; });
+  return idbGet("supply_data").then(function (up) {
+    if (up && (up.unsold || up.completions || up.population)) {
+      SUPPLY_EXT = up; DATA_SRC.supply = "upload"; return up;
+    }
+    return fetch("supply_data.json")
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (j) { SUPPLY_EXT = j; DATA_SRC.supply = "file"; return j; });
+  }).catch(function () { SUPPLY_EXT = null; DATA_SRC.supply = "none"; return null; });
 }
 /* {dates:[from,to,n], series:{key:{o,v}}} 블록에서 지역의 최신값 */
 function extLast(blk, key) {
@@ -2237,13 +2288,14 @@ function lawdCandidates(code) { return String(code).split(":"); }
 /* (kind|lawd|ym) → 응답 메모. 지난 달 실거래는 사실상 확정치라 세션 내 재사용해도 안전 */
 var TRADE_MEMO = {};
 
-/* ── 화성시 분구(2026.2) 대응 ──
-   실거래 신고가 옛 화성시 코드(41590)로 오는지, 신설 구 코드로 갈라졌는지
-   공표가 불확실하다. 그래서 2026.2 이후 달은 옛 코드 + 신설 후보 코드를
-   함께 조회해 병합한다. 첫 달에 어떤 코드가 실제 데이터를 내는지 탐지해
-   기억하고, 이후 달은 그 코드들만 부른다. */
-var HWA = { old: "41590", news: ["41591", "41592", "41593", "41594", "41595", "41596", "41597"],
-            live: null, probing: null, SPLIT_YM: 202602 };
+/* ── 화성시 분구(2026.2) — 코드 확정(2026.8) ──
+   행정안전부 주민등록 행정구역 코드로 확정. 41592·41594는 출장소라 제외.
+   분구 전(202602 미만) 달은 옛 화성시 코드(41590)로만 조회한다. */
+var HWA = { old: "41590",
+            news: ["41591", "41593", "41595", "41597"],
+            guOf: { "41591": "화성 만세구", "41593": "화성 효행구",
+                    "41595": "화성 병점구", "41597": "화성 동탄구" },
+            SPLIT_YM: 202602 };
 function tradeUrl(kind, lawd, ym) {
   return "/api/trades?kind=" + kind + "&lawd=" + lawd + "&ym=" + ym;
 }
@@ -2264,48 +2316,8 @@ function mergeTradeResults(results) {
   if (!anyOk && firstErr) return firstErr;
   return { items: items };
 }
-/* 구를 확실하게 특정하는 대표 법정동 (분구 공고 기준, 이견 없는 핵심 지명만) */
-var HWA_ANCHOR = {
-  "화성 동탄구": ["반송동", "석우동", "능동", "영천동", "청계동", "오산동", "산척동", "목동", "신동", "중동"],
-  "화성 병점구": ["병점동", "진안동", "반월동", "기산동", "안녕동", "황계동"],
-  "화성 효행구": ["봉담", "매송", "비봉", "정남", "와우리", "동화리", "기배동"],
-  "화성 만세구": ["남양", "새솔동", "향남", "우정", "장안", "마도", "송산", "서신", "팔탄", "양감", "신남리"]
-};
-/* 코드별 응답의 법정동 분포를 보고 그 코드가 어느 구인지 판정 */
-function guessHwaGu(items) {
-  var score = {};
-  (items || []).forEach(function (t) {
-    Object.keys(HWA_ANCHOR).forEach(function (gu) {
-      HWA_ANCHOR[gu].forEach(function (d) {
-        if (String(t.dong).indexOf(d) >= 0) score[gu] = (score[gu] || 0) + 1;
-      });
-    });
-  });
-  var best = "", bs = 0;
-  Object.keys(score).forEach(function (g) { if (score[g] > bs) { bs = score[g]; best = g; } });
-  return bs > 0 ? best : "";
-}
-
-/* 신설 코드 중 실제로 데이터를 내는 코드 탐지 (세션당 1회) */
-function probeHwaCodes(ym) {
-  if (HWA.live) return Promise.resolve(HWA.live);
-  if (HWA.probing) return HWA.probing;
-  HWA.probing = Promise.all(HWA.news.concat([HWA.old]).map(function (c) {
-    return apiGet(tradeUrl("sale", c, ym)).then(function (j) {
-      var items = (!j.error && j.items) ? j.items : [];
-      return { c: c, ok: items.length > 0, gu: guessHwaGu(items) };
-    });
-  })).then(function (res) {
-    HWA.live = res.filter(function (r) { return r.ok && r.c !== HWA.old; }).map(function (r) { return r.c; });
-    HWA.guOf = {};      /* 코드 → 구 이름 */
-    res.forEach(function (r) { if (r.ok && r.gu) HWA.guOf[r.c] = r.gu; });
-    HWA.oldAlive = res.filter(function (r) { return r.c === HWA.old && r.ok; }).length > 0;
-    return HWA.live;
-  });
-  return HWA.probing;
-}
-/* 화성 조회: 분구 전 달은 옛 코드만, 이후 달은 살아있는 코드를 병합.
-   guName을 주면 그 구로 판정된 코드만 조회한다 (불필요한 호출·혼입 제거). */
+/* 화성 조회: 분구 전 달은 옛 코드만, 이후 달은 확정된 구 코드를 병합.
+   guName을 주면 그 구 코드만 조회한다 (불필요한 호출·혼입 제거). */
 function fetchHwa(kind, ym, guName) {
   var memoKey = kind + "|HWA|" + (guName || "ALL") + "|" + ym;
   if (TRADE_MEMO[memoKey]) return Promise.resolve(TRADE_MEMO[memoKey]);
@@ -2313,18 +2325,22 @@ function fetchHwa(kind, ym, guName) {
   if (Number(ym) < HWA.SPLIT_YM) {
     return apiGet(tradeUrl(kind, HWA.old, ym)).then(memo);
   }
-  return probeHwaCodes(ym).then(function (live) {
-    var codes = live.slice();
-    if (HWA.oldAlive) codes.push(HWA.old);
-    if (guName && HWA.guOf) {
-      var only = codes.filter(function (c) { return HWA.guOf[c] === guName; });
-      if (only.length) codes = only;           /* 판정된 코드가 있으면 그것만 */
+  var codes = HWA.news;
+  if (guName) {
+    var only = codes.filter(function (c) { return HWA.guOf[c] === guName; });
+    if (only.length) codes = only;
+  }
+  return Promise.all(codes.map(function (c) {
+    return apiGet(tradeUrl(kind, c, ym));
+  })).then(mergeTradeResults).then(function (j) {
+    /* 신설 코드에서 한 건도 안 나오면 옛 코드로 한 번 더 (이관 지연 대비) */
+    if (!j.error && !(j.items || []).length) {
+      return apiGet(tradeUrl(kind, HWA.old, ym)).then(function (o) {
+        return (!o.error && (o.items || []).length) ? o : j;
+      });
     }
-    if (!codes.length) codes = [HWA.old];
-    return Promise.all(codes.map(function (c) {
-      return apiGet(tradeUrl(kind, c, ym));
-    })).then(mergeTradeResults).then(memo);
-  });
+    return j;
+  }).then(memo);
 }
 /* 후보 중 실제로 데이터가 나온 코드를 기억해 이후 호출은 그 코드만 쓴다 */
 var LAWD_RESOLVED = {};
@@ -2455,7 +2471,7 @@ var KAPT_LIST_MEMO = {};
 function fetchKaptList(lawd) {
   if (KAPT_LIST_MEMO[lawd]) return Promise.resolve(KAPT_LIST_MEMO[lawd]);
   var codes = [lawd];
-  if (lawd === HWA.old) codes = [HWA.old].concat(HWA.live || HWA.news);
+  if (lawd === HWA.old) codes = [HWA.old].concat(HWA.news);
   return Promise.all(codes.map(function (c) {
     return apiGet("/api/apt?kind=list&lawd=" + c)
       .then(function (j) { return j.error ? [] : (j.items || []); })
@@ -4327,8 +4343,8 @@ function buildSupply(root) {
       '<div class="note" id="sp-read" style="margin-top:10px;display:none"></div>' +
       '<div class="callout warn" id="sp-extmiss" style="display:none;margin-top:10px">확장 데이터 파일 ' +
         '(<b>supply_data.json</b>)이 없어 미분양·준공실적·인구 기반 분석이 꺼져 있습니다. ' +
-        '통계누리 미분양, 부동산원 입주예정, 행안부 인구 파일을 세션에 올려주시면 변환해 드립니다 ' +
-        '(PROJECT.md 갱신 절차 참고).</div></div>' +
+        '[돈·설정 → 데이터 관리] 탭에서 파일을 올리면 바로 켜집니다. ' +
+        '(통계누리 미분양·준공실적, 부동산원 입주예정, 행안부 인구를 합친 파일입니다.)</div></div>' +
 
     '<div class="card" id="sp-unsoldcard" style="display:none">' +
       '<div class="eyebrow">Unsold</div><h2>미분양 추이</h2>' +
@@ -4551,24 +4567,29 @@ function renderSupply() {
   document.getElementById("sp-tablecard").style.display = "";
   var extPop = SUPPLY_EXT && SUPPLY_EXT.population && SUPPLY_EXT.population.sigungu;
   var extUnD = SUPPLY_EXT && SUPPLY_EXT.unsoldDone;
+  var extUnA = !extUnD && SUPPLY_EXT && SUPPLY_EXT.unsold ? SUPPLY_EXT.unsold : null;
+  var unLabel = extUnD ? "준공후 미분양" : "미분양";
   var thead = document.querySelector("#sp-table thead tr");
   if (thead) thead.innerHTML = "<th>시·군·구</th><th>12개월 물량</th><th>24개월</th><th>공고</th>" +
     (extPop ? "<th>인구</th><th>추정 수요</th><th>자체 배율</th>" : "") +
-    (extUnD ? "<th>준공후 미분양</th>" : "");
+    (extUnD || extUnA ? "<th>" + unLabel + "</th>" : "");
   document.querySelector("#sp-table tbody").innerHTML = regions.map(function (g) {
     var full = g.r.indexOf(" ") > 0 || SP.sido === "전국" ? g.r : SP.sido + " " + g.r;
     var popG = extPop ? (extPop[full] || extPop[g.r]) : null;
     var demG = popG ? Math.round(popG * 0.005) : null;
     var ratG = demG ? g.n12 / demG : null;
-    var unD = extUnD ? extLast(extUnD, full) : null;
-    if (unD == null && extUnD) unD = extLast(extUnD, g.r);
+    var unBlk = extUnD || extUnA;
+    var unD = unBlk ? extLast(unBlk, full) : null;
+    if (unD == null && unBlk) unD = extLast(unBlk, g.r);
+    /* 미분양은 시 단위까지만 집계된다 — "수원시 영통구"는 "수원시"로 되짚는다 */
+    if (unD == null && unBlk) unD = extLast(unBlk, full.replace(/\s\S+구$/, ""));
     return '<tr class="' + (ratG != null ? (ratG >= 1.3 ? "hit" : "") : (g.n12 >= 5000 ? "hit" : "")) +
       '"><td>' + g.r + "</td>" +
       "<td><b>" + fmt(g.n12) + "</b></td><td>" + fmt(g.all) + "</td><td>" + g.cnt + "</td>" +
       (extPop ? "<td>" + (popG ? fmt(popG) : "—") + "</td><td>" + (demG ? fmt(demG) : "—") + "</td><td>" +
         (ratG != null ? '<span class="' + (ratG >= 1.3 ? "neg" : (ratG <= 0.7 ? "pos" : "")) + '">' +
           ratG.toFixed(2) + "배</span>" : "—") + "</td>" : "") +
-      (extUnD ? "<td>" + (unD != null ? fmt(unD) + "호" : "—") + "</td>" : "") + "</tr>";
+      (extUnD || extUnA ? "<td>" + (unD != null ? fmt(unD) + "호" : "—") + "</td>" : "") + "</tr>";
   }).join("");
 }
 
@@ -5038,64 +5059,6 @@ function loadRules() {
 }
 function saveRules() { try { localStorage.setItem(LS_RULES, JSON.stringify(RULES)); } catch (e) {} }
 
-/* 지역 코드 진단 — 어느 법정동코드로 실거래가 신고되는지 직접 확인 */
-function runDiag() {
-  var codes = [];
-  (document.getElementById("dg-codes").value || "").split(/[,\s]+/).forEach(function (s) {
-    s = s.trim();
-    var m = s.match(/^(\d{5})\s*-\s*(\d{5})$/);      /* 범위 지원 */
-    if (m) {
-      var a = Number(m[1]), b = Number(m[2]);
-      if (b - a > 40) b = a + 40;
-      for (var v = a; v <= b; v++) codes.push(String(v));
-    } else if (/^\d{5}$/.test(s)) codes.push(s);
-  });
-  var ym = (document.getElementById("dg-ym").value || "").trim();
-  if (!/^\d{6}$/.test(ym)) {
-    var t = new Date(); t.setMonth(t.getMonth() - 1);
-    ym = String(t.getFullYear() * 100 + t.getMonth() + 1);
-    document.getElementById("dg-ym").value = ym;
-  }
-  if (!codes.length) { alert("5자리 코드를 하나 이상 입력하세요."); return; }
-  var box = document.getElementById("dg-result");
-  var btn = document.getElementById("dg-go");
-  btn.disabled = true; btn.textContent = "조회 중…";
-  box.innerHTML = '<div class="rowinfo">조회 중입니다…</div>';
-
-  Promise.all(codes.map(function (c) {
-    return apiGet("/api/trades?kind=sale&lawd=" + c + "&ym=" + ym).then(function (j) {
-      var dongs = {};
-      (j.items || []).forEach(function (t) { dongs[t.dong] = (dongs[t.dong] || 0) + 1; });
-      return { code: c, err: j.error || "", msg: j.msg || j.code || "",
-               n: (j.items || []).length,
-               dongs: Object.keys(dongs).sort(function (a, b) { return dongs[b] - dongs[a]; })
-                 .map(function (d) { return d + "(" + dongs[d] + ")"; }) };
-    });
-  })).then(function (all) {
-    var onlyHit = document.getElementById("dg-only").checked;
-    var rows = onlyHit ? all.filter(function (r) { return r.n > 0; }) : all;
-    if (!rows.length) rows = all;
-    box.innerHTML =
-      '<div class="rowinfo">조회 ' + all.length + "개 코드 중 데이터 있음 " +
-      all.filter(function (r) { return r.n > 0; }).length + "개</div>" +
-      '<div class="tblwrap"><table><thead><tr><th>코드</th><th>결과</th><th>건수</th>' +
-      "<th>법정동 (건수)</th></tr></thead><tbody>" +
-      rows.map(function (r) {
-        var stat = r.err ? '<span class="tagmini no">오류</span> ' + r.err + (r.msg ? " · " + r.msg : "")
-          : (r.n ? '<span class="tagmini ok">데이터 있음</span>' : '<span class="tagmini no">0건</span>');
-        return "<tr><td><b>" + r.code + "</b></td><td>" + stat + "</td><td>" + r.n + "건</td>" +
-          '<td style="font-size:.76rem;word-break:break-all;white-space:normal;max-width:none">' +
-          (r.dongs.join(" · ") || "—") + "</td></tr>";
-      }).join("") + "</tbody></table></div>" +
-      '<div class="note"><b>읽는 법</b> — "데이터 있음"이 뜬 코드가 실제로 신고가 접수되는 코드입니다. ' +
-        '모든 코드가 0건이면 그 달에 거래가 없었거나 신고 기한(계약 후 30일) 전이라 아직 안 올라온 것이고, ' +
-        '전부 오류면 인증키나 요청 제한 문제입니다. 법정동 목록으로 어느 구 관할인지도 확인할 수 있습니다.</div>';
-  }).catch(function (e) {
-    box.innerHTML = '<div class="callout warn">조회 실패: ' + (e.message || e) + "</div>";
-  }).finally(function () {
-    btn.disabled = false; btn.textContent = "코드별로 조회해보기";
-  });
-}
 
 
 
@@ -5601,6 +5564,164 @@ function buildFaq(root) {
   root.querySelector("#fq-recalc").addEventListener("click", function () { faqRefresh(true); });
 }
 
+/* ══ 데이터 관리 탭 ═══════════════════════════
+   API로 못 받는 두 파일(kb_data.json · supply_data.json)을 브라우저에 직접
+   올려 쓴다. 저장본은 IndexedDB에 남아 다음 방문에도 그대로 적용된다. */
+function buildData(root) {
+  root.innerHTML =
+    '<div class="card">' +
+      '<div class="eyebrow">Data</div><h2>데이터 파일 관리</h2>' +
+      '<p class="desc">이 앱의 데이터는 두 갈래입니다. <b>실거래·K-apt·청약홈</b>은 조회할 때마다 ' +
+        'API로 자동으로 받아오고, <b>KB 시계열</b>과 <b>확장 수급 자료</b>는 원본이 API로 열려 있지 않아 ' +
+        '파일로 교체해야 합니다. 여기서 파일을 올리면 <b>GitHub에 올리지 않아도</b> 이 브라우저에서 ' +
+        '바로 적용됩니다. 다른 기기·다른 브라우저에는 적용되지 않으니, 모든 기기에 반영하려면 ' +
+        '저장소의 파일 자체를 교체하세요.</p>' +
+      '<div id="dm-status"></div>' +
+    '</div>' +
+    dataCard("kb", "KB 월간 시계열", "kb_data.json",
+      'KB부동산 데이터허브 → KB통계 → 통계자료실 → 월간통계에서 <b>월간시계열.xlsx</b>를 받아 ' +
+      'JSON으로 변환한 파일입니다. 지역 시세·가격지수·상승률·분위·밴드가 전부 여기서 나옵니다. ' +
+      '매달 한 번 갱신하면 충분합니다.') +
+    dataCard("supply", "확장 수급 자료", "supply_data.json",
+      '미분양(통계누리) · 준공실적(통계누리) · 입주예정(한국부동산원) · 인구(행안부)를 합친 ' +
+      '<b>선택</b> 파일입니다. 없어도 앱은 청약홈 실시간 조회만으로 동작하고, 올리면 입주물량 탭에 ' +
+      '미분양 추이·준공 사이클·시군구 배율 분석이 켜집니다.') +
+    '<div class="card">' +
+      '<div class="eyebrow">Note</div><h2>알아둘 점</h2>' +
+      '<ul class="bullets">' +
+        '<li>저장 위치는 이 브라우저 안(IndexedDB)입니다. 시크릿 모드나 브라우저 데이터 삭제 시 사라집니다.</li>' +
+        '<li>올린 파일이 있으면 <b>항상 올린 파일이 우선</b>합니다. 저장소 파일을 쓰고 싶으면 ' +
+          '[올린 파일 지우기]를 누르세요.</li>' +
+        '<li>형식이 맞지 않으면 저장하지 않고 이유를 알려줍니다. 기존 데이터는 그대로 남습니다.</li>' +
+        '<li>적용은 새로고침 후에 완료됩니다. 저장하면 새로고침할지 물어봅니다.</li>' +
+      '</ul>' +
+    '</div>';
+
+  ["kb", "supply"].forEach(function (kind) {
+    var inp = document.getElementById("dm-file-" + kind);
+    if (inp) inp.addEventListener("change", function () { onDataFile(kind, this); });
+    var del = document.getElementById("dm-del-" + kind);
+    if (del) del.addEventListener("click", function () { clearDataFile(kind); });
+  });
+  renderDataTab();
+}
+
+function dataCard(kind, title, fname, desc) {
+  return '<div class="card">' +
+    '<div class="eyebrow">' + (kind === "kb" ? "Required" : "Optional") + '</div>' +
+    '<h2>' + title + ' <span class="badge" id="dm-badge-' + kind + '">—</span></h2>' +
+    '<p class="desc">' + desc + '</p>' +
+    '<div id="dm-info-' + kind + '" class="rowinfo"></div>' +
+    '<div class="btnrow" style="margin-top:10px">' +
+      '<label class="btn" for="dm-file-' + kind + '" style="cursor:pointer">' + fname + ' 올리기</label>' +
+      '<input id="dm-file-' + kind + '" type="file" accept=".json,application/json" style="display:none">' +
+      '<button class="btn ghost" id="dm-del-' + kind + '">올린 파일 지우기</button>' +
+    '</div>' +
+    '<p class="hint" id="dm-hint-' + kind + '"></p>' +
+  '</div>';
+}
+
+/* 형식 검사 — 통과하면 빈 문자열, 아니면 사유를 돌려준다 */
+function validateKbFile(j) {
+  if (!j || typeof j !== "object") return "JSON 객체가 아닙니다.";
+  if (!j.salePm || !j.salePm.series) return "salePm 블록이 없습니다. kb_data.json이 맞는지 확인하세요.";
+  if (!j.sale || !j.sale.series) return "sale(매매지수) 블록이 없습니다.";
+  if (!j.salePm.dates || j.salePm.dates.length < 2) return "salePm.dates 형식이 올바르지 않습니다.";
+  if (Object.keys(j.salePm.series).length < 50) return "시군구가 너무 적습니다(50곳 미만) — 잘린 파일일 수 있습니다.";
+  return "";
+}
+function validateSupplyFile(j) {
+  if (!j || typeof j !== "object") return "JSON 객체가 아닙니다.";
+  if (!j.unsold && !j.completions && !j.population)
+    return "unsold · completions · population 중 아무 블록도 없습니다.";
+  if (j.unsold && !j.unsold.series) return "unsold.series가 없습니다.";
+  return "";
+}
+
+function onDataFile(kind, input) {
+  var f = input.files && input.files[0];
+  var hint = document.getElementById("dm-hint-" + kind);
+  input.value = "";
+  if (!f) return;
+  if (f.size > 12 * 1024 * 1024) { hint.textContent = "파일이 너무 큽니다 (12MB 초과)."; return; }
+  hint.textContent = f.name + " 읽는 중…";
+  var fr = new FileReader();
+  fr.onerror = function () { hint.textContent = "파일을 읽지 못했습니다."; };
+  fr.onload = function () {
+    var j;
+    try { j = JSON.parse(fr.result); }
+    catch (e) { hint.textContent = "JSON을 해석하지 못했습니다: " + e.message; return; }
+    var why = kind === "kb" ? validateKbFile(j) : validateSupplyFile(j);
+    if (why) { hint.textContent = "저장하지 않았습니다 — " + why; return; }
+    idbSet(kind === "kb" ? "kb_data" : "supply_data", j).then(function () {
+      setDataMeta(kind, { name: f.name, size: f.size, at: new Date().toISOString(),
+                          ym: kind === "kb" ? (j.salePm.dates ? j.salePm.dates[1] : "") : (j.updated || "") });
+      hint.textContent = "저장했습니다.";
+      renderDataTab();
+      if (confirm("저장했습니다. 지금 새로고침해서 적용할까요?")) location.reload();
+    }).catch(function (e) {
+      hint.textContent = "저장 실패: " + (e.message || e) +
+        " (시크릿 모드에서는 저장이 막힐 수 있습니다.)";
+    });
+  };
+  fr.readAsText(f);
+}
+
+function clearDataFile(kind) {
+  if (!confirm("올린 파일을 지우고 저장소에 있는 기본 파일을 쓰도록 되돌릴까요?")) return;
+  idbDel(kind === "kb" ? "kb_data" : "supply_data").then(function () {
+    setDataMeta(kind, null);
+    renderDataTab();
+    if (confirm("지웠습니다. 지금 새로고침할까요?")) location.reload();
+  }).catch(function (e) {
+    document.getElementById("dm-hint-" + kind).textContent = "삭제 실패: " + (e.message || e);
+  });
+}
+
+function renderDataTab() {
+  if (!document.getElementById("dm-status")) return;
+  var meta = dataMeta();
+  var srcName = { upload: "내가 올린 파일", file: "저장소 기본 파일", none: "없음" };
+
+  var kbInfo = "", supInfo = "";
+  if (DB && DB.salePm) {
+    var d = DB.salePm.dates;
+    kbInfo = "기준월 <b>" + d[1] + "</b> · 시군구 " + Object.keys(DB.salePm.series).length + "곳 · " +
+      "지수 " + (DB.sale && DB.sale.dates ? DB.sale.dates[0] + "~" : "—");
+  } else kbInfo = '<span class="neg">불러오지 못했습니다.</span>';
+  if (SUPPLY_EXT) {
+    var blocks = [];
+    if (SUPPLY_EXT.unsold) blocks.push("미분양 " + Object.keys(SUPPLY_EXT.unsold.series || {}).length + "곳");
+    if (SUPPLY_EXT.unsoldDone) blocks.push("준공후 미분양");
+    if (SUPPLY_EXT.completions) blocks.push("준공실적 " + (SUPPLY_EXT.completions.years || []).length + "년");
+    if (SUPPLY_EXT.expected) blocks.push("입주예정 " + ((SUPPLY_EXT.expected.items || []).length) + "건");
+    if (SUPPLY_EXT.population) blocks.push("인구 " + Object.keys(SUPPLY_EXT.population.sigungu || {}).length + "곳");
+    supInfo = "기준 <b>" + (SUPPLY_EXT.updated || "—") + "</b> · " + blocks.join(" · ");
+  } else supInfo = "장착되지 않음 — 청약홈 실시간 조회만으로 동작합니다.";
+
+  [["kb", kbInfo], ["supply", supInfo]].forEach(function (pair) {
+    var kind = pair[0];
+    var badge = document.getElementById("dm-badge-" + kind);
+    var info = document.getElementById("dm-info-" + kind);
+    if (badge) {
+      badge.textContent = srcName[DATA_SRC[kind]] || "—";
+      badge.className = "badge" + (DATA_SRC[kind] === "upload" ? " ok" : (DATA_SRC[kind] === "none" ? " warn" : ""));
+    }
+    if (info) {
+      var m = meta[kind];
+      info.innerHTML = pair[1] +
+        (m ? "<br>올린 파일: " + m.name + " · " + Math.round(m.size / 1024) + "KB · " +
+             m.at.slice(0, 16).replace("T", " ") : "");
+    }
+  });
+
+  document.getElementById("dm-status").innerHTML =
+    '<div class="callout' + (DB ? "" : " warn") + '"><b>지금 쓰는 데이터</b><br>' +
+      "• KB 시계열 — " + (srcName[DATA_SRC.kb] || "없음") + "<br>" +
+      "• 확장 수급 — " + (srcName[DATA_SRC.supply] || "없음") + "<br>" +
+      "• 실거래 · K-apt · 청약홈 — API 실시간 (교체 불필요)</div>";
+}
+
 function buildSetting(root) {
   function num(id, label, v, step) {
     return '<div class="field"><label for="' + id + '">' + label + '</label>' +
@@ -5645,23 +5766,7 @@ function buildSetting(root) {
         '(예: <b>강남11개구 강남구</b>, <b>과천시</b>). 저장하면 몇 곳이 인식됐는지 표시됩니다.</p>' +
       '<div class="field full"><textarea id="r-regulated"></textarea></div>' +
       '<p class="hint" id="r-reghint"></p>' +
-    '</div>' +
-    '<div class="card"><div class="eyebrow">Diagnostic</div><h2>지역 코드 진단</h2>' +
-      '<p class="desc">특정 지역의 실거래가 어느 법정동코드로 신고되는지 직접 확인합니다. ' +
-        '조회가 비어 있을 때 원인이 <b>코드 문제</b>인지 <b>거래 없음</b>인지 구분할 수 있습니다. ' +
-        '화성 신설 구를 확인하려면 아래 기본값 그대로 조회해보세요.</p>' +
-      '<div class="grid">' +
-        '<div class="field"><label for="dg-codes">확인할 코드 (쉼표 구분 · 41590-41599 처럼 범위도 가능)</label>' +
-          '<input id="dg-codes" type="text" value="41590-41599"></div>' +
-        '<div class="field"><label for="dg-ym">조회 월 (YYYYMM)</label>' +
-          '<input id="dg-ym" type="text" placeholder="비우면 지난달"></div>' +
-        '<div class="field"><label>&nbsp;</label><button class="btn" id="dg-go">코드별로 조회해보기</button></div>' +
-        '<div class="field full"><label class="check"><input type="checkbox" id="dg-only" checked> ' +
-          '데이터 있는 코드만 표에 표시</label></div>' +
-      '</div>' +
-      '<div id="dg-result" style="margin-top:10px"></div></div>';
-
-  document.getElementById("dg-go").addEventListener("click", runDiag);
+    '</div>';
 
   document.getElementById("r-regulated").value =
     RULES.regulated.map(disp).join("\n");

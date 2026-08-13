@@ -1,7 +1,7 @@
 # TrackApt 인수인계 (HANDOFF)
 
 > 새 세션에서 이 파일 + `index.html` + `kb_data.json` + `PROJECT.md`를 올리면 그대로 이어서 작업할 수 있습니다.
-> 현재 버전: **v3.5** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
+> 현재 버전: **v3.6** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
 
 ---
 
@@ -105,6 +105,15 @@
     저장소 정적 파일. 형식 검사 실패 시 저장 안 함. `DATA_SRC={kb,supply}`로 출처 표시.
   - **supply_data.json 실데이터 장착**(미분양 198개월·256지역 / 준공 2011~2025 /
     입주예정 시도별 2026~2027 / 인구 2026.06). 생성기 `make_supply.py` 동봉.
+- **v3.6**:
+  - **지역 선택기**: optgroup 셀렉트 → 버튼+아코디언 모달 자동 승격
+    (`upgradeRegionSelects`/`openRegionPicker`). 원본 select 유지, `selectedIndex`로
+    선택(화성 4구는 value가 같아 value로는 구분 불가). `refreshHomeMarks`가 래퍼.
+  - **규제지역 2026.7.1 기준**: 서울 25구 + 경기 15곳(화성 동탄구·용인 기흥구·구리시
+    추가). `RULES.regVer`로 저장본 자동 마이그레이션.
+  - **fetchTimeout(20초)**: 응답 지연 시 apiGet 큐가 막혀 전체 조회가 멈추던 문제 해결.
+  - 사용법 출처 표를 탭 진입마다 재렌더(`refreshSourceTable`) — 항상 "미장착"으로
+    보이던 버그 수정.
 
 ## 10. supply_data.json 스키마 (v3.4)
 
@@ -139,4 +148,4 @@
 
 ---
 
-*이 문서는 v3.5 시점 스냅샷입니다. 세부 변경 이력은 PROJECT.md의 버전별 섹션을 참고하세요.*
+*이 문서는 v3.6 시점 스냅샷입니다. 세부 변경 이력은 PROJECT.md의 버전별 섹션을 참고하세요.*

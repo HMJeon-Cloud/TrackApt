@@ -187,6 +187,41 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
   .stepbar .lbl{flex-basis:100%}
 }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+
+/* ── 지역 선택기 ── */
+.pkwrap{position:relative}
+.pkhide{display:none!important}
+.pkbtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:var(--panel-2,#182231);color:var(--ink);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;font-size:.92rem;font-family:inherit;text-align:left;cursor:pointer}
+.pkbtn:hover{border-color:var(--brand)}
+.pkbtn span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pkcaret{color:var(--brand);flex:none;font-size:.8rem}
+.pkov{position:fixed;inset:0;background:rgba(4,8,14,.72);z-index:9000;display:none;
+  align-items:flex-end;justify-content:center}
+.pkov.on{display:flex}
+.pkbox{width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;
+  background:var(--panel);border:1px solid var(--line);border-radius:16px 16px 0 0;padding:14px}
+.pkhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#pksearch{width:100%;background:var(--panel-2,#182231);color:var(--ink);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:10px}
+.pklist{overflow:auto;-webkit-overflow-scrolling:touch}
+.pkgrp{border-bottom:1px solid var(--line)}
+.pkgh{width:100%;display:flex;align-items:center;justify-content:space-between;
+  background:none;border:0;color:var(--ink);font-family:inherit;font-size:.9rem;font-weight:700;
+  padding:11px 4px;cursor:pointer;text-align:left}
+.pkgh:before{content:"▸";color:var(--brand);margin-right:8px;font-size:.75rem}
+.pkgrp.open .pkgh:before{content:"▾"}
+.pkn{color:var(--ink-soft);font-weight:500;font-size:.76rem}
+.pkitems{display:none;padding:0 0 8px 18px;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.pkgrp.open .pkitems{display:grid}
+.pkitem{background:var(--panel-2,#182231);border:1px solid var(--line);border-radius:8px;
+  color:var(--ink);font-family:inherit;font-size:.84rem;padding:8px 6px;cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pkitem:hover{border-color:var(--brand)}
+.pkitem.on{background:var(--gold-grad,#d4af6a);color:#11161f;border-color:transparent;font-weight:700}
+.pkitem.solo{display:block;width:100%;margin:6px 0;text-align:left}
+@media(max-width:520px){.pkitems{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}}
 </style>
 </head>
 <body>
@@ -194,7 +229,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v3.5</span>
+    <span class="ver">v3.6</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -251,8 +286,11 @@ var DEFAULT_RULES = {
     "강남11개구|송파구","강남11개구|양천구","강남11개구|영등포구",
     "과천시","광명시","성남시|분당구","성남시|수정구","성남시|중원구",
     "수원시|영통구","수원시|장안구","수원시|팔달구","안양시|동안구",
-    "용인시|수지구","의왕시","하남시"
-  ]
+    "용인시|수지구","의왕시","하남시",
+    /* 2026.7.1 추가 지정 (투기과열지구·조정대상지역) */
+    "화성시|동탄구","용인시|기흥구","구리시"
+  ],
+  regVer: 20260701      /* 규제지역 기준일 — 올라가면 저장된 목록을 새 기본값으로 갈아끼운다 */
 };
 var RULES = JSON.parse(JSON.stringify(DEFAULT_RULES));
 
@@ -344,6 +382,7 @@ function showTab(id) {
     s.classList.toggle("on", s.id === "tab-" + id);
   });
   if (id === "data") renderDataTab();
+  if (id === "guide") refreshSourceTable();
   if (!DB) return;
   if (id === "market") renderMarket();
   if (id === "rank") renderRank();
@@ -1976,7 +2015,12 @@ function regionLabel(k) {
 }
 
 /* 내 거주 지역을 목록에서 강조 (★ + 골드). 조건이 바뀌면 다시 호출 */
+/* 지역 셀렉트가 새로 채워질 때마다 선택기 버튼도 함께 갱신 */
 function refreshHomeMarks() {
+  refreshHomeMarksInner();
+  try { upgradeRegionSelects(); } catch (e) {}
+}
+function refreshHomeMarksInner() {
   var cond = getCond();
   var homeKey = cond.home || "";
   var homeCode = homeKey && LAWD[homeKey] ? String(LAWD[homeKey]).split(":")[0] : "";
@@ -2206,6 +2250,124 @@ function fillKbRegionSelect(id, keys, selected, minMonths) {
   refreshHomeMarks();
 }
 
+/* ══ 지역 선택기 (시·도 접기/펴기) ═══════════
+   optgroup으로 된 지역 셀렉트를 버튼 + 아코디언 모달로 감싼다.
+   원본 select는 값 보관용으로 숨겨둔 채 두고 selectedIndex를 바꾼 뒤 change를
+   그대로 발생시키므로, 각 탭의 기존 코드는 손댈 필요가 없다.
+   (화성 4구처럼 value가 같은 항목이 있어 value가 아니라 index로 고른다.) */
+function pkLabel(sel) {
+  var o = sel.options[sel.selectedIndex];
+  if (!o) return "선택";
+  var g = o.parentNode && o.parentNode.tagName === "OPTGROUP" ? o.parentNode.label : "";
+  return (g && g !== "전국·권역" ? g + " " : "") + o.textContent;
+}
+function upgradeRegionSelects(root) {
+  var list = (root || document).querySelectorAll("select");
+  Array.prototype.forEach.call(list, function (sel) {
+    if (!sel.querySelector("optgroup")) return;
+    var btn;
+    if (sel.getAttribute("data-pk") === "1") {
+      btn = sel.parentNode.querySelector(".pkbtn");
+      if (btn) btn.firstChild.textContent = pkLabel(sel);
+      return;
+    }
+    sel.setAttribute("data-pk", "1");
+    var wrap = document.createElement("div");
+    wrap.className = "pkwrap";
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+    sel.classList.add("pkhide");
+    btn = document.createElement("button");
+    btn.type = "button"; btn.className = "pkbtn";
+    btn.innerHTML = "<span></span><span class=\"pkcaret\">▾</span>";
+    btn.firstChild.textContent = pkLabel(sel);
+    wrap.appendChild(btn);
+    sel.addEventListener("change", function () { btn.firstChild.textContent = pkLabel(sel); });
+    btn.addEventListener("click", function () { openRegionPicker(sel, btn); });
+  });
+}
+function openRegionPicker(sel, btn) {
+  var ov = document.getElementById("pkov");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "pkov"; ov.className = "pkov";
+    ov.innerHTML =
+      '<div class="pkbox">' +
+        '<div class="pkhead"><b>지역 선택</b>' +
+          '<button type="button" class="btn sm ghost" id="pkclose">닫기</button></div>' +
+        '<input id="pksearch" type="text" placeholder="지역 이름으로 찾기 (예: 동탄, 강남)" autocomplete="off">' +
+        '<div class="pklist" id="pklist"></div>' +
+      '</div>';
+    document.body.appendChild(ov);
+    ov.addEventListener("click", function (e) { if (e.target === ov) closeRegionPicker(); });
+    ov.querySelector("#pkclose").addEventListener("click", closeRegionPicker);
+    ov.querySelector("#pksearch").addEventListener("input", function () { pkFilter(this.value); });
+  }
+  var list = ov.querySelector("#pklist");
+  var cur = sel.selectedIndex, html = "", gi = 0, idx = 0;
+  Array.prototype.forEach.call(sel.children, function (node) {
+    if (node.tagName === "OPTGROUP") {
+      var items = "", open = false;
+      Array.prototype.forEach.call(node.children, function (o) {
+        if (idx === cur) open = true;
+        items += '<button type="button" class="pkitem' + (idx === cur ? " on" : "") +
+          '" data-i="' + idx + '">' + o.textContent + "</button>";
+        idx++;
+      });
+      html += '<div class="pkgrp' + (open ? " open" : "") + '" data-g="' + (gi++) + '">' +
+        '<button type="button" class="pkgh"><span>' + node.label + "</span>" +
+        '<span class="pkn">' + node.children.length + "</span></button>" +
+        '<div class="pkitems">' + items + "</div></div>";
+    } else if (node.tagName === "OPTION") {
+      html += '<button type="button" class="pkitem solo' + (idx === cur ? " on" : "") +
+        '" data-i="' + idx + '">' + node.textContent + "</button>";
+      idx++;
+    }
+  });
+  list.innerHTML = html;
+  Array.prototype.forEach.call(list.querySelectorAll(".pkgh"), function (h) {
+    h.addEventListener("click", function () { h.parentNode.classList.toggle("open"); });
+  });
+  Array.prototype.forEach.call(list.querySelectorAll(".pkitem"), function (b) {
+    b.addEventListener("click", function () {
+      sel.selectedIndex = Number(b.dataset.i);
+      if (btn) btn.firstChild.textContent = pkLabel(sel);
+      var ev;
+      try { ev = new Event("change", { bubbles: true }); }
+      catch (e) { ev = document.createEvent("HTMLEvents"); ev.initEvent("change", true, false); }
+      sel.dispatchEvent(ev);
+      closeRegionPicker();
+    });
+  });
+  ov.querySelector("#pksearch").value = "";
+  ov.classList.add("on");
+  var onEl = list.querySelector(".pkitem.on");
+  if (onEl && onEl.scrollIntoView) onEl.scrollIntoView({ block: "center" });
+}
+function closeRegionPicker() {
+  var ov = document.getElementById("pkov");
+  if (ov) ov.classList.remove("on");
+}
+function pkFilter(q) {
+  q = String(q || "").replace(/\s/g, "");
+  var list = document.getElementById("pklist");
+  if (!list) return;
+  Array.prototype.forEach.call(list.querySelectorAll(".pkgrp"), function (g) {
+    var hit = 0;
+    Array.prototype.forEach.call(g.querySelectorAll(".pkitem"), function (b) {
+      var ok = !q || b.textContent.replace(/\s/g, "").indexOf(q) >= 0 ||
+        g.querySelector(".pkgh span").textContent.replace(/\s/g, "").indexOf(q) >= 0;
+      b.style.display = ok ? "" : "none";
+      if (ok) hit++;
+    });
+    g.style.display = hit ? "" : "none";
+    if (q) g.classList.add("open");
+  });
+  Array.prototype.forEach.call(list.querySelectorAll(".pkitem.solo"), function (b) {
+    b.style.display = (!q || b.textContent.replace(/\s/g, "").indexOf(q) >= 0) ? "" : "none";
+  });
+}
+
 function fillRegionSelects(ids) {
   ids.forEach(function (id) {
     var sel = document.getElementById(id);
@@ -2261,11 +2423,21 @@ function isBusyErr(j, status) {
   return /제한|초과|LIMIT|BUSY|TRAFFIC|일시/i.test(e);
 }
 /* 재시도 포함 JSON 호출 */
+/* 응답이 영영 안 오면 큐(동시 3개)가 막혀 이후 조회가 전부 멈춘다.
+   AbortController로 끊어 재시도·오류로 흘려보낸다. */
+function fetchTimeout(url, ms) {
+  if (typeof AbortController === "undefined") return fetch(url);
+  var ac = new AbortController();
+  var t = setTimeout(function () { ac.abort(); }, ms);
+  return fetch(url, { signal: ac.signal }).then(
+    function (r) { clearTimeout(t); return r; },
+    function (e) { clearTimeout(t); throw (e && e.name === "AbortError" ? new Error("응답 시간 초과") : e); });
+}
 function apiGet(url) {
   return apiSlot().then(function () {
     function attempt(tryNo) {
       var st = 0;
-      return fetch(url)
+      return fetchTimeout(url, 20000)
         .then(function (r) { st = r.status; return r.json().catch(function () { return { error: "응답 형식 오류" }; }); })
         .then(function (j) {
           if (isBusyErr(j, st) && tryNo < 2) {
@@ -2275,7 +2447,8 @@ function apiGet(url) {
         })
         .catch(function (e) {
           if (tryNo < 2) return sleep(500 * (tryNo + 1)).then(function () { return attempt(tryNo + 1); });
-          return { error: "네트워크 오류", detail: String(e) };
+          return { error: /초과/.test(String(e && e.message)) ? "응답 시간 초과" : "네트워크 오류",
+                   detail: String(e) };
         });
     }
     return attempt(0);
@@ -4932,6 +5105,11 @@ function renderStepBar() {
   });
 }
 
+/* 탭 진입 때마다 다시 그린다 — 빌드는 부팅 직후라 supply_data 로드 전이다 */
+function refreshSourceTable() {
+  var box = document.getElementById("g-sources");
+  if (box) box.innerHTML = guideSourceTable();
+}
 function guideSourceTable() {
   var ok = '<span class="tagmini ok">자동 (API 실시간)</span>';
   var man = '<span class="tagmini gold">내가 교체</span>';
@@ -4944,7 +5122,7 @@ function guideSourceTable() {
     "<tr><td>단지 세대수·준공일·주변환경</td><td>한국부동산원 K-apt</td><td>공동주택관리정보시스템</td><td>" + ok + "</td></tr>" +
     "<tr><td>분양 공고 (입주 예정 추정)</td><td>청약홈</td><td>공고 기준 실시간</td><td>" + ok + "</td></tr>" +
     "<tr><td>지역 시세·가격지수</td><td>KB부동산 월간 시계열</td><td>시·군·구 ㎡당가 2013.4~ · 지수 1986.1~</td><td>" + man + " kb_data.json</td></tr>" +
-    "<tr><td>미분양 (준공후 포함)</td><td>국토교통부 통계누리</td><td>시·군·구 월별 2015.7~</td><td>" + extOn("unsold") + "</td></tr>" +
+    "<tr><td>미분양</td><td>국토교통부 통계누리</td><td>시·군·구 월별 2010.1~</td><td>" + extOn("unsold") + "</td></tr>" +
     "<tr><td>준공 실적</td><td>국토교통부 통계누리</td><td>시·도 연간 2010~</td><td>" + extOn("completions") + "</td></tr>" +
     "<tr><td>입주 예정 물량</td><td>한국부동산원</td><td>시·군·구 (향후 2년)</td><td>" + extOn("expected") + "</td></tr>" +
     "<tr><td>인구·세대수</td><td>행정안전부 주민등록</td><td>시·군·구</td><td>" + extOn("population") + "</td></tr>" +
@@ -5035,7 +5213,7 @@ function buildGuide(root) {
       '<div class="note"><b>데이터 갱신</b> — KB 시계열은 파일로 내장돼 있어 자동 갱신되지 않습니다. 매달 KB 데이터허브에서 ' +
         '월간 시계열 엑셀을 받아 kb_data.json을 다시 만들어 교체하면 됩니다 (PROJECT.md 참고). ' +
         '실거래·K-apt·청약홈은 조회할 때마다 실시간입니다.</div></div>' +
-    guideSourceTable();
+    '<div id="g-sources"></div>';
 
   root.querySelectorAll(".gstep").forEach(function (el) {
     el.addEventListener("click", function () {
@@ -5055,6 +5233,11 @@ function loadRules() {
   try {
     var r = JSON.parse(raw);
     Object.keys(DEFAULT_RULES).forEach(function (k) { if (r[k] != null) RULES[k] = r[k]; });
+    /* 규제지역 기준일이 올라갔으면 저장본 대신 새 기본 목록을 쓴다 */
+    if (Number(r.regVer || 0) < DEFAULT_RULES.regVer) {
+      RULES.regulated = DEFAULT_RULES.regulated.slice();
+      RULES.regVer = DEFAULT_RULES.regVer;
+    }
   } catch (e) {}
 }
 function saveRules() { try { localStorage.setItem(LS_RULES, JSON.stringify(RULES)); } catch (e) {} }
@@ -5763,6 +5946,8 @@ function buildSetting(root) {
     '<div class="card">' +
       '<div class="eyebrow">Regulated</div><h2>규제지역 목록 <span class="badge ok" id="r-regcount"></span></h2>' +
       '<p class="desc">한 줄에 한 지역씩 적습니다. 지역 이름은 급지표 표기와 같아야 합니다 ' +
+        '(기본값은 <b>2026.7.1</b> 기준 — 서울 25개 자치구 전역 + 경기 15곳: 과천·광명·구리·의왕·하남, ' +
+        '성남 분당·수정·중원, 수원 영통·장안·팔달, 안양 동안, 용인 수지·기흥, 화성 동탄구). ' +
         '(예: <b>강남11개구 강남구</b>, <b>과천시</b>). 저장하면 몇 곳이 인식됐는지 표시됩니다.</p>' +
       '<div class="field full"><textarea id="r-regulated"></textarea></div>' +
       '<p class="hint" id="r-reghint"></p>' +

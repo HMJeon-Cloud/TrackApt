@@ -236,7 +236,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v3.9</span>
+    <span class="ver">v4.0</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -4704,29 +4704,35 @@ function renderSupply() {
   document.getElementById("sp-tablecard").style.display = "";
   var extPop = SUPPLY_EXT && SUPPLY_EXT.population && SUPPLY_EXT.population.sigungu;
   var extUnD = SUPPLY_EXT && SUPPLY_EXT.unsoldDone;
-  var extUnA = !extUnD && SUPPLY_EXT && SUPPLY_EXT.unsold ? SUPPLY_EXT.unsold : null;
-  var unLabel = extUnD ? "준공후 미분양" : "미분양";
+  var extUnA = SUPPLY_EXT && SUPPLY_EXT.unsold ? SUPPLY_EXT.unsold : null;
   var thead = document.querySelector("#sp-table thead tr");
   if (thead) thead.innerHTML = "<th>시·군·구</th><th>12개월 물량</th><th>24개월</th><th>공고</th>" +
     (extPop ? "<th>인구</th><th>추정 수요</th><th>자체 배율</th>" : "") +
-    (extUnD || extUnA ? "<th>" + unLabel + "</th>" : "");
+    (extUnA ? "<th>미분양</th>" : "") + (extUnD ? "<th>준공후</th>" : "");
   document.querySelector("#sp-table tbody").innerHTML = regions.map(function (g) {
     var full = g.r.indexOf(" ") > 0 || SP.sido === "전국" ? g.r : SP.sido + " " + g.r;
     var popG = extPop ? (extPop[full] || extPop[g.r]) : null;
     var demG = popG ? Math.round(popG * 0.005) : null;
     var ratG = demG ? g.n12 / demG : null;
-    var unBlk = extUnD || extUnA;
-    var unD = unBlk ? extLast(unBlk, full) : null;
-    if (unD == null && unBlk) unD = extLast(unBlk, g.r);
     /* 미분양은 시 단위까지만 집계된다 — "수원시 영통구"는 "수원시"로 되짚는다 */
-    if (unD == null && unBlk) unD = extLast(unBlk, full.replace(/\s\S+구$/, ""));
+    function unsoldOf(blk) {
+      if (!blk) return null;
+      var v = extLast(blk, full);
+      if (v == null) v = extLast(blk, g.r);
+      if (v == null) v = extLast(blk, full.replace(/\s\S+구$/, ""));
+      return v;
+    }
+    var unA = unsoldOf(extUnA), unD = unsoldOf(extUnD);
     return '<tr class="' + (ratG != null ? (ratG >= 1.3 ? "hit" : "") : (g.n12 >= 5000 ? "hit" : "")) +
       '"><td>' + g.r + "</td>" +
       "<td><b>" + fmt(g.n12) + "</b></td><td>" + fmt(g.all) + "</td><td>" + g.cnt + "</td>" +
       (extPop ? "<td>" + (popG ? fmt(popG) : "—") + "</td><td>" + (demG ? fmt(demG) : "—") + "</td><td>" +
         (ratG != null ? '<span class="' + (ratG >= 1.3 ? "neg" : (ratG <= 0.7 ? "pos" : "")) + '">' +
           ratG.toFixed(2) + "배</span>" : "—") + "</td>" : "") +
-      (extUnD || extUnA ? "<td>" + (unD != null ? fmt(unD) + "호" : "—") + "</td>" : "") + "</tr>";
+      (extUnA ? "<td>" + (unA != null ? fmt(unA) + "호" : "—") + "</td>" : "") +
+      (extUnD ? "<td>" + (unD != null ?
+        '<span class="' + (unA && unD / unA >= 0.5 ? "neg" : "") + '">' + fmt(unD) + "호</span>" : "—") +
+        "</td>" : "") + "</tr>";
   }).join("");
 }
 
@@ -5385,6 +5391,7 @@ function guideSourceTable() {
     "<tr><td>분양 공고 (입주 예정 추정)</td><td>청약홈</td><td>공고 기준 실시간</td><td>" + ok + "</td></tr>" +
     "<tr><td>지역 시세·가격지수</td><td>KB부동산 월간 시계열</td><td>시·군·구 ㎡당가 2013.4~ · 지수 1986.1~</td><td>" + man + " kb_data.json</td></tr>" +
     "<tr><td>미분양</td><td>국토교통부 통계누리</td><td>시·군·구 월별 2010.1~</td><td>" + extOn("unsold") + "</td></tr>" +
+    "<tr><td>준공후 미분양</td><td>국토교통부 통계누리</td><td>시·군·구 월별 2010.1~</td><td>" + extOn("unsoldDone") + "</td></tr>" +
     "<tr><td>준공 실적</td><td>국토교통부 통계누리</td><td>시·도 연간 2010~</td><td>" + extOn("completions") + "</td></tr>" +
     "<tr><td>입주 예정 물량</td><td>한국부동산원</td><td>시·군·구 (향후 2년)</td><td>" + extOn("expected") + "</td></tr>" +
     "<tr><td>인구·세대수</td><td>행정안전부 주민등록</td><td>시·군·구</td><td>" + extOn("population") + "</td></tr>" +

@@ -252,3 +252,34 @@ showTab의 렌더 디스패치에도 한 줄 추가한다.
   멈추던 문제(채점 보고서 주변환경 불러오기 포함) 해소. 초과 시 재시도 → 오류 표시.
 - **사용법 출처 표**: 부팅 직후 빌드 시점엔 supply_data 로드 전이라 항상 "미장착"으로
   보이던 버그 수정. `#g-sources` 컨테이너로 분리해 탭 진입 때마다 다시 그린다.
+
+## v3.7 원본 CSV 자동 변환 · 주변환경 재조회 결과 표시
+
+- **CSV → JSON 브라우저 변환**: 데이터 관리 탭의 [원본 CSV로 만들기]로 통계누리·
+  행안부 CSV를 여러 개 한꺼번에 올리면 브라우저가 종류를 판별해 supply_data를
+  만들어 저장한다. 파이썬 변환기(make_supply.py)와 **동일 결과**임을 테스트로 확인.
+  · `decodeKr`: TextDecoder("euc-kr") → 깨짐 많으면 UTF-8 재시도.
+  · `csvKind`: 헤더로 unsold/completions/population 판별(단서 없으면 데이터 모양).
+  · `ymPick`: "2025-10(잠정 p)" 같은 잠정치 표기에서 연-월만 추출 — 이걸 안 하면
+    준공 2025년이 9개월로 잡혀 통째로 빠진다.
+  · 올린 종류의 블록만 교체하고 나머지(특히 CSV로 안 나오는 expected)는 보존.
+  · kb_data는 원본이 다중 시트 엑셀이라 브라우저 변환 대상이 아니다(세션 변환 유지).
+- **주변환경 재조회**: K-apt 상세를 받아왔는데 교통·학군·편의 항목이 모두 비어
+  있으면 이전엔 같은 "지금 불러오기" 링크로 되돌아와 무한 반복처럼 보였다.
+  성공 시 `envTried` 플래그를 남겨 "등록은 돼 있으나 항목이 비어 있음"으로 안내.
+- 데이터 관리 탭에 엣지·사파리 **추적 방지**로 IndexedDB 저장이 막힐 수 있다는 안내
+  추가 (콘솔의 "Tracking Prevention blocked access to storage" 경고 대응).
+
+## v3.8 데이터 업로드 탭 제거 (저장소 파일 단일 경로)
+
+- kb_data의 원본이 다중 시트 엑셀이라 브라우저 변환이 불가능 → 두 파일의 갱신
+  경로가 갈리는 것보다 **한 갈래로 통일**하는 편이 낫다는 판단으로 업로드 기능 철수.
+- 제거 대상: 데이터 관리 탭(`buildData`·`renderDataTab`·`dataCard`·`validateKbFile`·
+  `validateSupplyFile`·`onDataFile`·`clearDataFile`), IndexedDB 계층(`idbOpen`/`idbGet`/
+  `idbSet`/`idbDel`·`DATA_SRC`·`dataMeta`), CSV 변환기(`buildSupplyFromCsv`·`csvKind`·
+  `decodeKr`·`ymPick`·`parseUnsold`/`parseCompletions`/`parsePopulation`).
+- `loadData`·`loadSupplyExt`는 v3.4 방식(정적 파일 fetch)으로 원복.
+- **확정 갱신 절차**: 원본 CSV/엑셀을 대화 세션에 업로드 → 변환본(kb_data.json ·
+  supply_data.json)을 받아 → GitHub 웹 UI로 교체 → Vercel 자동 배포.
+  변환 스크립트는 `make_supply.py`(수급) / convert.py(KB, 세션 보관).
+- v3.7의 나머지 개선(주변환경 `envTried` 표시)은 그대로 유지.

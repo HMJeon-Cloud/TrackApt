@@ -229,7 +229,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v3.6</span>
+    <span class="ver">v3.8</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -318,8 +318,7 @@ var GROUPS = [
     { id: "cmpx",    name: "아파트 비교", build: buildCmpx } ] },
   { id: "g5", name: "돈·설정", tabs: [
     { id: "calc",    name: "돈 계산",     build: buildCalc },
-    { id: "setting", name: "설정",        build: buildSetting },
-    { id: "data",    name: "데이터 관리", build: buildData } ] },
+    { id: "setting", name: "설정",        build: buildSetting } ] },
   { id: "g6", name: "내 후보", cart: true, tabs: [
     { id: "cart",    name: "최종 검토",   build: buildCartTab } ] }
 ];
@@ -381,7 +380,6 @@ function showTab(id) {
   document.querySelectorAll("section.tab").forEach(function (s) {
     s.classList.toggle("on", s.id === "tab-" + id);
   });
-  if (id === "data") renderDataTab();
   if (id === "guide") refreshSourceTable();
   if (!DB) return;
   if (id === "market") renderMarket();
@@ -471,62 +469,17 @@ function restoreCond() {
 function val(id) { var el = document.getElementById(id); return el ? el.value : ""; }
 function setVal(id, v) { var el = document.getElementById(id); if (el && v != null && v !== "") el.value = v; }
 
-/* ══ 업로드 데이터 보관 (IndexedDB) ══════════
-   kb_data.json · supply_data.json은 API가 아니라 사용자가 주기적으로 교체하는
-   파일이다. 브라우저에 저장해두면 GitHub에 올리지 않아도 이 기기에서 바로 쓴다.
-   저장본이 있으면 저장본이 우선, 없으면 같은 폴더의 정적 파일을 쓴다. */
-var IDB_NAME = "trackapt", IDB_STORE = "files";
-var DATA_SRC = { kb: "none", supply: "none" };   /* none | file | upload */
-var LS_DATAMETA = "trackapt_datameta";
-function idbOpen() {
-  return new Promise(function (res, rej) {
-    if (!window.indexedDB) { rej(new Error("이 브라우저는 저장 기능(IndexedDB)을 지원하지 않습니다.")); return; }
-    var rq = indexedDB.open(IDB_NAME, 1);
-    rq.onupgradeneeded = function () { rq.result.createObjectStore(IDB_STORE); };
-    rq.onsuccess = function () { res(rq.result); };
-    rq.onerror = function () { rej(rq.error || new Error("저장소를 열지 못했습니다.")); };
-  });
-}
-function idbTx(mode, fn) {
-  return idbOpen().then(function (db) {
-    return new Promise(function (res, rej) {
-      var rq = fn(db.transaction(IDB_STORE, mode).objectStore(IDB_STORE));
-      rq.onsuccess = function () { res(rq.result); };
-      rq.onerror = function () { rej(rq.error || new Error("저장소 접근 실패")); };
-    });
-  });
-}
-function idbGet(k) {
-  return idbTx("readonly", function (st) { return st.get(k); }).catch(function () { return null; });
-}
-function idbSet(k, v) { return idbTx("readwrite", function (st) { return st.put(v, k); }); }
-function idbDel(k) { return idbTx("readwrite", function (st) { return st["delete"](k); }); }
-function dataMeta() {
-  try { return JSON.parse(localStorage.getItem(LS_DATAMETA) || "{}"); } catch (e) { return {}; }
-}
-function setDataMeta(kind, obj) {
-  var m = dataMeta();
-  if (obj) m[kind] = obj; else delete m[kind];
-  try { localStorage.setItem(LS_DATAMETA, JSON.stringify(m)); } catch (e) {}
-}
-
 /* ══ 데이터 유틸 ═════════════════════════════ */
 function loadData() {
   loadSupplyExt();
-  idbGet("kb_data").then(function (up) {
-    if (up && up.salePm && up.salePm.series) {
-      DB = up; DATA_SRC.kb = "upload"; onDataReady();
-      return null;
-    }
-    return fetch("kb_data.json")
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function (j) { DB = j; DATA_SRC.kb = "file"; onDataReady(); });
-  }).catch(function (e) {
-    var di = document.getElementById("datainfo");
-    if (di) { di.textContent = "데이터 로드 실패"; di.style.color = "var(--down)"; }
-    alert("kb_data.json을 불러오지 못했습니다 (" + e.message + ").\n" +
-      "같은 폴더에 파일이 있는지 확인하거나, [돈·설정 → 데이터 관리] 탭에서 파일을 올리세요.");
-  });
+  fetch("kb_data.json")
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (j) { DB = j; onDataReady(); })
+    .catch(function (e) {
+      var di = document.getElementById("datainfo");
+      if (di) { di.textContent = "데이터 로드 실패"; di.style.color = "var(--down)"; }
+      alert("kb_data.json을 불러오지 못했습니다 (" + e.message + "). index.html과 같은 폴더에 있는지 확인하세요.");
+    });
 }
 function ymNum(ym) { var p = ym.split("-"); return Number(p[0]) * 12 + Number(p[1]); }
 
@@ -536,14 +489,10 @@ function ymNum(ym) { var p = ym.split("-"); return Number(p[0]) * 12 + Number(p[
    없으면 청약홈 실시간 조회만으로 동작한다. */
 var SUPPLY_EXT = null;
 function loadSupplyExt() {
-  return idbGet("supply_data").then(function (up) {
-    if (up && (up.unsold || up.completions || up.population)) {
-      SUPPLY_EXT = up; DATA_SRC.supply = "upload"; return up;
-    }
-    return fetch("supply_data.json")
-      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
-      .then(function (j) { SUPPLY_EXT = j; DATA_SRC.supply = "file"; return j; });
-  }).catch(function () { SUPPLY_EXT = null; DATA_SRC.supply = "none"; return null; });
+  return fetch("supply_data.json")
+    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    .then(function (j) { SUPPLY_EXT = j; return j; })
+    .catch(function () { SUPPLY_EXT = null; return null; });
 }
 /* {dates:[from,to,n], series:{key:{o,v}}} 블록에서 지역의 최신값 */
 function extLast(blk, key) {
@@ -3004,9 +2953,14 @@ function renderCartReport() {
       if (c.education) env.push('<div class="rowinfo"><b>학군·교육</b> — ' + c.education + "</div>");
       if (c.convenient) env.push('<div class="rowinfo"><b>편의시설</b> — ' + c.convenient + "</div>");
       if (!env.length) env.push('<div class="rowinfo" id="env-' + i + '">' +
-        '주변 환경 정보를 아직 못 가져왔습니다. ' +
-        '<a href="#" data-envload="' + i + '">지금 불러오기</a> ' +
-        '<span style="color:var(--ink-soft)">— K-apt에 등록되지 않은 단지일 수도 있습니다.</span></div>');
+        (c.envTried
+          ? 'K-apt에 이 단지는 등록돼 있지만 <b>주변환경(교통·학군·편의) 항목이 비어 있습니다</b>. ' +
+            '<span style="color:var(--ink-soft)">관리사무소가 입력하지 않으면 비는 항목이라 앱에서 채울 방법이 없습니다. ' +
+            '<a href="#" data-envload="' + i + '">다시 시도</a></span>'
+          : '주변 환경 정보를 아직 못 가져왔습니다. ' +
+            '<a href="#" data-envload="' + i + '">지금 불러오기</a> ' +
+            '<span style="color:var(--ink-soft)">— K-apt에 등록되지 않은 단지일 수도 있습니다.</span>') +
+        "</div>");
 
       var bl = [];
       bl.push("<b>" + c.apt + "</b>은 " + (c.regionName || disp(rk || "")) + " " + c.dong + " 소재로, 평당 " +
@@ -3089,6 +3043,7 @@ function renderCartReport() {
             x.heat = k.heat || x.heat; x.hall = k.hall || x.hall;
             x.subwayLine = k.subwayLine; x.subwayStation = k.subwayStation;
             x.busWay = k.busWay; x.education = k.education; x.convenient = k.convenient;
+            x.envTried = 1;   /* 조회는 끝났다 — 비어 있으면 원본에 없는 것 */
             var mm = String(k.subwayWay || "").match(/(\d+)/);
             if (mm) x.subwayMin = Number(mm[1]);
           });
@@ -4516,7 +4471,7 @@ function buildSupply(root) {
       '<div class="note" id="sp-read" style="margin-top:10px;display:none"></div>' +
       '<div class="callout warn" id="sp-extmiss" style="display:none;margin-top:10px">확장 데이터 파일 ' +
         '(<b>supply_data.json</b>)이 없어 미분양·준공실적·인구 기반 분석이 꺼져 있습니다. ' +
-        '[돈·설정 → 데이터 관리] 탭에서 파일을 올리면 바로 켜집니다. ' +
+        '저장소에 supply_data.json을 올려두면 바로 켜집니다. ' +
         '(통계누리 미분양·준공실적, 부동산원 입주예정, 행안부 인구를 합친 파일입니다.)</div></div>' +
 
     '<div class="card" id="sp-unsoldcard" style="display:none">' +
@@ -5747,163 +5702,6 @@ function buildFaq(root) {
   root.querySelector("#fq-recalc").addEventListener("click", function () { faqRefresh(true); });
 }
 
-/* ══ 데이터 관리 탭 ═══════════════════════════
-   API로 못 받는 두 파일(kb_data.json · supply_data.json)을 브라우저에 직접
-   올려 쓴다. 저장본은 IndexedDB에 남아 다음 방문에도 그대로 적용된다. */
-function buildData(root) {
-  root.innerHTML =
-    '<div class="card">' +
-      '<div class="eyebrow">Data</div><h2>데이터 파일 관리</h2>' +
-      '<p class="desc">이 앱의 데이터는 두 갈래입니다. <b>실거래·K-apt·청약홈</b>은 조회할 때마다 ' +
-        'API로 자동으로 받아오고, <b>KB 시계열</b>과 <b>확장 수급 자료</b>는 원본이 API로 열려 있지 않아 ' +
-        '파일로 교체해야 합니다. 여기서 파일을 올리면 <b>GitHub에 올리지 않아도</b> 이 브라우저에서 ' +
-        '바로 적용됩니다. 다른 기기·다른 브라우저에는 적용되지 않으니, 모든 기기에 반영하려면 ' +
-        '저장소의 파일 자체를 교체하세요.</p>' +
-      '<div id="dm-status"></div>' +
-    '</div>' +
-    dataCard("kb", "KB 월간 시계열", "kb_data.json",
-      'KB부동산 데이터허브 → KB통계 → 통계자료실 → 월간통계에서 <b>월간시계열.xlsx</b>를 받아 ' +
-      'JSON으로 변환한 파일입니다. 지역 시세·가격지수·상승률·분위·밴드가 전부 여기서 나옵니다. ' +
-      '매달 한 번 갱신하면 충분합니다.') +
-    dataCard("supply", "확장 수급 자료", "supply_data.json",
-      '미분양(통계누리) · 준공실적(통계누리) · 입주예정(한국부동산원) · 인구(행안부)를 합친 ' +
-      '<b>선택</b> 파일입니다. 없어도 앱은 청약홈 실시간 조회만으로 동작하고, 올리면 입주물량 탭에 ' +
-      '미분양 추이·준공 사이클·시군구 배율 분석이 켜집니다.') +
-    '<div class="card">' +
-      '<div class="eyebrow">Note</div><h2>알아둘 점</h2>' +
-      '<ul class="bullets">' +
-        '<li>저장 위치는 이 브라우저 안(IndexedDB)입니다. 시크릿 모드나 브라우저 데이터 삭제 시 사라집니다.</li>' +
-        '<li>올린 파일이 있으면 <b>항상 올린 파일이 우선</b>합니다. 저장소 파일을 쓰고 싶으면 ' +
-          '[올린 파일 지우기]를 누르세요.</li>' +
-        '<li>형식이 맞지 않으면 저장하지 않고 이유를 알려줍니다. 기존 데이터는 그대로 남습니다.</li>' +
-        '<li>적용은 새로고침 후에 완료됩니다. 저장하면 새로고침할지 물어봅니다.</li>' +
-      '</ul>' +
-    '</div>';
-
-  ["kb", "supply"].forEach(function (kind) {
-    var inp = document.getElementById("dm-file-" + kind);
-    if (inp) inp.addEventListener("change", function () { onDataFile(kind, this); });
-    var del = document.getElementById("dm-del-" + kind);
-    if (del) del.addEventListener("click", function () { clearDataFile(kind); });
-  });
-  renderDataTab();
-}
-
-function dataCard(kind, title, fname, desc) {
-  return '<div class="card">' +
-    '<div class="eyebrow">' + (kind === "kb" ? "Required" : "Optional") + '</div>' +
-    '<h2>' + title + ' <span class="badge" id="dm-badge-' + kind + '">—</span></h2>' +
-    '<p class="desc">' + desc + '</p>' +
-    '<div id="dm-info-' + kind + '" class="rowinfo"></div>' +
-    '<div class="btnrow" style="margin-top:10px">' +
-      '<label class="btn" for="dm-file-' + kind + '" style="cursor:pointer">' + fname + ' 올리기</label>' +
-      '<input id="dm-file-' + kind + '" type="file" accept=".json,application/json" style="display:none">' +
-      '<button class="btn ghost" id="dm-del-' + kind + '">올린 파일 지우기</button>' +
-    '</div>' +
-    '<p class="hint" id="dm-hint-' + kind + '"></p>' +
-  '</div>';
-}
-
-/* 형식 검사 — 통과하면 빈 문자열, 아니면 사유를 돌려준다 */
-function validateKbFile(j) {
-  if (!j || typeof j !== "object") return "JSON 객체가 아닙니다.";
-  if (!j.salePm || !j.salePm.series) return "salePm 블록이 없습니다. kb_data.json이 맞는지 확인하세요.";
-  if (!j.sale || !j.sale.series) return "sale(매매지수) 블록이 없습니다.";
-  if (!j.salePm.dates || j.salePm.dates.length < 2) return "salePm.dates 형식이 올바르지 않습니다.";
-  if (Object.keys(j.salePm.series).length < 50) return "시군구가 너무 적습니다(50곳 미만) — 잘린 파일일 수 있습니다.";
-  return "";
-}
-function validateSupplyFile(j) {
-  if (!j || typeof j !== "object") return "JSON 객체가 아닙니다.";
-  if (!j.unsold && !j.completions && !j.population)
-    return "unsold · completions · population 중 아무 블록도 없습니다.";
-  if (j.unsold && !j.unsold.series) return "unsold.series가 없습니다.";
-  return "";
-}
-
-function onDataFile(kind, input) {
-  var f = input.files && input.files[0];
-  var hint = document.getElementById("dm-hint-" + kind);
-  input.value = "";
-  if (!f) return;
-  if (f.size > 12 * 1024 * 1024) { hint.textContent = "파일이 너무 큽니다 (12MB 초과)."; return; }
-  hint.textContent = f.name + " 읽는 중…";
-  var fr = new FileReader();
-  fr.onerror = function () { hint.textContent = "파일을 읽지 못했습니다."; };
-  fr.onload = function () {
-    var j;
-    try { j = JSON.parse(fr.result); }
-    catch (e) { hint.textContent = "JSON을 해석하지 못했습니다: " + e.message; return; }
-    var why = kind === "kb" ? validateKbFile(j) : validateSupplyFile(j);
-    if (why) { hint.textContent = "저장하지 않았습니다 — " + why; return; }
-    idbSet(kind === "kb" ? "kb_data" : "supply_data", j).then(function () {
-      setDataMeta(kind, { name: f.name, size: f.size, at: new Date().toISOString(),
-                          ym: kind === "kb" ? (j.salePm.dates ? j.salePm.dates[1] : "") : (j.updated || "") });
-      hint.textContent = "저장했습니다.";
-      renderDataTab();
-      if (confirm("저장했습니다. 지금 새로고침해서 적용할까요?")) location.reload();
-    }).catch(function (e) {
-      hint.textContent = "저장 실패: " + (e.message || e) +
-        " (시크릿 모드에서는 저장이 막힐 수 있습니다.)";
-    });
-  };
-  fr.readAsText(f);
-}
-
-function clearDataFile(kind) {
-  if (!confirm("올린 파일을 지우고 저장소에 있는 기본 파일을 쓰도록 되돌릴까요?")) return;
-  idbDel(kind === "kb" ? "kb_data" : "supply_data").then(function () {
-    setDataMeta(kind, null);
-    renderDataTab();
-    if (confirm("지웠습니다. 지금 새로고침할까요?")) location.reload();
-  }).catch(function (e) {
-    document.getElementById("dm-hint-" + kind).textContent = "삭제 실패: " + (e.message || e);
-  });
-}
-
-function renderDataTab() {
-  if (!document.getElementById("dm-status")) return;
-  var meta = dataMeta();
-  var srcName = { upload: "내가 올린 파일", file: "저장소 기본 파일", none: "없음" };
-
-  var kbInfo = "", supInfo = "";
-  if (DB && DB.salePm) {
-    var d = DB.salePm.dates;
-    kbInfo = "기준월 <b>" + d[1] + "</b> · 시군구 " + Object.keys(DB.salePm.series).length + "곳 · " +
-      "지수 " + (DB.sale && DB.sale.dates ? DB.sale.dates[0] + "~" : "—");
-  } else kbInfo = '<span class="neg">불러오지 못했습니다.</span>';
-  if (SUPPLY_EXT) {
-    var blocks = [];
-    if (SUPPLY_EXT.unsold) blocks.push("미분양 " + Object.keys(SUPPLY_EXT.unsold.series || {}).length + "곳");
-    if (SUPPLY_EXT.unsoldDone) blocks.push("준공후 미분양");
-    if (SUPPLY_EXT.completions) blocks.push("준공실적 " + (SUPPLY_EXT.completions.years || []).length + "년");
-    if (SUPPLY_EXT.expected) blocks.push("입주예정 " + ((SUPPLY_EXT.expected.items || []).length) + "건");
-    if (SUPPLY_EXT.population) blocks.push("인구 " + Object.keys(SUPPLY_EXT.population.sigungu || {}).length + "곳");
-    supInfo = "기준 <b>" + (SUPPLY_EXT.updated || "—") + "</b> · " + blocks.join(" · ");
-  } else supInfo = "장착되지 않음 — 청약홈 실시간 조회만으로 동작합니다.";
-
-  [["kb", kbInfo], ["supply", supInfo]].forEach(function (pair) {
-    var kind = pair[0];
-    var badge = document.getElementById("dm-badge-" + kind);
-    var info = document.getElementById("dm-info-" + kind);
-    if (badge) {
-      badge.textContent = srcName[DATA_SRC[kind]] || "—";
-      badge.className = "badge" + (DATA_SRC[kind] === "upload" ? " ok" : (DATA_SRC[kind] === "none" ? " warn" : ""));
-    }
-    if (info) {
-      var m = meta[kind];
-      info.innerHTML = pair[1] +
-        (m ? "<br>올린 파일: " + m.name + " · " + Math.round(m.size / 1024) + "KB · " +
-             m.at.slice(0, 16).replace("T", " ") : "");
-    }
-  });
-
-  document.getElementById("dm-status").innerHTML =
-    '<div class="callout' + (DB ? "" : " warn") + '"><b>지금 쓰는 데이터</b><br>' +
-      "• KB 시계열 — " + (srcName[DATA_SRC.kb] || "없음") + "<br>" +
-      "• 확장 수급 — " + (srcName[DATA_SRC.supply] || "없음") + "<br>" +
-      "• 실거래 · K-apt · 청약홈 — API 실시간 (교체 불필요)</div>";
-}
 
 function buildSetting(root) {
   function num(id, label, v, step) {

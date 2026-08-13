@@ -1,7 +1,7 @@
 # TrackApt 인수인계 (HANDOFF)
 
 > 새 세션에서 이 파일 + `index.html` + `kb_data.json` + `PROJECT.md`를 올리면 그대로 이어서 작업할 수 있습니다.
-> 현재 버전: **v3.6** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
+> 현재 버전: **v3.8** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
 
 ---
 
@@ -114,6 +114,18 @@
   - **fetchTimeout(20초)**: 응답 지연 시 apiGet 큐가 막혀 전체 조회가 멈추던 문제 해결.
   - 사용법 출처 표를 탭 진입마다 재렌더(`refreshSourceTable`) — 항상 "미장착"으로
     보이던 버그 수정.
+- **v3.7**:
+  - **CSV 자동 변환**(`buildSupplyFromCsv`·`csvKind`·`decodeKr`·`ymPick`): 통계누리
+    미분양/준공, 행안부 인구 CSV를 브라우저에서 직접 supply_data로 변환·저장.
+    make_supply.py와 결과 일치(테스트 검증). 올린 종류만 교체, expected는 보존.
+    잠정치 표기("2025-10(잠정 p)") 흡수가 핵심 — 없으면 최근 연도가 통째로 빠진다.
+  - 카트 주변환경 재조회에 `envTried` 플래그 — K-apt 항목이 원래 비어 있는 경우를
+    "다시 눌러보세요"와 구분해 표시.
+  - 추적 방지(엣지·사파리)로 IndexedDB 저장이 막힐 수 있음을 데이터 탭에 안내.
+- **v3.8**: **데이터 업로드 탭·IndexedDB·CSV 변환기 전부 제거**. kb_data는 다중 시트
+  엑셀이라 브라우저 변환이 불가능해 경로를 하나로 통일했다. 갱신은 항상
+  `원본 → 세션에서 변환 → GitHub 교체 → Vercel 배포`. `loadData`/`loadSupplyExt`는
+  정적 파일 fetch로 원복. (v3.5~v3.7에서 넣었던 업로드 관련 코드는 되살리지 말 것.)
 
 ## 10. supply_data.json 스키마 (v3.4)
 
@@ -148,4 +160,4 @@
 
 ---
 
-*이 문서는 v3.6 시점 스냅샷입니다. 세부 변경 이력은 PROJECT.md의 버전별 섹션을 참고하세요.*
+*이 문서는 v3.8 시점 스냅샷입니다. 세부 변경 이력은 PROJECT.md의 버전별 섹션을 참고하세요.*

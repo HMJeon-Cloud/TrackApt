@@ -57,7 +57,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v1.2</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.0</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -82,10 +82,15 @@ th{color:var(--ink-soft);font-weight:600}
   <div class="btnrow" style="margin-top:0">
     <button class="btn" id="all-on">전체 선택</button>
     <button class="btn" id="all-off">전체 해제</button>
-    <label class="check" style="margin-left:4px"><input type="checkbox" id="oldcode">
-      개편 전 코드도 함께 조회 <span style="color:var(--ink-soft)">— 보통 불필요합니다.
-      실측 결과 국토부 API는 <b>과거 거래도 현재 코드로</b> 돌려줍니다 (2019년 강원 42·전북 45 계열 0건)</span></label>
   </div>
+
+  <label class="check" style="margin-top:12px"><input type="checkbox" id="discover" checked>
+    <b>코드 자동 탐지</b> — 수집 전에 5자리 코드 전 구간(10000~99999)을 훑어 실제 데이터가 나오는
+    코드를 찾아 수집 대상에 합칩니다</label>
+  <div class="note">코드표(내장 284개)는 행정 개편이 있으면 뒤처질 수 있습니다 — 2026.7 개편으로
+    인천 신설 4구·전남광주통합특별시가 통째로 빠졌던 원인입니다. 자동 탐지는 <b>90,000회를 1건짜리
+    응답으로</b> 호출해 40~60분 걸리지만, 결과가 브라우저에 저장되므로 <b>최초 한 번만</b> 걸립니다.
+    이후 수집(재실행·전월세 전환 포함)은 저장된 코드를 바로 씁니다.</div>
 
   <label class="f" style="margin-top:14px" for="only">특정 코드만 수집 (일회성) — 5자리 코드를 쉼표로. 비우면 위 지역 전체</label>
   <input id="only" type="text" placeholder="예: 47720, 28170, 41192">
@@ -108,35 +113,6 @@ th{color:var(--ink-soft);font-weight:600}
 </div>
 
 <div class="card">
-  <div class="eyebrow">Diagnose</div>
-  <h2>코드 탐색 — 누락 시군구 찾기</h2>
-  <p class="desc">실거래 API는 <b>과거 거래도 현재 행정구역 코드로</b> 돌려줍니다. 그래서
-    코드표가 최신 개편을 못 따라가면 <b>그 시군구가 통째로 빈 결과</b>가 됩니다.
-    (2019년 9월 실측: 인천 신설 4구 · 전남광주통합특별시 전역 = 3,595건 누락)
-    기준 월 하나로 코드를 전수 조사하면 지금 살아있는 코드를 남김없이 찾아냅니다.</p>
-  <div class="note">기본값 <b>28, 29, 46, 53, 54, 55</b> = 인천(신설 구) + 광주·전남(통합) 후보 앞자리입니다.
-    6,000회 · 5분이면 끝납니다. 다른 지역도 의심되면 앞자리를 추가하세요.</div>
-  <div class="grid">
-    <div><label class="f" for="scan-ym">기준 년월</label><input id="scan-ym" type="month" value="2019-09"></div>
-    <div><label class="f" for="scan-pre">코드 앞 2자리 (쉼표)</label>
-      <input id="scan-pre" type="text" value="28,29,46,53,54,55"></div>
-  </div>
-  <div class="btnrow">
-    <button class="btn" id="scan-go">코드 탐색 시작</button>
-    <button class="btn" id="scan-stop" disabled>중지</button>
-    <button class="btn" id="scan-add" disabled>찾은 코드를 수집 대상에 추가</button>
-  <button class="btn" id="scan-new" disabled>새 코드만 수집 대상에 넣기</button>
-    <button class="btn" id="scan-dl" disabled>결과 CSV 저장</button>
-  </div>
-  <div class="bar"><i id="scan-bar"></i></div>
-  <div class="stat" id="scan-stat"></div>
-  <div class="tbl" style="max-height:220px;margin-top:8px"><table id="scan-tbl"><thead></thead><tbody></tbody></table></div>
-  <div class="note warn">코드 앞자리 하나당 1,000회를 호출합니다(19개 전부면 19,000회 · 15~25분).
-    일일 트래픽 100만 대비 2% 수준이고, <b>한 번만 돌리면 됩니다</b>. 급하면 의심 가는 앞자리
-    (예: 대구 27 · 경북 47 · 인천 28)만 넣고 돌리세요.</div>
-</div>
-
-<div class="card">
   <div class="eyebrow">Log</div>
   <h2>진행 기록</h2>
   <div class="log" id="log">대기 중…</div>
@@ -155,15 +131,6 @@ th{color:var(--ink-soft);font-weight:600}
 <script>
 /* ── 시군구 코드표 (행안부 주민등록 행정구역 코드 기준) ── */
 var LAWD = [["11110","서울","종로구"],["11140","서울","중구"],["11170","서울","용산구"],["11200","서울","성동구"],["11215","서울","광진구"],["11230","서울","동대문구"],["11260","서울","중랑구"],["11290","서울","성북구"],["11305","서울","강북구"],["11320","서울","도봉구"],["11350","서울","노원구"],["11380","서울","은평구"],["11410","서울","서대문구"],["11440","서울","마포구"],["11470","서울","양천구"],["11500","서울","강서구"],["11530","서울","구로구"],["11545","서울","금천구"],["11560","서울","영등포구"],["11590","서울","동작구"],["11620","서울","관악구"],["11650","서울","서초구"],["11680","서울","강남구"],["11710","서울","송파구"],["11740","서울","강동구"],["26110","부산","중구"],["26140","부산","서구"],["26170","부산","동구"],["26200","부산","영도구"],["26230","부산","부산진구"],["26260","부산","동래구"],["26290","부산","남구"],["26320","부산","북구"],["26350","부산","해운대구"],["26380","부산","사하구"],["26410","부산","금정구"],["26440","부산","강서구"],["26470","부산","연제구"],["26500","부산","수영구"],["26530","부산","사상구"],["26710","부산","기장군"],["27110","대구","중구"],["27140","대구","동구"],["27170","대구","서구"],["27200","대구","남구"],["27230","대구","북구"],["27260","대구","수성구"],["27290","대구","달서구"],["27710","대구","달성군"],["27720","대구","군위군"],["28110","인천","중구"],["28140","인천","동구"],["28177","인천","미추홀구"],["28185","인천","연수구"],["28200","인천","남동구"],["28237","인천","부평구"],["28245","인천","계양구"],["28260","인천","서구"],["28710","인천","강화군"],["28720","인천","옹진군"],["29110","광주","동구"],["29140","광주","서구"],["29155","광주","남구"],["29170","광주","북구"],["29200","광주","광산구"],["30110","대전","동구"],["30140","대전","중구"],["30170","대전","서구"],["30200","대전","유성구"],["30230","대전","대덕구"],["31110","울산","중구"],["31140","울산","남구"],["31170","울산","동구"],["31200","울산","북구"],["31710","울산","울주군"],["36110","세종","세종특별자치시"],["41110","경기","수원시"],["41111","경기","수원시 장안구"],["41113","경기","수원시 권선구"],["41115","경기","수원시 팔달구"],["41117","경기","수원시 영통구"],["41130","경기","성남시"],["41131","경기","성남시 수정구"],["41133","경기","성남시 중원구"],["41135","경기","성남시 분당구"],["41150","경기","의정부시"],["41170","경기","안양시"],["41171","경기","안양시 만안구"],["41173","경기","안양시 동안구"],["41190","경기","부천시"],["41192","경기","부천시 원미구"],["41194","경기","부천시 소사구"],["41196","경기","부천시 오정구"],["41210","경기","광명시"],["41220","경기","평택시"],["41250","경기","동두천시"],["41270","경기","안산시"],["41271","경기","안산시 상록구"],["41273","경기","안산시 단원구"],["41280","경기","고양시"],["41281","경기","고양시 덕양구"],["41285","경기","고양시 일산동구"],["41287","경기","고양시 일산서구"],["41290","경기","과천시"],["41310","경기","구리시"],["41360","경기","남양주시"],["41370","경기","오산시"],["41390","경기","시흥시"],["41410","경기","군포시"],["41430","경기","의왕시"],["41450","경기","하남시"],["41460","경기","용인시"],["41461","경기","용인시 처인구"],["41463","경기","용인시 기흥구"],["41465","경기","용인시 수지구"],["41480","경기","파주시"],["41500","경기","이천시"],["41550","경기","안성시"],["41570","경기","김포시"],["41590","경기","화성시"],["41591","경기","화성시 만세구"],["41593","경기","화성시 효행구"],["41595","경기","화성시 병점구"],["41597","경기","화성시 동탄구"],["41610","경기","광주시"],["41630","경기","양주시"],["41650","경기","포천시"],["41670","경기","여주시"],["41800","경기","연천군"],["41820","경기","가평군"],["41830","경기","양평군"],["42110","강원","춘천시 (구코드)"],["42130","강원","원주시 (구코드)"],["42150","강원","강릉시 (구코드)"],["42170","강원","동해시 (구코드)"],["42190","강원","태백시 (구코드)"],["42210","강원","속초시 (구코드)"],["42230","강원","삼척시 (구코드)"],["42720","강원","홍천군 (구코드)"],["42730","강원","횡성군 (구코드)"],["42750","강원","영월군 (구코드)"],["42760","강원","평창군 (구코드)"],["42770","강원","정선군 (구코드)"],["42780","강원","철원군 (구코드)"],["42790","강원","화천군 (구코드)"],["42800","강원","양구군 (구코드)"],["42810","강원","인제군 (구코드)"],["42820","강원","고성군 (구코드)"],["42830","강원","양양군 (구코드)"],["43110","충북","청주시"],["43111","충북","청주시 상당구"],["43112","충북","청주시 서원구"],["43113","충북","청주시 흥덕구"],["43114","충북","청주시 청원구"],["43130","충북","충주시"],["43150","충북","제천시"],["43720","충북","보은군"],["43730","충북","옥천군"],["43740","충북","영동군"],["43745","충북","증평군"],["43750","충북","진천군"],["43760","충북","괴산군"],["43770","충북","음성군"],["43800","충북","단양군"],["44130","충남","천안시"],["44131","충남","천안시 동남구"],["44133","충남","천안시 서북구"],["44150","충남","공주시"],["44180","충남","보령시"],["44200","충남","아산시"],["44210","충남","서산시"],["44230","충남","논산시"],["44250","충남","계룡시"],["44270","충남","당진시"],["44710","충남","금산군"],["44760","충남","부여군"],["44770","충남","서천군"],["44790","충남","청양군"],["44800","충남","홍성군"],["44810","충남","예산군"],["44825","충남","태안군"],["45110","전북","전주시"],["45111","전북","전주시 완산구"],["45113","전북","전주시 덕진구"],["45130","전북","군산시"],["45140","전북","익산시"],["45180","전북","정읍시"],["45190","전북","남원시"],["45210","전북","김제시"],["45710","전북","완주군"],["45720","전북","진안군"],["45730","전북","무주군"],["45740","전북","장수군"],["45750","전북","임실군"],["45770","전북","순창군"],["45790","전북","고창군"],["45800","전북","부안군"],["46110","전남","목포시"],["46130","전남","여수시"],["46150","전남","순천시"],["46170","전남","나주시"],["46230","전남","광양시"],["46710","전남","담양군"],["46720","전남","곡성군"],["46730","전남","구례군"],["46770","전남","고흥군"],["46780","전남","보성군"],["46790","전남","화순군"],["46800","전남","장흥군"],["46810","전남","강진군"],["46820","전남","해남군"],["46830","전남","영암군"],["46840","전남","무안군"],["46860","전남","함평군"],["46870","전남","영광군"],["46880","전남","장성군"],["46890","전남","완도군"],["46900","전남","진도군"],["46910","전남","신안군"],["47110","경북","포항시"],["47111","경북","포항시 남구"],["47113","경북","포항시 북구"],["47130","경북","경주시"],["47150","경북","김천시"],["47170","경북","안동시"],["47190","경북","구미시"],["47210","경북","영주시"],["47230","경북","영천시"],["47250","경북","상주시"],["47280","경북","문경시"],["47290","경북","경산시"],["47730","경북","의성군"],["47750","경북","청송군"],["47760","경북","영양군"],["47770","경북","영덕군"],["47820","경북","청도군"],["47830","경북","고령군"],["47840","경북","성주군"],["47850","경북","칠곡군"],["47900","경북","예천군"],["47920","경북","봉화군"],["47930","경북","울진군"],["47940","경북","울릉군"],["48120","경남","창원시"],["48121","경남","창원시 의창구"],["48123","경남","창원시 성산구"],["48125","경남","창원시 마산합포구"],["48127","경남","창원시 마산회원구"],["48129","경남","창원시 진해구"],["48170","경남","진주시"],["48220","경남","통영시"],["48240","경남","사천시"],["48250","경남","김해시"],["48270","경남","밀양시"],["48310","경남","거제시"],["48330","경남","양산시"],["48720","경남","의령군"],["48730","경남","함안군"],["48740","경남","창녕군"],["48820","경남","고성군"],["48840","경남","남해군"],["48850","경남","하동군"],["48860","경남","산청군"],["48870","경남","함양군"],["48880","경남","거창군"],["48890","경남","합천군"],["50110","제주","제주시"],["50130","제주","서귀포시"],["51110","강원","춘천시"],["51130","강원","원주시"],["51150","강원","강릉시"],["51170","강원","동해시"],["51190","강원","태백시"],["51210","강원","속초시"],["51230","강원","삼척시"],["51720","강원","홍천군"],["51730","강원","횡성군"],["51750","강원","영월군"],["51760","강원","평창군"],["51770","강원","정선군"],["51780","강원","철원군"],["51790","강원","화천군"],["51800","강원","양구군"],["51810","강원","인제군"],["51820","강원","고성군"],["51830","강원","양양군"],["52110","전북","전주시"],["52111","전북","전주시 완산구"],["52113","전북","전주시 덕진구"],["52130","전북","군산시"],["52140","전북","익산시"],["52180","전북","정읍시"],["52190","전북","남원시"],["52210","전북","김제시"],["52710","전북","완주군"],["52720","전북","진안군"],["52730","전북","무주군"],["52740","전북","장수군"],["52750","전북","임실군"],["52770","전북","순창군"],["52790","전북","고창군"],["52800","전북","부안군"]];
-
-/* 행정구역 개편으로 사라졌거나 옮겨간 과거 코드 — 그 시절 신고분은 이 코드로만 나온다 */
-LAWD = LAWD.concat([
-  ["47720", "경북", "군위군 (2023.6 이전)"],
-  ["28170", "인천", "남구 (2018.6 이전·현 미추홀구)"],
-  ["41192", "경기", "부천시 원미구 (2016.6 이전)"],
-  ["41194", "경기", "부천시 소사구 (2016.6 이전)"],
-  ["41196", "경기", "부천시 오정구 (2016.6 이전)"]
-]);
 
 var SIDO_ORDER = ["서울","경기","인천","부산","대구","광주","대전","울산","세종",
                   "강원","충북","충남","전북","전남","경북","경남","제주"];
@@ -217,34 +184,61 @@ function months() {
   }
   return out;
 }
+var PREFIX_SIDO = { "11": "서울", "26": "부산", "27": "대구", "28": "인천", "29": "광주",
+  "30": "대전", "31": "울산", "36": "세종", "41": "경기", "43": "충북", "44": "충남",
+  "46": "전남", "47": "경북", "48": "경남", "50": "제주", "51": "강원", "52": "전북" };
+function sidoOfCode(c) { return PREFIX_SIDO[c.slice(0, 2)] || null; }
+
+function knownCodes() {
+  return LAWD.filter(function (x) {
+    return !/\(구코드\)/.test(x[2]) && !/^45/.test(x[0]);
+  });
+}
+function discovered() {
+  try {
+    var d = JSON.parse(localStorage.getItem("collect_codes_v1") || "null");
+    return (d && d.codes) ? d : null;
+  } catch (e) { return null; }
+}
 function regions() {
   var only = ($("only").value || "").split(/[^0-9]+/).filter(function (x) { return x.length === 5; });
   if (only.length) {
     return only.map(function (c) {
       var hit = LAWD.filter(function (x) { return x[0] === c; })[0];
-      return hit || [c, "기타", "코드 " + c];
+      return hit || [c, sidoOfCode(c) || "기타", "코드 " + c];
     });
   }
-  var useOld = $("oldcode").checked;
-  return LAWD.filter(function (x) {
-    if (!ST.on[x[1]]) return false;
-    if (!useOld && /\(구코드\)/.test(x[2])) return false;
-    if (!useOld && /^45/.test(x[0])) return false;   /* 전북 개편 전 */
-    return true;
-  });
+  var base = knownCodes().filter(function (x) { return ST.on[x[1]]; });
+  var dc = discovered();
+  if (dc) {
+    var have = {};
+    base.forEach(function (x) { have[x[0]] = 1; });
+    dc.codes.forEach(function (c) {
+      if (have[c]) return;
+      var sd = sidoOfCode(c);
+      /* 알려진 시·도 대역이면 그 칩을 따르고, 새 대역이면 항상 포함 */
+      if (sd && !ST.on[sd]) return;
+      base.push([c, sd || "신규", "탐지 " + c]);
+      have[c] = 1;
+    });
+  }
+  return base;
 }
 function plan() {
   var ms = months(), rs = regions();
+  var dc = discovered();
   var n = ms.length * rs.length;
+  var extra = dc ? rs.filter(function (x) { return /^탐지 /.test(x[2]); }).length : 0;
   ST.total = n;
   var sec = Math.round(n / Number($("conc").value) * 0.35);
   $("plan").innerHTML =
     "<div><b>" + fmt(ms.length) + "</b><span>개월</span></div>" +
-    "<div><b>" + fmt(rs.length) + "</b><span>시군구</span></div>" +
+    "<div><b>" + fmt(rs.length) + "</b><span>시군구" +
+      (dc ? " · 탐지 " + extra + "개 포함" : " · 탐지 전") + "</span></div>" +
     "<div><b>" + fmt(n) + "</b><span>예상 호출</span></div>" +
     "<div><b>" + (sec > 60 ? Math.round(sec / 60) + "분" : sec + "초") + "</b><span>예상 소요</span></div>";
 }
-["from", "to", "conc", "oldcode", "only"].forEach(function (id) {
+["from", "to", "conc", "only"].forEach(function (id) {
   $(id).addEventListener("change", plan);
   $(id).addEventListener("input", plan);
 });
@@ -290,9 +284,9 @@ function sigOf(it) {
   return [it.apt || it.aptNm, it.day || it.dealDay, it.amount || it.dealAmount || it.deposit,
           it.floor, it.area || it.excluUseAr].join("|");
 }
-function callPage(kind, lawd, ym, page) {
+function callPage(kind, lawd, ym, page, size) {
   var url = "/api/trades?kind=" + kind + "&lawd=" + lawd + "&ym=" + ym +
-            "&numOfRows=" + PAGE_SIZE + "&pageNo=" + page;
+            "&numOfRows=" + (size || PAGE_SIZE) + "&pageNo=" + page;
   return fetch(url).then(function (r) {
     if (!r.ok) throw new Error("HTTP " + r.status);
     return r.json();
@@ -387,8 +381,21 @@ function run(jobs) {
     $("go").disabled = false; $("stop").disabled = true;
     $("dl").disabled = ST.rows.length === 0;
     $("retry").disabled = ST.fail.length === 0;
-    log("완료 — 수집 " + fmt(ST.rows.length) + "건 · 빈 응답 " + fmt(ST.empty) +
-        " · 실패 " + fmt(ST.fail.length));
+    log("완료 — 남은 메모리 " + fmt(ST.rows.length) + "건 · 빈 응답 " + fmt(ST.empty) +
+        " · 실패 " + fmt(ST.fail.length) + (ST.saved.length ? " · 저장 " + ST.saved.length + "개 파일" : ""));
+    /* 시·도별 커버리지 — 0건인 시·도는 코드 누락 신호 */
+    var bySd = {};
+    Object.keys(ST.tally).forEach(function (k) {
+      var sd = k.split(" ")[0];
+      bySd[sd] = (bySd[sd] || 0) + ST.tally[k];
+    });
+    var line = Object.keys(bySd).sort().map(function (sd) {
+      return sd + " " + fmt(bySd[sd]);
+    }).join(" · ");
+    log("시·도별 수집: " + (line || "없음"));
+    SIDO_ORDER.forEach(function (sd) {
+      if (ST.on[sd] && !bySd[sd]) log("경고 — " + sd + " 수집 0건: 코드 누락 가능성. 자동 탐지를 켜고 다시 시도하세요.");
+    });
     preview();
   });
 }
@@ -410,6 +417,12 @@ function csvCell(v) {
   v = v == null ? "" : String(v);
   return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
 }
+/* 엑셀이 "1-39"를 날짜(Jan-39)로 바꾸는 것을 막는다 — 수식 문자열로 감싸 텍스트 고정 */
+function excelText(v) {
+  v = v == null ? "" : String(v);
+  if (v === "" || v === "-") return v;
+  return '="' + v.replace(/"/g, '""') + '"';
+}
 function buildCsv(rows, kind) {
   var head = kind === "rent"
     ? ["시군구", "번지", "단지명", "전용면적(㎡)", "계약년월", "계약일", "보증금(만원)", "월세(만원)",
@@ -419,12 +432,13 @@ function buildCsv(rows, kind) {
   var out = [head.join(",")];
   rows.forEach(function (r) {
     var sgg = (SIDO_FULL[r.sido] || r.sido) + " " + r.sgg + (r.dong ? " " + r.dong : "");
+    var jb = excelText(r.jibun);
     var line = kind === "rent"
-      ? [sgg, r.jibun, r.apt, r.area, r.ym, r.day, r.deposit, r.rent, r.floor, r.buildYear,
+      ? [sgg, jb, r.apt, r.area, r.ym, r.day, r.deposit, r.rent, r.floor, r.buildYear,
          r.term, r.ctype, r.lawd]
-      : [sgg, r.jibun, r.apt, r.area, r.ym, r.day, r.amount, r.floor, r.buildYear,
+      : [sgg, jb, r.apt, r.area, r.ym, r.day, r.amount, r.floor, r.buildYear,
          r.cancel, r.gbn, r.lawd];
-    out.push(line.map(csvCell).join(","));
+    out.push(line.map(function (v, i) { return i === 1 ? v : csvCell(v); }).join(","));
   });
   return out.join("\r\n");
 }
@@ -494,13 +508,67 @@ function makeJobs() {
   });
   return jobs;
 }
+/* ── 코드 자동 탐지: 10000~99999 전 구간을 1건짜리 응답으로 프로브 ── */
+var DISC_RANGE = [10000, 99999];          /* 테스트에서 좁힐 수 있게 변수화 */
+function discoverCodes() {
+  var ym = "202606";                      /* 현행 코드가 온전한 확정 월 */
+  var codes = [];
+  var total = DISC_RANGE[1] - DISC_RANGE[0] + 1, done = 0, conc = Number($("conc").value) + 2;
+  var t0 = Date.now();
+  ST.abort = false;                       /* 이전 수집을 중지했어도 탐지는 새로 시작 */
+  log("코드 자동 탐지 시작 — " + DISC_RANGE[0] + "~" + DISC_RANGE[1] + " · " + fmt(total) +
+      "회 (1건 응답, 최초 1회만)");
+  $("go").disabled = true; $("stop").disabled = false;
+  var cur = DISC_RANGE[0];
+  function next() {
+    if (ST.abort || cur > DISC_RANGE[1]) return Promise.resolve();
+    var code = String(cur++);
+    return callPage($("kind").value === "rent" ? "rent" : "sale", code, ym, 1, 1)
+      .then(function (items) { if (items.length) codes.push(code); })
+      .catch(function () {})
+      .then(function () {
+        done++;
+        if (done % 200 === 0 || done === total) {
+          var el = (Date.now() - t0) / 1000;
+          var eta = Math.round(el / done * (total - done));
+          $("bar").style.width = (done / total * 100).toFixed(1) + "%";
+          $("prog").innerHTML =
+            "<div><b>" + fmt(done) + " / " + fmt(total) + "</b><span>코드 탐지</span></div>" +
+            "<div><b>" + fmt(codes.length) + "</b><span>발견</span></div>" +
+            "<div><b>" + (eta > 60 ? Math.round(eta / 60) + "분" : eta + "초") + "</b><span>남은 예상</span></div>";
+        }
+        return next();
+      });
+  }
+  var pool = [];
+  for (var i = 0; i < conc; i++) pool.push(next());
+  return Promise.all(pool).then(function () {
+    if (ST.abort) { log("탐지 중지됨 — 저장하지 않습니다"); return false; }
+    localStorage.setItem("collect_codes_v1", JSON.stringify({ ym: ym, when: Date.now(), codes: codes }));
+    var news = codes.filter(function (c) {
+      return !LAWD.some(function (x) { return x[0] === c; });
+    });
+    log("탐지 완료 — 살아있는 코드 " + codes.length + "개 · 코드표에 없던 것 " + news.length +
+        "개" + (news.length ? " (" + news.slice(0, 40).join(", ") + ")" : ""));
+    plan();
+    return true;
+  });
+}
+
 $("go").addEventListener("click", function () {
-  var jobs = makeJobs();
-  if (!jobs.length) { alert("기간과 지역을 확인하세요."); return; }
-  if (jobs.length > 40000 &&
-      !confirm(jobs.length.toLocaleString() + "회를 호출합니다. 시간이 오래 걸립니다. 진행할까요?")) return;
-  ST.rows = []; ST.saved = [];
-  run(jobs);
+  var needDiscover = $("discover").checked && !discovered();
+  var start = needDiscover ? discoverCodes() : Promise.resolve(true);
+  start.then(function (okgo) {
+    if (okgo === false) { $("go").disabled = false; $("stop").disabled = true; return; }
+    var jobs = makeJobs();
+    if (!jobs.length) { alert("기간과 지역을 확인하세요."); $("go").disabled = false; return; }
+    if (jobs.length > 60000 &&
+        !confirm(jobs.length.toLocaleString() + "회를 호출합니다. 시간이 오래 걸립니다. 진행할까요?")) {
+      $("go").disabled = false; $("stop").disabled = true; return;
+    }
+    ST.rows = []; ST.saved = []; ST.tally = {};
+    run(jobs);
+  });
 });
 $("stop").addEventListener("click", function () {
   ST.abort = true; log("중지 요청 — 진행 중인 요청이 끝나면 멈춥니다.");
@@ -512,112 +580,6 @@ $("retry").addEventListener("click", function () {
   run(jobs);
 });
 
-
-/* ══ 코드 탐색 ══════════════════════════════
-   기준 월 하나로 5자리 코드 공간을 훑어, 그 시점에 실제로 데이터가 나오는 코드를 찾는다.
-   행정구역 개편으로 코드가 바뀐 지역을 표로 확인하고 그대로 수집 대상에 넣을 수 있다. */
-var SCAN = { running: false, abort: false, found: [], done: 0, total: 0 };
-
-function scanRun() {
-  var ymv = $("scan-ym").value;
-  if (!ymv) { alert("기준 년월을 입력하세요."); return; }
-  var ym = ymv.slice(0, 4) + ymv.slice(5, 7);
-  var pres = ($("scan-pre").value || "").split(/[^0-9]+/).filter(function (x) { return x.length === 2; });
-  if (!pres.length) { alert("코드 앞 2자리를 입력하세요."); return; }
-  var kind = $("kind").value;
-  var jobs = [];
-  pres.forEach(function (p) {
-    for (var i = 0; i < 1000; i++) jobs.push(p + ("00" + i).slice(-3));
-  });
-  SCAN.running = true; SCAN.abort = false; SCAN.found = []; SCAN.done = 0; SCAN.total = jobs.length;
-  $("scan-go").disabled = true; $("scan-stop").disabled = false;
-  $("scan-add").disabled = true; $("scan-new").disabled = true; $("scan-dl").disabled = true;
-  log("코드 탐색 시작 — " + ym + " · " + jobs.length + "개 코드");
-
-  var idx = 0, conc = Number($("conc").value);
-  function next() {
-    if (SCAN.abort || idx >= jobs.length) return Promise.resolve();
-    var code = jobs[idx++];
-    return callPage(kind, code, ym, 1).then(function (items) {
-      if (items.length) {
-        var known = LAWD.filter(function (x) { return x[0] === code; })[0];
-        var it = items[0];
-        SCAN.found.push({ code: code, n: items.length,
-          name: known ? known[1] + " " + known[2] : "(코드표에 없음)",
-          sample: pick(it, "dong", "umdNm", "법정동") + " " + pick(it, "apt", "aptNm"),
-          known: !!known });
-      }
-    }).catch(function () { /* 없는 코드는 조용히 넘어간다 */ })
-      .then(function () {
-        SCAN.done++;
-        if (SCAN.done % 20 === 0 || SCAN.done === SCAN.total) scanProgress();
-        return next();
-      });
-  }
-  var pool = [];
-  for (var i = 0; i < conc; i++) pool.push(next());
-  Promise.all(pool).then(function () {
-    SCAN.running = false;
-    $("scan-go").disabled = false; $("scan-stop").disabled = true;
-    $("scan-add").disabled = SCAN.found.length === 0;
-    $("scan-new").disabled = SCAN.found.length === 0;
-    $("scan-dl").disabled = SCAN.found.length === 0;
-    scanProgress();
-    var unknown = SCAN.found.filter(function (f) { return !f.known; });
-    log("탐색 완료 — 데이터가 나온 코드 " + SCAN.found.length + "개 (그중 코드표에 없던 것 " +
-        unknown.length + "개)");
-  });
-}
-function scanProgress() {
-  $("scan-bar").style.width = (SCAN.total ? SCAN.done / SCAN.total * 100 : 0).toFixed(1) + "%";
-  var unknown = SCAN.found.filter(function (f) { return !f.known; });
-  $("scan-stat").innerHTML =
-    "<div><b>" + fmt(SCAN.done) + " / " + fmt(SCAN.total) + "</b><span>조사</span></div>" +
-    "<div><b>" + fmt(SCAN.found.length) + "</b><span>살아있는 코드</span></div>" +
-    "<div><b class='" + (unknown.length ? "bad" : "ok") + "'>" + fmt(unknown.length) +
-      "</b><span>코드표에 없던 것</span></div>";
-  var rows = SCAN.found.slice().sort(function (a, b) {
-    return (a.known === b.known) ? a.code.localeCompare(b.code) : (a.known ? 1 : -1);
-  }).slice(0, 200);
-  $("scan-tbl").querySelector("thead").innerHTML =
-    "<tr><th>코드</th><th>코드표</th><th>건수</th><th>표본</th></tr>";
-  $("scan-tbl").querySelector("tbody").innerHTML = rows.map(function (f) {
-    return "<tr><td>" + f.code + "</td><td class='" + (f.known ? "" : "bad") + "'>" + f.name +
-      "</td><td>" + f.n + (f.n >= PAGE_SIZE ? "+" : "") + "</td><td>" + f.sample + "</td></tr>";
-  }).join("") || '<tr><td colspan="4" style="color:var(--miss)">아직 없습니다.</td></tr>';
-}
-$("scan-go").addEventListener("click", scanRun);
-$("scan-stop").addEventListener("click", function () {
-  SCAN.abort = true; log("탐색 중지 요청");
-});
-$("scan-add").addEventListener("click", function () {
-  var added = 0;
-  SCAN.found.forEach(function (f) {
-    if (LAWD.filter(function (x) { return x[0] === f.code; }).length) return;
-    LAWD.push([f.code, "기타", "탐색 " + f.code]);
-    added++;
-  });
-  $("only").value = SCAN.found.map(function (f) { return f.code; }).join(", ");
-  drawChips(); plan();
-  alert("코드표에 " + added + "개를 추가하고, 찾은 코드 " + SCAN.found.length +
-        "개를 '특정 코드만 수집' 칸에 넣었습니다.\n기간을 정하고 [수집 시작]을 누르면 그 코드만 받습니다.");
-});
-$("scan-new").addEventListener("click", function () {
-  var news = SCAN.found.filter(function (f) { return !f.known; });
-  if (!news.length) { alert("코드표에 없던 코드가 없습니다."); return; }
-  news.forEach(function (f) { LAWD.push([f.code, "기타", "신규 " + f.code]); });
-  $("only").value = news.map(function (f) { return f.code; }).join(", ");
-  plan();
-  alert("새 코드 " + news.length + "개를 '특정 코드만 수집'에 넣었습니다.\n" +
-        "기간을 2019-01~2019-12로 두고 [수집 시작]을 누르면 누락분만 받습니다.");
-});
-$("scan-dl").addEventListener("click", function () {
-  var out = ["법정동코드,코드표,건수,표본"];
-  SCAN.found.forEach(function (f) {
-    out.push([f.code, f.name, f.n, f.sample].map(csvCell).join(","));
-  });
-  download("코드탐색_" + $("scan-ym").value + ".csv", out.join("\r\n"));
-});
 
 drawChips(); plan(); preview();
 </script>

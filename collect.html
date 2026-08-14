@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>TrackApt 실거래 수집기</title>
+<style>
+:root{--bg:#0b1017;--panel:#131a24;--panel-2:#182231;--line:#26303f;--ink:#e8edf5;
+  --ink-soft:#8a93a6;--brand:#d4af6a;--up:#2fbf9b;--down:#e08c3a;--miss:#5a6474}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,
+  "Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:14px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.3rem;margin:0 0 4px}
+h2{font-size:1rem;margin:0 0 10px}
+.eyebrow{color:var(--brand);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 6px 20px rgba(0,0,0,.3)}
+.desc{color:var(--ink-soft);margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label.f{display:block;font-size:.76rem;color:var(--ink-soft);margin-bottom:4px}
+input,select{width:100%;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);
+  border-radius:9px;padding:9px 10px;font-size:16px;font-family:inherit}
+.btn{background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:9px;
+  padding:9px 14px;font-size:.9rem;font-family:inherit;cursor:pointer}
+.btn:hover{border-color:var(--brand)}
+.btn.gold{background:linear-gradient(135deg,#e6c886,#c39a52);color:#11161f;border:0;font-weight:700}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:5px 11px;
+  font-size:.8rem;cursor:pointer;user-select:none}
+.chip.on{background:linear-gradient(135deg,#e6c886,#c39a52);color:#11161f;border-color:transparent;font-weight:700}
+.bar{height:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin:10px 0}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#c39a52,#e6c886);width:0;transition:width .2s}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}
+.stat>div{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.stat b{display:block;font-size:1.05rem}
+.stat span{font-size:.72rem;color:var(--ink-soft)}
+.log{background:#0a0e15;border:1px solid var(--line);border-radius:10px;padding:10px;height:170px;
+  overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.74rem;color:var(--ink-soft);white-space:pre-wrap}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--ink-soft);font-weight:600}
+.tbl{overflow:auto;max-height:320px;border:1px solid var(--line);border-radius:10px}
+.note{background:var(--panel-2);border-left:3px solid var(--brand);border-radius:0 10px 10px 0;
+  padding:10px 12px;color:var(--ink-soft);font-size:.82rem;margin-top:10px}
+.warn{border-left-color:var(--down);color:#f0c48a}
+.ok{color:var(--up)}.bad{color:var(--down)}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer}
+.check input{width:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="card">
+  <div class="eyebrow">Collector</div>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v1.0</span></h1>
+  <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
+    기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
+    이 화면에 키를 넣을 일은 없습니다.</p>
+  <div class="note">브라우저 메모리 보호를 위해 <b>연도가 끝날 때마다 파일을 자동 저장</b>합니다(기본값).
+    2012~2019년처럼 긴 기간은 연도별 파일 여러 개로 떨어집니다 — 엑셀 행 제한(104만) 때문에도 이 편이 안전합니다.</div>
+</div>
+
+<div class="card">
+  <div class="eyebrow">Settings</div>
+  <h2>수집 조건</h2>
+  <div class="grid">
+    <div><label class="f" for="kind">자료 종류</label>
+      <select id="kind"><option value="sale">아파트 매매</option><option value="rent">아파트 전월세</option></select></div>
+    <div><label class="f" for="from">시작 (YYYY-MM)</label><input id="from" type="month" value="2012-01"></div>
+    <div><label class="f" for="to">종료 (YYYY-MM)</label><input id="to" type="month" value="2019-07"></div>
+    <div><label class="f" for="conc">동시 요청</label>
+      <select id="conc"><option>2</option><option selected>4</option><option>6</option><option>8</option></select></div>
+  </div>
+
+  <label class="f" style="margin-top:14px">지역 — 시·도를 눌러 켜고 끕니다</label>
+  <div class="chips" id="sidos"></div>
+  <div class="btnrow" style="margin-top:0">
+    <button class="btn" id="all-on">전체 선택</button>
+    <button class="btn" id="all-off">전체 해제</button>
+    <label class="check" style="margin-left:4px"><input type="checkbox" id="oldcode" checked>
+      개편 전 코드도 함께 조회 (강원 42·전북 45)</label>
+  </div>
+
+  <div class="btnrow">
+    <label class="check"><input type="checkbox" id="autosave" checked> 연도별 자동 저장</label>
+    <label class="check"><input type="checkbox" id="skipcancel"> 해제(취소) 거래 제외</label>
+  </div>
+
+  <div class="stat" id="plan"></div>
+  <div class="btnrow">
+    <button class="btn gold" id="go">수집 시작</button>
+    <button class="btn" id="stop" disabled>중지</button>
+    <button class="btn" id="dl" disabled>지금까지 CSV로 저장</button>
+    <button class="btn" id="retry" disabled>실패분만 재시도</button>
+  </div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="stat" id="prog"></div>
+</div>
+
+<div class="card">
+  <div class="eyebrow">Log</div>
+  <h2>진행 기록</h2>
+  <div class="log" id="log">대기 중…</div>
+</div>
+
+<div class="card">
+  <div class="eyebrow">Preview</div>
+  <h2>미리보기 <span id="pvn" style="color:var(--ink-soft);font-size:.8rem"></span></h2>
+  <div class="tbl"><table id="pv"><thead></thead><tbody></tbody></table></div>
+  <div class="note">CSV는 UTF-8(BOM) 이라 엑셀에서 바로 열립니다. 열 구성은 실거래가 공개시스템
+    다운로드본과 최대한 맞췄지만, API가 주지 않는 항목(도로명·매수자·등기일자 등)은 <code>-</code>로 채웁니다.</div>
+</div>
+
+</div>
+
+<script>
+/* ── 시군구 코드표 (행안부 주민등록 행정구역 코드 기준) ── */
+var LAWD = [["11110","서울","종로구"],["11140","서울","중구"],["11170","서울","용산구"],["11200","서울","성동구"],["11215","서울","광진구"],["11230","서울","동대문구"],["11260","서울","중랑구"],["11290","서울","성북구"],["11305","서울","강북구"],["11320","서울","도봉구"],["11350","서울","노원구"],["11380","서울","은평구"],["11410","서울","서대문구"],["11440","서울","마포구"],["11470","서울","양천구"],["11500","서울","강서구"],["11530","서울","구로구"],["11545","서울","금천구"],["11560","서울","영등포구"],["11590","서울","동작구"],["11620","서울","관악구"],["11650","서울","서초구"],["11680","서울","강남구"],["11710","서울","송파구"],["11740","서울","강동구"],["26110","부산","중구"],["26140","부산","서구"],["26170","부산","동구"],["26200","부산","영도구"],["26230","부산","부산진구"],["26260","부산","동래구"],["26290","부산","남구"],["26320","부산","북구"],["26350","부산","해운대구"],["26380","부산","사하구"],["26410","부산","금정구"],["26440","부산","강서구"],["26470","부산","연제구"],["26500","부산","수영구"],["26530","부산","사상구"],["26710","부산","기장군"],["27110","대구","중구"],["27140","대구","동구"],["27170","대구","서구"],["27200","대구","남구"],["27230","대구","북구"],["27260","대구","수성구"],["27290","대구","달서구"],["27710","대구","달성군"],["27720","대구","군위군"],["28110","인천","중구"],["28140","인천","동구"],["28177","인천","미추홀구"],["28185","인천","연수구"],["28200","인천","남동구"],["28237","인천","부평구"],["28245","인천","계양구"],["28260","인천","서구"],["28710","인천","강화군"],["28720","인천","옹진군"],["29110","광주","동구"],["29140","광주","서구"],["29155","광주","남구"],["29170","광주","북구"],["29200","광주","광산구"],["30110","대전","동구"],["30140","대전","중구"],["30170","대전","서구"],["30200","대전","유성구"],["30230","대전","대덕구"],["31110","울산","중구"],["31140","울산","남구"],["31170","울산","동구"],["31200","울산","북구"],["31710","울산","울주군"],["36110","세종","세종특별자치시"],["41110","경기","수원시"],["41111","경기","수원시 장안구"],["41113","경기","수원시 권선구"],["41115","경기","수원시 팔달구"],["41117","경기","수원시 영통구"],["41130","경기","성남시"],["41131","경기","성남시 수정구"],["41133","경기","성남시 중원구"],["41135","경기","성남시 분당구"],["41150","경기","의정부시"],["41170","경기","안양시"],["41171","경기","안양시 만안구"],["41173","경기","안양시 동안구"],["41190","경기","부천시"],["41192","경기","부천시 원미구"],["41194","경기","부천시 소사구"],["41196","경기","부천시 오정구"],["41210","경기","광명시"],["41220","경기","평택시"],["41250","경기","동두천시"],["41270","경기","안산시"],["41271","경기","안산시 상록구"],["41273","경기","안산시 단원구"],["41280","경기","고양시"],["41281","경기","고양시 덕양구"],["41285","경기","고양시 일산동구"],["41287","경기","고양시 일산서구"],["41290","경기","과천시"],["41310","경기","구리시"],["41360","경기","남양주시"],["41370","경기","오산시"],["41390","경기","시흥시"],["41410","경기","군포시"],["41430","경기","의왕시"],["41450","경기","하남시"],["41460","경기","용인시"],["41461","경기","용인시 처인구"],["41463","경기","용인시 기흥구"],["41465","경기","용인시 수지구"],["41480","경기","파주시"],["41500","경기","이천시"],["41550","경기","안성시"],["41570","경기","김포시"],["41590","경기","화성시"],["41591","경기","화성시 만세구"],["41593","경기","화성시 효행구"],["41595","경기","화성시 병점구"],["41597","경기","화성시 동탄구"],["41610","경기","광주시"],["41630","경기","양주시"],["41650","경기","포천시"],["41670","경기","여주시"],["41800","경기","연천군"],["41820","경기","가평군"],["41830","경기","양평군"],["42110","강원","춘천시 (구코드)"],["42130","강원","원주시 (구코드)"],["42150","강원","강릉시 (구코드)"],["42170","강원","동해시 (구코드)"],["42190","강원","태백시 (구코드)"],["42210","강원","속초시 (구코드)"],["42230","강원","삼척시 (구코드)"],["42720","강원","홍천군 (구코드)"],["42730","강원","횡성군 (구코드)"],["42750","강원","영월군 (구코드)"],["42760","강원","평창군 (구코드)"],["42770","강원","정선군 (구코드)"],["42780","강원","철원군 (구코드)"],["42790","강원","화천군 (구코드)"],["42800","강원","양구군 (구코드)"],["42810","강원","인제군 (구코드)"],["42820","강원","고성군 (구코드)"],["42830","강원","양양군 (구코드)"],["43110","충북","청주시"],["43111","충북","청주시 상당구"],["43112","충북","청주시 서원구"],["43113","충북","청주시 흥덕구"],["43114","충북","청주시 청원구"],["43130","충북","충주시"],["43150","충북","제천시"],["43720","충북","보은군"],["43730","충북","옥천군"],["43740","충북","영동군"],["43745","충북","증평군"],["43750","충북","진천군"],["43760","충북","괴산군"],["43770","충북","음성군"],["43800","충북","단양군"],["44130","충남","천안시"],["44131","충남","천안시 동남구"],["44133","충남","천안시 서북구"],["44150","충남","공주시"],["44180","충남","보령시"],["44200","충남","아산시"],["44210","충남","서산시"],["44230","충남","논산시"],["44250","충남","계룡시"],["44270","충남","당진시"],["44710","충남","금산군"],["44760","충남","부여군"],["44770","충남","서천군"],["44790","충남","청양군"],["44800","충남","홍성군"],["44810","충남","예산군"],["44825","충남","태안군"],["45110","전북","전주시"],["45111","전북","전주시 완산구"],["45113","전북","전주시 덕진구"],["45130","전북","군산시"],["45140","전북","익산시"],["45180","전북","정읍시"],["45190","전북","남원시"],["45210","전북","김제시"],["45710","전북","완주군"],["45720","전북","진안군"],["45730","전북","무주군"],["45740","전북","장수군"],["45750","전북","임실군"],["45770","전북","순창군"],["45790","전북","고창군"],["45800","전북","부안군"],["46110","전남","목포시"],["46130","전남","여수시"],["46150","전남","순천시"],["46170","전남","나주시"],["46230","전남","광양시"],["46710","전남","담양군"],["46720","전남","곡성군"],["46730","전남","구례군"],["46770","전남","고흥군"],["46780","전남","보성군"],["46790","전남","화순군"],["46800","전남","장흥군"],["46810","전남","강진군"],["46820","전남","해남군"],["46830","전남","영암군"],["46840","전남","무안군"],["46860","전남","함평군"],["46870","전남","영광군"],["46880","전남","장성군"],["46890","전남","완도군"],["46900","전남","진도군"],["46910","전남","신안군"],["47110","경북","포항시"],["47111","경북","포항시 남구"],["47113","경북","포항시 북구"],["47130","경북","경주시"],["47150","경북","김천시"],["47170","경북","안동시"],["47190","경북","구미시"],["47210","경북","영주시"],["47230","경북","영천시"],["47250","경북","상주시"],["47280","경북","문경시"],["47290","경북","경산시"],["47730","경북","의성군"],["47750","경북","청송군"],["47760","경북","영양군"],["47770","경북","영덕군"],["47820","경북","청도군"],["47830","경북","고령군"],["47840","경북","성주군"],["47850","경북","칠곡군"],["47900","경북","예천군"],["47920","경북","봉화군"],["47930","경북","울진군"],["47940","경북","울릉군"],["48120","경남","창원시"],["48121","경남","창원시 의창구"],["48123","경남","창원시 성산구"],["48125","경남","창원시 마산합포구"],["48127","경남","창원시 마산회원구"],["48129","경남","창원시 진해구"],["48170","경남","진주시"],["48220","경남","통영시"],["48240","경남","사천시"],["48250","경남","김해시"],["48270","경남","밀양시"],["48310","경남","거제시"],["48330","경남","양산시"],["48720","경남","의령군"],["48730","경남","함안군"],["48740","경남","창녕군"],["48820","경남","고성군"],["48840","경남","남해군"],["48850","경남","하동군"],["48860","경남","산청군"],["48870","경남","함양군"],["48880","경남","거창군"],["48890","경남","합천군"],["50110","제주","제주시"],["50130","제주","서귀포시"],["51110","강원","춘천시"],["51130","강원","원주시"],["51150","강원","강릉시"],["51170","강원","동해시"],["51190","강원","태백시"],["51210","강원","속초시"],["51230","강원","삼척시"],["51720","강원","홍천군"],["51730","강원","횡성군"],["51750","강원","영월군"],["51760","강원","평창군"],["51770","강원","정선군"],["51780","강원","철원군"],["51790","강원","화천군"],["51800","강원","양구군"],["51810","강원","인제군"],["51820","강원","고성군"],["51830","강원","양양군"],["52110","전북","전주시"],["52111","전북","전주시 완산구"],["52113","전북","전주시 덕진구"],["52130","전북","군산시"],["52140","전북","익산시"],["52180","전북","정읍시"],["52190","전북","남원시"],["52210","전북","김제시"],["52710","전북","완주군"],["52720","전북","진안군"],["52730","전북","무주군"],["52740","전북","장수군"],["52750","전북","임실군"],["52770","전북","순창군"],["52790","전북","고창군"],["52800","전북","부안군"]];
+
+var SIDO_ORDER = ["서울","경기","인천","부산","대구","광주","대전","울산","세종",
+                  "강원","충북","충남","전북","전남","경북","경남","제주"];
+var SIDO_FULL = {"서울":"서울특별시","부산":"부산광역시","대구":"대구광역시","인천":"인천광역시",
+  "광주":"광주광역시","대전":"대전광역시","울산":"울산광역시","세종":"세종특별자치시","경기":"경기도",
+  "강원":"강원특별자치도","충북":"충청북도","충남":"충청남도","전북":"전북특별자치도",
+  "전남":"전라남도","경북":"경상북도","경남":"경상남도","제주":"제주특별자치도"};
+
+var ST = { on: {}, running: false, abort: false, rows: [], fail: [], empty: 0,
+           done: 0, total: 0, calls: 0, t0: 0, curYear: null, saved: [] };
+SIDO_ORDER.forEach(function (s) { ST.on[s] = true; });
+
+var $ = function (id) { return document.getElementById(id); };
+function log(msg, cls) {
+  var el = $("log");
+  var t = new Date().toTimeString().slice(0, 8);
+  el.textContent = t + "  " + msg + "\n" + el.textContent.slice(0, 12000);
+}
+function fmt(n) { return (n == null ? "-" : Number(n).toLocaleString("ko-KR")); }
+
+/* ── 시·도 칩 ── */
+function drawChips() {
+  $("sidos").innerHTML = SIDO_ORDER.map(function (s) {
+    var n = LAWD.filter(function (x) { return x[1] === s; }).length;
+    return '<span class="chip' + (ST.on[s] ? " on" : "") + '" data-s="' + s + '">' + s +
+      ' <b style="opacity:.7">' + n + '</b></span>';
+  }).join("");
+}
+$("sidos").addEventListener("click", function (e) {
+  var c = e.target.closest(".chip");
+  if (!c) return;
+  ST.on[c.dataset.s] = !ST.on[c.dataset.s];
+  drawChips(); plan();
+});
+$("all-on").addEventListener("click", function () {
+  SIDO_ORDER.forEach(function (s) { ST.on[s] = true; }); drawChips(); plan(); });
+$("all-off").addEventListener("click", function () {
+  SIDO_ORDER.forEach(function (s) { ST.on[s] = false; }); drawChips(); plan(); });
+
+/* ── 대상 계산 ── */
+function months() {
+  var a = $("from").value, b = $("to").value;
+  if (!a || !b) return [];
+  var t0 = Number(a.slice(0, 4)) * 12 + Number(a.slice(5, 7));
+  var t1 = Number(b.slice(0, 4)) * 12 + Number(b.slice(5, 7));
+  var out = [];
+  for (var t = t0; t <= t1; t++) {
+    var y = Math.floor((t - 1) / 12), m = ((t - 1) % 12) + 1;
+    out.push({ y: y, ym: String(y * 100 + m).slice(0, 4) + ("0" + m).slice(-2) });
+  }
+  return out;
+}
+function regions() {
+  var useOld = $("oldcode").checked;
+  return LAWD.filter(function (x) {
+    if (!ST.on[x[1]]) return false;
+    if (!useOld && /\(구코드\)/.test(x[2])) return false;
+    if (!useOld && /^45/.test(x[0])) return false;   /* 전북 개편 전 */
+    return true;
+  });
+}
+function plan() {
+  var ms = months(), rs = regions();
+  var n = ms.length * rs.length;
+  ST.total = n;
+  var sec = Math.round(n / Number($("conc").value) * 0.35);
+  $("plan").innerHTML =
+    "<div><b>" + fmt(ms.length) + "</b><span>개월</span></div>" +
+    "<div><b>" + fmt(rs.length) + "</b><span>시군구</span></div>" +
+    "<div><b>" + fmt(n) + "</b><span>예상 호출</span></div>" +
+    "<div><b>" + (sec > 60 ? Math.round(sec / 60) + "분" : sec + "초") + "</b><span>예상 소요</span></div>";
+}
+["from", "to", "conc", "oldcode"].forEach(function (id) {
+  $(id).addEventListener("change", plan);
+});
+
+/* ── 응답 필드 자동 매핑 (프록시 정규화형 / 원본형 모두 지원) ── */
+function pick(o) {
+  for (var i = 1; i < arguments.length; i++) {
+    var k = arguments[i];
+    if (o[k] != null && String(o[k]).trim() !== "") return String(o[k]).trim();
+  }
+  return "";
+}
+function normalize(it, meta) {
+  var ym = pick(it, "ym", "dealYm");
+  var y = pick(it, "dealYear"), m = pick(it, "dealMonth");
+  if (!ym && y && m) ym = y + ("0" + m).slice(-2);
+  var amt = pick(it, "amount", "dealAmount", "거래금액").replace(/[,\s]/g, "");
+  var dep = pick(it, "deposit", "보증금액", "depositAmount").replace(/[,\s]/g, "");
+  var rent = pick(it, "rent", "monthlyRent", "월세금액").replace(/[,\s]/g, "");
+  return {
+    sido: meta.sido, sgg: meta.sgg, lawd: meta.lawd,
+    dong: pick(it, "dong", "umdNm", "법정동"),
+    jibun: pick(it, "jibun", "지번") || "-",
+    apt: pick(it, "apt", "aptNm", "아파트"),
+    area: pick(it, "area", "excluUseAr", "전용면적"),
+    ym: ym, day: pick(it, "day", "dealDay"),
+    amount: amt, deposit: dep, rent: rent,
+    floor: pick(it, "floor", "층"),
+    buildYear: pick(it, "buildYear", "buildYear", "건축년도"),
+    cancel: pick(it, "cancelYmd", "cdealDay", "해제사유발생일") ||
+            (it.canceled ? "Y" : "") || "-",
+    gbn: pick(it, "dealingGbn", "거래유형") || "-",
+    term: pick(it, "contractTerm", "계약기간") || "-",
+    ctype: pick(it, "contractType", "계약구분") || "-"
+  };
+}
+
+/* ── 호출 ── */
+function fetchOne(kind, lawd, ym) {
+  var url = "/api/trades?kind=" + kind + "&lawd=" + lawd + "&ym=" + ym +
+            "&numOfRows=2000&pageNo=1";
+  return fetch(url).then(function (r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function (j) {
+    if (j && j.error) throw new Error(j.error);
+    var items = (j && (j.items || j.item)) || [];
+    if (!Array.isArray(items)) items = [items];
+    return items;
+  });
+}
+function withRetry(kind, lawd, ym, tries) {
+  return fetchOne(kind, lawd, ym).catch(function (e) {
+    if (tries <= 0) throw e;
+    return new Promise(function (res) { setTimeout(res, 700); })
+      .then(function () { return withRetry(kind, lawd, ym, tries - 1); });
+  });
+}
+
+/* ── 수집 루프 ── */
+function run(jobs) {
+  var kind = $("kind").value;
+  var conc = Number($("conc").value);
+  var skipCancel = $("skipcancel").checked;
+  var autosave = $("autosave").checked;
+  ST.running = true; ST.abort = false; ST.t0 = Date.now();
+  ST.done = 0; ST.total = jobs.length; ST.fail = []; ST.empty = 0;
+  $("go").disabled = true; $("stop").disabled = false;
+  $("retry").disabled = true;
+  log("수집 시작 — " + fmt(jobs.length) + "회 예정 (" + kind + ")");
+
+  var idx = 0;
+  function next() {
+    if (ST.abort || idx >= jobs.length) return Promise.resolve();
+    var job = jobs[idx++];
+    return withRetry(kind, job.lawd, job.ym, 2).then(function (items) {
+      ST.calls++;
+      if (!items.length) ST.empty++;
+      items.forEach(function (it) {
+        var row = normalize(it, job);
+        if (skipCancel && row.cancel !== "-" && row.cancel !== "") return;
+        ST.rows.push(row);
+      });
+    }).catch(function (e) {
+      ST.fail.push(job);
+      log("실패 " + job.sgg + " " + job.ym + " — " + e.message, "bad");
+    }).then(function () {
+      ST.done++;
+      progress();
+      /* 연도 경계에서 자동 저장 */
+      if (autosave && job.yearEnd && ST.rows.length) {
+        saveCsv(job.y);
+      }
+      return next();
+    });
+  }
+  var pool = [];
+  for (var i = 0; i < conc; i++) pool.push(next());
+  return Promise.all(pool).then(function () {
+    ST.running = false;
+    $("go").disabled = false; $("stop").disabled = true;
+    $("dl").disabled = ST.rows.length === 0;
+    $("retry").disabled = ST.fail.length === 0;
+    log("완료 — 수집 " + fmt(ST.rows.length) + "건 · 빈 응답 " + fmt(ST.empty) +
+        " · 실패 " + fmt(ST.fail.length));
+    preview();
+  });
+}
+function progress() {
+  var pctv = ST.total ? ST.done / ST.total * 100 : 0;
+  $("bar").style.width = pctv.toFixed(1) + "%";
+  var el = (Date.now() - ST.t0) / 1000;
+  var eta = ST.done ? Math.round(el / ST.done * (ST.total - ST.done)) : 0;
+  $("prog").innerHTML =
+    "<div><b>" + fmt(ST.done) + " / " + fmt(ST.total) + "</b><span>호출</span></div>" +
+    "<div><b>" + fmt(ST.rows.length) + "</b><span>모은 거래</span></div>" +
+    "<div><b class='" + (ST.fail.length ? "bad" : "ok") + "'>" + fmt(ST.fail.length) + "</b><span>실패</span></div>" +
+    "<div><b>" + fmt(ST.empty) + "</b><span>빈 응답</span></div>" +
+    "<div><b>" + (eta > 60 ? Math.round(eta / 60) + "분" : eta + "초") + "</b><span>남은 예상</span></div>";
+}
+
+/* ── CSV ── */
+function csvCell(v) {
+  v = v == null ? "" : String(v);
+  return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+function buildCsv(rows, kind) {
+  var head = kind === "rent"
+    ? ["시군구", "번지", "단지명", "전용면적(㎡)", "계약년월", "계약일", "보증금(만원)", "월세(만원)",
+       "층", "건축년도", "계약기간", "계약구분", "법정동코드"]
+    : ["시군구", "번지", "단지명", "전용면적(㎡)", "계약년월", "계약일", "거래금액(만원)",
+       "층", "건축년도", "해제사유발생일", "거래유형", "법정동코드"];
+  var out = [head.join(",")];
+  rows.forEach(function (r) {
+    var sgg = (SIDO_FULL[r.sido] || r.sido) + " " + r.sgg + (r.dong ? " " + r.dong : "");
+    var line = kind === "rent"
+      ? [sgg, r.jibun, r.apt, r.area, r.ym, r.day, r.deposit, r.rent, r.floor, r.buildYear,
+         r.term, r.ctype, r.lawd]
+      : [sgg, r.jibun, r.apt, r.area, r.ym, r.day, r.amount, r.floor, r.buildYear,
+         r.cancel, r.gbn, r.lawd];
+    out.push(line.map(csvCell).join(","));
+  });
+  return out.join("\r\n");
+}
+function download(name, text) {
+  var blob = new Blob(["\uFEFF" + text], { type: "text/csv;charset=utf-8;" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function saveCsv(year) {
+  var kind = $("kind").value;
+  var rows = ST.rows;
+  if (!rows.length) return;
+  var name = "아파트_" + (kind === "rent" ? "전월세" : "매매") + "_실거래가_" +
+    (year != null ? year : (rows[0].ym.slice(0, 4) + "-" + rows[rows.length - 1].ym.slice(0, 4))) + ".csv";
+  download(name, buildCsv(rows, kind));
+  ST.saved.push(name + " (" + fmt(rows.length) + "건)");
+  log("저장 → " + name + " · " + fmt(rows.length) + "건");
+  ST.rows = [];            /* 메모리 해제 */
+  preview();
+}
+$("dl").addEventListener("click", function () { saveCsv(null); });
+
+/* ── 미리보기 ── */
+function preview() {
+  var rows = ST.rows.slice(0, 20);
+  var kind = $("kind").value;
+  var head = kind === "rent"
+    ? ["시군구", "단지명", "전용", "계약", "보증금", "월세", "층", "준공"]
+    : ["시군구", "단지명", "전용", "계약", "금액(만)", "층", "준공", "해제"];
+  $("pv").querySelector("thead").innerHTML = "<tr>" + head.map(function (h) {
+    return "<th>" + h + "</th>"; }).join("") + "</tr>";
+  $("pv").querySelector("tbody").innerHTML = rows.map(function (r) {
+    var c = kind === "rent"
+      ? [r.sido + " " + r.sgg + " " + r.dong, r.apt, r.area, r.ym + "." + r.day, fmt(r.deposit), fmt(r.rent), r.floor, r.buildYear]
+      : [r.sido + " " + r.sgg + " " + r.dong, r.apt, r.area, r.ym + "." + r.day, fmt(r.amount), r.floor, r.buildYear, r.cancel];
+    return "<tr>" + c.map(function (x) { return "<td>" + (x || "-") + "</td>"; }).join("") + "</tr>";
+  }).join("") || '<tr><td colspan="8" style="color:var(--miss)">아직 없습니다.</td></tr>';
+  $("pvn").textContent = ST.rows.length ? "(메모리 " + fmt(ST.rows.length) + "건 중 앞 20건)" :
+    (ST.saved.length ? "저장 완료: " + ST.saved.join(" · ") : "");
+}
+
+/* ── 잡 목록 만들기 ── */
+function makeJobs() {
+  var ms = months(), rs = regions(), jobs = [];
+  ms.forEach(function (mo, mi) {
+    rs.forEach(function (rg, ri) {
+      jobs.push({ lawd: rg[0], sido: rg[1], sgg: String(rg[2]).replace(" (구코드)", ""),
+        ym: mo.ym, y: mo.y,
+        yearEnd: (ri === rs.length - 1) &&
+          (mi === ms.length - 1 || ms[mi + 1].y !== mo.y) });
+    });
+  });
+  return jobs;
+}
+$("go").addEventListener("click", function () {
+  var jobs = makeJobs();
+  if (!jobs.length) { alert("기간과 지역을 확인하세요."); return; }
+  if (jobs.length > 40000 &&
+      !confirm(jobs.length.toLocaleString() + "회를 호출합니다. 시간이 오래 걸립니다. 진행할까요?")) return;
+  ST.rows = []; ST.saved = [];
+  run(jobs);
+});
+$("stop").addEventListener("click", function () {
+  ST.abort = true; log("중지 요청 — 진행 중인 요청이 끝나면 멈춥니다.");
+});
+$("retry").addEventListener("click", function () {
+  if (!ST.fail.length) return;
+  var jobs = ST.fail.slice();
+  log("실패 " + jobs.length + "건 재시도");
+  run(jobs);
+});
+
+drawChips(); plan(); preview();
+</script>
+</body>
+</html>

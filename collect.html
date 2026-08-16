@@ -57,7 +57,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.6</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.6.1</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -1342,8 +1342,9 @@ $("mc-go").addEventListener("click", function () {
         mcLog("── 결과 ──");
         mcLog("기간 " + out.m0 + " ~ " + ymOf(out.months - 1, ymBase(out.m0)) + " · " + out.months + "개월");
         mcLog("지역 " + nr + "곳 · 묶음(시도+전국) " + Object.keys(out.groups).length + "개");
-        mcLog("매매 " + fmt(out.stat.saleRows) + "행 (해제 제외 " + fmt(out.stat.saleCancel) + ") · " +
-              "전월세 " + fmt(out.stat.rentRows) + "행");
+        mcLog("매매 원본 " + fmt(out.stat.saleRows + out.stat.saleCancel) + "행 → 집계 " +
+              fmt(out.stat.saleRows) + "행 (해제거래 " + fmt(out.stat.saleCancel) + "행 제외)");
+        mcLog("전월세 " + fmt(out.stat.rentRows) + "행");
         if (out.stat.replCells)
           mcLog("보충 교체 — 셀 " + fmt(out.stat.replCells) + "개 · 원본에서 버린 행 " +
                 fmt(out.stat.dropped) + "행");

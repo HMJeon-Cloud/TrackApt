@@ -24,7 +24,7 @@
 ```
 /home/claude/trackapt/
   index.html          # 본체 (ES5 단일 파일, <script> 인라인)
-  collect.html        # 실거래 수집기 v2.6 (코드 탐지·셀 보충·분할 저장·파일 점검·market_core 생성)
+  collect.html        # 실거래 수집기 v2.6.1 (코드 탐지·셀 보충·분할 저장·파일 점검·market_core 생성)
   kb_data.json        # KB 시계열 (0.95MB, 정적 — 사용자가 매달 교체)
   supply_data.sample.json  # 확장 수급 데이터 견본 (선택 파일 스키마)
   PROJECT.md          # 버전별 변경 누적 로그

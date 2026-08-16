@@ -236,7 +236,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v4.3</span>
+    <span class="ver">v4.4</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1709,7 +1709,7 @@ function loadVol() {
     VOL.rows = rows;
     var totalDeals = rows.reduce(function (a, r) { return a + r.cnt; }, 0);
     if (!totalDeals) {
-      alert("이 지역 코드로 조회된 실거래가 없습니다.\n신설 구는 국토부 코드가 아직 확정 반영되지 않았을 수 있으니 상위 지역(예: 화성시 전체)으로 시도해보세요.");
+      alert("이 지역 코드로 조회된 실거래가 없습니다.\n기간을 넓히거나 다른 지역으로 시도해보세요.");
     }
     renderVolResult();
   }).catch(function (e) {
@@ -1811,8 +1811,7 @@ var LAWD_GROUPS = [
     ["고양 일산서구","41287"],["과천시","41290"],["구리시","41310"],["남양주시","41360"],
     ["오산시","41370"],["시흥시","41390"],["군포시","41410"],["의왕시","41430"],["하남시","41450"],
     ["용인 처인구","41461"],["용인 기흥구","41463"],["용인 수지구","41465"],["파주시","41480"],
-    ["이천시","41500"],["안성시","41550"],["김포시","41570"],["화성 동탄구","41590"],["화성 병점구","41590"],["화성 효행구","41590"],["화성 만세구","41590"],
-    ["화성시","41590"],["광주시","41610"],
+    ["이천시","41500"],["안성시","41550"],["김포시","41570"],["화성 만세구","41591"],["화성 효행구","41593"],["화성 병점구","41595"],["화성 동탄구","41597"],["광주시","41610"],
     ["양주시","41630"],["포천시","41650"],["여주시","41670"],["연천군","41800"],["가평군","41820"],
     ["양평군","41830"]] },
   { sido: "인천", items: [
@@ -1918,26 +1917,12 @@ function buildLawdMap() {
 }
 /* 한 코드 안에서 구 단위로 갈라야 하는 지역 (2026.2 화성 분구).
    실거래는 시 코드로 내려오므로 법정동 이름으로 걸러낸다. */
-var SUB_DISTRICT = {
-  /* 동탄1·2신도시 일대 */
-  "화성 동탄구": ["석우동", "반송동", "능동", "영천동", "오산동", "여울동", "청계동", "신동", "중동",
-                  "목동", "산척동", "방교동", "장지동", "송동", "금곡동", "무봉리", "송산동"],
-  /* 병점·진안·반월·기배 일대 (동부) */
-  "화성 병점구": ["병점동", "진안동", "반월동", "기산동", "화산동", "안녕동", "황계동", "송산동",
-                  "기안동", "배양동", "송림동", "인지동", "안녕리"],
-  /* 봉담·매송·비봉·정남 (중서부 읍면) */
-  "화성 효행구": ["봉담", "와우리", "동화리", "상리", "수영리", "왕림리", "내리", "유리", "분천리",
-                  "덕리", "세곡리", "수기리", "매송", "원리", "야목리", "천천리", "어천리", "송라리",
-                  "비봉", "자안리", "삼화리", "구포리", "양노리", "쌍학리",
-                  "정남", "문학리", "보금리", "괘랑리", "발산리", "관항리", "귀래리", "덕절리",
-                  "기배동", "능리", "하곡리"],
-  /* 남양·향남·우정·장안·마도·송산·서신·팔탄·양감 (서남부) */
-  "화성 만세구": ["새솔동", "남양", "신남리", "신외동", "온석동", "무송동", "북양동", "장덕동",
-                  "향남", "발안리", "행정리", "구문천리", "상신리", "하길리", "백토리", "도이리", "요리",
-                  "우정", "조암리", "이화리", "멱우리", "장안", "마도", "송산", "사강리", "서신",
-                  "팔탄", "양감", "고포리", "덕우리", "활초리", "수직리", "청원리", "매향리"]
-};
-/* 이 지역이 구 단위 필터를 쓰는가 */
+/* 한 코드 안에서 구 단위로 갈라야 하는 지역용 동 목록.
+   화성 4구는 v4.4에서 확정 코드(41591·41593·41595·41597)로 직접 조회하므로 비웠다.
+   국토부 API가 과거 거래도 현재 구 코드로 돌려주기 때문에 동 필터가 필요 없고,
+   목록에 빠진 동이 있으면 정상 거래를 잘라내는 부작용만 남는다. */
+var SUB_DISTRICT = {};
+
 function subFilterOf(name) {
   if (!name) return null;
   if (SUB_DISTRICT[name]) return SUB_DISTRICT[name];
@@ -2421,14 +2406,11 @@ function lawdCandidates(code) { return String(code).split(":"); }
 /* (kind|lawd|ym) → 응답 메모. 지난 달 실거래는 사실상 확정치라 세션 내 재사용해도 안전 */
 var TRADE_MEMO = {};
 
-/* ── 화성시 분구(2026.2) — 코드 확정(2026.8) ──
-   행정안전부 주민등록 행정구역 코드로 확정. 41592·41594는 출장소라 제외.
-   분구 전(202602 미만) 달은 옛 화성시 코드(41590)로만 조회한다. */
-var HWA = { old: "41590",
-            news: ["41591", "41593", "41595", "41597"],
-            guOf: { "41591": "화성 만세구", "41593": "화성 효행구",
-                    "41595": "화성 병점구", "41597": "화성 동탄구" },
-            SPLIT_YM: 202602 };
+/* ── 화성시 분구(2026.2) — v4.4에서 확정 코드 직접 조회로 전환 ──
+   실거래 API는 과거 거래도 현재 구 코드로 돌려준다(2010.01~2026.06 전수 수집으로 확인:
+   41590은 198개월 내내 0건, 4개 구 코드가 전 구간 보유). 따라서 병합·재조회가 불필요하다.
+   K-apt(단지 목록)는 별개 API라 이관 여부가 확인되지 않아 옛 코드를 함께 조회한다. */
+var HWA = { old: "41590", news: ["41591", "41593", "41595", "41597"] };
 function tradeUrl(kind, lawd, ym) {
   return "/api/trades?kind=" + kind + "&lawd=" + lawd + "&ym=" + ym;
 }
@@ -2449,37 +2431,8 @@ function mergeTradeResults(results) {
   if (!anyOk && firstErr) return firstErr;
   return { items: items };
 }
-/* 화성 조회: 분구 전 달은 옛 코드만, 이후 달은 확정된 구 코드를 병합.
-   guName을 주면 그 구 코드만 조회한다 (불필요한 호출·혼입 제거). */
-function fetchHwa(kind, ym, guName) {
-  var memoKey = kind + "|HWA|" + (guName || "ALL") + "|" + ym;
-  if (TRADE_MEMO[memoKey]) return Promise.resolve(TRADE_MEMO[memoKey]);
-  function memo(j) { if (j && !j.error) TRADE_MEMO[memoKey] = j; return j; }
-  if (Number(ym) < HWA.SPLIT_YM) {
-    return apiGet(tradeUrl(kind, HWA.old, ym)).then(memo);
-  }
-  var codes = HWA.news;
-  if (guName) {
-    var only = codes.filter(function (c) { return HWA.guOf[c] === guName; });
-    if (only.length) codes = only;
-  }
-  return Promise.all(codes.map(function (c) {
-    return apiGet(tradeUrl(kind, c, ym));
-  })).then(mergeTradeResults).then(function (j) {
-    /* 신설 코드에서 한 건도 안 나오면 옛 코드로 한 번 더 (이관 지연 대비) */
-    if (!j.error && !(j.items || []).length) {
-      return apiGet(tradeUrl(kind, HWA.old, ym)).then(function (o) {
-        return (!o.error && (o.items || []).length) ? o : j;
-      });
-    }
-    return j;
-  }).then(memo);
-}
-/* 후보 중 실제로 데이터가 나온 코드를 기억해 이후 호출은 그 코드만 쓴다 */
 var LAWD_RESOLVED = {};
 function fetchTrade(code, kind, ym, guName) {
-  /* 화성시 계열은 병합 경로로 */
-  if (lawdCandidates(code)[0] === HWA.old) return fetchHwa(kind, ym, guName);
   var memoKey = kind + "|" + code + "|" + ym;
   if (TRADE_MEMO[memoKey]) return Promise.resolve(TRADE_MEMO[memoKey]);
   function memo(j) { if (j && !j.error) TRADE_MEMO[memoKey] = j; return j; }
@@ -2604,7 +2557,9 @@ var KAPT_LIST_MEMO = {};
 function fetchKaptList(lawd) {
   if (KAPT_LIST_MEMO[lawd]) return Promise.resolve(KAPT_LIST_MEMO[lawd]);
   var codes = [lawd];
+  /* K-apt는 이관 여부가 확인되지 않아, 화성 계열이면 옛 코드를 함께 조회해 합친다 */
   if (lawd === HWA.old) codes = [HWA.old].concat(HWA.news);
+  else if (HWA.news.indexOf(lawd) >= 0) codes = [lawd, HWA.old];
   return Promise.all(codes.map(function (c) {
     return apiGet("/api/apt?kind=list&lawd=" + c)
       .then(function (j) { return j.error ? [] : (j.items || []); })

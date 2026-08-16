@@ -57,7 +57,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.4</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.5</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -162,6 +162,35 @@ th{color:var(--ink-soft);font-weight:600}
   <div class="bar"><i id="chk-bar"></i></div>
   <div class="stat" id="chk-stat"></div>
   <div class="log" id="chk-out">대기 중…</div>
+</div>
+
+<div class="card">
+  <div class="eyebrow">Build</div>
+  <h2>market_core.json 만들기</h2>
+  <div class="note">모아둔 실거래 CSV를 <b>이 브라우저 안에서</b> 시군구×월로 집계해
+    앱이 쓰는 <code>market_core.json</code>(약 3~4MB)을 만듭니다. 원본은 PC 밖으로 나가지 않고,
+    결과 파일만 저장소에 올리면 됩니다.
+    <b>연도별 원본 파일만</b> 넣으세요 — 보충본을 같이 넣으면 이중 계상됩니다.</div>
+  <div class="grid">
+    <div><label class="f" for="mc-sale">매매 CSV (2010~2026, 파트 파일 포함 전부)</label>
+      <input id="mc-sale" type="file" accept=".csv" multiple style="font-size:.78rem;color:var(--ink-soft)"></div>
+    <div><label class="f" for="mc-rent">전월세 CSV (2011~2026, 파트 파일 포함 전부)</label>
+      <input id="mc-rent" type="file" accept=".csv" multiple style="font-size:.78rem;color:var(--ink-soft)"></div>
+  </div>
+  <div class="btnrow">
+    <button class="btn gold" id="mc-go">집계 시작</button>
+    <button class="btn" id="mc-stop" disabled>중지</button>
+    <button class="btn" id="mc-save" disabled>market_core.json 저장</button>
+  </div>
+  <div class="bar"><i id="mc-bar"></i></div>
+  <div class="stat" id="mc-stat"></div>
+  <div class="log" id="mc-out">대기 중…</div>
+  <div class="note">집계 규칙 — 해제(취소) 거래 제외 · 평당가 = 거래금액 ÷ (전용면적 ÷ 3.3058) ·
+    84㎡대 = 전용 80~88 · 59㎡대 = 전용 55~63 · 전세 = 월세 0원 ·
+    표본 3건 미만인 달은 <code>null</code>. 시·도와 전국은 개별 거래를 한데 모아 다시 중위수를 냅니다
+    (구별 중위의 평균이 아님).<br>
+    메모리가 부족해 탭이 죽으면 <b>매매만 / 전월세만</b> 따로 돌려 두 개의 JSON으로 저장하세요 —
+    합치는 건 세션에서 합니다(파일이 작아 올리기 쉽습니다).</div>
 </div>
 
 </div>
@@ -959,6 +988,358 @@ $("chk-cells").addEventListener("click", function () {
   }
   download("점검_셀별건수_" + (st.kind === "rent" ? "전월세" : "매매") + ".csv", out.join("\r\n"));
   log("셀별 건수 저장 — " + keys.length + "행");
+});
+
+
+
+/* ══════════ market_core.json 생성기 (v2.5) ══════════
+   시군구×월 집계 1층 데이터. 원본 CSV는 브라우저 밖으로 나가지 않는다. */
+var PYEONG = 3.3058;                 /* 1평 = 3.3058㎡ */
+var B84 = [80, 88], B59 = [55, 63];  /* 전용면적 밴드 (하한 이상, 상한 미만) */
+var MIN_SAMPLE = 3;                  /* 중위값을 내는 최소 표본 */
+var MC = { sale: null, rent: null, out: null, busy: false, abort: false };
+
+var LAWD_NAME = {}, LAWD_SIDO = {};
+(function () {
+  for (var i = 0; i < LAWD.length; i++) {
+    var c = LAWD[i][0];
+    if (LAWD_NAME[c]) continue;                    /* 옛 코드 별칭은 먼저 것 유지 */
+    LAWD_SIDO[c] = LAWD[i][1];
+    LAWD_NAME[c] = LAWD[i][1] + " " + LAWD[i][2];
+  }
+})();
+
+function mcLog(s, cls) {
+  var el = $("mc-out");
+  if (el.textContent === "대기 중…") el.textContent = "";
+  var d = document.createElement("div");
+  if (cls) d.className = cls;
+  d.textContent = s;
+  el.appendChild(d); el.scrollTop = el.scrollHeight;
+}
+function ymIndex(ym, base) {
+  return (+ym.slice(0, 4)) * 12 + (+ym.slice(4)) - base;
+}
+function ymBase(ym) { return (+ym.slice(0, 4)) * 12 + (+ym.slice(4)); }
+function ymOf(idx, base) {
+  var t = base + idx, y = Math.floor((t - 1) / 12), m = ((t - 1) % 12) + 1;
+  return "" + y + (m < 10 ? "0" + m : m);
+}
+/* 오름차순 정렬 후 중위수. 표본이 모자라면 null. */
+function median(a) {
+  if (!a || a.length < MIN_SAMPLE) return null;
+  a.sort(function (x, y) { return x - y; });
+  var n = a.length, h = n >> 1;
+  return n % 2 ? a[h] : Math.round((a[h - 1] + a[h]) / 2);
+}
+
+function mcNewAcc() {
+  return { cell: {}, rows: 0, bad: 0, cancel: 0, rentBlank: 0, minYm: null, maxYm: null };
+}
+function mcProcess(acc, lines, kind) {
+  var K = kind === "rent" ? 10 : 9, i, f, area, ym, lawd, key, c;
+  for (i = 0; i < lines.length; i++) {
+    f = tailFields(lines[i], K);
+    area = parseFloat(f[0]); ym = f[1]; lawd = f[K - 1];
+    if (!(area > 0) || ym.length !== 6 || lawd.length !== 5) { acc.bad++; continue; }
+    if (kind === "sale") {
+      var cancel = f[6];
+      if (cancel && cancel !== "-") { acc.cancel++; continue; }   /* 해제 거래 제외 */
+      var amt = parseInt(f[3], 10);
+      if (!(amt > 0)) { acc.bad++; continue; }
+      key = lawd + "-" + ym;
+      c = acc.cell[key] || (acc.cell[key] = { n: 0, p: [], a84: [], a59: [] });
+      c.n++;
+      c.p.push(Math.round(amt / (area / PYEONG)));
+      if (area >= B84[0] && area < B84[1]) c.a84.push(amt);
+      else if (area >= B59[0] && area < B59[1]) c.a59.push(amt);
+    } else {
+      var dep = parseInt(f[3], 10) || 0, mr = f[4];
+      key = lawd + "-" + ym;
+      c = acc.cell[key] || (acc.cell[key] = { n: 0, j: 0, d84: [], d59: [] });
+      c.n++;
+      if (mr === "") { acc.rentBlank++; }            /* 옛 프록시 결손 — 전세 판정 불가 */
+      else if (parseFloat(mr) === 0) {
+        c.j++;
+        if (dep > 0) {
+          if (area >= B84[0] && area < B84[1]) c.d84.push(dep);
+          else if (area >= B59[0] && area < B59[1]) c.d59.push(dep);
+        }
+      }
+    }
+    acc.rows++;
+    if (!acc.minYm || ym < acc.minYm) acc.minYm = ym;
+    if (!acc.maxYm || ym > acc.maxYm) acc.maxYm = ym;
+  }
+}
+
+/* 점검기와 같은 슬라이스 스트리밍. 행 처리만 다르다. */
+function mcScanFile(file, acc, kind, base, grand) {
+  return new Promise(function (resolve, reject) {
+    var CH = 8 * 1024 * 1024, pos = 0, buf = "", first = true, n0 = acc.rows;
+    var dec = new TextDecoder("utf-8");
+    function handle(text, last) {
+      var lines = text.split("\n"), out = [], i, s, hold = "";
+      for (i = 0; i < lines.length; i++) {
+        s = lines[i];
+        if (s.charCodeAt(s.length - 1) === 13) s = s.slice(0, -1);
+        if (hold) { s = hold + "\n" + s; hold = ""; }
+        if (!s) continue;
+        if (first) {
+          first = false;
+          if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
+          var isRent = s.indexOf("월세") >= 0;
+          if ((isRent ? "rent" : "sale") !== kind)
+            mcLog("⚠ " + file.name + " — 자료 종류가 다릅니다 (건너뜀)", "warn");
+          continue;
+        }
+        if (!endsWithCode(s) && !(last && i === lines.length - 1)) { hold = s; continue; }
+        out.push(s);
+      }
+      if (hold) out.push(hold);
+      mcProcess(acc, out, kind);
+    }
+    function step() {
+      if (MC.abort) { resolve(); return; }
+      if (pos >= file.size) {
+        handle(buf, true);
+        mcLog("· " + file.name + " — " + fmt(acc.rows - n0) + "행");
+        resolve(); return;
+      }
+      var end = Math.min(pos + CH, file.size);
+      var blob = file.slice(pos, end);
+      pos = end;
+      blob.arrayBuffer().then(function (ab) {
+        buf += dec.decode(ab, { stream: true });
+        var nl = buf.lastIndexOf("\n");
+        if (nl >= 0) { handle(buf.slice(0, nl), false); buf = buf.slice(nl + 1); }
+        var done = base + pos;
+        $("mc-bar").style.width = (100 * done / grand).toFixed(1) + "%";
+        $("mc-stat").innerHTML =
+          "<div><b>" + (100 * done / grand).toFixed(1) + "%</b><span>진행</span></div>" +
+          "<div><b>" + fmt(acc.rows) + "</b><span>집계 행</span></div>" +
+          "<div><b>" + (done / 1048576).toFixed(0) + "MB</b><span>처리량</span></div>";
+        setTimeout(step, 0);
+      })["catch"](reject);
+    }
+    step();
+  });
+}
+
+/* 월별 배열에서 앞뒤 빈 구간을 잘라 {o, ...} 형태로 만든다 */
+function trimSeries(cols, M) {
+  var lo = -1, hi = -1, i, k;
+  for (i = 0; i < M; i++) if (cols.n[i]) { if (lo < 0) lo = i; hi = i; }
+  if (lo < 0) return null;
+  var out = { o: lo };
+  for (k in cols) out[k] = cols[k].slice(lo, hi + 1);
+  return out;
+}
+
+function mcBuild() {
+  var s = MC.sale, r = MC.rent;
+  var mins = [], maxs = [];
+  if (s && s.minYm) { mins.push(s.minYm); maxs.push(s.maxYm); }
+  if (r && r.minYm) { mins.push(r.minYm); maxs.push(r.maxYm); }
+  if (!mins.length) { mcLog("집계된 행이 없습니다.", "warn"); return null; }
+  mins.sort(); maxs.sort();
+  var m0 = mins[0], m1 = maxs[maxs.length - 1];
+  var base = ymBase(m0), M = ymBase(m1) - base + 1;
+
+  /* 코드 목록 */
+  var codes = {}, k, i, code;
+  function collect(acc) { for (k in acc.cell) codes[k.slice(0, 5)] = 1; }
+  if (s) collect(s); if (r) collect(r);
+  var list = [];
+  for (k in codes) list.push(k);
+  list.sort();
+
+  var regions = {}, sidoPool = {}, natPool = [];
+  /* 시·도/전국은 개별 거래를 다시 모아 중위수를 낸다 (구별 중위의 평균이 아님) */
+  var poolSale = {}, poolRent = {};      /* key: 시도 or "전국" → {p:[M][], a84:[M][], n:[M], ...} */
+  function newPoolS() { var o = { n: [], p: [], a84: [], a59: [] }, i;
+    for (i = 0; i < M; i++) { o.n[i] = 0; o.p[i] = []; o.a84[i] = []; o.a59[i] = []; } return o; }
+  function newPoolR() { var o = { n: [], j: [], d84: [], d59: [] }, i;
+    for (i = 0; i < M; i++) { o.n[i] = 0; o.j[i] = 0; o.d84[i] = []; o.d59[i] = []; } return o; }
+
+  for (i = 0; i < list.length; i++) {
+    code = list[i];
+    var sd = LAWD_SIDO[code] || "기타";
+    var rec = { nm: LAWD_NAME[code] || ("미상 " + code), sd: sd };
+
+    if (s) {
+      var cs = { n: [], p: [], p3: [], a84: [], a59: [] }, j, raw = [];
+      for (j = 0; j < M; j++) { cs.n[j] = 0; cs.p[j] = null; cs.p3[j] = null; cs.a84[j] = null; cs.a59[j] = null; raw[j] = null; }
+      for (j = 0; j < M; j++) {
+        var c = s.cell[code + "-" + ymOf(j, base)];
+        if (!c) continue;
+        cs.n[j] = c.n;
+        cs.p[j] = median(c.p);
+        cs.a84[j] = median(c.a84);
+        cs.a59[j] = median(c.a59);
+        raw[j] = c.p;
+        if (!poolSale[sd]) poolSale[sd] = newPoolS();
+        if (!poolSale["전국"]) poolSale["전국"] = newPoolS();
+        poolSale[sd].n[j] += c.n; poolSale["전국"].n[j] += c.n;
+        push2(poolSale[sd].p[j], c.p); push2(poolSale["전국"].p[j], c.p);
+        push2(poolSale[sd].a84[j], c.a84); push2(poolSale["전국"].a84[j], c.a84);
+        push2(poolSale[sd].a59[j], c.a59); push2(poolSale["전국"].a59[j], c.a59);
+      }
+      /* 3개월 이동 중위 — 거래 구성에 흔들리는 월별 중위를 보완 */
+      for (j = 0; j < M; j++) {
+        if (!cs.n[j]) continue;
+        var pool = [];
+        if (raw[j]) push2(pool, raw[j]);
+        if (j > 0 && raw[j - 1]) push2(pool, raw[j - 1]);
+        if (j > 1 && raw[j - 2]) push2(pool, raw[j - 2]);
+        cs.p3[j] = median(pool);
+      }
+      var ts = trimSeries(cs, M);
+      if (ts) rec.s = ts;
+    }
+    if (r) {
+      var cr = { n: [], j: [], d84: [], d59: [] }, j2;
+      for (j2 = 0; j2 < M; j2++) { cr.n[j2] = 0; cr.j[j2] = 0; cr.d84[j2] = null; cr.d59[j2] = null; }
+      for (j2 = 0; j2 < M; j2++) {
+        var c2 = r.cell[code + "-" + ymOf(j2, base)];
+        if (!c2) continue;
+        cr.n[j2] = c2.n; cr.j[j2] = c2.j;
+        cr.d84[j2] = median(c2.d84);
+        cr.d59[j2] = median(c2.d59);
+        if (!poolRent[sd]) poolRent[sd] = newPoolR();
+        if (!poolRent["전국"]) poolRent["전국"] = newPoolR();
+        poolRent[sd].n[j2] += c2.n; poolRent["전국"].n[j2] += c2.n;
+        poolRent[sd].j[j2] += c2.j; poolRent["전국"].j[j2] += c2.j;
+        push2(poolRent[sd].d84[j2], c2.d84); push2(poolRent["전국"].d84[j2], c2.d84);
+        push2(poolRent[sd].d59[j2], c2.d59); push2(poolRent["전국"].d59[j2], c2.d59);
+      }
+      var tr = trimSeries(cr, M);
+      if (tr) rec.r = tr;
+    }
+    if (rec.s || rec.r) regions[code] = rec;
+  }
+
+  /* 시·도·전국 묶음 */
+  var groups = {}, key2;
+  for (key2 in poolSale) groups[key2] = groups[key2] || {};
+  for (key2 in poolRent) groups[key2] = groups[key2] || {};
+  var gout = {};
+  for (key2 in groups) {
+    var g = { nm: key2 }, ps = poolSale[key2], pr = poolRent[key2], q;
+    if (ps) {
+      var gs = { n: [], p: [], p3: [], a84: [], a59: [] };
+      for (q = 0; q < M; q++) {
+        gs.n[q] = ps.n[q];
+        gs.p[q] = median(ps.p[q]);
+        gs.a84[q] = median(ps.a84[q]);
+        gs.a59[q] = median(ps.a59[q]);
+      }
+      for (q = 0; q < M; q++) {
+        if (!ps.n[q]) { gs.p3[q] = null; continue; }
+        var pl = [];
+        push2(pl, ps.p[q]);
+        if (q > 0) push2(pl, ps.p[q - 1]);
+        if (q > 1) push2(pl, ps.p[q - 2]);
+        gs.p3[q] = median(pl);
+      }
+      var t1 = trimSeries(gs, M); if (t1) g.s = t1;
+    }
+    if (pr) {
+      var gr = { n: [], j: [], d84: [], d59: [] };
+      for (q = 0; q < M; q++) {
+        gr.n[q] = pr.n[q]; gr.j[q] = pr.j[q];
+        gr.d84[q] = median(pr.d84[q]);
+        gr.d59[q] = median(pr.d59[q]);
+      }
+      var t2 = trimSeries(gr, M); if (t2) g.r = t2;
+    }
+    if (g.s || g.r) gout[key2] = g;
+  }
+
+  return {
+    v: 1,
+    built: new Date().toISOString().slice(0, 10),
+    src: "국토부 실거래 (수집기 v2.5 집계)",
+    rule: {
+      pyeong: PYEONG, band84: B84, band59: B59, minSample: MIN_SAMPLE,
+      note: "해제거래 제외 · p=중위 평당가(만원/평) · p3=3개월 이동 중위 · a84/a59=중위 거래금액(만원) · " +
+            "j=전세건수(월세0) · d84/d59=전세 중위 보증금(만원) · 시도/전국은 개별 거래 재집계"
+    },
+    m0: m0, months: M,
+    stat: {
+      saleRows: s ? s.rows : 0, saleCancel: s ? s.cancel : 0,
+      rentRows: r ? r.rows : 0, rentBlank: r ? r.rentBlank : 0,
+      bad: (s ? s.bad : 0) + (r ? r.bad : 0)
+    },
+    groups: gout,
+    regions: regions
+  };
+}
+function push2(dst, srcArr) {
+  if (!srcArr) return;
+  for (var i = 0; i < srcArr.length; i++) dst.push(srcArr[i]);
+}
+
+$("mc-go").addEventListener("click", function () {
+  if (MC.busy) return;
+  var fs = $("mc-sale").files, fr = $("mc-rent").files;
+  if ((!fs || !fs.length) && (!fr || !fr.length)) { alert("CSV를 고르세요."); return; }
+  MC.busy = true; MC.abort = false;
+  $("mc-go").disabled = true; $("mc-stop").disabled = false; $("mc-save").disabled = true;
+  $("mc-out").textContent = "";
+  MC.sale = (fs && fs.length) ? mcNewAcc() : null;
+  MC.rent = (fr && fr.length) ? mcNewAcc() : null;
+
+  var jobs = [], grand = 0, i;
+  for (i = 0; i < (fs ? fs.length : 0); i++) { jobs.push({ f: fs[i], kind: "sale" }); grand += fs[i].size; }
+  for (i = 0; i < (fr ? fr.length : 0); i++) { jobs.push({ f: fr[i], kind: "rent" }); grand += fr[i].size; }
+  mcLog("집계 시작 — 파일 " + jobs.length + "개 · " + (grand / 1048576).toFixed(0) + "MB");
+
+  var idx = 0, base = 0;
+  function next() {
+    if (idx >= jobs.length || MC.abort) { finish(); return; }
+    var jb = jobs[idx++];
+    mcScanFile(jb.f, jb.kind === "sale" ? MC.sale : MC.rent, jb.kind, base, grand)
+      .then(function () { base += jb.f.size; next(); })
+      ["catch"](function (e) {
+        mcLog("오류 — " + jb.f.name + " : " + (e && e.message || e), "warn");
+        base += jb.f.size; next();
+      });
+  }
+  function finish() {
+    mcLog("집계 끝 — 조립 중…");
+    setTimeout(function () {
+      var out = mcBuild();
+      MC.out = out;
+      if (out) {
+        var nr = 0, k;
+        for (k in out.regions) nr++;
+        mcLog("");
+        mcLog("── 결과 ──");
+        mcLog("기간 " + out.m0 + " ~ " + ymOf(out.months - 1, ymBase(out.m0)) + " · " + out.months + "개월");
+        mcLog("지역 " + nr + "곳 · 묶음(시도+전국) " + Object.keys(out.groups).length + "개");
+        mcLog("매매 " + fmt(out.stat.saleRows) + "행 (해제 제외 " + fmt(out.stat.saleCancel) + ") · " +
+              "전월세 " + fmt(out.stat.rentRows) + "행");
+        if (out.stat.rentBlank)
+          mcLog("❌ 월세 빈칸 " + fmt(out.stat.rentBlank) + "행 — 옛 프록시 수집분이 섞였습니다", "warn");
+        else mcLog("✅ 월세 빈칸 0행");
+        if (out.stat.bad) mcLog("⚠ 건너뛴 행 " + fmt(out.stat.bad));
+        var js = JSON.stringify(out);
+        MC.json = js;
+        mcLog("파일 크기 " + (js.length / 1048576).toFixed(2) + "MB");
+        $("mc-save").disabled = false;
+      }
+      $("mc-go").disabled = false; $("mc-stop").disabled = true;
+      MC.busy = false;
+    }, 30);
+  }
+  next();
+});
+$("mc-stop").addEventListener("click", function () { MC.abort = true; mcLog("중지 요청"); });
+$("mc-save").addEventListener("click", function () {
+  if (!MC.json) return;
+  download("market_core.json", MC.json);
+  log("market_core.json 저장");
 });
 
 

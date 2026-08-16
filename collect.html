@@ -57,7 +57,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.5</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.6</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -170,7 +170,9 @@ th{color:var(--ink-soft);font-weight:600}
   <div class="note">모아둔 실거래 CSV를 <b>이 브라우저 안에서</b> 시군구×월로 집계해
     앱이 쓰는 <code>market_core.json</code>(약 3~4MB)을 만듭니다. 원본은 PC 밖으로 나가지 않고,
     결과 파일만 저장소에 올리면 됩니다.
-    <b>연도별 원본 파일만</b> 넣으세요 — 보충본을 같이 넣으면 이중 계상됩니다.</div>
+    <b>보충본(<code>..._보충_2019.csv</code>)을 같이 넣어도 됩니다</b> — 파일명으로 알아보고
+    원본에서 그 셀(코드×월)의 행을 빼고 보충본으로 갈아끼웁니다(셀 단위 교체).
+    병합본을 따로 만들 필요가 없습니다.</div>
   <div class="grid">
     <div><label class="f" for="mc-sale">매매 CSV (2010~2026, 파트 파일 포함 전부)</label>
       <input id="mc-sale" type="file" accept=".csv" multiple style="font-size:.78rem;color:var(--ink-soft)"></div>
@@ -528,7 +530,10 @@ function buildCsv(rows, kind) {
   return out.join("\r\n");
 }
 function download(name, text) {
-  var blob = new Blob(["\uFEFF" + text], { type: "text/csv;charset=utf-8;" });
+  /* CSV는 엑셀 때문에 BOM이 필요하지만, JSON에 BOM이 붙으면 JSON.parse가 깨진다 */
+  var isJson = /\.json$/i.test(name);
+  var blob = new Blob([(isJson ? "" : "\uFEFF") + text],
+    { type: isJson ? "application/json;charset=utf-8;" : "text/csv;charset=utf-8;" });
   var a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = name;
@@ -1033,21 +1038,31 @@ function median(a) {
   return n % 2 ? a[h] : Math.round((a[h - 1] + a[h]) / 2);
 }
 
+/* 보충 수집본 판별 — 수집기가 붙이는 파일명 규칙(아파트_○○_실거래가_보충_YYYY.csv) */
+function isSupFile(name) { return /보충/.test(name); }
 function mcNewAcc() {
-  return { cell: {}, rows: 0, bad: 0, cancel: 0, rentBlank: 0, minYm: null, maxYm: null };
+  return { cell: {}, rows: 0, bad: 0, cancel: 0, rentBlank: 0, minYm: null, maxYm: null,
+           repl: {}, replCells: 0, dropped: 0, hasSup: false };
 }
-function mcProcess(acc, lines, kind) {
+/* isSup=true(보충본)면 그 셀을 '교체 대상'으로 기록하고, 원본에서는 같은 셀을 버린다.
+   보충본은 항상 원본보다 먼저 읽는다(mc-go에서 정렬). */
+function mcProcess(acc, lines, kind, isSup) {
   var K = kind === "rent" ? 10 : 9, i, f, area, ym, lawd, key, c;
   for (i = 0; i < lines.length; i++) {
     f = tailFields(lines[i], K);
     area = parseFloat(f[0]); ym = f[1]; lawd = f[K - 1];
     if (!(area > 0) || ym.length !== 6 || lawd.length !== 5) { acc.bad++; continue; }
+    key = lawd + "-" + ym;
+    if (isSup) {
+      if (!acc.repl[key]) { acc.repl[key] = 1; acc.replCells++; }
+    } else if (acc.hasSup && acc.repl[key]) {
+      acc.dropped++; continue;                 /* 원본의 잘린 행 — 보충본이 대신한다 */
+    }
     if (kind === "sale") {
       var cancel = f[6];
       if (cancel && cancel !== "-") { acc.cancel++; continue; }   /* 해제 거래 제외 */
       var amt = parseInt(f[3], 10);
       if (!(amt > 0)) { acc.bad++; continue; }
-      key = lawd + "-" + ym;
       c = acc.cell[key] || (acc.cell[key] = { n: 0, p: [], a84: [], a59: [] });
       c.n++;
       c.p.push(Math.round(amt / (area / PYEONG)));
@@ -1055,7 +1070,6 @@ function mcProcess(acc, lines, kind) {
       else if (area >= B59[0] && area < B59[1]) c.a59.push(amt);
     } else {
       var dep = parseInt(f[3], 10) || 0, mr = f[4];
-      key = lawd + "-" + ym;
       c = acc.cell[key] || (acc.cell[key] = { n: 0, j: 0, d84: [], d59: [] });
       c.n++;
       if (mr === "") { acc.rentBlank++; }            /* 옛 프록시 결손 — 전세 판정 불가 */
@@ -1074,7 +1088,7 @@ function mcProcess(acc, lines, kind) {
 }
 
 /* 점검기와 같은 슬라이스 스트리밍. 행 처리만 다르다. */
-function mcScanFile(file, acc, kind, base, grand) {
+function mcScanFile(file, acc, kind, base, grand, isSup) {
   return new Promise(function (resolve, reject) {
     var CH = 8 * 1024 * 1024, pos = 0, buf = "", first = true, n0 = acc.rows;
     var dec = new TextDecoder("utf-8");
@@ -1097,13 +1111,13 @@ function mcScanFile(file, acc, kind, base, grand) {
         out.push(s);
       }
       if (hold) out.push(hold);
-      mcProcess(acc, out, kind);
+      mcProcess(acc, out, kind, isSup);
     }
     function step() {
       if (MC.abort) { resolve(); return; }
       if (pos >= file.size) {
         handle(buf, true);
-        mcLog("· " + file.name + " — " + fmt(acc.rows - n0) + "행");
+        mcLog("· " + file.name + (isSup ? " [보충]" : "") + " — " + fmt(acc.rows - n0) + "행");
         resolve(); return;
       }
       var end = Math.min(pos + CH, file.size);
@@ -1269,7 +1283,9 @@ function mcBuild() {
     stat: {
       saleRows: s ? s.rows : 0, saleCancel: s ? s.cancel : 0,
       rentRows: r ? r.rows : 0, rentBlank: r ? r.rentBlank : 0,
-      bad: (s ? s.bad : 0) + (r ? r.bad : 0)
+      bad: (s ? s.bad : 0) + (r ? r.bad : 0),
+      replCells: (s ? s.replCells : 0) + (r ? r.replCells : 0),
+      dropped: (s ? s.dropped : 0) + (r ? r.dropped : 0)
     },
     groups: gout,
     regions: regions
@@ -1290,16 +1306,24 @@ $("mc-go").addEventListener("click", function () {
   MC.sale = (fs && fs.length) ? mcNewAcc() : null;
   MC.rent = (fr && fr.length) ? mcNewAcc() : null;
 
-  var jobs = [], grand = 0, i;
-  for (i = 0; i < (fs ? fs.length : 0); i++) { jobs.push({ f: fs[i], kind: "sale" }); grand += fs[i].size; }
-  for (i = 0; i < (fr ? fr.length : 0); i++) { jobs.push({ f: fr[i], kind: "rent" }); grand += fr[i].size; }
-  mcLog("집계 시작 — 파일 " + jobs.length + "개 · " + (grand / 1048576).toFixed(0) + "MB");
+  var jobs = [], grand = 0, i, nsup = 0;
+  for (i = 0; i < (fs ? fs.length : 0); i++) { jobs.push({ f: fs[i], kind: "sale", sup: isSupFile(fs[i].name) }); grand += fs[i].size; }
+  for (i = 0; i < (fr ? fr.length : 0); i++) { jobs.push({ f: fr[i], kind: "rent", sup: isSupFile(fr[i].name) }); grand += fr[i].size; }
+  /* 보충본을 먼저 읽어야 원본에서 해당 셀을 버릴 수 있다 */
+  jobs.sort(function (a, b) { return (b.sup ? 1 : 0) - (a.sup ? 1 : 0); });
+  for (i = 0; i < jobs.length; i++) {
+    if (!jobs[i].sup) continue;
+    nsup++;
+    (jobs[i].kind === "sale" ? MC.sale : MC.rent).hasSup = true;
+  }
+  mcLog("집계 시작 — 파일 " + jobs.length + "개 · " + (grand / 1048576).toFixed(0) + "MB" +
+        (nsup ? " (보충본 " + nsup + "개 — 원본의 같은 셀은 버리고 보충본으로 교체)" : ""));
 
   var idx = 0, base = 0;
   function next() {
     if (idx >= jobs.length || MC.abort) { finish(); return; }
     var jb = jobs[idx++];
-    mcScanFile(jb.f, jb.kind === "sale" ? MC.sale : MC.rent, jb.kind, base, grand)
+    mcScanFile(jb.f, jb.kind === "sale" ? MC.sale : MC.rent, jb.kind, base, grand, jb.sup)
       .then(function () { base += jb.f.size; next(); })
       ["catch"](function (e) {
         mcLog("오류 — " + jb.f.name + " : " + (e && e.message || e), "warn");
@@ -1320,6 +1344,9 @@ $("mc-go").addEventListener("click", function () {
         mcLog("지역 " + nr + "곳 · 묶음(시도+전국) " + Object.keys(out.groups).length + "개");
         mcLog("매매 " + fmt(out.stat.saleRows) + "행 (해제 제외 " + fmt(out.stat.saleCancel) + ") · " +
               "전월세 " + fmt(out.stat.rentRows) + "행");
+        if (out.stat.replCells)
+          mcLog("보충 교체 — 셀 " + fmt(out.stat.replCells) + "개 · 원본에서 버린 행 " +
+                fmt(out.stat.dropped) + "행");
         if (out.stat.rentBlank)
           mcLog("❌ 월세 빈칸 " + fmt(out.stat.rentBlank) + "행 — 옛 프록시 수집분이 섞였습니다", "warn");
         else mcLog("✅ 월세 빈칸 0행");

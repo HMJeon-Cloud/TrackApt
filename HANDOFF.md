@@ -24,7 +24,7 @@
 ```
 /home/claude/trackapt/
   index.html          # 본체 (ES5 단일 파일, <script> 인라인)
-  collect.html        # 실거래 수집기 v2.5 (코드 탐지·셀 보충·분할 저장·파일 점검·market_core 생성)
+  collect.html        # 실거래 수집기 v2.6 (코드 탐지·셀 보충·분할 저장·파일 점검·market_core 생성)
   kb_data.json        # KB 시계열 (0.95MB, 정적 — 사용자가 매달 교체)
   supply_data.sample.json  # 확장 수급 데이터 견본 (선택 파일 스키마)
   PROJECT.md          # 버전별 변경 누적 로그
@@ -234,9 +234,14 @@
 
 ### market_core.json — 생성 경로 확정 (v2.5)
 
-**원자료는 세션에 올리지 않는다.** collect.html v2.5의 [market_core.json 만들기]로
-브라우저에서 집계해 3~4MB JSON만 받아 저장소에 올린다. 스키마·집계 규칙은 PROJECT.md v2.5 절 참조.
+**원자료는 세션에 올리지 않는다.** collect.html v2.6의 [market_core.json 만들기]로
+브라우저에서 집계해 2~4MB JSON만 받아 저장소에 올린다. 스키마·집계 규칙은 PROJECT.md v2.5/v2.6 절 참조.
 검증은 그 JSON을 세션에 올려 KB `salePm`과 나란히 비교하는 것으로 한다.
+
+- **원본 + 보충본을 함께 넣어도 된다** (v2.6). 파일명의 "보충"으로 판별해 셀 단위로 교체한다.
+  병합본 CSV를 따로 만들 필요 없음. v2.5에서는 이걸 안 해서 매매 347셀이 이중 계상됐다.
+- 합격 기준: `stat.saleRows + stat.saleCancel == 9,123,668` · `replCells == 347` ·
+  `dropped == 347,000` · `rentBlank == 0`.
 
 ### 그다음: market_core.json (KB 대체 본작업)
 

@@ -57,7 +57,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.3</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.4</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -109,7 +109,13 @@ th{color:var(--ink-soft);font-weight:600}
   <div class="btnrow">
     <label class="check"><input type="checkbox" id="autosave" checked> 연도별 자동 저장</label>
     <label class="check"><input type="checkbox" id="skipcancel"> 해제(취소) 거래 제외</label>
+    <label class="check">파일당 최대 행수
+      <input id="split" type="number" min="10000" step="100000" value="1000000"
+        style="width:104px;margin-left:6px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:3px 6px;font-size:.8rem"></label>
   </div>
+  <div class="note">엑셀 시트 한계는 <b>1,048,576행</b>입니다. 한 해가 이를 넘으면
+    <code>..._2023_1of2.csv</code>처럼 나눠 저장합니다 (0을 넣으면 분할하지 않음).
+    <b>파일이 잘리는 게 아니라 엑셀이 못 여는 것</b>이므로, 이미 받은 큰 파일도 데이터는 온전합니다.</div>
 
   <div class="stat" id="plan"></div>
   <div class="btnrow">
@@ -135,6 +141,27 @@ th{color:var(--ink-soft);font-weight:600}
   <div class="tbl"><table id="pv"><thead></thead><tbody></tbody></table></div>
   <div class="note">CSV는 UTF-8(BOM) 이라 엑셀에서 바로 열립니다. 열 구성은 실거래가 공개시스템
     다운로드본과 최대한 맞췄지만, API가 주지 않는 항목(도로명·매수자·등기일자 등)은 <code>-</code>로 채웁니다.</div>
+</div>
+
+<div class="card">
+  <div class="eyebrow">Check</div>
+  <h2>받은 파일 점검</h2>
+  <div class="note">내려받은 CSV를 <b>이 브라우저 안에서</b> 읽어 검증합니다 (업로드 아님, 서버 전송 없음).
+    행수·월 커버리지·잘림(정확히 1,000건) 셀·<b>월세 열 채움률</b>·법정동코드 커버리지를 확인하고,
+    결과를 작은 리포트 파일로 저장합니다. 원본 CSV 대신 <b>이 리포트만 올리면</b> 검증을 이어갈 수 있습니다.</div>
+  <div class="btnrow">
+    <input id="chk-files" type="file" accept=".csv" multiple
+      style="font-size:.8rem;color:var(--ink-soft)">
+  </div>
+  <div class="btnrow">
+    <button class="btn gold" id="chk-go">점검 시작</button>
+    <button class="btn" id="chk-stop" disabled>중지</button>
+    <button class="btn" id="chk-save" disabled>리포트 저장 (JSON)</button>
+    <button class="btn" id="chk-cells" disabled>셀별 건수 저장 (CSV)</button>
+  </div>
+  <div class="bar"><i id="chk-bar"></i></div>
+  <div class="stat" id="chk-stat"></div>
+  <div class="log" id="chk-out">대기 중…</div>
 </div>
 
 </div>
@@ -479,16 +506,34 @@ function download(name, text) {
   document.body.appendChild(a); a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
+/* 엑셀 시트 한계(1,048,576행) 때문에 큰 연도는 파트로 나눠 저장한다.
+   0 이하를 넣으면 분할하지 않는다. */
+function splitLimit() {
+  var el = $("split");
+  var v = el ? parseInt(el.value, 10) : 1000000;
+  if (!isFinite(v) || v <= 0) return 0;
+  return Math.max(10000, v);
+}
 function saveCsv(year) {
   var kind = $("kind").value;
   var rows = year != null ? ST.rows.filter(function (r) { return r.job === year; }) : ST.rows;
   var rest = year != null ? ST.rows.filter(function (r) { return r.job !== year; }) : [];
   if (!rows.length) return;
-  var name = "아파트_" + (kind === "rent" ? "전월세" : "매매") + "_실거래가_" + (ST.cellMode ? "보충_" : "") +
-    (year != null ? year : (rows[0].ym.slice(0, 4) + "-" + rows[rows.length - 1].ym.slice(0, 4))) + ".csv";
-  download(name, buildCsv(rows, kind));
-  ST.saved.push(name + " (" + fmt(rows.length) + "건)");
-  log("저장 → " + name + " · " + fmt(rows.length) + "건");
+  var base = "아파트_" + (kind === "rent" ? "전월세" : "매매") + "_실거래가_" + (ST.cellMode ? "보충_" : "") +
+    (year != null ? year : (rows[0].ym.slice(0, 4) + "-" + rows[rows.length - 1].ym.slice(0, 4)));
+  var lim = splitLimit();
+  var parts = lim ? Math.ceil(rows.length / lim) : 1;
+  for (var i = 0; i < parts; i++) {
+    var chunk = parts > 1 ? rows.slice(i * lim, (i + 1) * lim) : rows;
+    var name = base + (parts > 1 ? "_" + (i + 1) + "of" + parts : "") + ".csv";
+    /* 여러 파일을 연달아 내려받으면 브라우저가 막을 수 있어 간격을 준다 */
+    (function (nm, ck, d) {
+      setTimeout(function () { download(nm, buildCsv(ck, kind)); }, d);
+    })(name, chunk, i * 900);
+    ST.saved.push(name + " (" + fmt(chunk.length) + "건)");
+    log("저장 → " + name + " · " + fmt(chunk.length) + "건");
+  }
+  if (parts > 1) log("엑셀 한계(1,048,576행) 때문에 " + parts + "개로 나눴습니다. 브라우저가 다중 다운로드를 물으면 허용하세요.", "warn");
   ST.rows = rest;          /* 저장한 연도만 비운다 */
   preview();
 }
@@ -635,6 +680,285 @@ $("retry").addEventListener("click", function () {
   var jobs = ST.fail.slice();
   log("실패 " + jobs.length + "건 재시도");
   run(jobs);
+});
+
+
+/* ══════════ 받은 파일 점검 (v2.4) ══════════
+   대용량 CSV를 슬라이스 스트리밍으로 읽어 통계만 뽑는다. 파일 내용은 브라우저 밖으로 나가지 않는다. */
+var CHK = { busy: false, abort: false, rep: null, cells: null };
+
+/* 실제 값이 1,000건으로 확인된 셀 (잘림 아님 — PROJECT.md 참조) */
+var LEGIT_1000 = { "41150-202112": 1, "41390-202006": 1, "41465-202111": 1, "41465-202509": 1 };
+/* 2026.7 개편으로 죽은 코드 — 남아 있으면 옛 수집분이 섞인 것 */
+var DEAD_CODES = { "28110": 1, "28140": 1, "28260": 1 };
+var DEAD_PREFIX = { "29": 1, "46": 1, "42": 1, "45": 1 };
+var NEW_INCHEON = ["28125", "28155", "28275", "28290"];
+
+function chkLog(s, cls) {
+  var el = $("chk-out");
+  if (el.textContent === "대기 중…") el.textContent = "";
+  var d = document.createElement("div");
+  if (cls) d.className = cls;
+  d.textContent = s;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+/* 오른쪽에서 k개 필드를 떼어낸다. 뒤쪽 필드(계약년월~법정동코드)엔 쉼표가 없다. */
+function tailFields(line, k) {
+  var out = new Array(k), end = line.length, p, i;
+  for (i = k - 1; i >= 0; i--) {
+    p = line.lastIndexOf(",", end - 1);
+    if (p < 0) { out[i] = line.slice(0, end); break; }
+    out[i] = line.slice(p + 1, end);
+    end = p;
+  }
+  return out;
+}
+/* 정상 행은 마지막 필드가 5자리 법정동코드다. 아니면 앞 행이 개행을 품은 것으로 보고 이어붙인다. */
+function endsWithCode(s) {
+  var n = s.length, i, c;
+  if (n < 6) return false;
+  if (s.charCodeAt(n - 6) !== 44) return false;      /* ',' */
+  for (i = n - 5; i < n; i++) { c = s.charCodeAt(i); if (c < 48 || c > 57) return false; }
+  return true;
+}
+
+function newStat() {
+  return {
+    files: [], total: 0, bad: 0, kind: null,
+    cell: {}, year: {}, month: {}, codes: {},
+    headMismatch: []
+  };
+}
+function yrOf(st, y) {
+  var o = st.year[y];
+  if (!o) { o = st.year[y] = { n: 0, rentFilled: 0, rentPos: 0, depZero: 0, amtZero: 0 }; }
+  return o;
+}
+
+function chkProcess(st, lines) {
+  var i, line, f, ym, lawd, y, o, k;
+  var rent = st.kind === "rent";
+  var K = rent ? 9 : 8;
+  for (i = 0; i < lines.length; i++) {
+    line = lines[i];
+    if (!line) continue;
+    f = tailFields(line, K);
+    ym = f[0]; lawd = f[K - 1];
+    if (ym.length !== 6 || lawd.length !== 5) { st.bad++; continue; }
+    y = ym.slice(0, 4);
+    k = lawd + "-" + ym;
+    st.cell[k] = (st.cell[k] || 0) + 1;
+    st.month[ym] = (st.month[ym] || 0) + 1;
+    st.codes[lawd] = (st.codes[lawd] || 0) + 1;
+    st.total++;
+    o = yrOf(st, y);
+    o.n++;
+    if (rent) {
+      var dep = f[2], mr = f[3];
+      if (mr !== "") { o.rentFilled++; if (mr !== "0" && parseFloat(mr) > 0) o.rentPos++; }
+      if (dep === "" || dep === "0") o.depZero++;
+    } else {
+      var amt = f[2];
+      if (amt === "" || amt === "0") o.amtZero++;
+    }
+  }
+}
+
+function chkScanFile(file, st, base, grand) {
+  return new Promise(function (resolve, reject) {
+    var CH = 8 * 1024 * 1024, pos = 0, buf = "", first = true, n0 = st.total;
+    var dec = (typeof TextDecoder !== "undefined") ? new TextDecoder("utf-8") : null;
+    function handle(text, last) {
+      var lines = text.split("\n"), out = [], i, s, hold = "";
+      for (i = 0; i < lines.length; i++) {
+        s = lines[i];
+        if (s.charCodeAt(s.length - 1) === 13) s = s.slice(0, -1);
+        if (hold) { s = hold + "\n" + s; hold = ""; }
+        if (!s) continue;
+        if (first) {
+          first = false;
+          if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
+          var isRent = s.indexOf("월세") >= 0;
+          var kind = isRent ? "rent" : "sale";
+          if (st.kind && st.kind !== kind) st.headMismatch.push(file.name);
+          st.kind = st.kind || kind;
+          if (s.indexOf("법정동코드") < 0) st.headMismatch.push(file.name + " (헤더 이상)");
+          continue;
+        }
+        if (!endsWithCode(s) && !(last && i === lines.length - 1)) { hold = s; continue; }
+        out.push(s);
+      }
+      if (hold) out.push(hold);
+      chkProcess(st, out);
+    }
+    function step() {
+      if (CHK.abort) { resolve(); return; }
+      if (pos >= file.size) {
+        if (dec) buf += dec.decode(new Uint8Array(0));
+        handle(buf, true);
+        st.files.push({ name: file.name, rows: st.total - n0, bytes: file.size });
+        chkLog("· " + file.name + " — " + fmt(st.total - n0) + "행");
+        resolve();
+        return;
+      }
+      var end = Math.min(pos + CH, file.size);
+      var blob = file.slice(pos, end);
+      pos = end;
+      blob.arrayBuffer().then(function (ab) {
+        buf += dec ? dec.decode(ab, { stream: true }) : "";
+        var nl = buf.lastIndexOf("\n");
+        if (nl >= 0) { handle(buf.slice(0, nl), false); buf = buf.slice(nl + 1); }
+        var done = base + pos;
+        $("chk-bar").style.width = (100 * done / grand).toFixed(1) + "%";
+        $("chk-stat").innerHTML =
+          "<div><b>" + (100 * done / grand).toFixed(1) + "%</b><span>진행</span></div>" +
+          "<div><b>" + fmt(st.total) + "</b><span>읽은 행</span></div>" +
+          "<div><b>" + (done / 1048576).toFixed(0) + "MB</b><span>처리량</span></div>";
+        setTimeout(step, 0);
+      })["catch"](reject);
+    }
+    step();
+  });
+}
+
+function chkReport(st) {
+  var L = [], k, y, ys = [], ms, i;
+  L.push("");
+  L.push("── 결과 ──");
+  L.push("자료 종류: " + (st.kind === "rent" ? "전월세" : "매매") + " · 파일 " + st.files.length +
+         "개 · 총 " + fmt(st.total) + "행" + (st.bad ? " (파싱 실패 " + fmt(st.bad) + ")" : ""));
+  if (st.headMismatch.length) L.push("⚠ 헤더 이상/혼재: " + st.headMismatch.join(", "));
+
+  for (k in st.year) ys.push(k);
+  ys.sort();
+  L.push("");
+  L.push("[연도별]");
+  for (i = 0; i < ys.length; i++) {
+    y = st.year[ys[i]];
+    var line = "  " + ys[i] + "  " + fmt(y.n) + "행";
+    if (st.kind === "rent") {
+      line += " · 월세열 채움 " + (100 * y.rentFilled / y.n).toFixed(1) + "%" +
+              " · 월세>0 " + (100 * y.rentPos / y.n).toFixed(1) + "%";
+      if (y.rentFilled / y.n < 0.99) line += "  ❌결손";
+    } else if (y.amtZero) line += " · 금액0 " + fmt(y.amtZero);
+    L.push(line);
+  }
+
+  /* 월 커버리지 */
+  ms = [];
+  for (k in st.month) ms.push(k);
+  ms.sort();
+  var miss = [], t, a = ms[0], b = ms[ms.length - 1];
+  var yy = +a.slice(0, 4), mm = +a.slice(4), ey = +b.slice(0, 4), em = +b.slice(4);
+  while (yy < ey || (yy === ey && mm <= em)) {
+    t = "" + yy + (mm < 10 ? "0" + mm : mm);
+    if (!st.month[t]) miss.push(t);
+    mm++; if (mm === 13) { yy++; mm = 1; }
+  }
+  L.push("");
+  L.push("[월 커버리지] " + a + " ~ " + b + " · " + ms.length + "개월");
+  L.push(miss.length ? "  ❌ 결손 " + miss.length + "개월: " + miss.join(", ") : "  ✅ 결손 없음");
+
+  /* 잘림 */
+  var cap = [], over = 0, maxc = 0, maxk = "";
+  for (k in st.cell) {
+    var v = st.cell[k];
+    if (v === 1000 && !LEGIT_1000[k]) cap.push(k);
+    if (v > 1000) { over++; if (v > maxc) { maxc = v; maxk = k; } }
+  }
+  cap.sort();
+  L.push("");
+  L.push("[잘림 검사] 셀 " + fmt(objLen(st.cell)) + "개");
+  L.push(cap.length ? "  ❌ 정확히 1,000건 셀 " + cap.length + "개: " + cap.slice(0, 40).join(", ") +
+                      (cap.length > 40 ? " …" : "")
+                    : "  ✅ 잘림 의심 셀 없음 (실값 1,000 확인분 4개 제외)");
+  L.push("  1,000건 초과 셀 " + fmt(over) + "개 · 최대 " + (maxk ? maxk + " " + fmt(maxc) + "건" : "-"));
+
+  /* 코드 */
+  var codes = [], dead = [], n12 = 0, newIn = 0;
+  for (k in st.codes) {
+    codes.push(k);
+    if (k.slice(0, 2) === "12") n12++;
+    if (DEAD_CODES[k] || DEAD_PREFIX[k.slice(0, 2)]) dead.push(k);
+  }
+  for (i = 0; i < NEW_INCHEON.length; i++) if (st.codes[NEW_INCHEON[i]]) newIn++;
+  L.push("");
+  L.push("[법정동코드] " + codes.length + "개 등장 · 12xxx(전남광주통합) " + n12 +
+         "개 · 인천 신설 4구 " + newIn + "/4");
+  L.push(dead.length ? "  ⚠ 죽은 코드 잔존 " + dead.length + "개: " + dead.slice(0, 20).join(", ")
+                     : "  ✅ 죽은 코드 없음");
+  return L.join("\n");
+}
+function objLen(o) { var n = 0, k; for (k in o) n++; return n; }
+
+$("chk-go").addEventListener("click", function () {
+  var fl = $("chk-files").files;
+  if (!fl || !fl.length) { alert("점검할 CSV를 고르세요."); return; }
+  if (CHK.busy) return;
+  CHK.busy = true; CHK.abort = false;
+  $("chk-go").disabled = true; $("chk-stop").disabled = false;
+  $("chk-save").disabled = true; $("chk-cells").disabled = true;
+  $("chk-out").textContent = "";
+  var st = newStat(), grand = 0, i;
+  for (i = 0; i < fl.length; i++) grand += fl[i].size;
+  chkLog("점검 시작 — 파일 " + fl.length + "개 · " + (grand / 1048576).toFixed(0) + "MB");
+  var base = 0, idx = 0;
+  function next() {
+    if (idx >= fl.length || CHK.abort) {
+      CHK.rep = st;
+      chkLog(chkReport(st));
+      $("chk-go").disabled = false; $("chk-stop").disabled = true;
+      $("chk-save").disabled = false; $("chk-cells").disabled = false;
+      CHK.busy = false;
+      return;
+    }
+    var f = fl[idx++];
+    chkScanFile(f, st, base, grand).then(function () {
+      base += f.size;
+      next();
+    })["catch"](function (e) {
+      chkLog("오류 — " + f.name + " : " + (e && e.message || e), "warn");
+      base += f.size; next();
+    });
+  }
+  next();
+});
+$("chk-stop").addEventListener("click", function () { CHK.abort = true; chkLog("중지 요청"); });
+
+$("chk-save").addEventListener("click", function () {
+  var st = CHK.rep;
+  if (!st) return;
+  var cap = [], k;
+  for (k in st.cell) if (st.cell[k] === 1000 && !LEGIT_1000[k]) cap.push(k);
+  cap.sort();
+  var out = {
+    tool: "collect.html v2.4 점검",
+    kind: st.kind, files: st.files, total: st.total, badRows: st.bad,
+    headMismatch: st.headMismatch,
+    year: st.year, month: st.month,
+    capped1000: cap,
+    codes: st.codes,
+    cellCount: objLen(st.cell)
+  };
+  download("점검리포트_" + (st.kind === "rent" ? "전월세" : "매매") + ".json",
+           JSON.stringify(out, null, 1));
+  log("점검 리포트 저장");
+});
+$("chk-cells").addEventListener("click", function () {
+  var st = CHK.rep;
+  if (!st) return;
+  var keys = [], k;
+  for (k in st.cell) keys.push(k);
+  keys.sort();
+  var out = ["법정동코드,계약년월,건수"], i, p;
+  for (i = 0; i < keys.length; i++) {
+    p = keys[i].split("-");
+    out.push(p[0] + "," + p[1] + "," + st.cell[keys[i]]);
+  }
+  download("점검_셀별건수_" + (st.kind === "rent" ? "전월세" : "매매") + ".csv", out.join("\r\n"));
+  log("셀별 건수 저장 — " + keys.length + "행");
 });
 
 

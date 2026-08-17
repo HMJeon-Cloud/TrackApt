@@ -236,7 +236,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v4.4</span>
+    <span class="ver">v4.4.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2065,7 +2065,10 @@ function buildDanji(root) {
         '<b>이름값만 있던 단지</b>가 구분됩니다. 손품으로 후보를 좁힌 뒤 임장은 그 몇 곳만 다니면 됩니다.<br>' +
         '<b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
         '평당가는 전용면적 기준(거래가 ÷ 전용㎡ × 3.3058)이라 공급면적 평당가보다 25%쯤 높으니 네이버 시세와 ' +
-        '직접 비교하지 마세요. 지하철·세대수는 K-apt 정보이며 미제공 단지는 필터에서 빠집니다.</div></div>';
+        '직접 비교하지 마세요. 지하철·세대수는 K-apt 정보이며 미제공 단지는 필터에서 빠집니다.<br>' +
+        '<b>이 탭은 "지금 살 단지"를 고르는 곳이라 최근 3~12개월만 봅니다.</b> 조회한 기간은 버튼 옆에 ' +
+        '<code>2026.03~2026.08</code> 형태로 표시됩니다. 특정 과거 연도를 보려면 <b>거래량</b>(최대 24개월) 또는 ' +
+        '<b>과거 검증</b>(5·10·15년 전) 탭을 쓰세요.</div></div>';
 
   root.querySelector("#dj-go").addEventListener("click", loadDanji);
   ["dj-hh", "dj-sub", "dj-age", "dj-band"].forEach(function (id) {
@@ -2480,6 +2483,8 @@ function loadDanji() {
   function tick() { done++; btn.textContent = "실거래 조회… (" + done + "/" + total + ")"; }
   btn.textContent = "실거래 조회… (0/" + total + ")";
   var months = ymList(DJ.months);
+  /* 화면에 "언제 자료인지"를 명시한다 — 최근 N개월만 고를 수 있어 기간이 안 보이면 혼동된다 */
+  DJ.ymTo = months[0]; DJ.ymFrom = months[months.length - 1];
 
   var guName = DJ.regionName;
   var saleP = Promise.all(months.map(function (ym) {
@@ -2496,12 +2501,8 @@ function loadDanji() {
 
   Promise.all([saleP, rentP]).then(function (both) {
     var rentAll = [].concat.apply([], both[1]).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; });
-    /* 코드 단계에서 구가 갈렸으면 법정동 필터는 쓰지 않는다 (누락 방지) */
-    var codeSplit = !!(HWA.guOf && DJ.regionName && Object.keys(HWA.guOf).some(function (c) {
-      return HWA.guOf[c] === DJ.regionName;
-    }));
-    var useFilter = codeSplit ? null : DJ.subFilter;
-    DJ.usedCodeSplit = codeSplit;
+    /* v4.4부터 모든 구는 자기 코드로 조회하므로 법정동 필터는 SUB_DISTRICT가 비어 있는 한 no-op */
+    var useFilter = DJ.subFilter;
     var all = [].concat.apply([], both[0]).filter(function (t) {
       return !t.canceled && t.amount > 0 && t.area > 0 && inSubDistrict(t.dong, useFilter);
     });
@@ -2539,10 +2540,12 @@ function loadDanji() {
   });
 }
 
+function ymDot(ym) { return ym ? String(ym).slice(0, 4) + "." + String(ym).slice(4) : ""; }
 function updateDanjiMeta(suffix) {
-  var meta = DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
-  if (DJ.usedCodeSplit) meta += " · 구 전용 코드로 조회";
-  else if (DJ.subFilter) meta += " · 해당 구 법정동만 추림";
+  var meta = "";
+  if (DJ.ymFrom) meta += ymDot(DJ.ymFrom) + "~" + ymDot(DJ.ymTo) + " · ";
+  meta += DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
+  if (DJ.subFilter) meta += " · 해당 구 법정동만 추림";
   if (DJ.kaptList !== null) {
     if (!DJ.kaptList.length) meta += " · K-apt 목록 없음";
     else if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";

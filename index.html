@@ -245,7 +245,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.4</span>
+    <span class="ver">v5.6</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2183,13 +2183,18 @@ function buildDanji(root) {
       '<th data-sort="apt">단지 ⇅</th><th data-sort="amt">최근 실거래 ⇅</th><th data-sort="py">평당가 ⇅</th>' +
       '<th data-sort="hh">세대수 ⇅</th><th data-sort="year">준공 ⇅</th><th data-sort="sub">지하철 ⇅</th>' +
       '<th data-sort="je">전세 ⇅</th><th data-sort="jr">전세가율 ⇅</th><th data-sort="gap">갭 ⇅</th>' +
-      '<th data-sort="cnt">거래 ⇅</th><th>담기</th></tr></thead><tbody></tbody></table></div>' +
+      '<th data-sort="cnt">거래 ⇅</th><th data-sort="c10">10년 ⇅</th>' +
+      '<th>담기</th></tr></thead><tbody></tbody></table></div>' +
       '<div class="note"><b>어떤 인사이트를 얻나</b> — 같은 지역 안에서도 단지마다 10년 성과가 크게 갈립니다. ' +
         '평당가 순으로 훑으면 그 동네의 서열이 그대로 보이고, 10년 열을 함께 보면 <b>비싼 값을 한 단지</b>와 ' +
         '<b>이름값만 있던 단지</b>가 구분됩니다. 손품으로 후보를 좁힌 뒤 임장은 그 몇 곳만 다니면 됩니다.<br>' +
         '<b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
         '평당가는 전용면적 기준(거래가 ÷ 전용㎡ × 3.3058)이라 공급면적 평당가보다 25%쯤 높으니 네이버 시세와 ' +
         '직접 비교하지 마세요. 지하철·세대수는 K-apt 정보이며 미제공 단지는 필터에서 빠집니다.<br>' +
+        '<b>10년</b> 열은 저장본(trades/)에서 읽은 <b>그 단지의 10년 연평균 상승률</b>입니다. ' +
+        '연 중위가를 10년 전과 비교하며, 실거래 조회를 추가로 하지 않습니다. ' +
+        '한쪽이라도 거래 1건뿐이면 <b>~</b>를 붙여 표본이 얇음을 알립니다. ' +
+        '저장본이 없는 지역은 <b>·</b>로 비워 둡니다.<br>' +
         '<b>이 탭은 "지금 살 단지"를 고르는 곳이라 최근 3~12개월만 봅니다.</b> 조회한 기간은 버튼 옆에 ' +
         '<code>2026.03~2026.08</code> 형태로 표시됩니다. 특정 과거 연도를 보려면 <b>거래량</b>(최대 24개월) 또는 ' +
         '<b>과거 검증</b>(5·10·15년 전) 탭을 쓰세요.</div></div>';
@@ -2579,6 +2584,13 @@ function loadDanji() {
   DJ.regionKey = kbKeyOfLawd(lawd);
   DJ.months = Number(document.getElementById("dj-months").value);
   DJ.kaptList = null; DJ.kaptMiss = 0;
+  DJ.store = null;
+  /* 저장본은 실거래와 병렬로 받는다. 없거나 실패해도 표는 그대로 나온다. */
+  loadStore(lawd).then(function (st) {
+    if (DJ.lawd !== lawd) return;          /* 조회 중 지역이 바뀌면 버림 */
+    DJ.store = st || null;
+    if (DJ.rows && DJ.rows.length) renderDanjiTable();
+  });
   var btn = document.getElementById("dj-go");
   btn.disabled = true;
   var total = DJ.months * 2, done = 0;
@@ -2648,6 +2660,8 @@ function updateDanjiMeta(suffix) {
   if (DJ.ymFrom) meta += ymDot(DJ.ymFrom) + "~" + ymDot(DJ.ymTo) + " · ";
   meta += DJ.rows.length + "단지 · 매매 " + fmt(DJ.saleCount) + "건 · 전세 " + fmt(DJ.rentCount) + "건";
   if (DJ.subFilter) meta += " · 해당 구 법정동만 추림";
+  if (DJ.store) meta += " · 저장본 " + DJ.store.cx.length + "단지";
+  else if (DJ.store === false) meta += " · 저장본 없음";
   if (DJ.kaptList !== null) {
     if (!DJ.kaptList.length) meta += " · K-apt 목록 없음";
     else if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";
@@ -2658,6 +2672,73 @@ function updateDanjiMeta(suffix) {
 /* K-apt 목록 1회 + 평당가 상위 단지 상세를 병렬로 부착 (도착하는 대로 표 갱신) */
 var KAPT_INFO_MEMO = {};
 var KAPT_LIST_MEMO = {};
+/* ── 단지별 저장본 trades/{lawd}.json (3층 구조 2층) ────────────
+   시·군·구별로 "단지 × 평형대 × 분기" 중위가·건수를 담은 파일.
+   그 지역을 볼 때만 한 번 받아 캐시한다. 없으면 조용히 건너뛴다(선택 파일).
+   최근 구간은 실거래 API가 더 신선하므로 저장본은 **과거 성과**에만 쓴다. */
+var STORE = {}, STORE_P = {};
+function loadStore(code) {
+  if (STORE[code] !== undefined) return Promise.resolve(STORE[code]);
+  if (STORE_P[code]) return STORE_P[code];
+  STORE_P[code] = fetch("trades/" + code + ".json")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      /* v2 = 연 단위. v1(분기)은 칸 간격이 달라 그대로 쓰면 기간이 4배 어긋난다 → 무시한다. */
+      if (j && j.v !== 2) j = null;
+      STORE[code] = j || false;
+      return STORE[code];
+    })
+    ["catch"](function () { STORE[code] = false; return false; });
+  return STORE_P[code];
+}
+/* 저장본에서 단지를 찾는다 — 단지명 + 법정동. 이름 표기 흔들림은 normName으로 흡수. */
+function storeIndex(st) {
+  if (!st) return null;
+  if (st._idx) return st._idx;
+  var idx = {};
+  st.cx.forEach(function (c) {
+    idx[normName(c.n) + "|" + c.d] = c;
+    if (!idx[normName(c.n)]) idx[normName(c.n)] = c;   /* 동이 어긋날 때의 폴백 */
+  });
+  st._idx = idx;
+  return idx;
+}
+function storeFind(st, apt, dong) {
+  var idx = storeIndex(st);
+  if (!idx) return null;
+  return idx[normName(apt) + "|" + dong] || idx[normName(apt)] || null;
+}
+/* 저장본 한 단지의 '연평균 상승률' — 최근 유효 분기와 years년 전 분기를 비교.
+   평형대를 지정하면 그 밴드만, 없으면 거래가 가장 많은 밴드를 쓴다.
+   건수(c)를 함께 보고 1건짜리끼리의 비교면 thin=true로 표시한다. */
+function storeCagr(cx, band, years) {
+  if (!cx) return null;
+  var blk = cx.s, keys = [], k;
+  for (k in blk) keys.push(k);
+  if (!keys.length) return null;
+  var use = (band && blk[band]) ? String(band) : keys.sort(function (a, b) {
+    var sa = blk[a].c.reduce(function (x, y) { return x + y; }, 0);
+    var sb = blk[b].c.reduce(function (x, y) { return x + y; }, 0);
+    return sb - sa;
+  })[0];
+  var s = blk[use], i, last = -1, prev = -1;
+  for (i = s.p.length - 1; i >= 0; i--) if (s.p[i] != null) { last = i; break; }
+  if (last < 0) return null;
+  var want = last - years;                 /* v2 저장본은 한 칸이 1년이다 */
+  /* 그 해에 거래가 없으면 앞뒤 1년까지 당겨 쓴다 */
+  for (i = 0; i <= 1 && prev < 0; i++) {
+    if (want - i >= 0 && s.p[want - i] != null) prev = want - i;
+    else if (want + i >= 0 && want + i < last && s.p[want + i] != null) prev = want + i;
+  }
+  if (prev < 0 || !s.p[prev]) return null;
+  var yrs = last - prev;
+  if (yrs < years * 0.6) return null;                 /* 기간이 너무 짧으면 비교 의미 없음 */
+  var cagr = (Math.pow(s.p[last] / s.p[prev], 1 / yrs) - 1) * 100;
+  return { cagr: cagr, band: Number(use), yrs: yrs,
+           thin: (s.c[last] <= 1 || s.c[prev] <= 1),
+           from: s.p[prev], to: s.p[last] };
+}
+
 /* K-apt 단지 목록 — 화성(41590)은 옛+신설 코드를 합쳐서 */
 function fetchKaptList(lawd) {
   if (KAPT_LIST_MEMO[lawd]) return Promise.resolve(KAPT_LIST_MEMO[lawd]);
@@ -2791,6 +2872,11 @@ function renderDanjiTable() {
     r.sub = subwayMin(g.kapt);
     r.builder = g.kapt ? g.kapt.builder : null;
     r.parking = (g.kapt && g.kapt.parkingTotal) ? g.kapt.parkingTotal : null;
+    /* 저장본이 로드돼 있으면 10년 성과를 붙인다 (없으면 null) */
+    var stc = DJ.store ? storeFind(DJ.store, g.apt, g.dong) : null;
+    var c10 = stc ? storeCagr(stc, band, 10) : null;
+    r.c10 = c10 ? c10.cagr : null;
+    r.c10thin = c10 ? c10.thin : false;
     return r;
   }).filter(Boolean).filter(function (r) {
     if (minHH && (r.hh == null || r.hh < minHH)) return false;
@@ -2833,8 +2919,10 @@ function renderDanjiTable() {
       '<td class="' + (r.jr != null && r.jr >= 70 ? "up" : "") + '">' + (r.jr != null ? r.jr.toFixed(1) + "%" : "—") + "</td>" +
       "<td>" + (r.gap != null ? eok(r.gap) : "—") + "</td>" +
       "<td>" + r.cnt + "건</td>" +
+      '<td class="' + cls(r.c10) + '">' +
+        (r.c10 != null ? pct(r.c10) + "/년" + (r.c10thin ? "~" : "") : (DJ.store ? "—" : "·")) + "</td>" +
       '<td><button class="btn sm" data-djc="' + i + '"' + (inCart ? " disabled>담김" : ">담기") + "</button></td></tr>";
-  }).join("") || '<tr><td colspan="11" style="color:var(--miss)">조건에 맞는 단지가 없습니다. 세대수·지하철·연식 조건을 완화해보세요.</td></tr>';
+  }).join("") || '<tr><td colspan="12" style="color:var(--miss)">조건에 맞는 단지가 없습니다. 세대수·지하철·연식 조건을 완화해보세요.</td></tr>';
 
   tb.querySelectorAll("button[data-djc]").forEach(function (b) {
     b.addEventListener("click", function () { addToCart(DJ.view[Number(b.dataset.djc)], b); });

@@ -57,7 +57,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.7</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.8</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -201,8 +201,9 @@ th{color:var(--ink-soft);font-weight:600}
   <div class="note">시·군·구마다 <b>단지 × 평형대 × 분기</b> 중위가와 건수를 담은 파일을 만듭니다.
     앱이 그 지역을 볼 때만 불러오는 <b>3층 구조의 2층</b>입니다 — 과거 구간을 파일로 돌리면
     아파트 찾기·비교·과거 검증이 API를 거의 안 타게 됩니다.<br>
-    <b>분기로 묶는 이유</b>: 단지 하나의 한 달 거래는 0~2건이라 월별 중위가는 노이즈입니다.
-    분기로 묶으면 표본이 3배가 되고 파일도 3배 작아집니다. 최근 구간은 앱이 API로 덮습니다.<br>
+    <b>연 단위로 묶는 이유</b>: 단지 하나의 한 달 거래는 0~2건이라 월별은 물론 분기별 중위가도
+    흔들립니다. 연으로 묶으면 표본이 12배가 되고 파일은 1/3(최대 약 230KB)이 됩니다.
+    과거 검증(5·10·15년)과 비교 탭에는 연 단위로 충분하고, 최근 구간은 앱이 API로 덮습니다.<br>
     결과는 <code>trades.zip</code> 하나로 받습니다 — 풀어서 저장소의 <code>trades/</code> 폴더에 올리세요.</div>
   <div class="grid">
     <div><label class="f" for="ts-sale">매매 CSV (전부)</label>
@@ -220,8 +221,9 @@ th{color:var(--ink-soft);font-weight:600}
   <div class="log" id="ts-out">대기 중…</div>
   <div class="note">평형대는 앱과 같은 구간입니다 — 36(20~45) · 46(45~55) · 59(55~70) ·
     84(70~95) · 101(95~120) · 135(120~). 단지는 <b>단지명 + 법정동</b>으로 구분하고,
-    분기 표본 1건이면 그 값이 곧 중위값이니 건수를 함께 담아 앱에서 신뢰도를 판단합니다.
-    전세는 월세 0원 계약만 담습니다.</div>
+    표본이 1건인 해도 버리지 않습니다 — 단지는 한 건도 그 단지의 실거래이므로,
+    값을 담되 <b>건수를 함께</b> 실어 앱이 신뢰도를 판단합니다. 전세는 월세 0원 계약만 담습니다.<br>
+    파일은 단지마다 줄바꿈해 저장하므로 GitHub 웹에서도 열립니다.</div>
 </div>
 
 </div>
@@ -1418,11 +1420,8 @@ function bandOf(area) {
     if (area >= TS_BANDS[i][1] && area < TS_BANDS[i][2]) return TS_BANDS[i][0];
   return 0;
 }
-function qIndex(ym, base) {       /* 분기 인덱스 */
-  var y = +ym.slice(0, 4), m = +ym.slice(4);
-  return y * 4 + Math.ceil(m / 3) - base;
-}
-function qBase(ym) { return (+ym.slice(0, 4)) * 4 + Math.ceil((+ym.slice(4)) / 3); }
+function yIndex(ym, base) { return (+ym.slice(0, 4)) - base; }   /* 연 인덱스 */
+function yBase(ym) { return +ym.slice(0, 4); }
 
 /* 한 행을 앞(시군구·번지·단지명) + 뒤(면적~코드)로 가른다.
    단지명에 쉼표가 있어 따옴표로 감싸도, 뒤에서 K개를 떼고 나면 남는 게 앞 3필드다. */
@@ -1542,16 +1541,18 @@ function medianAll(a) {
   var n = a.length, h = n >> 1;
   return n % 2 ? a[h] : Math.round((a[h - 1] + a[h]) / 2);
 }
-/* 월별로 모은 값을 분기 중위가·건수로 접는다 */
-function foldQuarters(byYm, base, nQ) {
+/* 월별로 모은 값을 연 중위가·건수로 접는다.
+   분기가 아니라 연인 이유: 단지 하나의 한 분기 거래는 0~2건이라 값이 흔들린다.
+   연으로 묶으면 표본이 4배가 되고 파일도 1/3이 된다. */
+function foldYears(byYm, base, nY) {
   var q = [], i, k;
   for (k in byYm) {
-    var qi = qIndex(k, base);
-    if (qi < 0 || qi >= nQ) continue;
+    var qi = yIndex(k, base);
+    if (qi < 0 || qi >= nY) continue;
     (q[qi] || (q[qi] = [])).push.apply(q[qi], byYm[k]);
   }
   var lo = -1, hi = -1;
-  for (i = 0; i < nQ; i++) if (q[i]) { if (lo < 0) lo = i; hi = i; }
+  for (i = 0; i < nY; i++) if (q[i]) { if (lo < 0) lo = i; hi = i; }
   if (lo < 0) return null;
   var p = [], c = [];
   for (i = lo; i <= hi; i++) {
@@ -1569,8 +1570,8 @@ function tsBuild() {
   if (!mins.length) return null;
   mins.sort(); maxs.sort();
   var m0 = mins[0], m1 = maxs[maxs.length - 1];
-  var base = qBase(m0), nQ = qBase(m1) - base + 1;
-  var q0 = Math.floor(m0.slice(0, 4)) + "Q" + Math.ceil((+m0.slice(4)) / 3);
+  var base = yBase(m0), nQ = yBase(m1) - base + 1;
+  var q0 = String(base);
 
   var codes = {}, k;
   if (s) for (k in s.reg) codes[k] = 1;
@@ -1605,20 +1606,24 @@ function tsBuild() {
       var best = null, bn = 0;
       for (var yy in o2.yr) if (o2.yr[yy] > bn) { bn = o2.yr[yy]; best = +yy; }
       if (best) rec.y = best;
-      for (b2 in o2.s) { var fs2 = foldQuarters(o2.s[b2], base, nQ); if (fs2) { rec.s[b2] = fs2; got = true; } }
-      for (b2 in o2.r) { var fr2 = foldQuarters(o2.r[b2], base, nQ); if (fr2) { rec.r[b2] = fr2; got = true; } }
+      for (b2 in o2.s) { var fs2 = foldYears(o2.s[b2], base, nQ); if (fs2) { rec.s[b2] = fs2; got = true; } }
+      for (b2 in o2.r) { var fr2 = foldYears(o2.r[b2], base, nQ); if (fr2) { rec.r[b2] = fr2; got = true; } }
       if (got) cxs.push(rec);
     }
     cxs.sort(function (a, b) { return a.n < b.n ? -1 : (a.n > b.n ? 1 : 0); });
     totalCx += cxs.length;
-    var obj = {
-      v: 1, code: code, nm: LAWD_NAME[code] || code,
-      q0: q0, quarters: nQ,
+    var head = {
+      v: 2, code: code, nm: LAWD_NAME[code] || code,
+      y0: Number(q0), years: nQ,
       bands: TS_BANDS.map(function (x) { return x[0]; }),
-      rule: "분기 중위가(만원) · c=건수 · 해제거래 제외 · 전세=월세 0원 · 단지=단지명+법정동",
-      cx: cxs
+      rule: "연 중위가(만원) · c=건수 · 해제거래 제외 · 전세=월세 0원 · 단지=단지명+법정동"
     };
-    files.push({ name: "trades/" + code + ".json", text: JSON.stringify(obj) });
+    /* 단지마다 줄바꿈 — 크기는 6%만 늘고 GitHub 웹에서 파일이 열린다
+       (한 줄짜리 큰 JSON은 뷰어가 시간 초과로 못 연다) */
+    var hs = JSON.stringify(head);
+    var text = hs.slice(0, -1) + ',"cx":[\n' +
+      cxs.map(function (c) { return JSON.stringify(c); }).join(",\n") + "\n]}";
+    files.push({ name: "trades/" + code + ".json", text: text });
   });
   return { files: files, complexes: totalCx, q0: q0, nQ: nQ };
 }
@@ -1711,7 +1716,7 @@ $("ts-go").addEventListener("click", function () {
         tsLog("");
         tsLog("── 결과 ──");
         tsLog("지역 " + out.files.length + "개 · 단지 " + fmt(out.complexes) + "곳 · " +
-              out.q0 + "부터 " + out.nQ + "분기");
+              out.q0 + "년부터 " + out.nQ + "개 연도");
         if (TS.sale) tsLog("매매 " + fmt(TS.sale.rows) + "행 (해제 제외 " + fmt(TS.sale.cancel) +
               (TS.sale.dropped ? " · 보충 교체로 버린 " + fmt(TS.sale.dropped) : "") + ")");
         if (TS.rent) tsLog("전세 " + fmt(TS.rent.rows) + "행");

@@ -1,7 +1,7 @@
 # TrackApt 인수인계 (HANDOFF)
 
 > 새 세션에서 이 파일 + `index.html` + `kb_data.json` + `PROJECT.md`를 올리면 그대로 이어서 작업할 수 있습니다.
-> 현재 버전: **v5.1** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
+> 현재 버전: **v5.2** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
 
 ---
 

@@ -236,7 +236,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.1.1</span>
+    <span class="ver">v5.2</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -4475,14 +4475,19 @@ function renderStartCard(key, cUp, cBrand) {
   var recent3 = avg(lastY - 2, lastY), prev5 = avg(lastY - 7, lastY - 3);
   var gap = (recent3 != null && prev5) ? (recent3 / prev5 - 1) * 100 : null;
   var peakY = years.reduce(function (a, y) { return sY[y] > sY[a] ? y : a; }, years[0]);
+  /* 수급 카드가 "향후 12개월 입주물량 / 수급 배율"을 보여주듯,
+     여기서는 "최근 3년 착공 / 직전 5년 대비"를 같은 눈높이로 보여준다.
+     증감은 공급이 줄면(음수) 수급이 타이트해지는 쪽이라 상승색으로 칠한다. */
   document.getElementById("sp-startkpi").innerHTML =
-    statBox("최근 3년 평균 착공", recent3 != null ? fmt(recent3) + "호" : "—", "",
-            (lastY - 2) + "~" + lastY) +
-    statBox("직전 5년 평균", prev5 != null ? fmt(prev5) + "호" : "—", "",
-            (lastY - 7) + "~" + (lastY - 3)) +
-    statBox("증감", gap != null ? pct(gap) : "—", cls(gap), "앞으로의 공급 압력") +
-    statBox("최다 착공 해", peakY + "년", "", fmt(sY[peakY]) + "호") +
-    statBox("예상 입주 반영", (lastY + 1) + "~" + (lastY + 3), "", "착공 +3년 기준");
+    statBox("최근 3년 착공", recent3 != null ? fmt(recent3) + "호" : "—", "",
+            (lastY - 2) + "~" + lastY + " 연평균") +
+    statBox("직전 5년 착공", prev5 != null ? fmt(prev5) + "호" : "—", "",
+            (lastY - 7) + "~" + (lastY - 3) + " 연평균") +
+    statBox("착공 증감", gap != null ? pct(gap) : "—", gap == null ? "" : (gap < 0 ? "up" : "down"),
+            gap == null ? "" : (gap < 0 ? "공급이 줄어드는 방향" : "공급이 늘어나는 방향")) +
+    statBox("예상 입주 시기", (lastY + 1) + "~" + (lastY + 3), "", "착공 +3년 기준") +
+    statBox("최다 착공 해", peakY + "년", "", fmt(sY[peakY]) + "호 · 지금의 " +
+            (recent3 ? (sY[peakY] / recent3).toFixed(1) + "배" : "—"));
 
   var read = "";
   if (gap != null) {
@@ -4644,7 +4649,14 @@ function buildSupply(root) {
         '분양 공고보다 앞서고, 이미 확정된 물량이라 추정치보다 단단합니다. ' +
         '골드 막대가 <b>착공</b>, 초록 막대가 <b>준공</b>, 점선은 착공을 <b>3년 뒤로 민 것</b> — ' +
         '즉 그 착공이 입주로 나타날 시점입니다.</p>' +
-      '<div class="stats" id="sp-startkpi"></div>' +
+      '<div class="note" style="margin-bottom:10px"><b>위 「입주물량·수급」 카드와 뭐가 다른가</b><br>' +
+        '· <b>입주물량·수급</b>은 <b>청약홈 분양 공고</b>를 모은 것입니다. 공고에 적힌 입주예정년월 기준이라 ' +
+        '<b>앞으로 2년</b>이 정확하지만, 공고가 안 난 물량(후분양·공공임대 일부)은 빠집니다.<br>' +
+        '· <b>이 카드</b>는 <b>국토부 착공 실적</b>입니다. 이미 삽을 뜬 전수 집계라 누락이 없고 ' +
+        '<b>3년 뒤</b>까지 내다보지만, 정확한 입주 시점은 알 수 없어 3년을 일괄 적용한 근사치입니다.<br>' +
+        '· 요약하면 <b>가까운 2년은 위 카드, 3년 뒤 큰 흐름은 이 카드</b>를 보세요. ' +
+        '둘이 어긋나면 공고가 아직 안 난 물량이 있다는 뜻입니다.</div>' +
+      '<div class="status" id="sp-startkpi" style="margin-top:12px"></div>' +
       '<div class="chartbox"><canvas id="sp-start"></canvas></div>' +
       '<div class="note" id="sp-startread" style="margin-top:10px"></div></div>' +
 

@@ -117,6 +117,15 @@ section.tab{display:none} section.tab.on{display:block}
 .chartbox{position:relative;height:280px}
 .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:.84rem;white-space:nowrap}
+/* 숫자 표는 nowrap이 맞지만, 글이 든 표(출처 등)는 줄바꿈해야 좁은 화면에서 읽힌다 */
+.srctbl{white-space:normal;table-layout:fixed}
+.srctbl th,.srctbl td{text-align:left;vertical-align:top;word-break:keep-all}
+.srctbl col.c1{width:26%}.srctbl col.c2{width:26%}.srctbl col.c3{width:26%}.srctbl col.c4{width:22%}
+@media (max-width:720px){
+  .srctbl{font-size:.74rem}
+  .srctbl th,.srctbl td{padding:6px 6px}
+  .srctbl .tagmini{display:inline-block;margin-bottom:2px}
+}
 th{font-size:.74rem;color:var(--ink-soft);font-weight:700;text-align:right;padding:7px 10px;border-bottom:1.5px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
 th:nth-child(2),td:nth-child(2){text-align:left}
@@ -236,7 +245,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.3</span>
+    <span class="ver">v5.3.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -248,7 +257,8 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 
 <footer style="max-width:860px;margin:0 auto;padding:0 16px 40px;font-size:.72rem;color:var(--miss);line-height:1.7">
   TrackApt는 국토부 실거래가 등 공개 통계를 계산해 보여주는 정보 제공 도구이며 투자 자문이 아닙니다.
-  통계는 표본조사 기반이라 실제 거래가와 다를 수 있고, 대출·세금 규정은 수시로 바뀝니다.
+  지역 시세는 그 달 실거래의 중위값이라 특정 단지·매물 가격과 다르고, 최근 1~2개월은 신고가
+  덜 모여 과소 집계됩니다. 대출·세금 규정도 수시로 바뀝니다.
   실행 전 반드시 은행·세무 전문가와 확인하세요. 모든 판단의 책임은 이용자 본인에게 있습니다.
 </footer>
 
@@ -6106,7 +6116,9 @@ function guideSourceTable() {
   var extOn = function (blk) { return SUPPLY_EXT && SUPPLY_EXT[blk] ? man : off + " · supply_data.json"; };
   return '<div class="card"><div class="eyebrow">Sources</div><h2>쓴 자료 전체</h2>' +
     '<p class="desc">이 도구가 계산에 쓰는 원자료입니다. 남의 리포트를 인용한 게 아니라 원자료를 직접 계산한 값입니다.</p>' +
-    '<div class="tblwrap"><table><thead><tr><th>쓴 자료</th><th>어디서</th><th>범위</th><th>갱신</th></tr></thead><tbody>' +
+    '<div class="tblwrap"><table class="srctbl">' +
+    '<colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup>' +
+    '<thead><tr><th>쓴 자료</th><th>어디서</th><th>범위</th><th>갱신</th></tr></thead><tbody>' +
     "<tr><td>아파트 실거래</td><td>국토교통부 실거래가 공개시스템</td><td>공공데이터포털 API 실시간</td><td>" + ok + "</td></tr>" +
     "<tr><td>단지 세대수·준공일·주변환경</td><td>한국부동산원 K-apt</td><td>공동주택관리정보시스템</td><td>" + ok + "</td></tr>" +
     "<tr><td>분양 공고 (입주 예정 추정)</td><td>청약홈</td><td>공고 기준 실시간</td><td>" + ok + "</td></tr>" +
@@ -6516,9 +6528,11 @@ function buildFaq(root) {
         '<button class="btn ghost sm" id="fq-recalc" style="width:auto">지금 다시 계산</button>' +
         '<span class="hint" id="fq-status"></span></div>' +
       '<div class="note"><b>라이브와 고정의 차이</b> — <span class="tagmini ok">라이브</span> 문항은 내장 실거래 ' +
-        '시계열만으로 재현할 수 있어 데이터가 갱신되면 수치가 자동으로 다시 계산됩니다. ' +
-        '<span class="tagmini no">고정 검증</span> 문항은 단지별 실거래 10년치·미분양·금리처럼 별도 원자료가 ' +
-        '필요한 검증이라 결과를 고정 수록했습니다(검증 시점 2026.07).</div></div>' +
+        '시계열로 <b>지금 이 자리에서 다시 계산</b>합니다. 데이터를 새 달로 교체하면 숫자가 따라 바뀝니다.<br>' +
+        '<span class="tagmini">고정 검증</span> 문항은 실거래 10년치·미분양·금리처럼 별도 원자료가 필요해 ' +
+        '<b>2026.07에 한 번 검증한 수치를 그대로 싣습니다.</b> 그때 검증에는 KB 월간 시계열을 쓴 문항도 있어 ' +
+        '해당 문항 근거 줄에 <b>「v5.0 이전 검증치」</b>라고 적어 뒀습니다 — 지금 앱이 계산에 쓰는 자료(실거래)와 ' +
+        '다르다는 뜻이니, 고정 문항 숫자는 <b>방향을 참고하는 용도</b>로 보세요.</div></div>' +
 
     '<div class="card">' +
     faqItem("Q1", "비싼 동네가 정말 더 오르나요? — 네. 거의 예외가 없었습니다.",

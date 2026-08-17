@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="TrackApt — KB 시계열로 보는 전국 아파트 가격 서열과 투자 타이밍">
+<meta name="description" content="TrackApt — 국토부 실거래로 보는 전국 아파트 가격 서열과 투자 타이밍">
 <title>TrackApt</title>
 <meta name="theme-color" content="#0f4c5c">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f4c5c'/%3E%3Cpath d='M14 22h36M32 22v24' stroke='%23fff' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='46' cy='44' r='6' fill='%23e2571b'/%3E%3C/svg%3E">
@@ -236,7 +236,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.0</span>
+    <span class="ver">v5.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -247,7 +247,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <main id="main"></main>
 
 <footer style="max-width:860px;margin:0 auto;padding:0 16px 40px;font-size:.72rem;color:var(--miss);line-height:1.7">
-  TrackApt는 KB부동산 월간 시계열 등 공개 통계를 계산해 보여주는 정보 제공 도구이며 투자 자문이 아닙니다.
+  TrackApt는 국토부 실거래가 등 공개 통계를 계산해 보여주는 정보 제공 도구이며 투자 자문이 아닙니다.
   통계는 표본조사 기반이라 실제 거래가와 다를 수 있고, 대출·세금 규정은 수시로 바뀝니다.
   실행 전 반드시 은행·세무 전문가와 확인하세요. 모든 판단의 책임은 이용자 본인에게 있습니다.
 </footer>
@@ -1510,17 +1510,20 @@ function buildReco(root) {
         '다섯 개 축은 무엇으로 계산하나 (눌러서 펼치기)</summary>' +
         '<div class="dict" style="margin-top:8px">' +
         '<div class="di"><b>급지 <span style="color:var(--ink-soft)">가중치 ' + RULES.wRank + '%</span></b>' +
-          '<p>KB 월간 시계열의 <b>㎡당 아파트 평균 매매가</b>로 전국 시·군·구를 줄 세운 순위입니다. ' +
+          '<p>국토부 실거래의 <b>㎡당 중위 매매가</b>로 전국 시·군·구 252곳을 줄 세운 순위입니다. ' +
+          '호가나 표본조사가 아니라 실제 체결가입니다. ' +
           '가격 서열은 시장이 이미 매긴 평가라 입지·학군·교통·희소성이 전부 값에 반영돼 있다고 봅니다. ' +
           '2016년 분위로 나눠 10년을 검증하면 상위 1~3분위 +177%, 중위 +87%, 하위 +60%로 거의 단조 정렬됩니다.</p></div>' +
         '<div class="di"><b>장기 성과 <span style="color:var(--ink-soft)">가중치 ' + RULES.wPerf + '%</span></b>' +
-          '<p>같은 KB 지수의 <b>최근 10년 상승률</b>입니다. 10년에 두 배(연복리 7.2%)를 만점 기준으로 잡습니다. ' +
+          '<p>실거래 중위가로 만든 <b>자체 지수의 최근 10년 상승률</b>입니다. 10년에 두 배(연복리 7.2%)를 만점 기준으로 잡습니다. ' +
           '이 선을 못 넘으면 물가와 시장 평균을 이기지 못한 구간으로 봅니다. 서울 아파트 40년 연복리가 5.7%, ' +
           '최근 10년이 6.1%인 것과 비교해 보세요.</p></div>' +
         '<div class="di"><b>수급 <span style="color:var(--ink-soft)">가중치 ' + RULES.wSupply + '%</span></b>' +
-          '<p>KB의 <b>매수우위지수·전세수급지수</b>를 시·도 단위로 가져와 20~100 범위로 환산합니다. ' +
-          '사려는 사람과 팔려는 사람 중 어느 쪽이 급한지를 나타내며, 값이 높을수록 매수자가 몰리는 국면입니다. ' +
-          '입주 물량까지 함께 보려면 입주 물량 탭을 확인하세요.</p></div>' +
+          '<p>세 가지를 백분위로 환산해 합칩니다 — <b>미분양÷인구</b>(40%, 적을수록 좋음), ' +
+          '<b>최근 12개월 착공÷인구</b>(30%, 적을수록 좋음 — 착공은 2~3년 뒤 입주로 돌아옵니다), ' +
+          '<b>거래량 회전</b>(30%, 최근 12개월 ÷ 직전 5년 평균으로 수요 회복을 봅니다). ' +
+          '값이 높을수록 팔 물건은 적고 사려는 사람은 늘어난 국면입니다. ' +
+          '설문 심리지표가 아니라 실제 재고·착공·거래 건수로 매깁니다.</p></div>' +
         '<div class="di"><b>진입 타이밍 <span style="color:var(--ink-soft)">가중치 ' + RULES.wTiming + '%</span></b>' +
           '<p>무주택이면 <b>전세가율의 10년 밴드 백분위</b>, 유주택이면 <b>내 지역 대비 배율의 10년 밴드</b>를 씁니다. ' +
           '전세가율이 높을수록(밴드 상단) 매매가에 기대가 덜 실려 갭이 얇고, 배율이 낮을수록 갈아타기 격차가 ' +
@@ -4405,14 +4408,103 @@ var chartSupply = null, chartUnsold = null, chartYear = null;
 /* v5.0: market_core의 묶음 키가 시·도 약칭 그대로라 변환이 필요 없다 */
 function sidoIdxKey(k) { return k === "전광" ? "전남광주" : k; }
 
+var chartStart = null;
+/* 월별 시리즈({dates,sido:{key:{o,v}}})를 연도 합으로 — 12개월이 다 있는 해만 채택 */
+function yearSum(blk, key) {
+  var s = blk && blk.sido && blk.sido[key];
+  if (!s) return null;
+  var t0 = ymNum(blk.dates[0]) + s.o, out = {}, cnt = {}, i;
+  for (i = 0; i < s.v.length; i++) {
+    if (s.v[i] == null) continue;
+    var t = t0 + i, y = Math.floor((t - 1) / 12);
+    out[y] = (out[y] || 0) + s.v[i];
+    cnt[y] = (cnt[y] || 0) + 1;
+  }
+  var res = {};
+  Object.keys(out).forEach(function (y) { if (cnt[y] === 12) res[y] = out[y]; });
+  return res;
+}
+function renderStartCard(key, cUp, cBrand) {
+  var card = document.getElementById("sp-startcard");
+  if (!card) return;
+  var st = SUPPLY_EXT && SUPPLY_EXT.starts, cm = SUPPLY_EXT && SUPPLY_EXT.completionsM;
+  var sY = yearSum(st, key), cY = yearSum(cm, key);
+  if (!sY || !Object.keys(sY).length) { card.style.display = "none"; return; }
+  card.style.display = "";
+
+  var years = Object.keys(sY).map(Number).sort(function (a, b) { return a - b; });
+  var lastY = years[years.length - 1];
+  /* 착공을 3년 뒤로 밀어 "예상 입주" 축을 만든다 → 미래 3년까지 x축을 늘린다 */
+  var axis = years.concat([lastY + 1, lastY + 2, lastY + 3]);
+  var startArr = axis.map(function (y) { return sY[y] != null ? sY[y] : null; });
+  var compArr = axis.map(function (y) { return (cY && cY[y] != null) ? cY[y] : null; });
+  var shiftArr = axis.map(function (y) { return sY[y - 3] != null ? sY[y - 3] : null; });
+
+  if (chartStart) chartStart.destroy();
+  chartStart = new Chart(document.getElementById("sp-start"), {
+    data: { labels: axis,
+      datasets: [
+        { type: "bar", label: "착공(호)", data: startArr, backgroundColor: cBrand + "99", borderRadius: 2 },
+        { type: "bar", label: "준공(호)", data: compArr, backgroundColor: cUp + "77", borderRadius: 2 },
+        { type: "line", label: "착공 +3년 (예상 입주)", data: shiftArr, borderColor: cBrand,
+          borderDash: [5, 4], borderWidth: 2, pointRadius: 0, tension: .25, fill: false }
+      ] },
+    options: chartOpts("호")
+  });
+
+  /* KPI + 해설 — 최근 3년 착공이 직전 5년 대비 얼마나 줄었는지가 핵심 */
+  function avg(from, to) {
+    var s = 0, n = 0;
+    for (var y = from; y <= to; y++) if (sY[y] != null) { s += sY[y]; n++; }
+    return n ? s / n : null;
+  }
+  var recent3 = avg(lastY - 2, lastY), prev5 = avg(lastY - 7, lastY - 3);
+  var gap = (recent3 != null && prev5) ? (recent3 / prev5 - 1) * 100 : null;
+  var peakY = years.reduce(function (a, y) { return sY[y] > sY[a] ? y : a; }, years[0]);
+  document.getElementById("sp-startkpi").innerHTML =
+    statBox("최근 3년 평균 착공", recent3 != null ? fmt(recent3) + "호" : "—", "",
+            (lastY - 2) + "~" + lastY) +
+    statBox("직전 5년 평균", prev5 != null ? fmt(prev5) + "호" : "—", "",
+            (lastY - 7) + "~" + (lastY - 3)) +
+    statBox("증감", gap != null ? pct(gap) : "—", cls(gap), "앞으로의 공급 압력") +
+    statBox("최다 착공 해", peakY + "년", "", fmt(sY[peakY]) + "호") +
+    statBox("예상 입주 반영", (lastY + 1) + "~" + (lastY + 3), "", "착공 +3년 기준");
+
+  var read = "";
+  if (gap != null) {
+    var dir = gap < -20 ? "크게 줄었습니다" : (gap < -5 ? "줄었습니다" :
+              (gap > 20 ? "크게 늘었습니다" : (gap > 5 ? "늘었습니다" : "비슷합니다")));
+    read += "<b>" + (key === "전국" ? "전국" : key) + "</b>의 최근 3년 착공은 직전 5년 대비 " +
+      "<b>" + pct(gap) + "</b> — " + dir + ". ";
+    read += gap < -5
+      ? "착공에서 입주까지 2~3년이 걸리므로 <b>" + (lastY + 1) + "~" + (lastY + 3) +
+        "년 입주 물량이 줄어듭니다.</b> 공급이 마르는 구간이라 전세가 먼저 조여지고, 매매가 뒤따라 밀릴 여지가 커집니다."
+      : (gap > 5
+        ? "그만큼 <b>" + (lastY + 1) + "~" + (lastY + 3) + "년 입주가 늘어납니다.</b> 입주 전후 6개월은 " +
+          "전세 매물이 쏟아져 역전세 위험이 커지는 구간입니다."
+        : "앞으로 3년 입주 물량이 지금과 비슷할 가능성이 큽니다.");
+  }
+  read += "<br><span style=\"color:var(--ink-soft)\">착공→준공 리드타임은 단지 규모·공정에 따라 " +
+    "2~4년으로 갈립니다. 점선은 3년을 일괄 적용한 <b>대략의 눈금</b>이지 예측치가 아닙니다. " +
+    "재건축·리모델링 멸실은 빠져 있어 순증 물량과는 다릅니다.</span>";
+  document.getElementById("sp-startread").innerHTML = read;
+}
+
 function renderSupplyExt() {
   var uc = document.getElementById("sp-unsoldcard");
   var yc = document.getElementById("sp-yearcard");
-  if (!SUPPLY_EXT) { if (uc) uc.style.display = "none"; if (yc) yc.style.display = "none"; return; }
+  var sc = document.getElementById("sp-startcard");
+  if (!SUPPLY_EXT) {
+    if (uc) uc.style.display = "none";
+    if (yc) yc.style.display = "none";
+    if (sc) sc.style.display = "none";
+    return;
+  }
   var css = getComputedStyle(document.documentElement);
   var cUp = css.getPropertyValue("--up").trim(), cDown = css.getPropertyValue("--down").trim();
   var cBrand = css.getPropertyValue("--brand").trim();
   var key = SP.sido;   /* "전국" 또는 시·도명 — 파일의 series 키와 일치시켜 만든다 */
+  renderStartCard(key, cUp, cBrand);
 
   /* 미분양 추이 */
   var un = SUPPLY_EXT.unsold;
@@ -4532,6 +4624,16 @@ function buildSupply(root) {
         '저장소에 supply_data.json을 올려두면 바로 켜집니다. ' +
         '(통계누리 미분양·준공실적, 부동산원 입주예정, 행안부 인구를 합친 파일입니다.)</div></div>' +
 
+    '<div class="card" id="sp-startcard" style="display:none">' +
+      '<div class="eyebrow">Starts</div><h2>착공 → 입주 예고</h2>' +
+      '<p class="desc">아파트는 <b>삽을 뜬 뒤 2~3년</b>이면 입주합니다. 그래서 착공 실적은 ' +
+        '분양 공고보다 앞서고, 이미 확정된 물량이라 추정치보다 단단합니다. ' +
+        '골드 막대가 <b>착공</b>, 초록 막대가 <b>준공</b>, 점선은 착공을 <b>3년 뒤로 민 것</b> — ' +
+        '즉 그 착공이 입주로 나타날 시점입니다.</p>' +
+      '<div class="stats" id="sp-startkpi"></div>' +
+      '<div class="chartbox"><canvas id="sp-start"></canvas></div>' +
+      '<div class="note" id="sp-startread" style="margin-top:10px"></div></div>' +
+
     '<div class="card" id="sp-unsoldcard" style="display:none">' +
       '<div class="eyebrow">Unsold</div><h2>미분양 추이</h2>' +
       '<p class="desc">안 팔리고 남은 물량입니다. 입주물량이 <b>전세를 먼저</b> 누른다면, 미분양은 ' +
@@ -4542,7 +4644,7 @@ function buildSupply(root) {
     '<div class="card" id="sp-yearcard" style="display:none">' +
       '<div class="eyebrow">Yearly</div><h2>공급 · 수요 · 매매가격</h2>' +
       '<p class="desc">파란 막대는 <b>준공 실적</b>(국토부·아파트), 호박색 막대는 <b>입주 예정</b>(부동산원), ' +
-        '붉은 점선은 연간 추정 수요, 검은 선은 <b>매매가격지수</b>(우축, KB)입니다. 물량이 쏟아진 시기와 ' +
+        '붉은 점선은 연간 추정 수요, 검은 선은 <b>매매가격지수</b>(우축, 실거래 중위가 기준)입니다. 물량이 쏟아진 시기와 ' +
         '가격이 눌린 시기가 겹치는지 한 화면에서 봅니다.</p>' +
       '<div class="chartbox"><canvas id="sp-year"></canvas></div>' +
       '<div class="note" id="sp-yearread" style="margin-top:10px"></div></div>' +
@@ -5088,7 +5190,7 @@ function buildTiers(root) {
   root.innerHTML =
     '<div class="card">' +
       '<div class="eyebrow">Tiers</div><h2>전국 급지표 · 10분위</h2>' +
-      '<p class="desc">KB 시계열이 커버하는 시·군·구 전체를 평당 매매가 순으로 세우고 10등분했습니다. ' +
+      '<p class="desc">실거래가 있는 시·군·구 전체를 평당 매매가 순으로 세우고 10등분했습니다. ' +
         '<b>1분위가 가장 비싼 상위 10%</b>입니다. 분위와 서열은 시·도로 걸러 봐도 전국 기준 그대로입니다.</p>' +
       '<div class="status" id="tr-kpi"></div>' +
     '</div>' +
@@ -5109,7 +5211,7 @@ function buildTiers(root) {
       "</tr></thead><tbody></tbody></table></div>" +
       '<div class="note"><b>읽는 법</b> — <b>분위</b>는 평당가 10등분(1분위=상위 10%). <b>밴드</b>는 최근 120개월 ' +
         '평당가 분포에서 지금이 어디쯤인지(낮을수록 역대 대비 저렴). <b>100%</b>는 10년 상승률이 두 배(연복리 7.2%)를 ' +
-        '넘었는지 — 이 앱의 장기 성과 통과선입니다. <b>전체 CAGR</b>은 KB 지수가 시작된 시점부터의 연복리라 지역마다 ' +
+        '넘었는지 — 이 앱의 장기 성과 통과선입니다. <b>전체 CAGR</b>은 실거래 자료가 시작된 시점부터의 연복리라 지역마다 ' +
         '기산점이 다릅니다(오래된 곳은 1986년, 신도시는 편입 시점부터).</div></div>';
 
   root.querySelector("#tr-area").addEventListener("click", function (e) {

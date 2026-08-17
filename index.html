@@ -236,7 +236,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.2</span>
+    <span class="ver">v5.3</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2097,7 +2097,7 @@ function refreshHomeMarksInner() {
     Array.prototype.forEach.call(opts, function (o) {
       if (o.dataset.orig) { o.textContent = o.dataset.orig; delete o.dataset.orig; o.style.cssText = ""; }
       if (!homeKey) return;
-      var isHome = o.value === homeKey;                 /* KB 키 셀렉트 */
+      var isHome = o.value === homeKey;                 /* 지역 셀렉트 */
       if (!isHome && homeCode && String(o.value).split(":")[0] === homeCode) {
         isHome = codeCount[homeCode] === 1 || o.textContent === homeLabel ||
                  o.textContent.indexOf(homeLabel) >= 0;
@@ -4404,7 +4404,7 @@ function showMapDetail(k) {
 var SP = { sido: "전국", data: null };
 var chartSupply = null, chartUnsold = null, chartYear = null;
 
-/* 시·도명 → KB 지수 키 (연도별 카드의 매매가격지수 선) */
+/* 시·도명 → 지수 키 (연도별 카드의 매매가격지수 선) */
 /* v5.0: market_core의 묶음 키가 시·도 약칭 그대로라 변환이 필요 없다 */
 function sidoIdxKey(k) { return k === "전광" ? "전남광주" : k; }
 
@@ -4576,7 +4576,7 @@ function renderSupplyExt() {
       ? (key === "전국" ? SUPPLY_EXT.population.total : SUPPLY_EXT.population.sido[key])
       : (key === "전국" ? Object.keys(SIDO_POP).reduce(function (a, s) { return a + SIDO_POP[s]; }, 0) : SIDO_POP[key]);
     var dem = popX ? Math.round(popX * 0.005) : null;
-    /* KB 매매지수 (연말값) */
+    /* 매매지수 (연말값) */
     var idxKey = key === "전국" ? "전국" : sidoIdxKey(key);
     var idxArr = years.map(function (y) {
       if (!idxKey) return null;
@@ -5208,7 +5208,7 @@ function renderBtestResult(oldYms) {
 
 
 /* ══ 전국 등급표 · 10분위 ═════════════════════
-   KB 시계열만으로 계산 — API 호출 없음. 분위·서열은 항상 전국 기준으로 매기고,
+   내장 실거래 시계열만으로 계산 — API 호출 없음. 분위·서열은 항상 전국 기준으로 매기고,
    시·도 칩은 그 안에서 걸러 보여주기만 한다. */
 var TIERS = { sido: "", area: 84, top3: false };
 
@@ -5263,7 +5263,7 @@ function buildTiers(root) {
   });
 }
 
-/* 시·도 단위 KB 키 (집계 그룹 제외) */
+/* 시·도 단위 키 (집계 그룹 제외) */
 function tierSidoKeys() {
   var skip = { "전국": 1, "수도권": 1, "6개광역시": 1, "5개광역시": 1, "기타지방": 1,
                "전남광주 통합특별시": 1 };
@@ -5377,7 +5377,7 @@ function renderTiers() {
 
 
 /* ══ 재미로 보기 ══════════════════════════════
-   투자 판단용이 아니라 흥미용. KB 지수(1986.1~)와 ㎡당가(2013.4~)에
+   투자 판단용이 아니라 흥미용. 실거래 지수·㎡당 중위가(2010.1~)에
    공개 상수(정권 기간·정책 일자·최저시급·연평균 환율)를 얹어 계산한다.
    정치적 평가는 하지 않는다 — 숫자와 기간만 보여준다. */
 var FUN = { region: "전국", wageRegion: "", charts: {} };
@@ -5468,14 +5468,16 @@ function buildFun(root) {
   root.innerHTML =
     '<div class="card">' +
       '<div class="eyebrow">Fun</div><h2>재미로 보기</h2>' +
-      '<p class="desc">투자 판단용이 아니라 <b>흥미용</b>입니다. KB 지수(1986~)에 정권 기간·정책 일자·' +
+      '<p class="desc">투자 판단용이 아니라 <b>흥미용</b>입니다. 실거래 지수(2010~)에 정권 기간·정책 일자·' +
         '최저시급·환율 같은 공개 수치를 얹어봤습니다. 어떤 정치적 평가도 아니고, ' +
         '<b>기간이 겹친 숫자</b>일 뿐입니다 — 집값은 정책 말고도 금리·공급·세계 경기가 함께 움직입니다.</p>' +
       '<div class="grid"><div class="field"><label for="fun-region">지역 (지수 1986~)</label>' +
         '<select id="fun-region"></select></div></div>' +
     '</div>' +
     '<div class="card"><div class="eyebrow">Presidents</div><h2>정권별 아파트 지수 변화</h2>' +
-      '<p class="desc">임기 시작 달과 끝 달의 KB 매매지수를 비교합니다. 임기 길이가 달라 ' +
+      '<p class="desc">임기 시작 달과 끝 달의 매매지수(실거래 중위가 기준)를 비교합니다. ' +
+        '실거래 자료가 2010.1부터라 그 이전 임기는 계산할 수 없고, 걸친 임기는 자료 구간만 재며 ' +
+        '<b>일부</b> 배지를 붙입니다. 임기 길이가 달라 ' +
         '<b>연평균(연복리)</b>이 공정한 비교입니다.</p>' +
       '<div class="chartbox"><canvas id="fun-terms"></canvas></div>' +
       '<div class="tblwrap"><table id="fun-termtable"><thead><tr>' +
@@ -5491,7 +5493,7 @@ function buildFun(root) {
         "<th>시행</th><th>대책</th><th>내용</th><th>이후 6개월</th><th>12개월</th>" +
       "</tr></thead><tbody></tbody></table></div></div>" +
     '<div class="card"><div class="eyebrow">Wage &amp; FX</div><h2>최저시급·달러로 산 아파트</h2>' +
-      '<p class="desc">선택 지역 84㎡ 가격(KB ㎡당가)을 그해 <b>최저시급 노동시간</b>과 <b>달러</b>로 바꿔봅니다. ' +
+      '<p class="desc">선택 지역 84㎡ 가격(실거래 ㎡당 중위가)을 그해 <b>최저시급 노동시간</b>과 <b>달러</b>로 바꿔봅니다. ' +
         '환율은 연평균 참고치(2026년은 진행 중이라 제외).</p>' +
       '<div class="grid"><div class="field"><label for="fun-wreg">지역 (㎡당가 2013~)</label>' +
         '<select id="fun-wreg"></select></div></div>' +
@@ -5796,7 +5798,7 @@ function raceSeries(useFx) {
   function raw(tbl, y) { return tbl[y] != null ? tbl[y] : null; }
   var usd = useFx ? krw : raw;
   var defs = [
-    { name: "강남구 84㎡ (KB)", color: "#d4af6a", get: null },
+    { name: "강남구 84㎡ (실거래)", color: "#d4af6a", get: null },
     { name: "코스피", color: "#5b8def", get: function (y) { return raw(FUN_KOSPI, y); } },
     { name: "코스닥", color: "#5b8def", dash: [4, 3], hide: 1, get: function (y) { return raw(FUN_KOSDAQ, y); } },
     { name: "S&P500", color: "#c46be0", get: function (y) { return usd(FUN_SPX, y); } },
@@ -5806,7 +5808,7 @@ function raceSeries(useFx) {
     { name: "금", color: "#e8b04b", dash: [5, 3], get: function (y) { return usd(FUN_GOLD, y); } },
     { name: "비트코인", color: "#e08c3a", get: function (y) { return usd(FUN_BTC, y); } }
   ];
-  /* 강남 84㎡ — 그해 12월 KB ㎡당가 */
+  /* 강남 84㎡ — 그해 12월 실거래 ㎡당 중위가 */
   var pmArr = pmSeries("salePm", "11680");
   var pt0 = ymNum(DB.salePm.dates[0]);
   defs[0].get = function (y) {
@@ -6160,7 +6162,7 @@ function buildGuide(root) {
       '<div class="eyebrow">How</div><h2>계산은 이렇게 합니다</h2>' +
       '<p class="desc">앱이 숫자를 만드는 방식입니다. 기준값은 설정 탭에서 바꿀 수 있습니다.</p>' +
       '<div class="dict">' +
-      di("㎡당가", "KB 조사의 전용면적 1㎡당 평균 매매가(만원). 평당가는 여기에 3.3058을 곱합니다. 지역 평균이라 1등 아파트는 30~50% 비싼 게 보통입니다.") +
+      di("㎡당가", "실거래 전용면적 1㎡당 <b>중위</b> 매매가(만원). 평당가는 여기에 3.3058을 곱합니다. 평균이 아니라 중위값이라 극단 거래에 덜 흔들리고, 지역 전체 값이라 1등 아파트는 30~50% 비싼 게 보통입니다.") +
       di("필요현금", "매수가 − 대출가능액 + 취득세 + 중개보수 + 등기·이사비. 대출은 LTV·총액상한·DSR 세 한도 중 가장 낮은 값을 씁니다.") +
       di("대출 꼬리표", "실제로 대출을 막은 한도가 무엇인지 표시합니다. DSR이 뜨면 소득이, 총액상한이 뜨면 집값 구간이 병목입니다.") +
       di("전세가율 밴드", "전세÷매매 비율이 최근 10년 분포에서 어디쯤인지. 상단(70%↑)은 갭이 얇아 진입이 쉽고, 하단(30%↓)은 매매가에 기대가 많이 실린 상태입니다.") +
@@ -6193,14 +6195,16 @@ function buildGuide(root) {
       "</div></div>" +
     '<div class="card">' +
       '<div class="eyebrow">Limits</div><h2>이 도구가 못 하는 것</h2>' +
-      '<div class="note">· KB 통계는 <b>표본조사</b>입니다. 지역 평균이지 특정 단지 시세가 아니며, 실거래 신고는 지연·정정·해제로 변동됩니다.<br>' +
+      '<div class="note">· 지역 시세는 <b>그 달 실거래의 중위값</b>입니다. 특정 단지 시세가 아니며, 거래가 적은 달은 몇 건에 흔들립니다(표본 3건 미만은 빈칸).<br>' +
+        '· 실거래 신고는 <b>지연·정정·해제</b>로 변동됩니다. 최근 1~2개월은 아직 덜 모인 값입니다.<br>' +
         '· 2022.11 · 2026.4 표본 개편으로 장기 구간에는 단절이 일부 섞여 있습니다.<br>' +
         '· 신규 노선·재건축·일자리 같은 <b>호재는 반영되지 않습니다</b>. 격차가 벌어진 이유가 호재라면 회귀를 기대하면 안 됩니다.<br>' +
         '· 세금·대출 규정은 수시로 바뀝니다. 실행 전 반드시 은행·세무 상담으로 확인하세요.<br>' +
         '· 과거 패턴이 미래를 보장하지 않습니다. 백분위·회귀 여력은 전부 "지금이 과거 대비 어디쯤"일 뿐입니다.</div>' +
-      '<div class="note"><b>데이터 갱신</b> — KB 시계열은 파일로 내장돼 있어 자동 갱신되지 않습니다. 매달 KB 데이터허브에서 ' +
-        '수집기(collect.html)로 실거래를 모아 market_core.json을 다시 만들어 교체하면 됩니다 (PROJECT.md 참고). ' +
-        '실거래·K-apt·청약홈은 조회할 때마다 실시간입니다.</div></div>' +
+      '<div class="note"><b>데이터 갱신</b> — 지역 시세(market_core.json)와 수급 자료(supply_data.json)는 ' +
+        '파일로 내장돼 있어 자동 갱신되지 않습니다. 새 달이 나오면 <b>수집기(/collect.html)</b>에서 그 달만 ' +
+        '모아 [market_core.json 만들기]로 다시 만들어 교체하면 됩니다. ' +
+        '실거래·단지정보·분양공고는 조회할 때마다 실시간입니다.</div>' +
     '<div id="g-sources"></div>';
 
   root.querySelectorAll(".gstep").forEach(function (el) {
@@ -6234,7 +6238,7 @@ function saveRules() { try { localStorage.setItem(LS_RULES, JSON.stringify(RULES
 
 
 /* ── FAQ 라이브 재계산 ──
-   Q1·Q2·Q12·Q15는 내장 KB 시계열만으로 재현 가능해서, 데이터가 갱신되면
+   Q1·Q2·Q12·Q15는 내장 실거래 시계열만으로 재현 가능해서, 데이터가 갱신되면
    수치를 다시 계산해 넣는다. 나머지 문항은 실거래·미분양·금리 등 별도
    원자료가 필요한 고정 검증이라 그대로 둔다. */
 var LS_FAQ_PERIOD = "trackapt_faq_period";   /* auto | 7 | 30 | always */
@@ -6408,7 +6412,7 @@ function faqRender(r) {
         return [row[0], fmt(Math.round(row[1])) + "만/㎡", i === 0 ? "<b>" + m + "</b>" : m];
       })) +
     "그래서 이 도구는 동네 순위(급지)에 가장 큰 비중을 둡니다." +
-    faqSrc("내장 KB ㎡당가 시계열로 방금 재계산 · 기준 " + r.anchorYm + " → " + r.dataYm + " · " + r.sample + "곳");
+    faqSrc("내장 실거래 ㎡당 중위가 시계열로 방금 재계산 · 기준 " + r.anchorYm + " → " + r.dataYm + " · " + r.sample + "곳");
   el = document.getElementById("fb-q2");
   if (el) el.innerHTML =
     r.q2.pts + "번 측정해 <b>" + r.q2.revs + "번</b>(10번 중 " + Math.round(r.q2.revs / r.q2.pts * 10) +
@@ -6420,7 +6424,7 @@ function faqRender(r) {
     "따라잡지 못했습니다(Q1). <b>\"같은 급인데 뒤처졌으니 따라오겠지\"는 맞았습니다</b> — 비슷한 가격대 " +
     "안에서는 뒤처진 곳이 따라왔습니다. 그래서 이 도구는 10년에 두 배(100%)를 넘었는지만 보고, 더 " +
     "올랐다고 점수를 더 주지 않습니다." +
-    faqSrc("내장 KB 장기 지수(1986~)로 방금 재계산 · 4개월 간격 " + r.q2.pts + "개 시점 · 같은 달 안에서만 비교해 국면 통제");
+    faqSrc("내장 실거래 지수(2010~)로 방금 재계산 · 4개월 간격 " + r.q2.pts + "개 시점 · 같은 달 안에서만 비교해 국면 통제");
   el = document.getElementById("fb-q12");
   if (el) el.innerHTML =
     "2022년 전후 고점부터 지금(" + r.dataYm + ")까지를 10년 전 가격 순서로 나눠 봤습니다." +
@@ -6433,7 +6437,7 @@ function faqRender(r) {
     "비싼 동네는 빨리 바닥을 찍고 돌아오는 반면, 싼 동네는 오래 흘러내리고 회복도 늦습니다. " +
     "<b>싼 동네는 안 빠지는 게 아니라, 빠진 뒤 안 돌아옵니다.</b> 이게 이 도구가 급지에 큰 비중을 주는 " +
     "진짜 이유입니다." +
-    faqSrc("내장 KB 데이터로 방금 재계산 · 2020.01~2022.12 구간 최고치를 고점으로 낙폭·기간·회복 계산");
+    faqSrc("내장 실거래 데이터로 방금 재계산 · 2020.01~2022.12 구간 최고치를 고점으로 낙폭·기간·회복 계산");
   el = document.getElementById("fb-q15");
   if (el) el.innerHTML =
     "10년을 네 국면으로 쪼개 봤습니다(경계는 전국 지수의 저점·고점으로 자동 판정: " +
@@ -6447,7 +6451,7 @@ function faqRender(r) {
     "\"어디 사도 오른다\"가 사실인 건 급등기뿐입니다. 격차는 조용한 구간에서 벌어집니다 — 사고 싶어질 " +
     "때는 어디를 사도 비슷하고, <b>사기 싫을 때 어디를 사느냐가 결과를 만듭니다.</b> 싼 동네의 상승은 " +
     "사이클의 마지막에 옵니다. 그게 오면 늦은 것입니다." +
-    faqSrc("내장 KB 데이터로 방금 재계산 · 3등분 급지는 10년 전 시점 가격 기준");
+    faqSrc("내장 실거래 데이터로 방금 재계산 · 3등분 급지는 10년 전 시점 가격 기준");
 }
 
 /* 주기 판단 + 캐시 */
@@ -6469,7 +6473,7 @@ function faqRefresh(force) {
   var st = document.getElementById("fq-status");
   if (st) {
     var d = new Date(r.at);
-    st.innerHTML = "내장 KB 데이터 <b>" + r.dataYm + "</b> 기준 · 마지막 계산 " +
+    st.innerHTML = "내장 실거래 데이터 <b>" + r.dataYm + "</b> 기준 · 마지막 계산 " +
       (d.getMonth() + 1) + "." + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" +
       String(d.getMinutes()).padStart(2, "0") +
       (need ? ' <span class="tagmini ok">방금 재계산됨</span>' : "") +
@@ -6511,7 +6515,7 @@ function buildFaq(root) {
       '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px">' +
         '<button class="btn ghost sm" id="fq-recalc" style="width:auto">지금 다시 계산</button>' +
         '<span class="hint" id="fq-status"></span></div>' +
-      '<div class="note"><b>라이브와 고정의 차이</b> — <span class="tagmini ok">라이브</span> 문항은 내장 KB ' +
+      '<div class="note"><b>라이브와 고정의 차이</b> — <span class="tagmini ok">라이브</span> 문항은 내장 실거래 ' +
         '시계열만으로 재현할 수 있어 데이터가 갱신되면 수치가 자동으로 다시 계산됩니다. ' +
         '<span class="tagmini no">고정 검증</span> 문항은 단지별 실거래 10년치·미분양·금리처럼 별도 원자료가 ' +
         '필요한 검증이라 결과를 고정 수록했습니다(검증 시점 2026.07).</div></div>' +
@@ -6526,7 +6530,7 @@ function buildFaq(root) {
          ["상위 30%까지", "1,507만", "2.4배"], ["중간쯤", "1,183만", "1.9배"],
          ["가장 싼 10%", "724만", "1.5배"]]) +
       "그래서 이 도구는 동네 순위(급지)에 가장 큰 비중을 둡니다." +
-      faqSrc("KB 월간 시계열 114곳 (2013.04~2026.07) · 2016.07 시점 평당가로 분할 후 10년 성과 측정")) +
+      faqSrc("KB 월간 시계열 114곳 (2013.04~2026.07) · 2016.07 시점 평당가로 분할 후 10년 성과 측정 — v5.0 이전 검증치")) +
 
     faqItem("Q2", "최근 많이 오른 곳이 계속 오르나요? — 아니요. 오히려 반대였습니다.",
       "64번 측정해 57번(10번 중 9번)이 \"많이 오른 곳이 이후 덜 올랐다\"였습니다." +
@@ -6604,7 +6608,7 @@ function buildFaq(root) {
       "64번 중 59번에서 격차가 좁을 때 간 쪽이 앞섰습니다. 그런데 <b>\"지금은 비싸니 나중에\"는 대부분 " +
       "실패했습니다</b> — 벌어진 상태에서 기다려 2년 안에 좁아진 건 4번 중 1번뿐이고, 기다리는 동안 추가금이 " +
       "평균 14% 늘었습니다. 격차는 \"어디로 갈지\" 고를 때 쓰는 것이지 \"언제 갈지\" 미루는 근거가 아닙니다." +
-      faqSrc("KB 114곳 · 64개월 · 갈아타기 조합 약 20만 건")) +
+      faqSrc("KB 114곳 · 64개월 · 갈아타기 조합 약 20만 건 — v5.0 이전 검증치")) +
 
     faqItem("Q9", "새 아파트가 많이 들어오면 값이 눌리나요? — 누릅니다. 그런데 전세부터입니다.",
       faqTbl(["언제 무엇이", "결과"],
@@ -6729,7 +6733,7 @@ function buildFaq(root) {
       "① 측정 구간이 겹쳐 실제 독립 사례는 5~6개뿐입니다. 통계로서 아주 강하다고는 못 합니다.<br>" +
       "② 2013~2026 대부분 오르는 시기만 봤습니다. 다음 사이클에도 같으리란 보장은 없습니다.<br>" +
       "③ 그 사이 지어진 신축은 비교에서 빠집니다. 대단지 성적이 실제보다 낮게 잡혔을 수 있습니다.<br>" +
-      "④ KB 통계는 동네 평균이지 특정 아파트 시세가 아닙니다.<br>" +
+      "④ 지역 시세는 그 달 실거래의 중위값이지 특정 아파트 시세가 아닙니다.<br>" +
       "⑤ 새 노선·재건축 단계·학군 같은 호재는 숫자 자료가 없어 계산에 못 넣었습니다.<br>" +
       "이건 <b>확률의 문제이지 보장이 아닙니다.</b> 같은 방식으로 골라도 개별 사례는 다르게 나옵니다.</div></div>";
 
@@ -6867,7 +6871,9 @@ function buildMarket(root) {
       '<div class="note"><b>왜 두 값이 다른가</b> — 1년차 +20%, 2년차 −10%면 산술합은 +10%지만 ' +
         '실제 누적은 1.20 × 0.90 − 1 = <b>+8%</b>입니다. 변동이 클수록 산술합이 부풀려집니다. ' +
         '장기 성과는 복리 기준으로 읽으세요.</div>' +
-      '<div class="note">KB 지수는 표본조사 기반이라 실거래 평균가와 다르며, 표본 개편 시점(2022.11 · 2026.4 등)의 ' +
+      '<div class="note">지역 시세는 그 달 실거래의 중위값입니다. 거래가 적은 달은 몇 건에 흔들리므로 ' +
+        '3개월 이동중위로 지수를 만들고, 표본 3건 미만인 달은 빈칸으로 둡니다. 재건축 이주·특정 단지 입주처럼 ' +
+        '거래 구성이 확 바뀌는 달은 중위가도 함께 튑니다. ' +
         '단절이 일부 포함될 수 있습니다. 연도 값은 12월 기준이고 마지막 해는 최신월 기준입니다.</div></div>';
 
   root.querySelector("#mk-region").addEventListener("change", function () {

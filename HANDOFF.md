@@ -1,7 +1,7 @@
 # TrackApt 인수인계 (HANDOFF)
 
 > 새 세션에서 이 파일 + `index.html` + `kb_data.json` + `PROJECT.md`를 올리면 그대로 이어서 작업할 수 있습니다.
-> 현재 버전: **v4.3** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
+> 현재 버전: **v5.0** · 배포: https://track-apt.vercel.app · 저장소: `TrackApt`
 
 ---
 
@@ -44,8 +44,9 @@
 | 화면·값 | 출처 |
 |---|---|
 | 매매·전세가·갭·거래건수·평당가·준공연도 | **국토부 실거래** `/api/trades` |
+| 지역 시세·지수·상승률·분위·밴드·거래량 | **market_core.json** (실거래 집계본, 정적) |
 | 세대수·주차·지하철·학군·편의·시공사 | **K-apt** `/api/apt` (의무관리대상만 등록) |
-| 지역 시세·가격지수·10년 상승률·분위·밴드 | **KB** `kb_data.json` (정적, 사용자 교체) |
+| ~~KB `kb_data.json`~~ | **v5.0에서 제거** (저작권 부담 · market_core로 대체) |
 | 입주 예정(분양공고) | **청약홈** `/api/supply` (실시간) |
 | 미분양·준공실적·인구 | **supply_data.json** (선택 파일, 없으면 해당 분석 off) |
 

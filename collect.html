@@ -57,7 +57,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.6.1</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.7</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -193,6 +193,35 @@ th{color:var(--ink-soft);font-weight:600}
     (구별 중위의 평균이 아님).<br>
     메모리가 부족해 탭이 죽으면 <b>매매만 / 전월세만</b> 따로 돌려 두 개의 JSON으로 저장하세요 —
     합치는 건 세션에서 합니다(파일이 작아 올리기 쉽습니다).</div>
+</div>
+
+<div class="card">
+  <div class="eyebrow">Store</div>
+  <h2>단지별 저장본 만들기 <span style="color:var(--ink-soft);font-size:.8rem">trades/</span></h2>
+  <div class="note">시·군·구마다 <b>단지 × 평형대 × 분기</b> 중위가와 건수를 담은 파일을 만듭니다.
+    앱이 그 지역을 볼 때만 불러오는 <b>3층 구조의 2층</b>입니다 — 과거 구간을 파일로 돌리면
+    아파트 찾기·비교·과거 검증이 API를 거의 안 타게 됩니다.<br>
+    <b>분기로 묶는 이유</b>: 단지 하나의 한 달 거래는 0~2건이라 월별 중위가는 노이즈입니다.
+    분기로 묶으면 표본이 3배가 되고 파일도 3배 작아집니다. 최근 구간은 앱이 API로 덮습니다.<br>
+    결과는 <code>trades.zip</code> 하나로 받습니다 — 풀어서 저장소의 <code>trades/</code> 폴더에 올리세요.</div>
+  <div class="grid">
+    <div><label class="f" for="ts-sale">매매 CSV (전부)</label>
+      <input id="ts-sale" type="file" accept=".csv" multiple style="font-size:.78rem;color:var(--ink-soft)"></div>
+    <div><label class="f" for="ts-rent">전월세 CSV (전부)</label>
+      <input id="ts-rent" type="file" accept=".csv" multiple style="font-size:.78rem;color:var(--ink-soft)"></div>
+  </div>
+  <div class="btnrow">
+    <button class="btn gold" id="ts-go">단지별 저장본 만들기</button>
+    <button class="btn" id="ts-stop" disabled>중지</button>
+    <button class="btn" id="ts-save" disabled>trades.zip 저장</button>
+  </div>
+  <div class="bar"><i id="ts-bar"></i></div>
+  <div class="stat" id="ts-stat"></div>
+  <div class="log" id="ts-out">대기 중…</div>
+  <div class="note">평형대는 앱과 같은 구간입니다 — 36(20~45) · 46(45~55) · 59(55~70) ·
+    84(70~95) · 101(95~120) · 135(120~). 단지는 <b>단지명 + 법정동</b>으로 구분하고,
+    분기 표본 1건이면 그 값이 곧 중위값이니 건수를 함께 담아 앱에서 신뢰도를 판단합니다.
+    전세는 월세 0원 계약만 담습니다.</div>
 </div>
 
 </div>
@@ -1368,6 +1397,341 @@ $("mc-save").addEventListener("click", function () {
   if (!MC.json) return;
   download("market_core.json", MC.json);
   log("market_core.json 저장");
+});
+
+
+
+/* ══════════ 단지별 저장본 trades/{lawd}.json (v2.7) ══════════ */
+var TS = { busy: false, abort: false, sale: null, rent: null, zip: null };
+var TS_BANDS = [[36, 20, 45], [46, 45, 55], [59, 55, 70], [84, 70, 95], [101, 95, 120], [135, 120, 9999]];
+
+function tsLog(s, cls) {
+  var el = $("ts-out");
+  if (el.textContent === "대기 중…") el.textContent = "";
+  var d = document.createElement("div");
+  if (cls) d.className = cls;
+  d.textContent = s;
+  el.appendChild(d); el.scrollTop = el.scrollHeight;
+}
+function bandOf(area) {
+  for (var i = 0; i < TS_BANDS.length; i++)
+    if (area >= TS_BANDS[i][1] && area < TS_BANDS[i][2]) return TS_BANDS[i][0];
+  return 0;
+}
+function qIndex(ym, base) {       /* 분기 인덱스 */
+  var y = +ym.slice(0, 4), m = +ym.slice(4);
+  return y * 4 + Math.ceil(m / 3) - base;
+}
+function qBase(ym) { return (+ym.slice(0, 4)) * 4 + Math.ceil((+ym.slice(4)) / 3); }
+
+/* 한 행을 앞(시군구·번지·단지명) + 뒤(면적~코드)로 가른다.
+   단지명에 쉼표가 있어 따옴표로 감싸도, 뒤에서 K개를 떼고 나면 남는 게 앞 3필드다. */
+function splitRow(line, K) {
+  var end = line.length, p, i;
+  for (i = 0; i < K; i++) { p = line.lastIndexOf(",", end - 1); if (p < 0) return null; end = p; }
+  var head = line.slice(0, end);
+  var c1 = head.indexOf(","); if (c1 < 0) return null;
+  var c2 = head.indexOf(",", c1 + 1); if (c2 < 0) return null;
+  var apt = head.slice(c2 + 1);
+  if (apt.charCodeAt(0) === 34) apt = apt.slice(1, -1).replace(/""/g, '"');
+  return { sgg: head.slice(0, c1), apt: apt, f: tailFields(line, K) };
+}
+function dongOf(sgg) {
+  var p = sgg.split(" ");
+  return p.length > 2 ? p[p.length - 1] : "";
+}
+
+function tsNewAcc() { return { reg: {}, rows: 0, bad: 0, cancel: 0, minYm: null, maxYm: null,
+                               repl: {}, replCells: 0, dropped: 0, hasSup: false }; }
+/* reg[code].cx[aptKey] = { n, d, y, s:{band:{q:[vals]}}, r:{band:{q:[vals]}} } */
+function tsProcess(acc, lines, kind, isSup) {
+  var K = kind === "rent" ? 10 : 9, i, row, f, area, ym, lawd, key, R, cx, band, q;
+  for (i = 0; i < lines.length; i++) {
+    row = splitRow(lines[i], K);
+    if (!row) { acc.bad++; continue; }
+    f = row.f;
+    area = parseFloat(f[0]); ym = f[1]; lawd = f[K - 1];
+    if (!(area > 0) || ym.length !== 6 || lawd.length !== 5 || !row.apt) { acc.bad++; continue; }
+    key = lawd + "-" + ym;
+    if (isSup) { if (!acc.repl[key]) { acc.repl[key] = 1; acc.replCells++; } }
+    else if (acc.hasSup && acc.repl[key]) { acc.dropped++; continue; }
+    band = bandOf(area);
+    if (!band) { acc.bad++; continue; }
+
+    var val;
+    if (kind === "sale") {
+      var cancel = f[6];
+      if (cancel && cancel !== "-") { acc.cancel++; continue; }
+      val = parseInt(f[3], 10);
+      if (!(val > 0)) { acc.bad++; continue; }
+    } else {
+      var mr = f[4];
+      if (mr === "" || parseFloat(mr) !== 0) continue;   /* 전세만 */
+      val = parseInt(f[3], 10) || 0;
+      if (!(val > 0)) continue;
+    }
+
+    R = acc.reg[lawd] || (acc.reg[lawd] = { cx: {} });
+    var ak = row.apt + "|" + dongOf(row.sgg);
+    cx = R.cx[ak] || (R.cx[ak] = { n: row.apt, d: dongOf(row.sgg), yr: {}, s: {}, r: {} });
+    var by = parseInt(f[kind === "rent" ? 6 : 5], 10);      /* 건축년도 */
+    if (by > 1900) cx.yr[by] = (cx.yr[by] || 0) + 1;
+    var blk = kind === "sale" ? cx.s : cx.r;
+    var bb = blk[band] || (blk[band] = {});
+    q = ym;                                                /* 일단 ym으로 모아두고 조립 때 분기로 접는다 */
+    (bb[q] || (bb[q] = [])).push(val);
+
+    acc.rows++;
+    if (!acc.minYm || ym < acc.minYm) acc.minYm = ym;
+    if (!acc.maxYm || ym > acc.maxYm) acc.maxYm = ym;
+  }
+}
+
+function tsScanFile(file, acc, kind, base, grand, isSup) {
+  return new Promise(function (resolve, reject) {
+    var CH = 8 * 1024 * 1024, pos = 0, buf = "", first = true, n0 = acc.rows;
+    var dec = new TextDecoder("utf-8");
+    function handle(text, last) {
+      var lines = text.split("\n"), out = [], i, s, hold = "";
+      for (i = 0; i < lines.length; i++) {
+        s = lines[i];
+        if (s.charCodeAt(s.length - 1) === 13) s = s.slice(0, -1);
+        if (hold) { s = hold + "\n" + s; hold = ""; }
+        if (!s) continue;
+        if (first) { first = false; continue; }
+        if (!endsWithCode(s) && !(last && i === lines.length - 1)) { hold = s; continue; }
+        out.push(s);
+      }
+      if (hold) out.push(hold);
+      tsProcess(acc, out, kind, isSup);
+    }
+    function step() {
+      if (TS.abort) { resolve(); return; }
+      if (pos >= file.size) {
+        handle(buf, true);
+        tsLog("· " + file.name + (isSup ? " [보충]" : "") + " — " + fmt(acc.rows - n0) + "행");
+        resolve(); return;
+      }
+      var end = Math.min(pos + CH, file.size);
+      var blob = file.slice(pos, end);
+      pos = end;
+      blob.arrayBuffer().then(function (ab) {
+        buf += dec.decode(ab, { stream: true });
+        var nl = buf.lastIndexOf("\n");
+        if (nl >= 0) { handle(buf.slice(0, nl), false); buf = buf.slice(nl + 1); }
+        var done = base + pos;
+        $("ts-bar").style.width = (100 * done / grand).toFixed(1) + "%";
+        $("ts-stat").innerHTML =
+          "<div><b>" + (100 * done / grand).toFixed(1) + "%</b><span>진행</span></div>" +
+          "<div><b>" + fmt(acc.rows) + "</b><span>담은 행</span></div>" +
+          "<div><b>" + (done / 1048576).toFixed(0) + "MB</b><span>처리량</span></div>";
+        setTimeout(step, 0);
+      })["catch"](reject);
+    }
+    step();
+  });
+}
+
+/* 단지 단위 중위값 — 표본 하한이 없다.
+   market_core의 median()은 3건 미만을 버리지만(시군구 집계라 그게 맞다),
+   단지 한 분기 거래는 대개 1~2건이라 그 규칙을 쓰면 대부분이 사라진다.
+   대신 건수(c)를 함께 담아 앱이 신뢰도를 판단하게 한다. */
+function medianAll(a) {
+  if (!a || !a.length) return null;
+  a.sort(function (x, y) { return x - y; });
+  var n = a.length, h = n >> 1;
+  return n % 2 ? a[h] : Math.round((a[h - 1] + a[h]) / 2);
+}
+/* 월별로 모은 값을 분기 중위가·건수로 접는다 */
+function foldQuarters(byYm, base, nQ) {
+  var q = [], i, k;
+  for (k in byYm) {
+    var qi = qIndex(k, base);
+    if (qi < 0 || qi >= nQ) continue;
+    (q[qi] || (q[qi] = [])).push.apply(q[qi], byYm[k]);
+  }
+  var lo = -1, hi = -1;
+  for (i = 0; i < nQ; i++) if (q[i]) { if (lo < 0) lo = i; hi = i; }
+  if (lo < 0) return null;
+  var p = [], c = [];
+  for (i = lo; i <= hi; i++) {
+    if (!q[i]) { p.push(null); c.push(0); continue; }
+    p.push(medianAll(q[i])); c.push(q[i].length);
+  }
+  return { o: lo, p: p, c: c };
+}
+
+function tsBuild() {
+  var s = TS.sale, r = TS.rent;
+  var mins = [], maxs = [];
+  if (s && s.minYm) { mins.push(s.minYm); maxs.push(s.maxYm); }
+  if (r && r.minYm) { mins.push(r.minYm); maxs.push(r.maxYm); }
+  if (!mins.length) return null;
+  mins.sort(); maxs.sort();
+  var m0 = mins[0], m1 = maxs[maxs.length - 1];
+  var base = qBase(m0), nQ = qBase(m1) - base + 1;
+  var q0 = Math.floor(m0.slice(0, 4)) + "Q" + Math.ceil((+m0.slice(4)) / 3);
+
+  var codes = {}, k;
+  if (s) for (k in s.reg) codes[k] = 1;
+  if (r) for (k in r.reg) codes[k] = 1;
+  var list = [];
+  for (k in codes) list.push(k);
+  list.sort();
+
+  var files = [], totalCx = 0;
+  list.forEach(function (code) {
+    var byKey = {};
+    function take(acc, which) {
+      var R = acc && acc.reg[code];
+      if (!R) return;
+      for (var ak in R.cx) {
+        var src2 = R.cx[ak];
+        var o = byKey[ak] || (byKey[ak] = { n: src2.n, d: src2.d, yr: {}, s: {}, r: {} });
+        for (var y in src2.yr) o.yr[y] = (o.yr[y] || 0) + src2.yr[y];
+        var from = which === "s" ? src2.s : src2.r, to = which === "s" ? o.s : o.r;
+        for (var b in from) {
+          var tb = to[b] || (to[b] = {});
+          for (var ym in from[b]) (tb[ym] || (tb[ym] = [])).push.apply(tb[ym], from[b][ym]);
+        }
+      }
+    }
+    take(s, "s"); take(r, "r");
+
+    var cxs = [];
+    for (var ak2 in byKey) {
+      var o2 = byKey[ak2], rec = { n: o2.n, d: o2.d, s: {}, r: {} }, b2, got = false;
+      /* 건축년도는 최빈값 (같은 단지에 오타·차수 혼재 대비) */
+      var best = null, bn = 0;
+      for (var yy in o2.yr) if (o2.yr[yy] > bn) { bn = o2.yr[yy]; best = +yy; }
+      if (best) rec.y = best;
+      for (b2 in o2.s) { var fs2 = foldQuarters(o2.s[b2], base, nQ); if (fs2) { rec.s[b2] = fs2; got = true; } }
+      for (b2 in o2.r) { var fr2 = foldQuarters(o2.r[b2], base, nQ); if (fr2) { rec.r[b2] = fr2; got = true; } }
+      if (got) cxs.push(rec);
+    }
+    cxs.sort(function (a, b) { return a.n < b.n ? -1 : (a.n > b.n ? 1 : 0); });
+    totalCx += cxs.length;
+    var obj = {
+      v: 1, code: code, nm: LAWD_NAME[code] || code,
+      q0: q0, quarters: nQ,
+      bands: TS_BANDS.map(function (x) { return x[0]; }),
+      rule: "분기 중위가(만원) · c=건수 · 해제거래 제외 · 전세=월세 0원 · 단지=단지명+법정동",
+      cx: cxs
+    };
+    files.push({ name: "trades/" + code + ".json", text: JSON.stringify(obj) });
+  });
+  return { files: files, complexes: totalCx, q0: q0, nQ: nQ };
+}
+
+/* ── 저장 전용 ZIP (압축 없음) ── */
+var CRC_TABLE = null;
+function crc32(buf) {
+  if (!CRC_TABLE) {
+    CRC_TABLE = new Int32Array(256);
+    for (var n = 0; n < 256; n++) {
+      var c = n;
+      for (var kk = 0; kk < 8; kk++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      CRC_TABLE[n] = c;
+    }
+  }
+  var crc = -1;
+  for (var i = 0; i < buf.length; i++) crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ buf[i]) & 0xFF];
+  return (crc ^ -1) >>> 0;
+}
+function zipStore(entries) {
+  var enc = new TextEncoder(), parts = [], central = [], offset = 0;
+  entries.forEach(function (e) {
+    var nameBytes = enc.encode(e.name), data = enc.encode(e.text);
+    var crc = crc32(data);
+    var lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+    lh.setUint16(26, nameBytes.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), nameBytes, data);
+    var ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+    ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+    ch.setUint16(28, nameBytes.length, true);
+    ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), nameBytes);
+    offset += 30 + nameBytes.length + data.length;
+  });
+  var cdSize = central.reduce(function (a, b) { return a + b.length; }, 0);
+  var eo = new DataView(new ArrayBuffer(22));
+  eo.setUint32(0, 0x06054b50, true);
+  eo.setUint16(8, entries.length, true); eo.setUint16(10, entries.length, true);
+  eo.setUint32(12, cdSize, true); eo.setUint32(16, offset, true);
+  return new Blob(parts.concat(central, [new Uint8Array(eo.buffer)]), { type: "application/zip" });
+}
+function downloadBlob(name, blob) {
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+$("ts-go").addEventListener("click", function () {
+  if (TS.busy) return;
+  var fs = $("ts-sale").files, fr = $("ts-rent").files;
+  if ((!fs || !fs.length) && (!fr || !fr.length)) { alert("CSV를 고르세요."); return; }
+  TS.busy = true; TS.abort = false;
+  $("ts-go").disabled = true; $("ts-stop").disabled = false; $("ts-save").disabled = true;
+  $("ts-out").textContent = "";
+  TS.sale = (fs && fs.length) ? tsNewAcc() : null;
+  TS.rent = (fr && fr.length) ? tsNewAcc() : null;
+
+  var jobs = [], grand = 0, i, nsup = 0;
+  for (i = 0; i < (fs ? fs.length : 0); i++) { jobs.push({ f: fs[i], kind: "sale", sup: isSupFile(fs[i].name) }); grand += fs[i].size; }
+  for (i = 0; i < (fr ? fr.length : 0); i++) { jobs.push({ f: fr[i], kind: "rent", sup: isSupFile(fr[i].name) }); grand += fr[i].size; }
+  jobs.sort(function (a, b) { return (b.sup ? 1 : 0) - (a.sup ? 1 : 0); });
+  for (i = 0; i < jobs.length; i++) {
+    if (!jobs[i].sup) continue;
+    nsup++;
+    (jobs[i].kind === "sale" ? TS.sale : TS.rent).hasSup = true;
+  }
+  tsLog("시작 — 파일 " + jobs.length + "개 · " + (grand / 1048576).toFixed(0) + "MB" +
+        (nsup ? " (보충본 " + nsup + "개)" : ""));
+
+  var idx = 0, base = 0;
+  function next() {
+    if (idx >= jobs.length || TS.abort) { finish(); return; }
+    var jb = jobs[idx++];
+    tsScanFile(jb.f, jb.kind === "sale" ? TS.sale : TS.rent, jb.kind, base, grand, jb.sup)
+      .then(function () { base += jb.f.size; next(); })
+      ["catch"](function (e) { tsLog("오류 — " + jb.f.name + " : " + (e && e.message || e), "warn"); base += jb.f.size; next(); });
+  }
+  function finish() {
+    tsLog("조립 중…");
+    setTimeout(function () {
+      var out = tsBuild();
+      if (out) {
+        tsLog("");
+        tsLog("── 결과 ──");
+        tsLog("지역 " + out.files.length + "개 · 단지 " + fmt(out.complexes) + "곳 · " +
+              out.q0 + "부터 " + out.nQ + "분기");
+        if (TS.sale) tsLog("매매 " + fmt(TS.sale.rows) + "행 (해제 제외 " + fmt(TS.sale.cancel) +
+              (TS.sale.dropped ? " · 보충 교체로 버린 " + fmt(TS.sale.dropped) : "") + ")");
+        if (TS.rent) tsLog("전세 " + fmt(TS.rent.rows) + "행");
+        var big = out.files.slice().sort(function (a, b) { return b.text.length - a.text.length; })[0];
+        var total = out.files.reduce(function (a, f) { return a + f.text.length; }, 0);
+        tsLog("합계 " + (total / 1048576).toFixed(1) + "MB · 최대 " + big.name + " " +
+              (big.text.length / 1024).toFixed(0) + "KB");
+        TS.zip = zipStore(out.files);
+        tsLog("ZIP " + (TS.zip.size / 1048576).toFixed(1) + "MB 준비 완료");
+        $("ts-save").disabled = false;
+      } else tsLog("담긴 행이 없습니다.", "warn");
+      $("ts-go").disabled = false; $("ts-stop").disabled = true;
+      TS.busy = false;
+    }, 30);
+  }
+  next();
+});
+$("ts-stop").addEventListener("click", function () { TS.abort = true; tsLog("중지 요청"); });
+$("ts-save").addEventListener("click", function () {
+  if (TS.zip) { downloadBlob("trades.zip", TS.zip); log("trades.zip 저장"); }
 });
 
 

@@ -245,7 +245,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.3.1</span>
+    <span class="ver">v5.4</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -5906,21 +5906,31 @@ function loadRepComplexes() {
           (byYear[p.y] = byYear[p.y] || []).push(t.amount / t.area * 3.3058);
         });
       });
-      var out = {};
+      /* 단지 단위는 표본 하한을 두지 않는다 — 한 해에 한 건뿐이어도 그 값이 그 단지의
+         그해 실거래다. 대신 건수를 함께 남겨 화면에서 신뢰도를 밝힌다.
+         (시·군·구 집계는 여러 단지가 섞이므로 3건 하한이 맞지만, 단지는 다르다.) */
+      var out = {}, cnt = {};
       Object.keys(byYear).forEach(function (y) {
-        if (byYear[y].length >= 2) out[y] = median(byYear[y]);
+        out[y] = median(byYear[y]);
+        cnt[y] = byYear[y].length;
       });
-      return { name: tg.name, series: out, n: Object.keys(out).length };
+      var thin = Object.keys(cnt).filter(function (y) { return cnt[y] === 1; }).length;
+      return { name: tg.name, series: out, cnt: cnt, thin: thin, n: Object.keys(out).length };
     });
   })).then(function (res) {
     RACE.rep = {};
     var msgs = [];
     res.forEach(function (r) {
-      if (r.n >= 4) { RACE.rep[r.name] = r.series; msgs.push(r.name + " " + r.n + "개 연도"); }
-      else msgs.push(r.name + " 표본 부족(" + r.n + "개 연도) — 제외");
+      if (r.n >= 4) {
+        RACE.rep[r.name] = r.series;
+        RACE.cnt = RACE.cnt || {}; RACE.cnt[r.name] = r.cnt;
+        msgs.push(r.name + " " + r.n + "개 연도" + (r.thin ? " (그중 " + r.thin + "개는 1건)" : ""));
+      } else msgs.push(r.name + " 자료 없음(" + r.n + "개 연도) — 제외");
     });
     if (!Object.keys(RACE.rep).length) RACE.rep = null;
-    hint.textContent = "완료 — " + msgs.join(" · ") + ". 같은 연도라도 거래된 평형 구성이 달라 들쭉날쭉할 수 있습니다.";
+    hint.textContent = "완료 — " + msgs.join(" · ") +
+      ". 거래가 한 건뿐인 해도 그대로 씁니다(단지 단위는 한 건도 실거래입니다). " +
+      "다만 그해 거래된 평형이 무엇이냐에 따라 평당가가 들쭉날쭉할 수 있습니다.";
     renderRace();
   }).catch(function (e) {
     hint.textContent = "불러오기 실패: " + (e.message || e);

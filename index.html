@@ -236,7 +236,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.1</span>
+    <span class="ver">v5.1.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -4429,8 +4429,22 @@ function renderStartCard(key, cUp, cBrand) {
   if (!card) return;
   var st = SUPPLY_EXT && SUPPLY_EXT.starts, cm = SUPPLY_EXT && SUPPLY_EXT.completionsM;
   var sY = yearSum(st, key), cY = yearSum(cm, key);
-  if (!sY || !Object.keys(sY).length) { card.style.display = "none"; return; }
+  var box = card.querySelector(".chartbox");
+  var kpiEl = document.getElementById("sp-startkpi");
+  /* 착공 블록이 없으면 조용히 숨기지 말고 왜 안 나오는지 알려준다.
+     (supply_data.json이 starts 블록 이전 버전이면 여기 걸린다) */
+  if (!sY || !Object.keys(sY).length) {
+    card.style.display = "";
+    if (box) box.style.display = "none";
+    kpiEl.innerHTML = "";
+    document.getElementById("sp-startread").innerHTML =
+      '<b>착공 자료가 없습니다.</b> 지금 올라가 있는 <code>supply_data.json</code>에 ' +
+      '<code>starts</code> 블록이 없습니다 — 착공·월별 준공이 들어간 최신 파일로 교체하면 ' +
+      '이 카드가 채워집니다. (그 전까지 아래 미분양·연도별 카드는 정상 동작합니다.)';
+    return;
+  }
   card.style.display = "";
+  if (box) box.style.display = "";
 
   var years = Object.keys(sY).map(Number).sort(function (a, b) { return a - b; });
   var lastY = years[years.length - 1];

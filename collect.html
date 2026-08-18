@@ -60,7 +60,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.9</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.10</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -236,6 +236,8 @@ th{color:var(--ink-soft);font-weight:600}
     시·군·구별 파일로 굳힙니다. 지금은 앱이 단지 하나하나를 조회하느라 지역당 수백 번 API를 타는데,
     이 파일이 있으면 <b>0회</b>가 됩니다.<br>
     <b>한 번에 다 못 받는 게 정상입니다.</b> 공공데이터 일일 트래픽 한도에 걸리면 그 자리에서 멈춥니다.
+    한도가 아닌 일시적 오류(502 등)는 지역 하나만 건너뛰고 계속 갑니다 — 건너뛴 지역은 저장하지 않으니
+    다시 [모으기]를 누르면 그 지역부터 다시 받습니다.
     받은 지역은 브라우저에 쌓여 있으니 다음 날 다시 [모으기]를 누르면 <b>남은 지역부터</b> 이어서 합니다.
     중간중간 <code>kapt.zip</code>을 받아 저장소의 <code>kapt/</code> 폴더에 올리면 올린 만큼 바로 적용됩니다.<br>
     시·도를 골라 나눠 받는 편이 안전합니다 — 자주 보는 곳(서울·경기)부터 하세요.</div>
@@ -244,12 +246,15 @@ th{color:var(--ink-soft);font-weight:600}
     <button class="btn gold" id="kg-go">단지정보 모으기</button>
     <button class="btn" id="kg-stop" disabled>중지</button>
     <button class="btn" id="kg-save">kapt.zip 저장</button>
+    <button class="btn" id="kg-check">점검</button>
     <button class="btn" id="kg-reset">모은 것 지우기</button>
   </div>
   <div class="bar"><i id="kg-bar"></i></div>
   <div class="stat" id="kg-stat"></div>
   <div class="log" id="kg-out">대기 중…</div>
-  <div class="note">이미 받아 둔 지역은 건너뜁니다. K-apt는 <b>의무관리대상 단지</b>만 담고 있어
+  <div class="note">[점검]을 누르면 이미 받아 둔 지역의 <b>정보 채움률</b>을 확인합니다 —
+    단지는 있는데 세대수가 안 붙은 지역이 있으면 여기서 드러납니다.<br>
+    이미 받아 둔 지역은 건너뜁니다. K-apt는 <b>의무관리대상 단지</b>만 담고 있어
     소규모 단지는 애초에 없습니다 — 그런 단지는 앱에서 계속 <b>—</b>로 남습니다.
     파일에는 단지코드·이름·주소와 위 다섯 항목만 담고, 앱은 실거래 단지명과 이름으로 짝을 맞춥니다.</div>
 </div>
@@ -1699,7 +1704,8 @@ function zipStore(entries) {
   return new Blob(parts.concat(central, [new Uint8Array(eo.buffer)]), { type: "application/zip" });
 }
 /* ══════════ 단지정보 저장본 kapt/{lawd}.json (v2.9) ══════════ */
-var KG = { busy: false, abort: false, calls: 0, cx: 0, region: 0, total: 0, quota: false };
+var KG = { busy: false, abort: false, calls: 0, cx: 0, got: 0, region: 0, total: 0,
+           quota: false, failed: [] };
 
 function kgLog(s, cls) {
   var el = $("kg-out");
@@ -1750,23 +1756,32 @@ function kgAll() {
   });
 }
 
-/* ── 호출 — 한도 초과는 재시도해도 소용없으니 즉시 멈춘다 ── */
+/* ── 호출 ──
+   한도 초과는 재시도해도 소용없으니 즉시 위로 올린다.
+   502·504는 국토부 쪽이 잠깐 먹통일 때 자주 나오므로 넉넉히 기다렸다 다시 친다.
+   실패해도 응답 본문 앞부분을 메시지에 실어 둔다 — 원인을 못 보면 고칠 수가 없다. */
+var KG_BACKOFF = [1000, 2500, 5000, 10000];
+function kgQuotaish(s) { return /트래픽|일일|LIMITED_NUMBER|EXCEEDS|SERVICE_ACCESS_DENIED|초과/i.test(s); }
 function kgFetch(url, tryNo) {
   tryNo = tryNo || 0;
   return fetch(url)
     .then(function (r) {
-      if (r.status === 429 || r.status === 503) throw new Error("BUSY");
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.json();
+      if (r.ok) return r.json();
+      return r.text()["catch"](function () { return ""; }).then(function (t) {
+        var head = String(t).replace(/\s+/g, " ").slice(0, 160);
+        if (kgQuotaish(head)) throw new Error("QUOTA:" + head);
+        throw new Error("HTTP " + r.status + (head ? " — " + head : ""));
+      });
     })
     .then(function (j) {
-      var msg = String((j && j.error) || "") + " " + String((j && j.detail) || "");
-      if (/트래픽|일일|LIMITED_NUMBER|EXCEEDS|초과/i.test(msg)) throw new Error("QUOTA:" + msg.trim());
+      var msg = String((j && j.error) || "") + " " + String((j && j.detail) || "") +
+                " " + String((j && j.msg) || "");
+      if (kgQuotaish(msg)) throw new Error("QUOTA:" + msg.replace(/\s+/g, " ").trim());
       return j;
     })
     ["catch"](function (e) {
-      if (/^QUOTA:/.test(e.message) || tryNo >= 2) throw e;
-      return new Promise(function (r) { setTimeout(r, 700 * (tryNo + 1)); })
+      if (/^QUOTA:/.test(e.message) || tryNo >= KG_BACKOFF.length) throw e;
+      return new Promise(function (r) { setTimeout(r, KG_BACKOFF[tryNo]); })
         .then(function () { return kgFetch(url, tryNo + 1); });
     });
 }
@@ -1821,17 +1836,31 @@ function kgRegion(code) {
     }).then(function () {
       if (KG.abort) return null;
       out.sort(function (a, b) { return a.k < b.k ? -1 : 1; });
-      KG.cx += out.length;
+      var got = kgFilled(out);
+      /* 단지는 있는데 정보가 하나도 안 붙었으면 저장하지 않는다.
+         저장해 버리면 빈 파일이 굳어 다음 회차에 건너뛰어지고, 앱에선 영영 —로 남는다. */
+      if (out.length && !got) throw new Error("정보가 하나도 안 붙음 (단지 " + out.length + "곳)");
+      KG.cx += out.length; KG.got += got;
       var obj = { v: 1, code: code, nm: LAWD_NAME[code] || code, n: out.length, cx: out };
       return kgPut(code, obj).then(function () { return obj; });   /* 저장 후 원본을 돌려준다 */
     });
   });
 }
+/* 세대수나 지하철 중 하나라도 붙은 단지 수 */
+function kgFilled(cx) {
+  var n = 0, i;
+  for (i = 0; i < cx.length; i++) if (cx[i].hh != null || cx[i].sw != null) n++;
+  return n;
+}
 function kgStat() {
   $("kg-stat").innerHTML =
     '<div><b>' + KG.region + " / " + KG.total + "</b><span>지역</span></div>" +
     '<div><b>' + fmt(KG.cx) + "</b><span>단지</span></div>" +
-    '<div><b>' + fmt(KG.calls) + "</b><span>API 호출</span></div>";
+    '<div><b>' + fmt(KG.got) +
+      (KG.cx ? " <span style='font-size:.72rem'>(" + Math.round(100 * KG.got / KG.cx) + "%)</span>" : "") +
+      "</b><span>정보 채움</span></div>" +
+    '<div><b>' + fmt(KG.calls) + "</b><span>API 호출</span></div>" +
+    (KG.failed.length ? '<div><b>' + KG.failed.length + "</b><span>건너뜀</span></div>" : "");
   $("kg-bar").style.width = (KG.total ? 100 * KG.region / KG.total : 0).toFixed(1) + "%";
 }
 function kgSidos() {
@@ -1870,7 +1899,7 @@ $("kg-go").addEventListener("click", function () {
   var want = kgPicked();
   if (!want.length) { alert("시·도를 하나 이상 고르세요."); return; }
   KG.busy = true; KG.abort = false; KG.quota = false;
-  KG.calls = 0; KG.cx = 0; KG.region = 0;
+  KG.calls = 0; KG.cx = 0; KG.got = 0; KG.region = 0; KG.failed = [];
   $("kg-go").disabled = true; $("kg-stop").disabled = false;
   $("kg-out").textContent = "";
 
@@ -1892,15 +1921,27 @@ $("kg-go").addEventListener("click", function () {
       return kgRegion(code).then(function (saved) {
         if (KG.abort) return;
         KG.region++;
-        kgLog(code + " " + (LAWD_NAME[code] || "") + " — 단지 " + (saved ? saved.n : 0) + "곳");
+        kgLog(code + " " + (LAWD_NAME[code] || "") + " — 단지 " + (saved ? saved.n : 0) + "곳 · 정보 " +
+              (saved ? kgFilled(saved.cx) : 0) + "곳");
+      }, function (e) {
+        if (/^QUOTA:/.test(String(e && e.message))) throw e;   /* 한도만 전체를 멈춘다 */
+        KG.failed.push(code);
+        kgLog("건너뜀 — " + code + " " + (LAWD_NAME[code] || "") + " : " + (e && e.message || e), "warn");
+      }).then(function () {
+        if (KG.abort) return;
         kgStat();
-        return next();
+        /* 지역 사이에 잠깐 숨을 준다 — 연달아 때리면 상대 서버가 502로 답한다 */
+        return new Promise(function (r) { setTimeout(r, 250); }).then(next);
       });
     }
     return next();
   }).then(function () {
     if (KG.abort) kgLog("중지했습니다. 받은 곳까지는 남아 있습니다.", "warn");
-    else kgLog("완료 — [kapt.zip 저장]을 눌러 받으세요.", "ok");
+    else if (KG.failed.length) {
+      kgLog("끝났지만 " + KG.failed.length + "곳을 건너뛰었습니다 — 저장하지 않았으니 " +
+            "[모으기]를 다시 누르면 그 지역부터 받습니다.", "warn");
+      kgLog("건너뛴 지역: " + KG.failed.join(", "), "warn");
+    } else kgLog("완료 — [kapt.zip 저장]을 눌러 받으세요.", "ok");
   })["catch"](function (e) {
     if (/^QUOTA:/.test(String(e && e.message))) {
       KG.quota = true;
@@ -1916,6 +1957,25 @@ $("kg-go").addEventListener("click", function () {
   });
 });
 $("kg-stop").addEventListener("click", function () { KG.abort = true; $("kg-stop").disabled = true; });
+$("kg-check").addEventListener("click", function () {
+  kgAll().then(function (all) {
+    if (!all.length) { kgLog("아직 모은 지역이 없습니다.", "warn"); return; }
+    var tot = 0, got = 0, bad = [];
+    all.sort(function (a, b) { return a.code < b.code ? -1 : 1; }).forEach(function (r) {
+      var n = r.obj.cx.length, f = kgFilled(r.obj.cx);
+      tot += n; got += f;
+      if (n && f / n < 0.5) bad.push(r.code + " " + (r.obj.nm || "") + " " + f + "/" + n);
+    });
+    kgLog("── 점검 ──");
+    kgLog("지역 " + all.length + "곳 · 단지 " + fmt(tot) + "곳 · 정보 채움 " + fmt(got) +
+          " (" + (tot ? Math.round(100 * got / tot) : 0) + "%)", bad.length ? "warn" : "ok");
+    if (bad.length) {
+      kgLog("채움률 50% 미만 " + bad.length + "곳 — [모은 것 지우기] 후 다시 받는 편이 낫습니다:", "warn");
+      bad.slice(0, 20).forEach(function (s) { kgLog("  " + s, "warn"); });
+      if (bad.length > 20) kgLog("  … 외 " + (bad.length - 20) + "곳", "warn");
+    }
+  })["catch"](function (e) { kgLog("점검 실패 — " + (e && e.message || e), "warn"); });
+});
 $("kg-reset").addEventListener("click", function () {
   if (KG.busy) { alert("먼저 중지하세요."); return; }
   if (!confirm("모아 둔 단지정보를 전부 지웁니다. 계속할까요?")) return;

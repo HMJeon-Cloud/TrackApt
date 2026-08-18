@@ -245,7 +245,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.6</span>
+    <span class="ver">v5.8</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -633,6 +633,14 @@ function sampleN(key, region) {
   return s ? (s.n != null ? s.n : s.v.length) : 0;
 }
 function fmt(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+/* 평당가 전용 표기 — 1억 이상은 소수 둘째 자리까지 억, 미만은 만원.
+   eok()처럼 뒤 0을 지우지 않는 이유: 서열을 눈으로 훑는 열이라
+   20,008과 22,757이 둘 다 "2억"으로 보이면 순위가 사라진다. */
+function pyFmt(n) {
+  if (n == null || isNaN(n)) return "—";
+  var v = Math.round(n);
+  return v < 10000 ? fmt(v) + "만" : (v / 10000).toFixed(2) + "억";
+}
 /* 금액을 단위에 맞게: 1억 미만은 만원, 이상은 억 */
 function eok(n) {
   if (n == null || isNaN(n)) return "—";
@@ -2190,7 +2198,16 @@ function buildDanji(root) {
         '<b>이름값만 있던 단지</b>가 구분됩니다. 손품으로 후보를 좁힌 뒤 임장은 그 몇 곳만 다니면 됩니다.<br>' +
         '<b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
         '평당가는 전용면적 기준(거래가 ÷ 전용㎡ × 3.3058)이라 공급면적 평당가보다 25%쯤 높으니 네이버 시세와 ' +
-        '직접 비교하지 마세요. 지하철·세대수는 K-apt 정보이며 미제공 단지는 필터에서 빠집니다.<br>' +
+        '직접 비교하지 마세요.<br>' +
+        '<b>세대수·지하철</b>은 K-apt(공동주택관리정보시스템) 자료입니다. 저장본(kapt/)이 있는 지역은 ' +
+        '조회 없이 즉시 채우고, 없는 지역은 표에 나온 <b>모든 단지</b>를 조회한 뒤 그 결과를 ' +
+        '브라우저에 저장해 다음부터는 바로 뜹니다. ' +
+        '실거래 단지명과 K-apt 단지명이 달라 짝을 못 찾으면 버튼 옆에 ' +
+        '<code>단지정보 미매칭 N곳</code>으로 알리고 그 단지는 <b>—</b>로 둡니다 ' +
+        '(K-apt는 의무관리대상 단지만 담고 있어 소규모 단지는 아예 없습니다).<br>' +
+        '<b>전세</b>는 조회 기간 안의 같은 평형대 계약입니다. 그 기간에 전세가 없으면 저장본에서 ' +
+        '가장 최근 연 중위가를 끌어와 <code>3.2억 (24년)</code>처럼 <b>연도를 붙이고 흐리게</b> 보여줍니다. ' +
+        '전세가율·갭도 같이 흐려지니, 흐린 줄은 <b>지금 시세가 아니라 그때 시세</b>로 읽으세요.<br>' +
         '<b>10년</b> 열은 저장본(trades/)에서 읽은 <b>그 단지의 10년 연평균 상승률</b>입니다. ' +
         '연 중위가를 10년 전과 비교하며, 실거래 조회를 추가로 하지 않습니다. ' +
         '한쪽이라도 거래 1건뿐이면 <b>~</b>를 붙여 표본이 얇음을 알립니다. ' +
@@ -2471,6 +2488,19 @@ function apiRelease() {
   apiActive--;
   if (apiQueue.length && apiActive < API_CONC) { apiActive++; apiQueue.shift()(); }
 }
+/* 단지정보(K-apt)는 응답이 가볍고 지역당 수백 건이라 별도 줄에 세운다.
+   실거래와 같은 줄(3)에 섞으면 표가 채워지는 데 몇 분이 걸린다. */
+var KAPT_CONC = 6, kaptActive = 0, kaptQueue = [];
+function kaptSlot() {
+  return new Promise(function (res) {
+    if (kaptActive < KAPT_CONC) { kaptActive++; res(); }
+    else kaptQueue.push(res);
+  });
+}
+function kaptRelease() {
+  kaptActive--;
+  if (kaptQueue.length && kaptActive < KAPT_CONC) { kaptActive++; kaptQueue.shift()(); }
+}
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 function isBusyErr(j, status) {
   if (status === 502 || status === 429 || status === 503) return true;
@@ -2488,8 +2518,10 @@ function fetchTimeout(url, ms) {
     function (r) { clearTimeout(t); return r; },
     function (e) { clearTimeout(t); throw (e && e.name === "AbortError" ? new Error("응답 시간 초과") : e); });
 }
-function apiGet(url) {
-  return apiSlot().then(function () {
+function apiGet(url) { return apiVia(url, apiSlot, apiRelease); }
+function kaptGet(url) { return apiVia(url, kaptSlot, kaptRelease); }
+function apiVia(url, take, give) {
+  return take().then(function () {
     function attempt(tryNo) {
       var st = 0;
       return fetchTimeout(url, 20000)
@@ -2507,8 +2539,8 @@ function apiGet(url) {
         });
     }
     return attempt(0);
-  }).then(function (j) { apiRelease(); return j; },
-          function (e) { apiRelease(); throw e; });
+  }).then(function (j) { give(); return j; },
+          function (e) { give(); throw e; });
 }
 
 /* "41590:41594" 형태의 복합 코드 → 후보 배열 */
@@ -2583,7 +2615,7 @@ function loadDanji() {
   DJ.regionName = optText;          /* 예: "화성 동탄구" — 코드 판별에 사용 */
   DJ.regionKey = kbKeyOfLawd(lawd);
   DJ.months = Number(document.getElementById("dj-months").value);
-  DJ.kaptList = null; DJ.kaptMiss = 0;
+  DJ.kaptList = null; DJ.kaptMiss = 0; DJ.kaptStore = null;
   DJ.store = null;
   /* 저장본은 실거래와 병렬로 받는다. 없거나 실패해도 표는 그대로 나온다. */
   loadStore(lawd).then(function (st) {
@@ -2664,14 +2696,83 @@ function updateDanjiMeta(suffix) {
   else if (DJ.store === false) meta += " · 저장본 없음";
   if (DJ.kaptList !== null) {
     if (!DJ.kaptList.length) meta += " · K-apt 목록 없음";
-    else if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";
+    else {
+      if (DJ.kaptStore) meta += " · 단지정보 저장본";
+      if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";
+    }
   }
   document.getElementById("dj-meta").textContent = meta + (suffix || "");
 }
 
-/* K-apt 목록 1회 + 평당가 상위 단지 상세를 병렬로 부착 (도착하는 대로 표 갱신) */
+/* K-apt 목록 1회 + 단지 상세를 병렬로 부착 (도착하는 대로 표 갱신) */
 var KAPT_INFO_MEMO = {};
 var KAPT_LIST_MEMO = {};
+/* ── 단지정보 영구 캐시 ────────────────────────────────────
+   단지 상세는 지역당 수백 건이라 매번 다시 받으면 공공데이터 일일 한도를 금방 쓴다.
+   단지정보는 거의 변하지 않으므로 브라우저에 남겨 두고 다음 방문엔 0회로 끝낸다. */
+var LS_KAPT = "trackapt_kapt_v1";
+var KAPT_KEEP = ["households", "dongCnt", "builder", "parkingTotal", "subwayWay",
+                 "subwayLine", "subwayStation", "busWay", "education", "convenient", "heat", "hall"];
+var KAPT_CACHE = null, kaptSaveT = null;
+function kaptCache() {
+  if (KAPT_CACHE) return KAPT_CACHE;
+  try { KAPT_CACHE = JSON.parse(localStorage.getItem(LS_KAPT) || "{}"); } catch (e) { KAPT_CACHE = null; }
+  if (!KAPT_CACHE || typeof KAPT_CACHE !== "object") KAPT_CACHE = {};
+  return KAPT_CACHE;
+}
+/* 표에 쓰는 필드만 남긴다 — 원본을 통째로 넣으면 저장 용량이 금방 찬다 */
+function kaptTrim(info) {
+  var o = {}, i, k;
+  for (i = 0; i < KAPT_KEEP.length; i++) {
+    k = KAPT_KEEP[i];
+    if (info[k] != null && info[k] !== "") o[k] = info[k];
+  }
+  return o;
+}
+/* ── 단지정보 저장본 kapt/{lawd}.json (3층 구조 2층, 단지정보편) ──
+   collect.html이 미리 받아 둔 세대수·지하철·건설사·주차. 이 파일이 있으면 API 호출 0회.
+   없는 지역은 예전처럼 목록 1회 + 단지별 상세로 채운다(선택 파일). */
+var KSTORE = {}, KSTORE_P = {};
+function loadKaptStore(code) {
+  if (KSTORE[code] !== undefined) return Promise.resolve(KSTORE[code]);
+  if (KSTORE_P[code]) return KSTORE_P[code];
+  KSTORE_P[code] = fetch("kapt/" + code + ".json")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (j && (j.v !== 1 || !j.cx || !j.cx.length)) j = null;
+      KSTORE[code] = j || false;
+      return KSTORE[code];
+    })
+    ["catch"](function () { KSTORE[code] = false; return false; });
+  return KSTORE_P[code];
+}
+/* 저장본 한 줄 → 앱이 쓰는 K-apt 정보 모양으로 (필드 이름을 되돌린다) */
+function kaptFromStore(c) {
+  var o = {};
+  if (c.hh) o.households = c.hh;
+  if (c.dc) o.dongCnt = c.dc;
+  if (c.b) o.builder = c.b;
+  if (c.pk) o.parkingTotal = c.pk;
+  if (c.sw != null) o.subwayWay = "도보 " + c.sw + "분";
+  if (c.sl) o.subwayLine = c.sl;
+  if (c.ss) o.subwayStation = c.ss;
+  if (c.ht) o.heat = c.ht;
+  if (c.hl) o.hall = c.hl;
+  return o;
+}
+function kaptCacheSave() {
+  if (kaptSaveT) return;
+  kaptSaveT = setTimeout(function () {
+    kaptSaveT = null;
+    var c = kaptCache();
+    try { localStorage.setItem(LS_KAPT, JSON.stringify(c)); }
+    catch (e) {                       /* 용량 초과 → 오래된 절반을 버리고 한 번만 재시도 */
+      var ks = Object.keys(c), i;
+      for (i = 0; i < ks.length / 2; i++) delete c[ks[i]];
+      try { localStorage.setItem(LS_KAPT, JSON.stringify(c)); } catch (e2) {}
+    }
+  }, 1500);
+}
 /* ── 단지별 저장본 trades/{lawd}.json (3층 구조 2층) ────────────
    시·군·구별로 "단지 × 평형대 × 분기" 중위가·건수를 담은 파일.
    그 지역을 볼 때만 한 번 받아 캐시한다. 없으면 조용히 건너뛴다(선택 파일).
@@ -2707,6 +2808,24 @@ function storeFind(st, apt, dong) {
   var idx = storeIndex(st);
   if (!idx) return null;
   return idx[normName(apt) + "|" + dong] || idx[normName(apt)] || null;
+}
+function sumArr(a) { var t = 0, i; for (i = 0; i < a.length; i++) t += a[i] || 0; return t; }
+/* 저장본에서 그 단지·평형대의 **가장 최근 전세 연 중위가**.
+   조회 기간(최근 3~12개월)에 전세 계약이 없는 단지가 흔한데,
+   전세가 아예 없는 것과 "요즘 안 나온 것"은 다르다 → 과거값을 연도와 함께 보여준다. */
+function storeJeonse(st, cx, band) {
+  if (!st || !cx || !cx.r) return null;
+  var blk = cx.r, keys = [], k;
+  for (k in blk) keys.push(k);
+  if (!keys.length) return null;
+  var use = (band && blk[band]) ? String(band) : keys.sort(function (a, b) {
+    return sumArr(blk[b].c) - sumArr(blk[a].c);
+  })[0];
+  var s = blk[use], i;
+  for (i = s.p.length - 1; i >= 0; i--) {
+    if (s.p[i] != null) return { dep: s.p[i], year: st.y0 + s.o + i, n: s.c[i], band: Number(use) };
+  }
+  return null;
 }
 /* 저장본 한 단지의 '연평균 상승률' — 최근 유효 분기와 years년 전 분기를 비교.
    평형대를 지정하면 그 밴드만, 없으면 거래가 가장 많은 밴드를 쓴다.
@@ -2766,44 +2885,69 @@ function fetchKaptList(lawd) {
 function attachKapt() {
   var band = Number(document.getElementById("dj-band").value) || 0;
   var myLoad = DJ.loadSeq = (DJ.loadSeq || 0) + 1;   /* 새 조회가 시작되면 이전 부착은 버림 */
+  function alive() { return DJ.loadSeq === myLoad; }
+  /* 상한 없음 — 표에 나온 단지는 전부 채운다.
+     평당가 높은 순으로 세워 두면 화면 위쪽부터 차서 기다림이 짧게 느껴진다. */
   var pre = DJ.rows.map(function (g) {
     var deals = band ? g.deals.filter(function (t) { return inBand(t.area, band); }) : g.deals;
     var pmv = deals.length ? median(deals.map(function (t) { return t.amount / t.area; })) : 0;
     return { g: g, pm: pmv };
   }).filter(function (x) { return x.pm > 0; })
-    .sort(function (a, b) { return b.pm - a.pm; }).slice(0, 40);
+    .sort(function (a, b) { return b.pm - a.pm; });
 
-  return fetchKaptList(lawdCandidates(DJ.lawd)[0])
-    .then(function (list) { DJ.kaptList = list; })
+  /* 저장본이 있으면 그것으로 끝낸다 — 목록조차 부르지 않는다 */
+  return loadKaptStore(DJ.lawd)
+    .then(function (ks) {
+      DJ.kaptStore = ks || null;
+      if (ks) return ks.cx.map(function (c) {
+        return { kaptCode: c.k, name: c.n, addr: c.a, _st: c };
+      });
+      return fetchKaptList(lawdCandidates(DJ.lawd)[0])["catch"](function () { return []; });
+    })
+    .then(function (list) { DJ.kaptList = list || []; })
     .catch(function () { DJ.kaptList = []; })
     .then(function () {
-      if (DJ.loadSeq !== myLoad) return;
+      if (!alive()) return;
       if (!DJ.kaptList.length) { updateDanjiMeta(); return; }
-      var done = 0, dirty = false;
-      updateDanjiMeta(" · 단지정보 붙이는 중 0/" + pre.length);
-      var jobs = pre.map(function (x) {
+      var cache = kaptCache();
+      var done = 0, dirty = false, miss = 0, jobs = [];
+      pre.forEach(function (x) {
         var hit = matchKapt(DJ.kaptList, x.g.apt, x.g.dong);
-        if (!hit) { DJ.kaptMiss = (DJ.kaptMiss || 0) + 1; done++; return Promise.resolve(); }
-        if (KAPT_INFO_MEMO[hit.kaptCode]) {           /* 같은 단지는 재조회 없이 */
-          x.g.kapt = KAPT_INFO_MEMO[hit.kaptCode]; done++; dirty = true;
-          return Promise.resolve();
+        if (!hit) { miss++; return; }                 /* K-apt 목록에 같은 단지가 없음 */
+        if (hit._st) {                                /* 저장본 — 호출 0회 */
+          x.g.kapt = kaptFromStore(hit._st); dirty = true; return;
         }
-        return apiGet("/api/apt?kind=info&kapt=" + hit.kaptCode)
-          .then(function (j2) {
-            done++;
-            if (!j2.error && j2.info) { x.g.kapt = j2.info; KAPT_INFO_MEMO[hit.kaptCode] = j2.info; dirty = true; }
-          })
-          .catch(function () { done++; });
+        var memo = KAPT_INFO_MEMO[hit.kaptCode] || cache[hit.kaptCode];
+        if (memo) {                                   /* 캐시 적중 — 호출 0회 */
+          x.g.kapt = memo; KAPT_INFO_MEMO[hit.kaptCode] = memo; dirty = true; return;
+        }
+        jobs.push(function () {
+          if (!alive()) return Promise.resolve();     /* 지역이 바뀌었으면 호출 자체를 안 한다 */
+          return kaptGet("/api/apt?kind=info&kapt=" + hit.kaptCode)
+            .then(function (j2) {
+              done++;
+              if (!j2.error && j2.info) {
+                var t = kaptTrim(j2.info);
+                x.g.kapt = t; KAPT_INFO_MEMO[hit.kaptCode] = t; cache[hit.kaptCode] = t;
+                dirty = true;
+              }
+            })
+            ["catch"](function () { done++; });
+        });
       });
-      /* 0.5초마다 진행 표시 + 도착분 반영 (전 항목 재렌더 대신 배치 갱신) */
+      DJ.kaptMiss = miss;
+      if (!jobs.length) { updateDanjiMeta(); renderDanjiTable(); return; }
+      updateDanjiMeta(" · 단지정보 0/" + jobs.length);
+      /* 0.6초마다 진행 표시 + 도착분 반영 (전 항목 재렌더 대신 배치 갱신) */
       var timer = setInterval(function () {
-        if (DJ.loadSeq !== myLoad) { clearInterval(timer); return; }
-        updateDanjiMeta(" · 단지정보 붙이는 중 " + done + "/" + pre.length);
+        if (!alive()) { clearInterval(timer); return; }
+        updateDanjiMeta(" · 단지정보 " + done + "/" + jobs.length);
         if (dirty) { dirty = false; renderDanjiTable(); }
-      }, 500);
-      return Promise.all(jobs).then(function () {
+      }, 600);
+      return Promise.all(jobs.map(function (f) { return f(); })).then(function () {
         clearInterval(timer);
-        if (DJ.loadSeq !== myLoad) return;
+        kaptCacheSave();
+        if (!alive()) return;
         updateDanjiMeta();
         renderDanjiTable();
       });
@@ -2817,28 +2961,38 @@ function normName(s) {
     .replace(/아파트|주공아파트|마을|타운하우스|단지$/g, "")
     .toLowerCase();
 }
+/* 이름 안의 숫자열 — "주공1"과 "주공4"는 이름이 아무리 닮아도 다른 단지다 */
+function numsOf(s) { return (String(s).match(/\d+/g) || []).join("-"); }
 /* 두 이름의 유사도 (0~1) — 문자 집합 겹침 + 접두 일치 가산 */
 function nameScore(a, b) {
   if (!a || !b) return 0;
+  var na = numsOf(a), nb = numsOf(b);
+  /* 양쪽 다 숫자를 가졌는데 다르면 상한을 눌러 오매칭을 막는다 */
+  var capped = (na && nb && na !== nb);
   if (a === b) return 1;
-  if (a.indexOf(b) >= 0 || b.indexOf(a) >= 0) return 0.95;
+  if (!capped && (a.indexOf(b) >= 0 || b.indexOf(a) >= 0)) return 0.95;
   var setA = {}, common = 0;
   for (var i = 0; i < a.length; i++) setA[a[i]] = (setA[a[i]] || 0) + 1;
   for (var j = 0; j < b.length; j++) if (setA[b[j]] > 0) { setA[b[j]]--; common++; }
   var jac = common / Math.max(a.length, b.length);
   var pre = 0;
   while (pre < Math.min(a.length, b.length) && a[pre] === b[pre]) pre++;
-  return jac * 0.75 + Math.min(pre / 4, 1) * 0.25;
+  var sc = jac * 0.75 + Math.min(pre / 4, 1) * 0.25;
+  return capped ? Math.min(sc, 0.4) : sc;
 }
-/* 목록에서 가장 잘 맞는 단지 찾기 (동 이름으로 후보 좁힘) */
+/* 목록에서 가장 잘 맞는 단지 찾기.
+   법정동은 실거래에서 온 확실한 값이므로, 같은 동 안에서 어지간히 맞으면(0.5) 채택한다.
+   표기 흔들림(향촌롯데 ↔ 향촌마을롯데)은 대부분 여기서 걸린다. */
 function matchKapt(list, apt, dong) {
-  var n = normName(apt), best = null, bestS = 0;
+  var n = normName(apt), best = null, bestS = 0, bestD = null, bestDS = 0;
   list.forEach(function (it) {
     var s = nameScore(n, normName(it.name));
-    /* 같은 법정동이면 가산점 */
-    if (dong && it.addr && it.addr.indexOf(dong) >= 0) s += 0.12;
+    var same = !!(dong && it.addr && it.addr.indexOf(dong) >= 0);
+    if (same && s > bestDS) { bestDS = s; bestD = it; }
+    if (same) s += 0.12;                    /* 같은 법정동이면 가산점 */
     if (s > bestS) { bestS = s; best = it; }
   });
+  if (bestD && bestDS >= 0.5) return bestD;
   return bestS >= 0.62 ? best : null;
 }
 
@@ -2864,16 +3018,22 @@ function renderDanjiTable() {
     r.py = r.pm * 3.3058;
     r.amt = median(deals.map(function (t) { return t.amount; }));
     r.last = deals.slice().sort(function (a, b) { return (b.ym * 100 + b.day) - (a.ym * 100 + a.day); })[0];
+    var stc = DJ.store ? storeFind(DJ.store, g.apt, g.dong) : null;
     var jd = band ? g.rentDeals.filter(function (t) { return inBand(t.area, band); }) : g.rentDeals;
     r.je = jd.length ? median(jd.map(function (t) { return t.deposit; })) : null;
+    r.jeOld = false; r.jeYear = null;
+    if (r.je == null && stc) {          /* 조회 기간에 전세가 없으면 저장본의 최근 연 중위가로 */
+      var sj = storeJeonse(DJ.store, stc, band);
+      if (sj) { r.je = sj.dep; r.jeOld = true; r.jeYear = sj.year; }
+    }
     r.jr = r.je != null ? r.je / r.amt * 100 : null;
     r.gap = r.je != null ? r.amt - r.je : null;
-    r.hh = g.kapt ? g.kapt.households : null;
+    /* K-apt가 0을 주는 단지가 있다 — 세대수 0은 값이 아니라 결측이다 */
+    r.hh = (g.kapt && g.kapt.households > 0) ? g.kapt.households : null;
     r.sub = subwayMin(g.kapt);
     r.builder = g.kapt ? g.kapt.builder : null;
     r.parking = (g.kapt && g.kapt.parkingTotal) ? g.kapt.parkingTotal : null;
     /* 저장본이 로드돼 있으면 10년 성과를 붙인다 (없으면 null) */
-    var stc = DJ.store ? storeFind(DJ.store, g.apt, g.dong) : null;
     var c10 = stc ? storeCagr(stc, band, 10) : null;
     r.c10 = c10 ? c10.cagr : null;
     r.c10thin = c10 ? c10.thin : false;
@@ -2911,13 +3071,19 @@ function renderDanjiTable() {
         (r.sub != null && r.sub <= 10 ? ' <span class="tagmini gold">역세권</span>' : "") +
         " <span style='color:var(--ink-soft);font-size:.74rem'>" + r.dong + "</span></td>" +
       "<td>" + eok(r.amt) + "</td>" +
-      "<td><b>" + fmt(r.py) + "</b></td>" +
+      "<td><b>" + pyFmt(r.py) + "</b></td>" +
       "<td>" + (r.hh != null ? fmt(r.hh) : "—") + "</td>" +
       "<td>" + (r.year ? r.year + " (" + age + "년)" : "—") + "</td>" +
       "<td>" + (r.sub != null ? "도보 " + r.sub + "분" : "—") + "</td>" +
-      "<td>" + (r.je != null ? eok(r.je) : "—") + "</td>" +
-      '<td class="' + (r.jr != null && r.jr >= 70 ? "up" : "") + '">' + (r.jr != null ? r.jr.toFixed(1) + "%" : "—") + "</td>" +
-      "<td>" + (r.gap != null ? eok(r.gap) : "—") + "</td>" +
+      "<td" + (r.jeOld ? ' style="opacity:.62"' : "") + ">" +
+        (r.je != null ? eok(r.je) +
+          (r.jeOld ? " <span style='font-size:.72rem'>(" + String(r.jeYear).slice(2) + "년)</span>" : "")
+        : "—") + "</td>" +
+      '<td class="' + (!r.jeOld && r.jr != null && r.jr >= 70 ? "up" : "") + '"' +
+        (r.jeOld ? ' style="opacity:.62"' : "") + ">" +
+        (r.jr != null ? r.jr.toFixed(1) + "%" : "—") + "</td>" +
+      "<td" + (r.jeOld ? ' style="opacity:.62"' : "") + ">" +
+        (r.gap != null ? eok(r.gap) : "—") + "</td>" +
       "<td>" + r.cnt + "건</td>" +
       '<td class="' + cls(r.c10) + '">' +
         (r.c10 != null ? pct(r.c10) + "/년" + (r.c10thin ? "~" : "") : (DJ.store ? "—" : "·")) + "</td>" +
@@ -3123,7 +3289,7 @@ function renderCartReport() {
 
       var bl = [];
       bl.push("<b>" + c.apt + "</b>은 " + (c.regionName || disp(rk || "")) + " " + c.dong + " 소재로, 평당 " +
-        fmt(c.py || c.pmAvg * 3.3058) + "만원 · 매매 중위 " + eok(price) +
+        pyFmt(c.py || c.pmAvg * 3.3058) + " · 매매 중위 " + eok(price) +
         (vsRegion != null ? " — 지역 평균 대비 <b>" + pct(vsRegion, 0) + "</b>" : "") + "입니다.");
       if (c.households) bl.push("단지 규모 " + fmt(c.households) + "세대" +
         (c.dongCnt ? " · " + c.dongCnt + "개 동" : "") +
@@ -3153,7 +3319,7 @@ function renderCartReport() {
             (c.regionName || disp(rk || c.lawd)) + " " + c.dong +
             (c.buildYear ? " · " + c.buildYear + "년" : "") + (c.households ? " · " + fmt(c.households) + "세대" : "") + "</span></div>" +
           '<div class="chips" style="margin:6px 0">' +
-            kv("평당", fmt(c.py || c.pmAvg * 3.3058) + "만") +
+            kv("평당", pyFmt(c.py || c.pmAvg * 3.3058)) +
             kv("매매", eok(price)) +
             kv("전세", c.jeonse != null ? eok(c.jeonse) : "") +
             kv("전세가율", c.jr != null ? c.jr + "%" : "") +
@@ -3967,7 +4133,7 @@ function renderFlagTable() {
         "<td>" + eok(g.max) + "</td>" +
         "<td>" + (g.jeonse != null ? eok(g.jeonse) : "—") + "</td>" +
         "<td>" + (g.jr != null ? g.jr.toFixed(1) + "%" : "—") + "</td>" +
-        "<td>" + fmt(g.py) + "</td>" +
+        "<td>" + pyFmt(g.py) + "</td>" +
         "<td>" + (g.gap != null ? eok(g.gap) : "—") + "</td>" +
         "<td>" + g.cnt + "건</td>" +
         '<td><button class="btn sm" data-fgcart="' + encodeURIComponent(r.region) + "|" + encodeURIComponent(g.dong) + "|" + encodeURIComponent(g.apt) + '"' +
@@ -4123,7 +4289,7 @@ function fillAptSelect(i) {
   s.apts.forEach(function (g) {
     var o = document.createElement("option");
     o.value = g.id;
-    o.textContent = g.apt + " · " + g.dong + " (평당 " + fmt(g.py) + "만)";
+    o.textContent = g.apt + " · " + g.dong + " (평당 " + pyFmt(g.py) + ")";
     sel.appendChild(o);
   });
 }

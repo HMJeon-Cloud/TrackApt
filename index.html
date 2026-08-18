@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TrackApt">
 <meta name="description" content="TrackApt — 국토부 실거래로 보는 전국 아파트 가격 서열과 투자 타이밍">
 <title>TrackApt</title>
 <meta name="theme-color" content="#0f4c5c">
@@ -99,6 +103,10 @@ section.tab{display:none} section.tab.on{display:block}
 .dict .di p{font-size:.76rem;color:var(--ink-soft);margin-top:3px;line-height:1.55}
 @media (max-width:560px){ .dict{grid-template-columns:1fr} }
 .hint{font-size:.76rem;color:var(--ink-soft);margin-top:8px}
+/* 조회 정보 안에서 '눌러서 펼치는' 항목 — 휴대폰에서도 닿도록 여백을 넉넉히 */
+.linky{background:none;border:0;padding:2px 4px;margin:0;font:inherit;color:var(--gold);
+  text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.linky:active{opacity:.6}
 .status{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .stat{background:var(--bg);border-radius:8px;padding:10px 12px}
 .stat .k{font-size:.72rem;color:var(--ink-soft);font-weight:600}
@@ -245,7 +253,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.11</span>
+    <span class="ver">v5.12</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2187,6 +2195,7 @@ function buildDanji(root) {
         '<button class="btn sm ghost" data-exp="img" data-name="단지솔팅">이미지 저장</button>' +
         '<button class="btn sm ghost" data-exp="xlsx" data-table="dj-table" data-name="단지솔팅">엑셀 저장</button>' +
         '<span class="hint" id="dj-meta" style="align-self:center;margin:0"></span></div>' +
+      '<div class="note" id="dj-missbox" style="display:none;margin-top:10px"></div>' +
       '<div class="tblwrap" style="margin-top:12px"><table id="dj-table"><thead><tr>' +
       '<th data-sort="apt">단지 ⇅</th><th data-sort="amt">최근 실거래 ⇅</th><th data-sort="py">평당가 ⇅</th>' +
       '<th data-sort="hh">세대수 ⇅</th><th data-sort="year">준공 ⇅</th><th data-sort="sub">지하철 ⇅</th>' +
@@ -2694,6 +2703,22 @@ function loadDanji() {
 }
 
 function ymDot(ym) { return ym ? String(ym).slice(0, 4) + "." + String(ym).slice(4) : ""; }
+function escHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+/* 못 찾은 단지 목록을 표 위에 펼친다 — 한 번 더 누르면 접힌다 */
+function toggleKaptMiss() {
+  var box = document.getElementById("dj-missbox");
+  if (!box) return;
+  if (box.style.display === "block") { box.style.display = "none"; return; }
+  var names = DJ.kaptMissNames || [], rest = (DJ.kaptMiss || 0) - names.length;
+  box.innerHTML =
+    "<b>K-apt에서 못 찾은 단지</b> — 이름 (법정동)<br>" +
+    escHtml(names.join(" · ")) + (rest > 0 ? escHtml(" 외 " + rest + "곳") : "") +
+    '<br><span style="color:var(--miss)">K-apt(공동주택관리정보시스템)는 의무관리대상 단지만 담고 있어 ' +
+    "소규모 단지는 애초에 없습니다. 이 단지들은 세대수·지하철이 <b>—</b>로 남습니다.</span>";
+  box.style.display = "block";
+}
 function updateDanjiMeta(suffix) {
   var meta = "";
   if (DJ.ymFrom) meta += ymDot(DJ.ymFrom) + "~" + ymDot(DJ.ymTo) + " · ";
@@ -2701,19 +2726,25 @@ function updateDanjiMeta(suffix) {
   if (DJ.subFilter) meta += " · 해당 구 법정동만 추림";
   if (DJ.store) meta += " · 저장본 " + DJ.store.cx.length + "단지";
   else if (DJ.store === false) meta += " · 저장본 없음";
+  var missBtn = 0;
   if (DJ.kaptList !== null) {
     if (!DJ.kaptList.length) meta += " · K-apt 목록 없음";
     else {
       if (DJ.kaptStore) meta += " · 단지정보 저장본";
-      if (DJ.kaptMiss) meta += " · 단지정보 미매칭 " + DJ.kaptMiss + "곳";
+      if (DJ.kaptMiss) missBtn = DJ.kaptMiss;
     }
   }
   var el = document.getElementById("dj-meta");
-  el.textContent = meta + (suffix || "");
-  el.title = (DJ.kaptMissNames && DJ.kaptMissNames.length)
-    ? "K-apt에서 못 찾은 단지 (이름·법정동): " + DJ.kaptMissNames.join(", ") +
-      (DJ.kaptMiss > DJ.kaptMissNames.length ? " 외 " + (DJ.kaptMiss - DJ.kaptMissNames.length) + "곳" : "")
-    : "";
+  /* 미매칭은 '누르면 펼쳐지는' 버튼으로 — title은 휴대폰에서 보이지 않는다 */
+  el.innerHTML = escHtml(meta + (suffix || "")) +
+    (missBtn ? ' · <button type="button" class="linky" id="dj-miss">단지정보 미매칭 ' +
+               missBtn + "곳</button>" : "");
+  var mb = document.getElementById("dj-miss");
+  if (mb) mb.addEventListener("click", toggleKaptMiss);
+  if (!missBtn) {
+    var box = document.getElementById("dj-missbox");
+    if (box) box.style.display = "none";
+  }
 }
 
 /* K-apt 목록 1회 + 단지 상세를 병렬로 부착 (도착하는 대로 표 갱신) */

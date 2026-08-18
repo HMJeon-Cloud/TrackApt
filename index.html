@@ -245,7 +245,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.9</span>
+    <span class="ver">v5.10</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2205,7 +2205,9 @@ function buildDanji(root) {
         '짝은 <b>법정동으로 후보를 좁힌 뒤 이름</b>으로 맞춥니다. 괄호 표기 ' +
         '(<code>가락마을20단지(호반베르디움5차)</code>)는 안팎을 따로도 대 보고, ' +
         '<code>주공1단지</code>와 <code>주공4단지</code>처럼 숫자가 어긋나면 짝으로 보지 않습니다. ' +
-        '한 K-apt 단지가 두 곳에 붙지 않도록 지역 전체를 한꺼번에 1:1로 맞춥니다.<br>' +
+        '지역 전체를 한꺼번에 1:1로 맞춘 뒤, 그래도 남는 단지는 같은 관리단지에 공유로 붙입니다 — ' +
+        'K-apt는 압구정 현대를 관리주체 3곳으로 묶어 두는데 실거래는 차수별로 쪼개기 때문입니다. ' +
+        '공유로 붙은 세대수는 <b>~</b>를 달아 <b>관리단지 전체 값</b>임을 알립니다.<br>' +
         '그래도 못 찾으면 버튼 옆에 <code>단지정보 미매칭 N곳</code>으로 알리고 그 단지는 <b>—</b>로 ' +
         '둡니다 — 그 글자에 마우스를 올리면 어떤 단지인지 보입니다. ' +
         'K-apt는 의무관리대상 단지만 담고 있어 소규모 단지는 애초에 없고, ' +
@@ -2924,12 +2926,13 @@ function attachKapt() {
       /* 전체를 한 번에 짝지어야 한 K-apt 단지가 두 곳에 붙는 일이 없다 */
       var hits = matchKaptAll(DJ.kaptList, pre.map(function (x) { return x.g; }));
       pre.forEach(function (x, xi) {
-        var hit = hits[xi];
+        var r = hits[xi], hit = r && r.it;
         if (!hit) {                                   /* K-apt 목록에 같은 단지가 없음 */
           miss++;
           if (missNames.length < 30) missNames.push(x.g.apt);
           return;
         }
+        x.g.kaptShared = !!r.shared;
         if (hit._st) {                                /* 저장본 — 호출 0회 */
           x.g.kapt = kaptFromStore(hit._st); dirty = true; return;
         }
@@ -2971,24 +2974,47 @@ function attachKapt() {
 }
 
 /* 실거래 표기와 K-apt 표기의 차이를 흡수 (예: 향촌롯데 ↔ 향촌마을롯데) */
+/* 같은 브랜드의 영문·한글 표기를 하나로 모은다.
+   실거래는 "역삼I'PARK", K-apt는 "역삼아이파크"처럼 제각각 적는다. */
+var NAME_ALIAS = [
+  [/ipark/g, "아이파크"],
+  [/e편한세상/g, "이편한세상"],
+  [/skview|에스케이뷰|sk뷰/g, "skview"],
+  [/thehill|더힐/g, "더힐"]
+];
 function normName(s) {
-  return String(s)
-    .replace(/[\s()\[\]{}·,.\-_'"]/g, "")
+  var t = String(s)
+    .replace(/[\s()\[\]{}·,.\-_'"’]/g, "")
     .replace(/제(\d+)차/g, "$1")                     /* 제3차 → 3 */
     .replace(/(\d+)차/g, "$1")                       /* 3차 → 3 */
     .replace(/아파트|주공아파트|마을|타운하우스|단지$/g, "")
     .toLowerCase();
+  for (var i = 0; i < NAME_ALIAS.length; i++) t = t.replace(NAME_ALIAS[i][0], NAME_ALIAS[i][1]);
+  return t;
+}
+/* "대치동" → "대치". K-apt 이름은 법정동을 접두로 달고 있는 일이 잦아 떼고도 대 본다. */
+function dongStem(dong) {
+  var s = String(dong || "").replace(/(동|가|읍|면|리)$/, "");
+  return s.length >= 2 ? s : "";
 }
 /* 이름 하나에서 비교용 변형을 뽑는다.
    실거래는 "가락마을20단지(호반베르디움5차)"처럼 괄호 안에 브랜드를 넣고,
    K-apt는 둘 중 하나만 쓰는 일이 잦다. 셋 다 만들어 두고 제일 잘 맞는 짝을 쓴다. */
-function nameVariants(s) {
-  var raw = String(s || ""), out = [normName(raw)];
+function nameVariants(s, dong) {
+  var raw = String(s || ""), base = [raw], seen = {}, out = [];
   var m = raw.match(/^([^(（]+)[(（]([^)）]*)[)）]\s*$/);
-  if (m) { out.push(normName(m[1])); if (m[2]) out.push(normName(m[2])); }
-  var seen = {}, u = [];
-  out.forEach(function (x) { if (x && !seen[x]) { seen[x] = 1; u.push(x); } });
-  return u;
+  if (m) { base.push(m[1]); if (m[2]) base.push(m[2]); }
+  var stem = dongStem(dong);
+  function push(x) { if (x && !seen[x]) { seen[x] = 1; out.push(x); } }
+  base.forEach(function (b) {
+    var n1 = normName(b);
+    push(n1);
+    if (stem && b.indexOf(stem) >= 0) {              /* 대치선경 → 선경 */
+      var n2 = normName(b.split(stem).join(""));
+      if (n2 !== n1) push(n2);
+    }
+  });
+  return out;
 }
 function numsOf(s) { return String(s).match(/\d+/g) || []; }
 /* small의 숫자가 big 안에 전부 들어 있나 (개수까지) */
@@ -3047,17 +3073,18 @@ function kaptDong(addr) {
    법정동은 실거래에서 온 정부 자료라 믿을 수 있으므로 후보를 그 동으로 먼저 좁힌다.
    좁혀진 뒤에는 이름이 웬만큼만 닮아도(0.45) 같은 단지로 본다 — 후보가 몇 곳뿐이라 안전하다.
    같은 동에서 못 찾은 것만 지역 전체에서 다시 찾되, 이때는 문턱을 높인다(0.68). */
-var KAPT_LOOSE = 0.45, KAPT_TIGHT = 0.68, KAPT_DONG_BONUS = 0.15;
+var KAPT_LOOSE = 0.42, KAPT_TIGHT = 0.68, KAPT_DONG_BONUS = 0.15;
+/* 결과: 각 자리에 { it: K-apt 항목, shared: 다른 단지와 같은 항목을 나눠 쓰는가 } */
 function matchKaptAll(list, groups) {
   var byDong = {}, all = [], pairs = [];
   list.forEach(function (it, idx) {
-    var e = { it: it, idx: idx, v: nameVariants(it.name) };
-    all.push(e);
     var d = kaptDong(it.addr);
+    var e = { it: it, idx: idx, v: nameVariants(it.name, d) };
+    all.push(e);
     (byDong[d] || (byDong[d] = [])).push(e);
   });
   groups.forEach(function (g, gi) {
-    var gv = nameVariants(g.apt), cands = byDong[g.dong] || [], found = false, s;
+    var gv = nameVariants(g.apt, g.dong), cands = byDong[g.dong] || [], found = false, s;
     cands.forEach(function (e) {
       s = bestNameScore(gv, e.v);
       if (s >= KAPT_LOOSE) { pairs.push({ g: gi, k: e.idx, s: s + KAPT_DONG_BONUS }); found = true; }
@@ -3070,16 +3097,26 @@ function matchKaptAll(list, groups) {
   });
   pairs.sort(function (a, b) { return b.s - a.s; });
   var usedG = {}, usedK = {}, out = [];
+  /* 1차 — 1:1. 점수 높은 짝부터 확정하고 양쪽 다 소진한다. */
   pairs.forEach(function (p) {
     if (usedG[p.g] || usedK[p.k]) return;
     usedG[p.g] = 1; usedK[p.k] = 1;
-    out[p.g] = list[p.k];
+    out[p.g] = { it: list[p.k], shared: false };
+  });
+  /* 2차 — 남은 단지는 이미 쓰인 K-apt에도 붙인다.
+     K-apt는 압구정 현대를 관리주체 3곳으로 묶어 두는데 실거래는 차수별로 쪼갠다.
+     1:1만 고집하면 나머지 차수가 통째로 빈칸이 된다. 대신 공유했다고 표시한다. */
+  pairs.forEach(function (p) {
+    if (usedG[p.g]) return;
+    usedG[p.g] = 1;
+    out[p.g] = { it: list[p.k], shared: true };
   });
   return out;
 }
 /* 한 곳만 찾을 때 (후보 담기·대장 단지 등) — 위 규칙을 그대로 1건에 적용 */
 function matchKapt(list, apt, dong) {
-  return matchKaptAll(list, [{ apt: apt, dong: dong }])[0] || null;
+  var r = matchKaptAll(list, [{ apt: apt, dong: dong }])[0];
+  return r ? r.it : null;
 }
 
 function subwayMin(k) {
@@ -3116,6 +3153,8 @@ function renderDanjiTable() {
     r.gap = r.je != null ? r.amt - r.je : null;
     /* K-apt가 0을 주는 단지가 있다 — 세대수 0은 값이 아니라 결측이다 */
     r.hh = (g.kapt && g.kapt.households > 0) ? g.kapt.households : null;
+    /* 관리단지 하나를 여러 차수가 나눠 쓰는 경우 — 세대수는 그 차수가 아니라 전체 값이다 */
+    r.hhShared = !!(g.kaptShared && r.hh != null);
     r.sub = subwayMin(g.kapt);
     r.builder = g.kapt ? g.kapt.builder : null;
     r.parking = (g.kapt && g.kapt.parkingTotal) ? g.kapt.parkingTotal : null;
@@ -3158,7 +3197,8 @@ function renderDanjiTable() {
         " <span style='color:var(--ink-soft);font-size:.74rem'>" + r.dong + "</span></td>" +
       "<td>" + eok(r.amt) + "</td>" +
       "<td><b>" + pyFmt(r.py) + "</b></td>" +
-      "<td>" + (r.hh != null ? fmt(r.hh) : "—") + "</td>" +
+      "<td" + (r.hhShared ? ' style="opacity:.62" title="관리단지 전체 세대수 — 이 차수만의 값이 아닙니다"' : "") +
+        ">" + (r.hh != null ? fmt(r.hh) + (r.hhShared ? "~" : "") : "—") + "</td>" +
       "<td>" + (r.year ? r.year + " (" + age + "년)" : "—") + "</td>" +
       "<td>" + (r.sub != null ? "도보 " + r.sub + "분" : "—") + "</td>" +
       "<td" + (r.jeOld ? ' style="opacity:.62"' : "") + ">" +
@@ -5359,7 +5399,8 @@ function attachHouseholds(region, groups, onTick) {
       var slist = ks.cx.map(function (c) { return { kaptCode: c.k, name: c.n, addr: c.a, _st: c }; });
       var hs = matchKaptAll(slist, groups);
       groups.forEach(function (g, i) {
-        g.hh = (hs[i] && hs[i]._st && hs[i]._st.hh) ? hs[i]._st.hh : null;
+        var st = hs[i] && hs[i].it && hs[i].it._st;
+        g.hh = (st && st.hh) ? st.hh : null;
         if (onTick) onTick();
       });
       return null;
@@ -5368,7 +5409,7 @@ function attachHouseholds(region, groups, onTick) {
       var top = groups.slice(0, 40);      /* 호출 상한: 평당가 상위 40개 단지 */
       var hits = matchKaptAll(list, top);  /* 40번 따로 맞추지 않고 한 번에 */
       return Promise.all(top.map(function (g, i) {
-        var hit = hits[i];
+        var hit = hits[i] && hits[i].it;
         if (!hit) { if (onTick) onTick(); return null; }
         if (KAPT_INFO_MEMO[hit.kaptCode]) {
           g.hh = KAPT_INFO_MEMO[hit.kaptCode].households || null;

@@ -60,7 +60,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.10</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.11</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -1863,9 +1863,47 @@ function kgStat() {
     (KG.failed.length ? '<div><b>' + KG.failed.length + "</b><span>건너뜀</span></div>" : "");
   $("kg-bar").style.width = (KG.total ? 100 * KG.region / KG.total : 0).toFixed(1) + "%";
 }
-function kgSidos() {
-  var seen = {}, out = [], c;
-  for (c in LAWD_SIDO) if (!seen[LAWD_SIDO[c]]) { seen[LAWD_SIDO[c]] = 1; out.push(LAWD_SIDO[c]); }
+/* ── 받을 지역 목록 ──
+   LAWD 표는 국토부 CSV 내려받기용이라 상위 시 코드(41110 수원시)와 옛 코드가 섞여 있다.
+   K-apt에는 그런 코드가 없어 502가 나고, 앱도 그 코드로는 파일을 찾지 않는다.
+   앱이 쓰는 지역은 market_core.json에 적힌 253곳이므로 그것을 정본으로 삼는다. */
+var KG_CODES = null;
+function kgCodes() {
+  if (KG_CODES) return Promise.resolve(KG_CODES);
+  return fetch("market_core.json")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (mc) {
+      if (!mc || !mc.regions) throw new Error("market_core 없음");
+      KG_CODES = Object.keys(mc.regions).filter(function (c) { return LAWD_SIDO[c]; }).sort();
+      if (!KG_CODES.length) throw new Error("겹치는 코드 없음");
+      return KG_CODES;
+    })
+    ["catch"](function (e) {
+      KG_CODES = kgFallbackCodes();
+      kgLog("market_core.json을 못 읽어 코드표에서 추렸습니다 (" + (e && e.message || e) +
+            ") — 죽은 코드가 섞여 몇 곳은 건너뛸 수 있습니다.", "warn");
+      return KG_CODES;
+    });
+}
+/* market_core를 못 받았을 때 — 같은 앞 4자리에 구 코드가 따로 있으면 그 상위 코드는 버린다
+   (41110 수원시는 41111·41113…이 있으므로 죽은 코드). 이름에 '(구코드)'가 붙은 것도 버린다. */
+function kgFallbackCodes() {
+  var all = [], c;
+  for (c in LAWD_SIDO) all.push(c);
+  var hasChild = {};
+  all.forEach(function (x) { if (x.charAt(4) !== "0") hasChild[x.slice(0, 4)] = 1; });
+  return all.filter(function (x) {
+    if (/\(구코드\)/.test(LAWD_NAME[x] || "")) return false;
+    if (x.charAt(4) === "0" && hasChild[x.slice(0, 4)]) return false;
+    return true;
+  }).sort();
+}
+function kgSidos(codes) {
+  var seen = {}, out = [], i, s;
+  for (i = 0; i < codes.length; i++) {
+    s = LAWD_SIDO[codes[i]];
+    if (s && !seen[s]) { seen[s] = 1; out.push(s); }
+  }
   return out;
 }
 function kgPicked() {
@@ -1874,11 +1912,14 @@ function kgPicked() {
   return out;
 }
 function kgRenderSido() {
-  var sd = kgSidos(), n = {}, c;
-  for (c in LAWD_SIDO) n[LAWD_SIDO[c]] = (n[LAWD_SIDO[c]] || 0) + 1;
-  $("kg-sido").innerHTML = sd.map(function (s) {
-    return '<label><input type="checkbox" value="' + s + '" checked> ' + s + " (" + n[s] + ")</label>";
-  }).join("");
+  return kgCodes().then(function (codes) {
+    var sd = kgSidos(codes), n = {};
+    codes.forEach(function (c) { n[LAWD_SIDO[c]] = (n[LAWD_SIDO[c]] || 0) + 1; });
+    $("kg-sido").innerHTML = sd.map(function (s) {
+      return '<label><input type="checkbox" value="' + s + '" checked> ' + s + " (" + n[s] + ")</label>";
+    }).join("");
+    return codes;
+  });
 }
 
 function downloadBlob(name, blob) {
@@ -1889,9 +1930,13 @@ function downloadBlob(name, blob) {
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 
-kgRenderSido();
-kgKeys().then(function (ks) {
-  if (ks.length) kgLog("이미 받아 둔 지역 " + ks.length + "곳 — [모으기]를 누르면 나머지부터 이어서 합니다.");
+kgRenderSido().then(function (codes) {
+  kgLog("대상 지역 " + codes.length + "곳" +
+        (KG_CODES && KG_CODES.length ? "" : "") +
+        " — 앱이 실제로 쓰는 코드만 돕니다.");
+  return kgKeys();
+}).then(function (ks) {
+  if (ks && ks.length) kgLog("이미 받아 둔 지역 " + ks.length + "곳 — [모으기]를 누르면 나머지부터 이어서 합니다.");
 })["catch"](function () {});
 
 $("kg-go").addEventListener("click", function () {
@@ -1903,12 +1948,12 @@ $("kg-go").addEventListener("click", function () {
   $("kg-go").disabled = true; $("kg-stop").disabled = false;
   $("kg-out").textContent = "";
 
-  kgKeys().then(function (have) {
-    var mark = {}, i;
+  Promise.all([kgKeys(), kgCodes()]).then(function (rs) {
+    var have = rs[0], codes = rs[1], mark = {}, i;
     for (i = 0; i < have.length; i++) mark[have[i]] = 1;
-    var todo = [], c;
-    for (c in LAWD_SIDO) if (want.indexOf(LAWD_SIDO[c]) >= 0 && !mark[c]) todo.push(c);
-    todo.sort();
+    var todo = codes.filter(function (c) {
+      return want.indexOf(LAWD_SIDO[c]) >= 0 && !mark[c];
+    });
     KG.total = todo.length;
     kgStat();
     if (!todo.length) { kgLog("고른 시·도는 이미 다 받았습니다.", "ok"); return null; }

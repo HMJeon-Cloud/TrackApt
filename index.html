@@ -253,7 +253,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.14</span>
+    <span class="ver">v5.15</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2208,6 +2208,10 @@ function buildDanji(root) {
         '<b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
         '평당가는 전용면적 기준(거래가 ÷ 전용㎡ × 3.3058)이라 공급면적 평당가보다 25%쯤 높으니 네이버 시세와 ' +
         '직접 비교하지 마세요.<br>' +
+        '<b>지하철</b>은 K-apt에 <b>관리사무소가 직접 적어 넣은</b> 도보 시간입니다. 역이 없는 동네에도 ' +
+        '숫자만 들어가 있는 경우가 있어, <b>호선이나 역 이름이 함께 있는 값만</b> 씁니다 — 둘 다 없으면 ' +
+        '<b>—</b>로 둡니다. 역 이름까지 있는 값에만 <b>역세권</b> 태그를 달고, 호선만 있는 값에는 ' +
+        '<code>*</code>를 붙입니다. 칸에 마우스를 올리면(휴대폰은 길게 누르면) 어느 역 기준인지 보입니다.<br>' +
         '<b>세대수·지하철</b>은 K-apt(공동주택관리정보시스템) 자료입니다. 저장본(kapt/)이 있는 지역은 ' +
         '조회 없이 즉시 채우고, 없는 지역은 표에 나온 <b>모든 단지</b>를 조회한 뒤 그 결과를 ' +
         '브라우저에 저장해 다음부터는 바로 뜹니다. ' +
@@ -3198,10 +3202,20 @@ function matchKapt(list, apt, dong) {
   return r ? r.it : null;
 }
 
+/* K-apt의 '지하철 도보 시간'은 관리사무소가 직접 적는 칸이라 믿을 수 없는 값이 섞인다.
+   봉담 중흥S-클래스 에듀파크는 호선도 역명도 없이 "10분"만 적혀 있는데, 봉담읍엔 지하철이 없다.
+   호선이나 역 이름 중 하나도 없으면 그 숫자는 근거가 없는 것으로 보고 버린다. */
 function subwayMin(k) {
   if (!k) return null;
+  if (!k.subwayStation && !k.subwayLine) return null;
   var m = String(k.subwayWay || "").match(/(\d+)/);
   return m ? Number(m[1]) : null;
+}
+/* 어느 역 기준인지 — 표 칸에 달아 둘 설명 */
+function subwayNote(k) {
+  if (!k) return "";
+  var s = [k.subwayLine, k.subwayStation].filter(Boolean).join(" ");
+  return s ? s + " 기준 (K-apt 관리사무소 신고값)" : "";
 }
 
 function renderDanjiTable() {
@@ -3235,6 +3249,8 @@ function renderDanjiTable() {
     /* 관리단지 하나를 여러 차수가 나눠 쓰는 경우 — 세대수는 그 차수가 아니라 전체 값이다 */
     r.hhShared = !!(g.kaptShared && r.hh != null);
     r.sub = subwayMin(g.kapt);
+    r.station = (g.kapt && g.kapt.subwayStation) ? String(g.kapt.subwayStation) : "";
+    r.subNote = subwayNote(g.kapt);
     r.builder = g.kapt ? g.kapt.builder : null;
     r.parking = (g.kapt && g.kapt.parkingTotal) ? g.kapt.parkingTotal : null;
     /* 저장본이 로드돼 있으면 10년 성과를 붙인다 (없으면 null) */
@@ -3261,7 +3277,8 @@ function renderDanjiTable() {
 
   var cart = getCart();
   var tb = document.querySelector("#dj-table tbody");
-  /* 태그 기준: 대장 = 이 조회에서 평당가 1위, 신축 = 5년 이내, 역세권 = 도보 10분 이내 */
+  /* 태그 기준: 대장 = 이 조회에서 평당가 1위, 신축 = 5년 이내,
+     역세권 = 도보 10분 이내 **이면서 역 이름이 있을 때** (숫자만으로는 주장하지 않는다) */
   var topPy = rows.length ? Math.max.apply(null, rows.map(function (r) { return r.py || 0; })) : 0;
   tb.innerHTML = rows.map(function (r, i) {
     var cid = DJ.lawd + "|" + r.g.id;
@@ -3272,14 +3289,15 @@ function renderDanjiTable() {
         (r.hh != null && r.hh >= 1000 ? ' <span class="tagmini ok">대단지</span>' : "") +
         (age != null && age <= 5 ? ' <span class="tagmini ok">신축</span>' : "") +
         (age != null && age >= 30 ? ' <span class="tagmini no">재건축연한</span>' : "") +
-        (r.sub != null && r.sub <= 10 ? ' <span class="tagmini gold">역세권</span>' : "") +
+        (r.sub != null && r.sub <= 10 && r.station ? ' <span class="tagmini gold">역세권</span>' : "") +
         " <span style='color:var(--ink-soft);font-size:.74rem'>" + r.dong + "</span></td>" +
       "<td>" + eok(r.amt) + "</td>" +
       "<td><b>" + pyFmt(r.py) + "</b></td>" +
       "<td" + (r.hhShared ? ' style="opacity:.62" title="관리단지 전체 세대수 — 이 차수만의 값이 아닙니다"' : "") +
         ">" + (r.hh != null ? fmt(r.hh) + (r.hhShared ? "~" : "") : "—") + "</td>" +
       "<td>" + (r.year ? r.year + " (" + age + "년)" : "—") + "</td>" +
-      "<td>" + (r.sub != null ? "도보 " + r.sub + "분" : "—") + "</td>" +
+      "<td" + (r.subNote ? ' title="' + escHtml(r.subNote) + '"' : "") + ">" +
+        (r.sub != null ? "도보 " + r.sub + "분" + (r.station ? "" : "*") : "—") + "</td>" +
       "<td" + (r.jeOld ? ' style="opacity:.62"' : "") + ">" +
         (r.je != null ? eok(r.je) +
           (r.jeOld ? " <span style='font-size:.72rem'>(" + String(r.jeYear).slice(2) + "년)</span>" : "")

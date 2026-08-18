@@ -253,7 +253,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.12</span>
+    <span class="ver">v5.13</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -3031,10 +3031,19 @@ function dongStem(dong) {
 /* 이름 하나에서 비교용 변형을 뽑는다.
    실거래는 "가락마을20단지(호반베르디움5차)"처럼 괄호 안에 브랜드를 넣고,
    K-apt는 둘 중 하나만 쓰는 일이 잦다. 셋 다 만들어 두고 제일 잘 맞는 짝을 쓴다. */
+/* 이름 뒤에 붙은 동 번호를 떼어 낸다 — "현대1차101동~106동" → "현대1차".
+   숫자가 앞에 붙은 '동'만 노리므로 '구산동'이나 '아이파크삼성동'은 그대로 둔다. */
+var DONG_TAIL = /[\s,~\-()（）]*\d+\s*동(?:\s*[~\-,]\s*\d+\s*동)*\s*[)）]?\s*$/;
+function stripDongTail(s) {
+  var t = String(s).replace(DONG_TAIL, "").trim();
+  return t.length >= 2 ? t : String(s);
+}
 function nameVariants(s, dong) {
   var raw = String(s || ""), base = [raw], seen = {}, out = [];
   var m = raw.match(/^([^(（]+)[(（]([^)）]*)[)）]\s*$/);
   if (m) { base.push(m[1]); if (m[2]) base.push(m[2]); }
+  var cut = stripDongTail(raw);
+  if (cut !== raw) base.push(cut);
   var stem = dongStem(dong);
   function push(x) { if (x && !seen[x]) { seen[x] = 1; out.push(x); } }
   base.forEach(function (b) {

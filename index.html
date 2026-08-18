@@ -253,7 +253,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.15</span>
+    <span class="ver">v5.16</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -4142,8 +4142,10 @@ function inBand(area, b) { return area >= BANDS[b][0] && area < BANDS[b][1]; }
 
 /* (lawd → 월별 매매·전세) 메모리 캐시 — 대장·비교 탭 공용 */
 var TRADE_CACHE = {};
-function fetchMonths(lawd, nMonths, onTick, guName) {
-  var key = lawd + ":" + nMonths + ":" + (guName || "");
+/* saleOnly=true면 전세를 아예 부르지 않는다 — 과거 검증은 매매만 쓰는데
+   전세까지 받느라 호출이 두 배였다. 캐시 키도 갈라 둔다(전세 없는 결과가 섞이면 안 된다). */
+function fetchMonths(lawd, nMonths, onTick, guName, saleOnly) {
+  var key = lawd + ":" + nMonths + ":" + (guName || "") + (saleOnly ? ":s" : "");
   if (TRADE_CACHE[key]) return Promise.resolve(TRADE_CACHE[key]);
   var months = ymList(nMonths).reverse();
   var saleP = Promise.all(months.map(function (ym) {
@@ -4153,11 +4155,13 @@ function fetchMonths(lawd, nMonths, onTick, guName) {
       return { ym: ym, deals: (j.items || []).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; }) };
     });
   }));
-  var rentP = Promise.all(months.map(function (ym) {
-    return fetchTrade(lawd, "rent", ym, guName)
-      .then(function (j) { if (onTick) onTick(); return { ym: ym, deals: (j.items || []).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; }) }; })
-      .catch(function () { if (onTick) onTick(); return { ym: ym, deals: [] }; });
-  }));
+  var rentP = saleOnly
+    ? Promise.resolve(months.map(function (ym) { return { ym: ym, deals: [] }; }))
+    : Promise.all(months.map(function (ym) {
+        return fetchTrade(lawd, "rent", ym, guName)
+          .then(function (j) { if (onTick) onTick(); return { ym: ym, deals: (j.items || []).filter(function (t) { return t.jeonse && t.deposit > 0 && t.area > 0; }) }; })
+          .catch(function () { if (onTick) onTick(); return { ym: ym, deals: [] }; });
+      }));
   return Promise.all([saleP, rentP]).then(function (both) {
     var out = { months: months, sale: both[0], rent: both[1] };
     TRADE_CACHE[key] = out;
@@ -5459,7 +5463,11 @@ function buildBtest(root) {
       '<div class="callout" id="bt-verdict" style="margin-top:12px"></div>' +
       '<div class="note"><b>표본 주의</b> — 10년 전과 현재 모두 거래가 있는 단지만 비교됩니다. 그 사이 준공된 ' +
         '신축은 빠지고, 재건축으로 이름이 바뀐 단지도 빠집니다(생존 편향). 단지 수가 10곳 미만이면 한두 ' +
-        '단지가 평균을 흔들 수 있으니 결과를 크게 읽지 마세요.</div></div>';
+        '단지가 평균을 흔들 수 있으니 결과를 크게 읽지 마세요.<br>' +
+        '<b>과거 구간</b>은 저장본(trades/)에서 읽습니다 — 실거래 조회 없이 <b>그 해 1년치</b>가 표본이라 ' +
+        '예전(3개월치)보다 살아남는 단지가 훨씬 많습니다. 저장본에는 면적이 없어 상승률은 <b>거래가끼리</b> ' +
+        '비교하고, 표의 과거 평당가는 현재 평당가를 상승률로 되돌려 추정한 값입니다 — 같은 단지·같은 ' +
+        '평형대라 면적이 거의 같으므로 상승률 자체는 정확합니다.</div></div>';
 
   root.querySelector("#bt-band").addEventListener("change", function () { BT.band = Number(this.value); });
   root.querySelector("#bt-years").addEventListener("change", function () { BT.years = Number(this.value); });
@@ -5588,15 +5596,28 @@ function runBtest() {
   function tick() { done++; btn.textContent = "검증 중… (" + done + ")"; }
   btn.textContent = "검증 중… (0)";
 
-  Promise.all([
-    fetchOldQuarter(BT.a, oldYms, tick),
-    fetchOldQuarter(BT.b, oldYms, tick),
-    fetchMonths(BT.a, 6, tick),
-    fetchMonths(BT.b, 6, tick)
-  ]).then(function (res) {
+  /* 과거 구간은 저장본이 있으면 그것으로 — 두 지역 다 있어야 같은 잣대로 비교된다 */
+  Promise.all([loadStore(BT.a), loadStore(BT.b)]).then(function (sts) {
+    var sa = sts[0] ? btStoreGroups(sts[0], pastYear, band, mode) : null;
+    var sb = sts[1] ? btStoreGroups(sts[1], pastYear, band, mode) : null;
+    var useStore = !!(sa && sa.length && sb && sb.length);
+    BT.src = useStore ? "store" : "api";
+    function oldOf(region, pre) {
+      if (useStore) return Promise.resolve(pre);
+      return fetchOldQuarter(region, oldYms, tick).then(function (d) {
+        return groupComplexesBt(d, band, mode);
+      });
+    }
+    return Promise.all([
+      oldOf(BT.a, sa),
+      oldOf(BT.b, sb),
+      fetchMonths(BT.a, 6, tick, null, true),    /* 매매만 — 전세는 안 쓴다 */
+      fetchMonths(BT.b, 6, tick, null, true)
+    ]);
+  }).then(function (res) {
     var work = [[BT.a, res[0], res[2]], [BT.b, res[1], res[3]]].map(function (trio) {
       var region = trio[0];
-      var oldG = groupComplexesBt(trio[1], band, mode);
+      var oldG = trio[1] || [];
       var curDeals = [];
       trio[2].sale.forEach(function (m) { curDeals = curDeals.concat(m.deals); });
       var curG = groupComplexesBt(curDeals, band, mode);
@@ -5604,10 +5625,20 @@ function runBtest() {
       curG.forEach(function (g) { curMap[g.id] = g; });
       oldG.forEach(function (g) {
         var cur = curMap[g.id];
-        if (cur) { g.rise = (cur.py / g.py - 1) * 100; g.curPy = cur.py; }
+        if (!cur) return;
+        if (g.py == null) {
+          /* 저장본 경로 — 면적이 없으니 거래가끼리 비교하고,
+             과거 평당가는 현재 평당가를 상승률로 되돌려 추정한다(같은 단지·같은 평형대) */
+          g.rise = (cur.amt / g.amt - 1) * 100;
+          g.py = cur.py / (1 + g.rise / 100);
+        } else {
+          g.rise = (cur.py / g.py - 1) * 100;
+        }
+        g.curPy = cur.py;
       });
       /* 상승률 계산 가능한 단지만 남긴다 (생존 표본) */
       var alive = oldG.filter(function (g) { return g.rise != null; });
+      alive.sort(function (a, b) { return b.py - a.py; });   /* 순위 모드는 과거 평당가 순 */
       return { region: region, groups: alive };
     });
 
@@ -5662,13 +5693,53 @@ function runBtest() {
   });
 }
 
+/* 과거 구간과 현재 구간의 단지를 짝지을 열쇠.
+   읍·면 지역은 실거래가 "봉담읍 상리", 저장본이 "상리"로 적어 그대로 쓰면 안 맞는다.
+   양쪽 다 마지막 토막 + 정규화한 이름으로 맞춘다. */
+function btKey(dong, apt, cls) {
+  return dongKey(dong) + "|" + normName(apt) + (cls ? "|" + cls : "");
+}
+/* 저장본 평형대 → 과거 검증의 평형 구분 (소형 55㎡↓ · 중형 55~95 · 대형 95↑) */
+function bandClass(b) { return b < 55 ? "소형" : (b < 95 ? "중형" : "대형"); }
+/* 저장본에서 '그 해'의 단지별 중위 거래가를 꺼낸다 — 실거래 조회 0회.
+   3개월치가 아니라 1년치가 표본이라 살아남는 단지가 훨씬 많다. */
+function btStoreGroups(st, year, band, mode) {
+  if (!st || !st.cx) return null;
+  var i = year - st.y0;
+  if (i < 0 || i >= st.years) return null;
+  var acc = {}, id;
+  st.cx.forEach(function (c) {
+    var b;
+    for (b in c.s) {
+      var bn = Number(b);
+      if (band && bn !== band) continue;
+      var s = c.s[b], k = i - s.o;
+      if (k < 0 || k >= s.p.length || s.p[k] == null) continue;
+      var cls = mode === "area" ? bandClass(bn) : "";
+      var key = btKey(c.d, c.n, cls);
+      var g = acc[key] || (acc[key] = { id: key, apt: c.n, dong: c.d, cls: cls,
+                                        sum: 0, n: 0, buildYear: c.y || null });
+      /* 평형 모드에서는 여러 밴드가 한 구분으로 묶인다 — 건수로 가중 평균 */
+      var w = s.c[k] || 1;
+      g.sum += s.p[k] * w; g.n += w;
+    }
+  });
+  var out = [];
+  for (id in acc) {
+    var g2 = acc[id];
+    g2.amt = g2.sum / g2.n;
+    out.push(g2);
+  }
+  return out;
+}
+
 /* 백테스트용 단지 묶기 — 평형 모드는 (단지×평형대)로 쪼갠다 */
 function groupComplexesBt(deals, band, mode) {
   var byApt = {};
   deals.forEach(function (t) {
     if (band && !inBand(t.area, band)) return;
     var cls = mode === "area" ? areaClass(t.area) : "";
-    var id = t.dong + "|" + t.apt + (cls ? "|" + cls : "");
+    var id = btKey(t.dong, t.apt, cls);
     var g = byApt[id] || (byApt[id] = { id: id, apt: t.apt, dong: t.dong, cls: cls,
                                         amounts: [], areas: [], buildYear: t.buildYear });
     g.amounts.push(t.amount); g.areas.push(t.area);
@@ -5677,7 +5748,8 @@ function groupComplexesBt(deals, band, mode) {
   return Object.keys(byApt).map(function (id) {
     var g = byApt[id];
     if (g.amounts.length < 2) return null;
-    g.py = median(g.amounts) / median(g.areas) * 3.3058;
+    g.amt = median(g.amounts);
+    g.py = g.amt / median(g.areas) * 3.3058;
     return g;
   }).filter(Boolean).sort(function (a, b) { return b.py - a.py; });
 }
@@ -5717,6 +5789,13 @@ function renderBtestResult(oldYms) {
     v.innerHTML = "표본이 부족해 핵심 비교를 만들 수 없습니다. 거래가 더 많은 지역 조합·긴 기간·84㎡대로 다시 시도해보세요." +
       (BT.outMode === "size" ? " (세대수는 K-apt 등록 단지만 알 수 있습니다 — 소규모 단지가 많은 지역은 표본이 적습니다.)" : "");
   }
+  /* 과거 구간을 어디서 읽었는지 밝힌다 — 표본 크기가 다르므로 결과 해석에 영향이 있다 */
+  v.innerHTML += '<div style="margin-top:10px;font-size:.78rem;color:var(--ink-soft)">' +
+    (BT.src === "store"
+      ? "과거 구간은 <b>저장본</b>에서 읽었습니다 — 실거래 조회 없이 <b>" + oldYms[2].slice(0, 4) +
+        "년 1년치</b>가 표본입니다."
+      : "과거 구간은 실거래로 <b>3개월치</b>만 조회했습니다(이 지역은 저장본이 없습니다).") +
+    "</div>";
 }
 
 

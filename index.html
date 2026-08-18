@@ -134,6 +134,43 @@ table{width:100%;border-collapse:collapse;font-size:.84rem;white-space:nowrap}
   .srctbl th,.srctbl td{padding:6px 6px}
   .srctbl .tagmini{display:inline-block;margin-bottom:2px}
 }
+/* ── 좁은 화면: 표를 카드로 ──
+   가로 스크롤 대신 한 행을 한 카드로 세운다. 칸 이름은 data-l에서 가져온다. */
+@media (max-width:720px){
+  .tblwrap:has(table.carded){overflow-x:visible}
+  table.carded{white-space:normal}
+  table.carded thead{display:none}
+  table.carded tbody tr{
+    display:block;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  table.carded tbody tr.hit{border-color:var(--gold)}
+  table.carded tbody td{
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+    border:0;padding:3px 0;text-align:right}
+  table.carded tbody td::before{
+    content:attr(data-l);color:var(--ink-soft);font-size:.74rem;
+    font-weight:700;text-align:left;flex:0 0 auto}
+  /* 첫 칸은 카드 제목처럼 */
+  table.carded tbody td:first-child{
+    display:block;text-align:left;font-size:.92rem;line-height:1.45;
+    padding:0 0 7px;margin-bottom:5px;border-bottom:1px solid var(--line)}
+  table.carded tbody td:first-child::before{content:none}
+  /* 값 없는 칸은 접어서 카드를 짧게 */
+  table.carded tbody td[data-none]{display:none}
+  /* 버튼이 든 칸은 한 줄 통째로 */
+  table.carded tbody td:has(button){display:block;text-align:left;padding-top:8px}
+  table.carded tbody td:has(button)::before{content:none}
+  table.carded tbody td button{width:100%}
+  /* 여러 칸을 합친 안내 줄(표본 없음 등) */
+  table.carded tbody td[colspan]{display:block;text-align:left}
+  table.carded tbody td[colspan]::before{content:none}
+  .sortchips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
+}
+.sortchips{display:none}
+.sortchips button{
+  background:var(--panel-2);border:1px solid var(--line);color:var(--ink-soft);
+  border-radius:999px;padding:5px 11px;font-size:.76rem;cursor:pointer}
+.sortchips button.on{border-color:var(--gold);color:var(--gold)}
 th{font-size:.74rem;color:var(--ink-soft);font-weight:700;text-align:right;padding:7px 10px;border-bottom:1.5px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
 th:nth-child(2),td:nth-child(2){text-align:left}
@@ -253,7 +290,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.16</span>
+    <span class="ver">v5.18</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -378,6 +415,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   showTab("start");
+  watchTables();
   loadData();
 });
 
@@ -495,6 +533,13 @@ function val(id) { var el = document.getElementById(id); return el ? el.value : 
 function setVal(id, v) { var el = document.getElementById(id); if (el && v != null && v !== "") el.value = v; }
 
 /* ══ 데이터 유틸 ═════════════════════════════ */
+/* 표가 다시 그려질 때마다 카드용 라벨을 붙인다.
+   data-l·class만 바꾸므로(자식 노드는 그대로) 관찰자가 다시 돌지 않는다. */
+function watchTables() {
+  if (!window.MutationObserver) return;
+  new MutationObserver(cardifyAll).observe(document.body, { childList: true, subtree: true });
+  cardifyAll();
+}
 function loadData() {
   loadSupplyExt();
   fetch("market_core.json")
@@ -2196,6 +2241,7 @@ function buildDanji(root) {
         '<button class="btn sm ghost" data-exp="xlsx" data-table="dj-table" data-name="단지솔팅">엑셀 저장</button>' +
         '<span class="hint" id="dj-meta" style="align-self:center;margin:0"></span></div>' +
       '<div class="note" id="dj-missbox" style="display:none;margin-top:10px"></div>' +
+      '<div class="sortchips" id="dj-sortchips"></div>' +
       '<div class="tblwrap" style="margin-top:12px"><table id="dj-table"><thead><tr>' +
       '<th data-sort="apt">단지 ⇅</th><th data-sort="amt">최근 실거래 ⇅</th><th data-sort="py">평당가 ⇅</th>' +
       '<th data-sort="hh">세대수 ⇅</th><th data-sort="year">준공 ⇅</th><th data-sort="sub">지하철 ⇅</th>' +
@@ -2206,6 +2252,8 @@ function buildDanji(root) {
         '평당가 순으로 훑으면 그 동네의 서열이 그대로 보이고, 10년 열을 함께 보면 <b>비싼 값을 한 단지</b>와 ' +
         '<b>이름값만 있던 단지</b>가 구분됩니다. 손품으로 후보를 좁힌 뒤 임장은 그 몇 곳만 다니면 됩니다.<br>' +
         '<b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
+        '휴대폰에서는 표가 <b>카드</b>로 접히고 머리글이 사라지므로, 표 위의 <b>정렬 칩</b>을 쓰세요. ' +
+        '카드에서는 값이 없는 항목(<b>—</b>)을 숨겨 짧게 보여줍니다. ' +
         '평당가는 전용면적 기준(거래가 ÷ 전용㎡ × 3.3058)이라 공급면적 평당가보다 25%쯤 높으니 네이버 시세와 ' +
         '직접 비교하지 마세요.<br>' +
         '<b>지하철</b>은 K-apt에 <b>관리사무소가 직접 적어 넣은</b> 도보 시간입니다. 역이 없는 동네에도 ' +
@@ -2242,14 +2290,37 @@ function buildDanji(root) {
   ["dj-hh", "dj-sub", "dj-age", "dj-band"].forEach(function (id) {
     root.querySelector("#" + id).addEventListener("change", renderDanjiTable);
   });
+  function sortBy(key) {
+    if (DJ.sortKey === key) DJ.sortAsc = !DJ.sortAsc;
+    else { DJ.sortKey = key; DJ.sortAsc = (key === "apt" || key === "year" || key === "sub"); }
+    renderDanjiTable();
+    paintSortChips();
+  }
   root.querySelectorAll("#dj-table thead th[data-sort]").forEach(function (th) {
     th.style.cursor = "pointer";
-    th.addEventListener("click", function () {
-      var key = th.dataset.sort;
-      if (DJ.sortKey === key) DJ.sortAsc = !DJ.sortAsc;
-      else { DJ.sortKey = key; DJ.sortAsc = (key === "apt" || key === "year" || key === "sub"); }
-      renderDanjiTable();
-    });
+    th.addEventListener("click", function () { sortBy(th.dataset.sort); });
+  });
+  /* 카드 모드에서는 머리글이 사라지므로 정렬 수단을 따로 준다 */
+  var chips = root.querySelector("#dj-sortchips");
+  root.querySelectorAll("#dj-table thead th[data-sort]").forEach(function (th) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.dataset.sort = th.dataset.sort;
+    b.textContent = th.textContent.replace(/[⇅↑↓]/g, "").trim();
+    b.addEventListener("click", function () { sortBy(th.dataset.sort); });
+    chips.appendChild(b);
+  });
+  paintSortChips();
+}
+/* 지금 무엇으로 정렬 중인지 칩에 표시 */
+function paintSortChips() {
+  var chips = document.getElementById("dj-sortchips");
+  if (!chips) return;
+  var key = DJ.sortKey || "py";
+  Array.prototype.forEach.call(chips.querySelectorAll("button"), function (b) {
+    var on = b.dataset.sort === key;
+    b.classList.toggle("on", on);
+    b.textContent = b.textContent.replace(/\s*[↑↓]$/, "") + (on ? (DJ.sortAsc ? " ↑" : " ↓") : "");
   });
 }
 
@@ -2709,6 +2780,46 @@ function loadDanji() {
 }
 
 function ymDot(ym) { return ym ? String(ym).slice(0, 4) + "." + String(ym).slice(4) : ""; }
+/* ── 좁은 화면에서 표를 카드로 ──────────────────────────────
+   칸마다 머리글을 data-l로 붙여 두면 CSS가 세로로 접는다.
+   렌더 함수가 여기저기라 하나하나 부르는 대신 DOM 변화를 지켜보다 한 번에 처리한다. */
+function cardify(tb) {
+  var head = tb.querySelectorAll("thead th");
+  if (!head.length) return;
+  var rows = tb.querySelectorAll("tbody tr");
+  var stamp = rows.length + "/" + head.length;
+  /* 표를 다시 그리면 tbody가 통째로 갈리므로 새 칸에는 data-l이 없다.
+     행 수가 같아도 그걸로 판별해야 한다 — 정렬만 바꿔도 칸이 전부 새로 만들어진다. */
+  var first = rows.length ? rows[0].querySelector("td") : null;
+  if (tb.getAttribute("data-cardn") === stamp && first && first.hasAttribute("data-l")) return;
+  var labels = [], i, j;
+  for (i = 0; i < head.length; i++) {
+    labels.push(head[i].textContent.replace(/[⇅↑↓]/g, "").trim());
+  }
+  for (i = 0; i < rows.length; i++) {
+    var tds = rows[i].children, col = 0;
+    for (j = 0; j < tds.length; j++) {
+      var td = tds[j], span = Number(td.getAttribute("colspan") || 1);
+      if (span === 1 && labels[col]) td.setAttribute("data-l", labels[col]);
+      /* 값이 없는 칸은 카드에서 접는다 — 12칸이 다 보이면 카드가 화면을 넘긴다 */
+      var t = td.textContent.trim();
+      if (j > 0 && (t === "—" || t === "·" || t === "")) td.setAttribute("data-none", "1");
+      else td.removeAttribute("data-none");
+      col += span;
+    }
+  }
+  tb.setAttribute("data-cardn", stamp);
+  tb.classList.add("carded");
+}
+var cardTimer = null;
+function cardifyAll() {
+  if (cardTimer) return;
+  cardTimer = setTimeout(function () {
+    cardTimer = null;
+    var t = document.querySelectorAll(".tblwrap table"), i;
+    for (i = 0; i < t.length; i++) cardify(t[i]);
+  }, 60);
+}
 function escHtml(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -4169,10 +4280,18 @@ function fetchMonths(lawd, nMonths, onTick, guName, saleOnly) {
   });
 }
 /* 단지·평형대 기준 월별 중위 시계열 */
+/* 단지명·법정동을 글자 그대로 비교하면 안 된다 —
+   저장본은 "상리", 실거래는 "봉담읍 상리"로 적어 읍·면 지역이 통째로 어긋난다.
+   btKey로 맞추되 거래마다 한 번만 계산해 붙여 둔다(24개월 × 수백 건이라 반복 계산이 비싸다). */
+function dealKey(t) {
+  if (t._k === undefined) t._k = btKey(t.dong, t.apt, "");
+  return t._k;
+}
 function monthlyMedian(monthsData, apt, dong, band, field) {
+  var key = btKey(dong, apt, "");
   return monthsData.map(function (m) {
     var vals = m.deals.filter(function (t) {
-      return t.apt === apt && t.dong === dong && inBand(t.area, band);
+      return inBand(t.area, band) && dealKey(t) === key;
     }).map(function (t) { return t[field]; });
     return median(vals);
   });
@@ -4406,11 +4525,36 @@ function renderFlagTable() {
 }
 
 /* ══ 단지 비교 탭 ═════════════════════════════ */
-var CMP = { slots: [
-  { region: "", band: 84, apt: "", data: null, apts: [] },
-  { region: "", band: 84, apt: "", data: null, apts: [] },
-  { region: "", band: 59, apt: "", data: null, apts: [] }
+var CMP = { range: 24, slots: [
+  { region: "", band: 84, apt: "", data: null, months: 0, apts: [], store: null },
+  { region: "", band: 84, apt: "", data: null, months: 0, apts: [], store: null },
+  { region: "", band: 59, apt: "", data: null, months: 0, apts: [], store: null }
 ] };
+/* 평형대 대표 전용면적 — 저장본엔 면적이 없어 평당가를 어림잡을 때만 쓴다 */
+var BAND_AREA = { 36: 36, 46: 46, 59: 59, 84: 84, 101: 101, 135: 135 };
+/* 저장본에서 단지 목록 만들기 — 실거래 조회 0회.
+   최근 24개월에 거래가 없던 단지도 나오므로 목록이 훨씬 넓다. */
+function cxStoreApts(st, band) {
+  if (!st || !st.cx) return null;
+  var area = BAND_AREA[band] || band, out = [];
+  st.cx.forEach(function (c) {
+    var s = c.s[String(band)];
+    if (!s) return;
+    var last = -1, i;
+    for (i = s.p.length - 1; i >= 0; i--) if (s.p[i] != null) { last = i; break; }
+    if (last < 0) return;
+    out.push({ id: btKey(c.d, c.n, ""), apt: c.n, dong: c.d,
+               areaMed: area, est: true, py: s.p[last] / area * 3.3058,
+               lastYear: st.y0 + s.o + last, sx: c, stY0: st.y0 });
+  });
+  return out.sort(function (a, b) { return b.py - a.py; });
+}
+/* 저장본 한 블록에서 그 해 값 꺼내기 */
+function cxYearVal(s, stY0, year) {
+  if (!s) return null;
+  var i = year - stY0 - s.o;
+  return (i >= 0 && i < s.p.length) ? s.p[i] : null;
+}
 var chartCmpPrice = null, chartCmpMult = null, chartCmpGap = null;
 var CMP_COLORS = ["#0f4c5c", "#0e7c66", "#c47f17"];
 
@@ -4424,7 +4568,7 @@ function buildCmpx(root) {
         '<option value="84"' + (CMP.slots[i].band === 84 ? " selected" : "") + '>84㎡대</option>' +
         '<option value="59"' + (CMP.slots[i].band === 59 && i === 2 ? " selected" : "") + ' hidden></option>' +
         '<option value="101">101㎡대</option></select></div>' +
-      '<div class="field full"><button class="btn ghost" id="cx-load' + i + '">단지 불러오기</button></div>' +
+      '<div class="field full"><button class="btn ghost" id="cx-load' + i + '">단지 목록 채우기</button></div>' +
       '<div class="field full"><label>단지</label><select id="cx-a' + i + '"><option value="">먼저 단지를 불러오세요</option></select></div>' +
       "</div></div>";
   }
@@ -4432,7 +4576,12 @@ function buildCmpx(root) {
     '<div class="card">' +
       '<div class="eyebrow">Compare</div><h2>단지 비교</h2>' +
       '<p class="desc">칸마다 지역·평형을 따로 고릅니다. 다른 지역끼리도, 같은 단지의 59㎡ vs 84㎡도 ' +
-        '비교됩니다. 최근 24개월 실거래 기준입니다.</p></div>' +
+        '비교됩니다.</p>' +
+      '<div class="seg" id="cx-range" style="margin-top:10px">' +
+        '<button type="button" data-r="12">최근 12개월</button>' +
+        '<button type="button" data-r="24" class="on">최근 24개월</button>' +
+        '<button type="button" data-r="y">10년 (연 단위)</button></div>' +
+      '<div class="note" style="margin-top:10px" id="cx-rangenote"></div></div>' +
     slotHtml(0, "A") + slotHtml(1, "B") + slotHtml(2, "C (선택)") +
     '<div class="card" id="cx-resultcard" style="display:none">' +
       '<div class="eyebrow">Result</div><h2>비교 표</h2>' +
@@ -4442,7 +4591,8 @@ function buildCmpx(root) {
       '<th>단지</th><th>평당가</th><th>매매 중위</th><th>전세</th><th>갭</th><th>기간 상승률</th><th>거래</th></tr></thead><tbody></tbody></table></div>' +
       '<div class="note" id="cx-read"></div></div>' +
     '<div class="card" id="cx-pricecard" style="display:none"><div class="eyebrow">Price</div><h2>매매가 추이</h2>' +
-      '<p class="desc">월별 중위 거래가입니다. 선 사이 간격이 벌어지면 격차 확대, 좁아지면 따라잡는 중입니다. ' +
+      '<p class="desc">중위 거래가 추이입니다(10년 모드에서는 연 중위가). ' +
+        '선 사이 간격이 벌어지면 격차 확대, 좁아지면 따라잡는 중입니다. ' +
         '같은 단지의 59㎡와 84㎡를 함께 놓으면 <b>평형 갈아타기</b> 시점도 보입니다 — 두 선이 붙는 구간이 ' +
         '적은 돈으로 큰 평형에 올라탈 기회이고, 상급지 아파트와 값이 닿는 순간도 마찬가지입니다.</p>' +
       '<div class="chartbox"><canvas id="cx-price"></canvas></div></div>' +
@@ -4456,21 +4606,49 @@ function buildCmpx(root) {
       '<div class="note">거래가 없는 달은 선이 이어지지 않습니다. 소규모 단지는 월 1~2건으로 중위값이 튈 수 있으니 ' +
         '한두 달의 급변보다 <b>전체 방향</b>을 보세요.</div></div>';
 
+  cardifyAll();
+  var seg = root.querySelector("#cx-range");
+  seg.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-r]");
+    if (!b) return;
+    CMP.range = b.dataset.r === "y" ? "y" : Number(b.dataset.r);
+    Array.prototype.forEach.call(seg.querySelectorAll("button"), function (x) {
+      x.classList.toggle("on", x === b);
+    });
+    cxRangeNote();
+    renderCmpx();
+  });
+  cxRangeNote();
+
   [0, 1, 2].forEach(function (i) {
     root.querySelector("#cx-b" + i).addEventListener("change", function () {
       CMP.slots[i].band = Number(this.value); CMP.slots[i].apt = "";
       fillAptSelect(i);
     });
     root.querySelector("#cx-r" + i).addEventListener("change", function () {
-      CMP.slots[i].region = this.value; CMP.slots[i].data = null; CMP.slots[i].apt = "";
+      CMP.slots[i].region = this.value;
+      CMP.slots[i].data = null; CMP.slots[i].months = 0;
+      CMP.slots[i].store = null; CMP.slots[i].apt = ""; CMP.slots[i].apts = [];
       var a = document.getElementById("cx-a" + i);
-      a.innerHTML = '<option value="">먼저 단지를 불러오세요</option>';
+      a.innerHTML = '<option value="">먼저 단지 목록을 채우세요</option>';
     });
     root.querySelector("#cx-load" + i).addEventListener("click", function () { loadCmpSlot(i); });
     root.querySelector("#cx-a" + i).addEventListener("change", function () {
-      CMP.slots[i].apt = this.value; renderCmpx();
+      CMP.slots[i].apt = this.value;
+      renderCmpx();
     });
   });
+}
+function cxRangeNote() {
+  var el = document.getElementById("cx-rangenote");
+  if (!el) return;
+  el.innerHTML = CMP.range === "y"
+    ? "<b>10년(연 단위)</b> — 저장본에서 읽으므로 <b>실거래 조회가 없습니다.</b> " +
+      "연 중위가라 한두 건에 흔들리지 않고, 갈아타기 판단에 필요한 <b>긴 흐름</b>이 보입니다. " +
+      "저장본이 없는 지역은 이 모드에서 빠집니다."
+    : "<b>최근 " + CMP.range + "개월</b> — 월별 중위가입니다. 단지를 고른 칸만 실거래를 조회하며 " +
+      "(칸당 " + (CMP.range * 2) + "회), 고르지 않은 칸은 조회하지 않습니다. " +
+      "긴 흐름을 보려면 <b>10년</b>으로 바꾸세요 — 조회가 없습니다.";
 }
 
 function renderCmpxShell() {
@@ -4482,88 +4660,159 @@ function renderCmpxShell() {
   });
 }
 
+/* 목록 채우기 — 저장본이 있으면 조회 0회. 실거래는 단지를 고른 뒤에 받는다. */
 function loadCmpSlot(i) {
   var s = CMP.slots[i];
   s.region = document.getElementById("cx-r" + i).value;
   if (!s.region) return;
   var btn = document.getElementById("cx-load" + i);
-  btn.disabled = true;
-  var total = 48, done = 0;
-  fetchMonths(s.region, 24, function () {
-    done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")";
-  }).then(function (data) {
-    s.data = data;
-    fillAptSelect(i);
-  }).catch(function (e) {
-    alert("단지 조회 실패: " + e.message);
-  }).finally(function () {
-    btn.disabled = false; btn.textContent = "단지 불러오기";
+  btn.disabled = true; btn.textContent = "여는 중…";
+  loadStore(s.region).then(function (st) {
+    s.store = st || null;
+    if (st) { fillAptSelect(i); return null; }
+    /* 저장본이 없는 지역만 예전처럼 24개월을 받아 목록을 만든다 */
+    var total = 48, done = 0;
+    btn.textContent = "불러오는 중… (0/" + total + ")";
+    return fetchMonths(s.region, 24, function () {
+      done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")";
+    }).then(function (data) { s.data = data; s.months = 24; fillAptSelect(i); });
+  })["catch"](function (e) {
+    alert("단지 목록 실패: " + (e && e.message || e));
+  }).then(function () {
+    btn.disabled = false; btn.textContent = "단지 목록 채우기";
   });
 }
 
 function fillAptSelect(i) {
   var s = CMP.slots[i];
-  if (!s.data) return;
-  var byApt = {};
-  s.data.sale.forEach(function (m) {
-    m.deals.forEach(function (t) {
-      if (!inBand(t.area, s.band)) return;
-      var id = t.dong + "|" + t.apt;
-      (byApt[id] = byApt[id] || { id: id, apt: t.apt, dong: t.dong, amounts: [], areas: [] }).amounts.push(t.amount);
-      byApt[id].areas.push(t.area);
-    });
-  });
-  s.apts = Object.keys(byApt).map(function (id) {
-    var g = byApt[id];
-    if (g.amounts.length < 3) return null;
-    g.py = median(g.amounts) / median(g.areas) * 3.3058;
-    return g;
-  }).filter(Boolean).sort(function (a, b) { return b.py - a.py; });
   var sel = document.getElementById("cx-a" + i);
+  if (!sel) return;
+  var fromStore = s.store ? cxStoreApts(s.store, s.band) : null;
+  if (fromStore) s.apts = fromStore;
+  else if (s.data) s.apts = cxApiApts(s);
+  else return;
+  var thisYear = new Date().getFullYear();
   sel.innerHTML = '<option value="">선택하세요 (' + s.apts.length + "단지)</option>";
   s.apts.forEach(function (g) {
     var o = document.createElement("option");
     o.value = g.id;
-    o.textContent = g.apt + " · " + g.dong + " (평당 " + pyFmt(g.py) + ")";
+    /* 오래전에 거래가 끊긴 단지는 언제까지였는지 붙여 준다 */
+    var oldTag = (g.lastYear && g.lastYear < thisYear - 1) ? " · ~" + g.lastYear : "";
+    o.textContent = g.apt + " · " + g.dong + " (평당 " + pyFmt(g.py) + (g.est ? "*" : "") + oldTag + ")";
     sel.appendChild(o);
   });
 }
+/* 저장본이 없는 지역 — 실거래에서 목록을 만든다 (예전 방식) */
+function cxApiApts(s) {
+  var byApt = {};
+  s.data.sale.forEach(function (m) {
+    m.deals.forEach(function (t) {
+      if (!inBand(t.area, s.band)) return;
+      var id = dealKey(t);
+      (byApt[id] = byApt[id] || { id: id, apt: t.apt, dong: t.dong, amounts: [], areas: [] }).amounts.push(t.amount);
+      byApt[id].areas.push(t.area);
+    });
+  });
+  return Object.keys(byApt).map(function (id) {
+    var g = byApt[id];
+    if (g.amounts.length < 3) return null;
+    g.areaMed = median(g.areas);
+    g.py = median(g.amounts) / g.areaMed * 3.3058;
+    return g;
+  }).filter(Boolean).sort(function (a, b) { return b.py - a.py; });
+}
+function cmpEntry(s) {
+  var a = s.apts || [], i;
+  for (i = 0; i < a.length; i++) if (a[i].id === s.apt) return a[i];
+  return null;
+}
+/* 고른 단지의 실거래가 필요한지 판단해 그때만 받는다 */
+function ensureCmpData(i) {
+  var s = CMP.slots[i];
+  if (CMP.range === "y") return Promise.resolve();          /* 10년은 저장본만 쓴다 */
+  if (s.data && s.months === CMP.range) return Promise.resolve();
+  var btn = document.getElementById("cx-load" + i);
+  var total = CMP.range * 2, done = 0;
+  if (btn) { btn.disabled = true; btn.textContent = "실거래 조회… (0/" + total + ")"; }
+  return fetchMonths(s.region, CMP.range, function () {
+    done++; if (btn) btn.textContent = "실거래 조회… (" + done + "/" + total + ")";
+  }).then(function (d) {
+    s.data = d; s.months = CMP.range;
+  })["catch"](function () { s.data = null; })
+    .then(function () { if (btn) { btn.disabled = false; btn.textContent = "단지 목록 채우기"; } });
+}
 
 function cmpSeries(s) {
-  var p = s.apt.split("|");
-  var saleArr = monthlyMedian(s.data.sale, p[1], p[0], s.band, "amount");
-  var rentArr = monthlyMedian(s.data.rent, p[1], p[0], s.band, "deposit");
-  return { name: lawdName(s.region) + " " + p[1] + " " + s.band + "㎡대", sale: saleArr, rent: rentArr,
+  var ent = cmpEntry(s);
+  if (!ent) return null;
+  var name = lawdName(s.region) + " " + ent.apt + " " + s.band + "㎡대";
+  if (CMP.range === "y") {
+    if (!ent.sx) return null;
+    var bs = ent.sx.s[String(s.band)], br = ent.sx.r ? ent.sx.r[String(s.band)] : null;
+    var y1 = ent.stY0 + s.store.years - 1, y0 = Math.max(ent.stY0, y1 - 9);
+    var sale = [], rent = [], labels = [], y;
+    for (y = y0; y <= y1; y++) {
+      sale.push(cxYearVal(bs, ent.stY0, y));
+      rent.push(cxYearVal(br, ent.stY0, y));
+      labels.push(String(y));
+    }
+    return { name: name, sale: sale, rent: rent, labels: labels, ent: ent, unit: "개년" };
+  }
+  if (!s.data) return null;
+  return { name: name, ent: ent, unit: "개월",
+           sale: monthlyMedian(s.data.sale, ent.apt, ent.dong, s.band, "amount"),
+           rent: monthlyMedian(s.data.rent, ent.apt, ent.dong, s.band, "deposit"),
            labels: s.data.months.map(function (ym) { return ym.slice(0, 4) + "." + Number(ym.slice(4)); }) };
 }
 
 function renderCmpx() {
-  var active = CMP.slots.filter(function (s) { return s.data && s.apt; });
-  if (active.length < 2) return;
-  var series = active.map(cmpSeries);
+  var picked = [0, 1, 2].filter(function (i) { return CMP.slots[i].apt && CMP.slots[i].apts.length; });
+  if (picked.length < 2) return;
+  /* 고른 칸만 실거래를 받는다 — 안 고른 칸은 한 번도 조회하지 않는다 */
+  Promise.all(picked.map(ensureCmpData)).then(function () { renderCmpxNow(picked); });
+}
+function renderCmpxNow(picked) {
+  var active = picked.map(function (i) { return CMP.slots[i]; });
+  var series = active.map(cmpSeries).filter(Boolean);
+  if (series.length < 2) {
+    var rc = document.getElementById("cx-read");
+    if (rc) {
+      document.getElementById("cx-resultcard").style.display = "";
+      rc.innerHTML = CMP.range === "y"
+        ? "10년 모드는 저장본이 있는 지역만 됩니다. 이 조합에는 저장본이 없으니 기간을 <b>최근 24개월</b>로 바꿔보세요."
+        : "고른 단지의 최근 " + CMP.range + "개월 실거래를 찾지 못했습니다. 기간을 늘리거나 <b>10년</b> 모드로 보세요.";
+      document.querySelector("#cx-table tbody").innerHTML = "";
+    }
+    return;
+  }
+  active = active.slice(0, series.length);
   var labels = series[0].labels;
+  var win = CMP.range === "y" ? 2 : 6;      /* 앞뒤 몇 칸으로 상승률을 볼지 */
 
   /* 비교 표 + 해석 */
   var tb = document.querySelector("#cx-table tbody");
   var reads = [];
   tb.innerHTML = series.map(function (sr, i) {
     var vals = sr.sale.filter(function (v) { return v != null; });
-    var first3 = median(sr.sale.slice(0, 6).filter(function (v) { return v != null; }));
-    var last3 = median(sr.sale.slice(-6).filter(function (v) { return v != null; }));
+    var first3 = median(sr.sale.slice(0, win).filter(function (v) { return v != null; }));
+    var last3 = median(sr.sale.slice(-win).filter(function (v) { return v != null; }));
     var rise = (first3 && last3) ? (last3 / first3 - 1) * 100 : null;
-    var je = median(sr.rent.slice(-6).filter(function (v) { return v != null; }));
+    var je = median(sr.rent.slice(-win).filter(function (v) { return v != null; }));
     var gap = (last3 != null && je != null) ? last3 - je : null;
-    var slot = active[i];
-    var py = last3 != null ? last3 / median(slot.apts.filter(function (g) { return g.id === slot.apt; })[0].areas) * 3.3058 : null;
+    var py = (last3 != null && sr.ent.areaMed) ? last3 / sr.ent.areaMed * 3.3058 : null;
     if (rise != null) reads.push("<b>" + sr.name + "</b>은 기간 상승률 " + pct(rise, 1) + (gap != null ? ", 현재 갭 " + eok(gap) : "") + "입니다.");
     return '<tr><td><span style="color:' + CMP_COLORS[i] + '">●</span> ' + sr.name + "</td>" +
-      "<td>" + (py != null ? fmt(py) : "—") + "</td>" +
+      "<td>" + (py != null ? pyFmt(py) + (sr.ent.est ? "*" : "") : "—") + "</td>" +
       "<td><b>" + (last3 != null ? eok(last3) : "—") + "</b></td>" +
       "<td>" + (je != null ? eok(je) : "—") + "</td>" +
       "<td>" + (gap != null ? eok(gap) : "—") + "</td>" +
       '<td class="' + cls(rise) + '">' + (rise != null ? pct(rise, 1) : "—") + "</td>" +
-      "<td>" + vals.length + "개월</td></tr>";
+      "<td>" + vals.length + sr.unit + "</td></tr>";
   }).join("");
+  if (series.some(function (sr) { return sr.ent.est; })) {
+    reads.push('<span style="color:var(--ink-soft)">* 평당가는 저장본에 면적이 없어 ' +
+      "평형대 대표 면적으로 어림잡은 값입니다. 매매 중위·상승률·갭은 실제 값입니다.</span>");
+  }
   document.getElementById("cx-resultcard").style.display = "";
   document.getElementById("cx-read").innerHTML = reads.join("<br>");
 

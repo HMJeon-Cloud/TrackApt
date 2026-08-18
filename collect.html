@@ -60,7 +60,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.11</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.12</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -185,11 +185,17 @@ th{color:var(--ink-soft);font-weight:600}
   <div class="btnrow">
     <button class="btn gold" id="mc-go">집계 시작</button>
     <button class="btn" id="mc-stop" disabled>중지</button>
+    <button class="btn" id="mc-diff" disabled>직전본과 비교</button>
     <button class="btn" id="mc-save" disabled>market_core.json 저장</button>
   </div>
   <div class="bar"><i id="mc-bar"></i></div>
   <div class="stat" id="mc-stat"></div>
   <div class="log" id="mc-out">대기 중…</div>
+  <div class="note"><b>올리기 전에 [직전본과 비교]를 누르세요.</b> 배포 중인 market_core.json과 맞대어
+    <b>기간이 줄지 않았는지 · 지역이 사라지지 않았는지 · 행 수가 줄지 않았는지</b>를 확인하고,
+    지역별로 중위 평당가가 5% 넘게 튀거나 최근 3개월 거래가 0이 된 곳을 짚어 줍니다.
+    매달 갱신에서 가장 흔한 사고는 <b>CSV를 한두 개 빠뜨리는 것</b>인데, 집계는 멀쩡히 끝나기 때문에
+    이 비교가 아니면 올린 뒤에야 알게 됩니다.</div>
   <div class="note">집계 규칙 — 해제(취소) 거래 제외 · 평당가 = 거래금액 ÷ (전용면적 ÷ 3.3058) ·
     84㎡대 = 전용 80~88 · 59㎡대 = 전용 55~63 · 전세 = 월세 0원 ·
     표본 3건 미만인 달은 <code>null</code>. 시·도와 전국은 개별 거래를 한데 모아 다시 중위수를 냅니다
@@ -1420,6 +1426,7 @@ $("mc-go").addEventListener("click", function () {
         MC.json = js;
         mcLog("파일 크기 " + (js.length / 1048576).toFixed(2) + "MB");
         $("mc-save").disabled = false;
+        $("mc-diff").disabled = false;
       }
       $("mc-go").disabled = false; $("mc-stop").disabled = true;
       MC.busy = false;
@@ -1428,6 +1435,115 @@ $("mc-go").addEventListener("click", function () {
   next();
 });
 $("mc-stop").addEventListener("click", function () { MC.abort = true; mcLog("중지 요청"); });
+/* ── 새로 만든 결과를 배포본과 대 본다 ──
+   매달 갱신에서 가장 흔한 사고는 CSV를 빠뜨리고 올리는 것이다.
+   집계는 멀쩡히 끝나고 숫자도 그럴듯해 보이므로, 올리기 전에 직전본과 맞대 봐야 한다. */
+function mcLastCommon(a, b) {
+  /* 두 본이 공통으로 가진 마지막 월 인덱스(새 본 기준) — 시작월이 같다는 전제 */
+  var na = a.months, nb = b.months;
+  return Math.min(na, nb) - 1;
+}
+function mcSeriesAt(reg, key, idx) {
+  if (!reg || !reg.s) return null;
+  var o = reg.s.o || 0, arr = reg.s[key];
+  if (!arr) return null;
+  var i = idx - o;
+  return (i >= 0 && i < arr.length) ? arr[i] : null;
+}
+/* 그 달의 거래 건수 — 지역별 시계열은 앞을 잘라 두므로 o만큼 밀어서 본다 */
+function mcNAt(reg, idx) {
+  if (!reg || !reg.s || !reg.s.n) return 0;
+  var i = idx - (reg.s.o || 0);
+  return (i >= 0 && i < reg.s.n.length) ? (reg.s.n[i] || 0) : 0;
+}
+function mcDiff(now, old) {
+  var out = { warn: [], info: [], regions: [] };
+  if (now.m0 !== old.m0) out.warn.push("시작월이 다릅니다 — 직전 " + old.m0 + " → 이번 " + now.m0);
+  if (now.months < old.months) {
+    out.warn.push("기간이 줄었습니다 — 직전 " + old.months + "개월 → 이번 " + now.months +
+                  "개월. CSV를 빠뜨렸을 가능성이 큽니다.");
+  } else {
+    out.info.push("기간 " + old.months + " → " + now.months + "개월");
+  }
+  var ok2 = Object.keys(old.regions), nk = Object.keys(now.regions);
+  var have = {}, i;
+  for (i = 0; i < nk.length; i++) have[nk[i]] = 1;
+  var gone = ok2.filter(function (c) { return !have[c]; });
+  var addd = nk.filter(function (c) { return !old.regions[c]; });
+  out.info.push("지역 " + ok2.length + " → " + nk.length + "곳");
+  if (gone.length) out.warn.push("사라진 지역 " + gone.length + "곳: " +
+      gone.slice(0, 12).map(function (c) { return c + " " + (old.regions[c].nm || ""); }).join(", ") +
+      (gone.length > 12 ? " 외" : ""));
+  if (addd.length) out.info.push("새 지역 " + addd.length + "곳: " + addd.slice(0, 12).join(", "));
+
+  ["saleRows", "rentRows"].forEach(function (k) {
+    var a = (old.stat && old.stat[k]) || 0, b = (now.stat && now.stat[k]) || 0;
+    if (b < a) out.warn.push(k + "가 줄었습니다 — " + fmt(a) + " → " + fmt(b) +
+                             " (" + fmt(a - b) + "행 감소)");
+    else out.info.push(k + " " + fmt(a) + " → " + fmt(b));
+  });
+
+  /* 지역별 — 마지막 공통 월의 중위 평당가가 크게 튀면 의심스럽다 */
+  var idx = mcLastCommon(now, old), empties = 0;
+  nk.forEach(function (c) {
+    var A = old.regions[c], B = now.regions[c];
+    if (!A) return;
+    var pa = mcSeriesAt(A, "p", idx), pb = mcSeriesAt(B, "p", idx);
+    var row = { code: c, nm: B.nm || (A && A.nm) || c };
+    if (pa && pb) {
+      row.oldP = pa; row.newP = pb;
+      row.gap = (pb / pa - 1) * 100;
+    }
+    row.oldN = mcNAt(A, idx);
+    row.newN = mcNAt(B, idx);
+    if (row.oldN > 0 && row.newN === 0) empties++;
+    var bad = (row.gap != null && Math.abs(row.gap) >= 5) || (row.oldN > 0 && row.newN === 0);
+    if (bad) out.regions.push(row);
+  });
+  /* 한두 곳이 아니라 여러 지역이 한꺼번에 비었다면 그 달 CSV 자체가 빠진 것이다 */
+  if (empties > 0) {
+    var share = Math.round(100 * empties / nk.length);
+    var msg = "마지막 공통 월에 거래가 0이 된 지역 " + empties + "곳 (" + share + "%)";
+    if (share >= 20) out.warn.push(msg + " — 그 달 CSV가 통째로 빠졌을 수 있습니다.");
+    else out.info.push(msg);
+  }
+  out.empties = empties;
+  out.regions.sort(function (a, b) { return Math.abs(b.gap || 0) - Math.abs(a.gap || 0); });
+  return out;
+}
+
+$("mc-diff").addEventListener("click", function () {
+  if (!MC.out) { alert("먼저 집계를 끝내세요."); return; }
+  mcLog("");
+  mcLog("── 직전본과 비교 ──");
+  fetch("market_core.json")
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (old) {
+      var d = mcDiff(MC.out, old);
+      d.info.forEach(function (s) { mcLog("  " + s); });
+      d.warn.forEach(function (s) { mcLog("  ⚠ " + s, "warn"); });
+      if (!d.regions.length) {
+        mcLog("  지역별로 크게 튀는 곳 없음 — 올려도 좋습니다.", "ok");
+      } else {
+        mcLog("  살펴볼 지역 " + d.regions.length + "곳 (평당가 5% 이상 차이 또는 최근 3개월 거래 0):", "warn");
+        d.regions.slice(0, 20).forEach(function (r2) {
+          mcLog("   · " + r2.code + " " + r2.nm +
+                (r2.gap != null ? " 평당 " + fmt(r2.oldP) + " → " + fmt(r2.newP) +
+                 " (" + (r2.gap > 0 ? "+" : "") + r2.gap.toFixed(1) + "%)" : "") +
+                " · 그달 거래 " + fmt(r2.oldN) + " → " + fmt(r2.newN), "warn");
+        });
+        if (d.regions.length > 20) mcLog("   … 외 " + (d.regions.length - 20) + "곳", "warn");
+      }
+      MC.diff = d;
+      download("market_core_비교리포트.json", JSON.stringify(d, null, 1));
+      mcLog("  리포트를 저장했습니다.", "ok");
+    })
+    ["catch"](function (e) {
+      mcLog("  비교 실패 — " + (e && e.message || e) +
+            " (배포된 market_core.json을 못 읽었습니다. 이 파일을 사이트에서 열어야 비교됩니다.)", "warn");
+    });
+});
+
 $("mc-save").addEventListener("click", function () {
   if (!MC.json) return;
   download("market_core.json", MC.json);

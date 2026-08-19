@@ -184,7 +184,9 @@ table{width:100%;border-collapse:collapse;font-size:.84rem;white-space:nowrap}
 .pickchips button{background:var(--panel-2);border:1.5px solid var(--line);color:var(--ink);
   border-radius:12px;padding:11px 16px;font-size:.9rem;cursor:pointer;font-weight:600}
 .pickchips button.on{border-color:var(--gold);color:var(--gold);background:rgba(196,159,82,.08)}
-.pickchips button .sub{display:block;font-size:.7rem;color:var(--ink-soft);font-weight:400;margin-top:2px}
+.pickchips button .sub{display:block;font-size:.7rem;color:var(--ink-soft);font-weight:400;margin-top:2px;white-space:nowrap}
+.pickchips.grid4 button{padding-left:4px;padding-right:4px}
+.pickchips.grid4 button .sub{font-size:.6rem;letter-spacing:-.02em}
 .wizsel{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .wizsel span{background:rgba(196,159,82,.1);border:1px solid var(--gold);color:var(--gold);
   border-radius:999px;padding:4px 11px;font-size:.8rem;cursor:pointer}
@@ -286,6 +288,16 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
   font-size:.82rem;line-height:1.65}
 .whyrow:last-of-type{border-bottom:0}
 .whyk{font-weight:800;font-size:.76rem;color:var(--brand);padding-top:1px}
+.whybtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.whybtns .btn{padding:3px 10px;font-size:.72rem}
+.attbox{margin:8px 0 4px;overflow:auto}
+.pxt.att td{text-align:left}
+.pxt.att .atname{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:.72rem;color:var(--ink-soft)}
+.pxt.att td b{font-size:.84rem}
+.pxt.att td small,.pxt.att th small{color:var(--ink-soft);font-weight:400;font-size:.68rem}
+.pxt.att td.hit2 b{color:var(--up)}
+tr.detrow>td{background:rgba(255,255,255,.02)}
 tr.flash td{animation:rowflash 2.4s ease-out}
 @keyframes rowflash{0%{background:rgba(212,175,106,.4)}100%{background:transparent}}
 @media (max-width:480px){ html{font-size:15px} .chartbox{height:240px} .grid3{grid-template-columns:1fr 1fr} }
@@ -351,7 +363,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.25</span>
+    <span class="ver">v5.26</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1529,6 +1541,88 @@ function financeJeonse(k, price, cond) {
            jr: je / price * 100, sale: price, je: je,
            acq: f.acq, broker: f.broker, etc: f.etc, reg: false };
 }
+/* ── 연식(신축/준신축/구축) × 급(대장/중위/하위) 행렬 ──
+   지역 중위 하나로는 참고가 안 된다는 피드백(v5.26) — trades 저장본에서
+   조건 평형대의 최근 연 중위가를 단지별로 뽑아, 연식으로 가른 뒤
+   각 묶음의 대장(1위)·중위(중앙)·하위(하위 25% 지점) 단지를 이름째 보여준다.
+   연식 미상 단지는 뺀다(애매한 데이터는 비운다는 원칙). */
+function ageTierMatrix(st, band, thisY) {
+  if (!st || !st.cx) return null;
+  var groups = { new: [], semi: [], old: [] };
+  st.cx.forEach(function (cx) {
+    if (!cx.y) return;
+    var s = cx.s && cx.s[String(band)];
+    if (!s) return;
+    var last = -1, i;
+    for (i = s.p.length - 1; i >= 0; i--) if (s.p[i] != null) { last = i; break; }
+    if (last < 0) return;
+    var yr = st.y0 + s.o + last;
+    if (yr < thisY - 2) return;                      /* 거래가 끊긴 단지 제외 */
+    var je = null, jy = null, rj = cx.r && cx.r[String(band)];
+    if (rj) for (i = rj.p.length - 1; i >= 0; i--) if (rj.p[i] != null) {
+      je = rj.p[i]; jy = st.y0 + rj.o + i; break;
+    }
+    if (jy != null && jy < yr - 1) je = null;        /* 옛 전세는 안 쓴다 */
+    var a = thisY - cx.y;
+    var g = a <= 10 ? "new" : (a <= 20 ? "semi" : "old");
+    groups[g].push({ apt: cx.n, y: cx.y, price: s.p[last], je: je, yr: yr });
+  });
+  var out = { any: false };
+  ["new", "semi", "old"].forEach(function (g) {
+    var arr = groups[g].sort(function (a, b) { return b.price - a.price; });
+    if (!arr.length) { out[g] = null; return; }
+    out.any = true;
+    out[g] = { n: arr.length, top: arr[0],
+               mid: arr[Math.floor((arr.length - 1) / 2)],
+               low: arr[Math.round((arr.length - 1) * 0.75)] };
+  });
+  return out.any ? out : null;
+}
+/* 한 칸의 필요현금 — 단지 자체의 전세 실거래가 있으면 그걸로 갭을 만든다 */
+function cellNeed(k, c, cond) {
+  var loanF = finance(k, c.price, cond);
+  var jeNeed = (!isRegulated(k) && c.je != null)
+    ? (c.price - c.je) + loanF.acq + loanF.broker + loanF.etc : null;
+  if (RECO.buy === "loan" || jeNeed == null) return { need: loanF.need, mode: "대출" };
+  if (RECO.buy === "jeonse") return { need: jeNeed, mode: "전세" };
+  return jeNeed < loanF.need ? { need: jeNeed, mode: "전세" } : { need: loanF.need, mode: "대출" };
+}
+function ageTierHtml(mx, code, cond) {
+  if (!mx) return '<div class="pxcap">이 지역 저장본이 없거나 ' + cond.area +
+    "㎡대 거래 단지가 없어 연식·급별 표를 만들 수 없습니다.</div>";
+  var AGE = [["new", "신축 ~10년"], ["semi", "준신축 10~20년"], ["old", "구축 20년~"]];
+  function cell(c) {
+    if (!c) return "<td>—</td>";
+    var f = cellNeed(code, c, cond);
+    var hit = cond.cash > 0 && f.need <= cond.cash;
+    return "<td" + (hit ? ' class="hit2"' : "") + '><div class="atname" title="' + escHtml(c.apt) +
+      " · " + c.y + '년">' + escHtml(c.apt) + "</div><b>" + eok(c.price) + "</b>" +
+      "<small> " + f.mode + " 필 " + eok(f.need) + "</small></td>";
+  }
+  var rows = AGE.map(function (a) {
+    var g = mx[a[0]];
+    return "<tr><th>" + a[1] + (g ? ' <small>' + g.n + "곳</small>" : "") + "</th>" +
+      (g ? cell(g.top) + cell(g.mid) + cell(g.low) : "<td>—</td><td>—</td><td>—</td>") + "</tr>";
+  }).join("");
+  return '<table class="pxt att"><thead><tr><th></th><th>대장</th><th>중위</th><th>하위 25%</th></tr></thead><tbody>' +
+    rows + "</tbody></table>" +
+    '<div class="pxcap">' + cond.area + "㎡대 최근 연 중위 실거래(저장본) · 필 = 필요현금(현재 매수 방식 기준, " +
+    "단지 전세 실거래로 갭 계산 — 전세가 없으면 대출 기준) · 초록 = 내 현금 안. 연식 미상 단지는 뺐습니다.</div>";
+}
+/* 상위 카드 5곳의 행렬을 순차로 채운다 (loadStore 캐시라 두 번째부터는 즉시) */
+function recoLoadTiers(keys, cond) {
+  var thisY = new Date().getFullYear();
+  var chain = Promise.resolve();
+  keys.forEach(function (k) {
+    chain = chain.then(function () {
+      return loadStore(k).then(function (st) {
+        var el = document.getElementById("rc-att-" + k);
+        if (el) el.innerHTML = ageTierHtml(st ? ageTierMatrix(st, cond.area, thisY) : null, k, cond);
+      });
+    });
+  });
+}
+
 /* 매수 방식 결정: auto면 필요현금이 적은 쪽 */
 function buyPlan(k, price, cond, mode) {
   var loanF = finance(k, price, cond);
@@ -2002,8 +2096,7 @@ function renderWizResult() {
       if (d.style.display === "block") { d.style.display = "none"; return; }
       /* 근거마다 검증 화면으로 가는 길을 단다 — 누르면 이 단지·지역이 조건에 들어간 채로 조회된다 */
       function vlink(tab, label) {
-        return ' <button class="btn sm ghost" data-wzgo="' + tab + '" style="padding:2px 8px;font-size:.72rem">' +
-          label + " →</button>";
+        return '<button class="btn sm ghost" data-wzgo="' + tab + '">' + label + "</button>";
       }
       d.innerHTML =
         '<div class="whyrow"><div class="whyk">성과</div><div class="whyv">' +
@@ -2011,20 +2104,20 @@ function renderWizResult() {
           "</b> — 통과선(10년에 두 배 = 연 7.2%)" +
           (t.cagr >= 7.2 ? "을 넘었습니다" : "에는 못 미치지만 조건 안에서는 상위입니다") + "." +
           (t.thin ? " 비교 구간 한쪽이 거래 1건뿐(~)이라 표본이 얇습니다." : "") +
-          vlink("cmpx", "이 단지 10년 추이") + "</div></div>" +
+          '<div class="whybtns">' + vlink("cmpx", "이 단지 10년 추이") + "</div></div></div>" +
         '<div class="whyrow"><div class="whyk">급지</div><div class="whyv">' +
           escHtml(wizName(t.code)) + " — 전국 실거래 평당가 서열 <b>" +
           (t.rankIdx >= 0 ? (t.rankIdx + 1) + "위 / " + RANKED.length + "곳" : "집계 밖") +
           "</b>. 상위 급지일수록 이후 10년 성과가 체계적으로 높았습니다." +
-          vlink("reco", "이 지역 채점표") + vlink("tiers", "전국 등급표") + "</div></div>" +
+          '<div class="whybtns">' + vlink("reco", "이 지역 채점표") + vlink("tiers", "전국 등급표") + "</div></div></div>" +
         '<div class="whyrow"><div class="whyk">거래</div><div class="whyv">17년간 <b>' + fmt(t.cnt) +
           "건</b> — 시세가 꾸준히 확인되고, 팔 때도 상대가 있습니다." +
-          vlink("vol", "이 지역 거래량") + "</div></div>" +
+          '<div class="whybtns">' + vlink("vol", "이 지역 거래량") + "</div></div></div>" +
         '<div class="whyrow"><div class="whyk">조건</div><div class="whyv">' + t.lastYear + "년 중위가 <b>" +
           eok(t.price) + "</b>" +
           (WIZ.budget ? " — 예산(" + eok(WIZ.budget) + ") 안" : "") +
           (t.buildY ? " · " + (thisY - t.buildY) + "년차로 고르신 연식 범위 안" : "") + "입니다." +
-          vlink("calc", "이 가격 필요현금") + "</div></div>" +
+          '<div class="whybtns">' + vlink("calc", "이 가격 필요현금") + "</div></div></div>" +
         '<div class="pxcap">버튼을 누르면 이 단지·지역이 <b>조건에 들어간 채로 조회</b>됩니다. ' +
         "뒤로가기(또는 추천받기 탭)로 돌아오면 이 결과가 그대로 있습니다.</div>";
       d.style.display = "block";
@@ -2325,7 +2418,7 @@ function buildReco(root) {
         '<b>서열 높은 순</b>과 <b>종합 점수 순</b>의 1위가 다르면, 그 차이가 곧 "지금 사도 되는가"에 대한 정보입니다.</div></div>' +
     '<div class="card"><div class="eyebrow">Table</div><h2>전체 채점표</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="맞춤추천">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="rc-table" data-name="맞춤추천">엑셀 저장</button></div>' +
       '<div class="tblwrap"><table id="rc-table"><thead><tr>' +
-      '<th>#</th><th>지역</th><th>종합</th><th>급지</th><th>성과</th><th>수급</th><th>타이밍</th><th>자금</th><th>방식</th><th>필요현금</th><th>거리</th></tr>' +
+      '<th>#</th><th>지역</th><th>종합</th><th>급지</th><th>성과</th><th>수급</th><th>타이밍</th><th>자금</th><th>방식</th><th>필요현금</th><th>거리</th><th>연식·급</th></tr>' +
       '</thead><tbody></tbody></table></div>' +
       '<div class="note">필요현금·갭은 <b>그 지역 기준 면적의 최근 3개월 중위 실거래가</b>' +
         '(59·84㎡ 외 평형은 ㎡당가 × 면적 환산) 기준입니다. 지역의 <b>중간 단지</b> 값이라 실제 단지는 위아래로 ' +
@@ -2478,6 +2571,7 @@ function renderReco() {
             ? " (갭 " + eok(r.fin.gap) + " — 중위 매매 " + eok(r.fin.sale) + " · 전세 " + eok(r.fin.je) + ")"
             : (r.loanFin.loan > 0 ? " · 대출 " + eok(r.loanFin.loan) : "")) +
           (cond.cash > 0 ? (r.fin.need <= cond.cash ? ' <span class="tagmini ok">실행 가능</span>' : ' <span class="tagmini no">부족 ' + eok(r.fin.need - cond.cash) + "</span>") : "") + "</div>" +
+        '<div class="attbox" id="rc-att-' + r.key + '"><div class="pxcap">연식·급별 단지표 여는 중…</div></div>' +
         radar + rationale +
         '<div class="btnrow" style="margin-top:8px">' +
           '<button class="btn sm ghost" data-rc="danji" data-k="' + r.key + '">단지 보기</button>' +
@@ -2487,6 +2581,7 @@ function renderReco() {
         '<div class="money"><div class="grade ' + grade + '" style="font-size:1.1rem;padding:4px 10px">' + grade + "</div>" +
         '<div class="score" style="margin-top:4px">' + r.total.toFixed(1) + "</div></div></div>";
     }).join("");
+    recoLoadTiers(list.slice(0, 5).map(function (r) { return r.key; }), cond);
     topEl.querySelectorAll("button[data-rc]").forEach(function (b) {
       b.addEventListener("click", function () {
         var k2 = b.dataset.k;
@@ -2541,8 +2636,30 @@ function renderReco() {
       "<td>" + r.s.cash.toFixed(0) + "</td>" +
       "<td>" + r.fin.modeName + "</td>" +
       "<td><b>" + eok(r.fin.need) + "</b></td>" +
-      "<td>" + (r.dist != null ? r.dist + "km" : "—") + "</td></tr>";
+      "<td>" + (r.dist != null ? r.dist + "km" : "—") + "</td>" +
+      '<td><button class="btn sm ghost" data-det="' + r.key + '">펼치기</button></td></tr>';
   }).join("");
+  /* 행마다 연식 × 급 행렬을 접었다 폈다 — 저장본은 누를 때만 연다 */
+  tb.querySelectorAll("button[data-det]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var k = b.dataset.det, tr = b.closest("tr");
+      var nx = tr.nextElementSibling;
+      if (nx && nx.classList.contains("detrow")) {
+        nx.parentNode.removeChild(nx);
+        b.textContent = "펼치기";
+        return;
+      }
+      b.textContent = "접기";
+      var det = document.createElement("tr");
+      det.className = "detrow";
+      det.innerHTML = '<td colspan="12"><div class="pxcap">저장본 여는 중…</div></td>';
+      tr.parentNode.insertBefore(det, tr.nextElementSibling);
+      var thisY = new Date().getFullYear();
+      loadStore(k).then(function (st) {
+        det.firstElementChild.innerHTML = ageTierHtml(st ? ageTierMatrix(st, cond.area, thisY) : null, k, cond);
+      });
+    });
+  });
 }
 
 /* ══ 거래량 탭 ═══════════════════════════════ */
@@ -2959,7 +3076,8 @@ function buildDanji(root) {
         '직접 비교하지 마세요.<br>' +
         '<b>지하철</b>은 K-apt에 <b>관리사무소가 직접 적어 넣은</b> 도보 시간입니다. 역이 없는 동네에도 ' +
         '숫자만 들어가 있는 경우가 있어, <b>호선이나 역 이름이 함께 있는 값만</b> 씁니다 — 둘 다 없으면 ' +
-        '<b>—</b>로 둡니다. 역 이름까지 있는 값에만 <b>역세권</b> 태그를 달고, 호선만 있는 값에는 ' +
+        '<b>—</b>로 둡니다. 다만 <b>단지명이 역 이름을 품고 있으면</b>(매교역푸르지오SK뷰처럼) 그 역명을 ' +
+        '보조로 씁니다. 역명이 있으면 <b>역세권</b>, 호선만 있으면 <b>역세권*</b> 태그를 달고 값에도 ' +
         '<code>*</code>를 붙입니다. 칸에 마우스를 올리면(휴대폰은 길게 누르면) 어느 역 기준인지 보입니다.<br>' +
         '<b>세대수·지하철</b>은 K-apt(공동주택관리정보시스템) 자료입니다. 저장본(kapt/)이 있는 지역은 ' +
         '조회 없이 즉시 채우고, 없는 지역은 표에 나온 <b>모든 단지</b>를 조회한 뒤 그 결과를 ' +
@@ -4102,11 +4220,23 @@ function subwayMin(k) {
   var m = String(k.subwayWay || "").match(/(\d+)/);
   return m ? Number(m[1]) : null;
 }
+/* 단지명 속 역 이름 — "매교역푸르지오SK뷰"의 "매교역".
+   K-apt가 도보 시간만 적고 역명·호선을 비운 단지에서, 이름 속 역명과
+   도보 시간(신고값) 두 신호가 겹칠 때만 보조로 쓴다. */
+function stationFromName(nm) {
+  var m = String(nm || "").match(/([가-힣]{2,7}역)/);
+  if (!m) return "";
+  if (/(구역|지역|권역|광역|역세권)$/.test(m[1])) return "";
+  return m[1];
+}
 /* 어느 역 기준인지 — 표 칸에 달아 둘 설명 */
 function subwayNote(k) {
   if (!k) return "";
   var s = [k.subwayLine, k.subwayStation].filter(Boolean).join(" ");
-  return s ? s + " 기준 (K-apt 관리사무소 신고값)" : "";
+  if (!s) return "";
+  return k.subwayFromName
+    ? s + " 기준 (역명은 단지명에서 추정 · 도보 시간은 K-apt 신고값)"
+    : s + " 기준 (K-apt 관리사무소 신고값)";
 }
 
 /* 왜 비었는지 알려 준다 — 빈칸만 있으면 고장으로 오해한다 */
@@ -4150,8 +4280,14 @@ function renderDanjiTable() {
     r.hh = (g.kapt && g.kapt.households > 0) ? g.kapt.households : null;
     /* 관리단지 하나를 여러 차수가 나눠 쓰는 경우 — 세대수는 그 차수가 아니라 전체 값이다 */
     r.hhShared = !!(g.kaptShared && r.hh != null);
+    /* 역명·호선 없이 도보 시간만 적힌 단지 — 단지명이 역 이름을 품고 있으면 그걸 쓴다 */
+    if (g.kapt && g.kapt.subwayWay && !g.kapt.subwayStation && !g.kapt.subwayLine) {
+      var stn0 = stationFromName(r.apt) || stationFromName(g.kapt.name);
+      if (stn0) { g.kapt.subwayStation = stn0; g.kapt.subwayFromName = true; }
+    }
     r.sub = subwayMin(g.kapt);
     r.station = (g.kapt && g.kapt.subwayStation) ? String(g.kapt.subwayStation) : "";
+    r.line = (g.kapt && g.kapt.subwayLine) ? String(g.kapt.subwayLine) : "";
     r.subNote = subwayNote(g.kapt);
     r.builder = g.kapt ? g.kapt.builder : null;
     r.parking = (g.kapt && g.kapt.parkingTotal) ? g.kapt.parkingTotal : null;
@@ -4180,7 +4316,8 @@ function renderDanjiTable() {
   var cart = getCart();
   var tb = document.querySelector("#dj-table tbody");
   /* 태그 기준: 대장 = 이 조회에서 평당가 1위, 신축 = 5년 이내,
-     역세권 = 도보 10분 이내 **이면서 역 이름이 있을 때** (숫자만으로는 주장하지 않는다) */
+     역세권 = 도보 10분 이내 + 역명(단지명 추정 포함), 호선만 있으면 역세권* —
+     숫자만으로는 주장하지 않는다 */
   var topPy = rows.length ? Math.max.apply(null, rows.map(function (r) { return r.py || 0; })) : 0;
   tb.innerHTML = rows.map(function (r, i) {
     var cid = DJ.lawd + "|" + r.g.id;
@@ -4191,7 +4328,9 @@ function renderDanjiTable() {
         (r.hh != null && r.hh >= 1000 ? ' <span class="tagmini ok">대단지</span>' : "") +
         (age != null && age <= 5 ? ' <span class="tagmini ok">신축</span>' : "") +
         (age != null && age >= 30 ? ' <span class="tagmini no">재건축연한</span>' : "") +
-        (r.sub != null && r.sub <= 10 && r.station ? ' <span class="tagmini gold">역세권</span>' : "") +
+        (r.sub != null && r.sub <= 10 && (r.station || r.line)
+          ? ' <span class="tagmini gold"' + (r.subNote ? ' title="' + escHtml(r.subNote) + '"' : "") +
+            ">역세권" + (r.station ? "" : "*") + "</span>" : "") +
         " <span style='color:var(--ink-soft);font-size:.74rem'>" + r.dong + "</span></td>" +
       "<td>" + eok(r.amt) + "</td>" +
       "<td><b>" + pyFmt(r.py) + "</b></td>" +

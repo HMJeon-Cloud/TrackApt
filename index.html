@@ -178,7 +178,8 @@ table{width:100%;border-collapse:collapse;font-size:.84rem;white-space:nowrap}
 .pickchips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .pickchips.grid2{display:grid;grid-template-columns:repeat(2,1fr)}
 .pickchips.grid3{display:grid;grid-template-columns:repeat(3,1fr)}
-.pickchips.grid3 button,.pickchips.grid2 button{width:100%;text-align:center}
+.pickchips.grid4{display:grid;grid-template-columns:repeat(4,1fr)}
+.pickchips.grid4 button,.pickchips.grid3 button,.pickchips.grid2 button{width:100%;text-align:center}
 .pickchips.sm button{padding:7px 11px;font-size:.8rem;border-radius:10px;font-weight:500}
 .pickchips button{background:var(--panel-2);border:1.5px solid var(--line);color:var(--ink);
   border-radius:12px;padding:11px 16px;font-size:.9rem;cursor:pointer;font-weight:600}
@@ -254,6 +255,39 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 .reco .money{text-align:right;white-space:nowrap}
 .reco .money .score{font-size:1.15rem;font-weight:800;color:var(--brand)}
 .reco .money .need{font-size:.78rem;color:var(--ink-soft);margin-top:2px}
+/* 추천 카드 (v5.25) */
+.wcard{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;margin-bottom:14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0) 46%),var(--panel);
+  box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.wcard.best{border-color:var(--brand);box-shadow:0 8px 24px rgba(212,175,106,.16)}
+.wcard.best::before{content:"BEST";position:absolute;top:-9px;left:14px;background:var(--gold-grad,#d4af6a);
+  color:#11161f;font-size:.62rem;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:999px}
+.whead{display:flex;gap:10px;align-items:center}
+.wrank{flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.95rem;border:1px solid var(--line);color:var(--ink-soft)}
+.wcard.best .wrank{background:var(--gold-grad,#d4af6a);color:#11161f;border-color:transparent}
+.wtitle{flex:1;min-width:0}
+.wname{font-weight:800;font-size:1.02rem;letter-spacing:-.01em}
+.wmeta{font-size:.76rem;color:var(--ink-soft);margin-top:2px}
+.wscore{flex:none;text-align:center;line-height:1.1}
+.wscore b{font-size:1.5rem;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums}
+.wscore span{display:block;font-size:.66rem;color:var(--ink-soft);letter-spacing:.08em}
+.wchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.pxbox{margin-top:10px;overflow:auto}
+.pxt{width:100%;border-collapse:collapse;font-size:.82rem}
+.pxt th,.pxt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.pxt thead th{font-size:.68rem;color:var(--ink-soft);font-weight:600;letter-spacing:.04em;border-bottom:1px solid var(--brand)}
+.pxt tbody th{text-align:left;font-weight:700;color:var(--ink-soft);font-size:.76rem}
+.pxt small{color:var(--ink-soft);font-weight:400}
+.pxcap{font-size:.7rem;color:var(--ink-soft);margin-top:6px;line-height:1.5}
+.whybox{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:rgba(255,255,255,.02)}
+.whyrow{display:grid;grid-template-columns:52px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line);
+  font-size:.82rem;line-height:1.65}
+.whyrow:last-of-type{border-bottom:0}
+.whyk{font-weight:800;font-size:.76rem;color:var(--brand);padding-top:1px}
+tr.flash td{animation:rowflash 2.4s ease-out}
+@keyframes rowflash{0%{background:rgba(212,175,106,.4)}100%{background:transparent}}
 @media (max-width:480px){ html{font-size:15px} .chartbox{height:240px} .grid3{grid-template-columns:1fr 1fr} }
 @media (max-width:720px){
   .seg button{font-size:.74rem;padding:7px 6px;letter-spacing:-.02em}
@@ -317,7 +351,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.24</span>
+    <span class="ver">v5.25</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -838,6 +872,31 @@ function rangeLabel(cond) {
 /* ══ 자금 계산 (모든 탭 공용) ═════════════════ */
 function isRegulated(region) { return RULES.regulated.indexOf(region) >= 0; }
 
+/* ── 지역 시세 기준 (v5.25) ─────────────────────────────
+   금액이 나가는 계산(매수가·필요현금·갭)은 **기준 면적의 실거래 중위**를 쓴다.
+   ㎡당 중위 × 면적(옛 방식)은 전 평형·전 단지가 섞여 지역의 평형 구성에 따라
+   크게 어긋난다 — 안양 만안구 84㎡가 7.5억으로 계산됐지만 실제 84㎡ 중위는 6.4억.
+   한 달 표본은 얇을 수 있어 최근 3개 유효월의 중위값을 쓴다. */
+function lastVals(key, k, n) {
+  var s = DB && DB[key] && DB[key].series[k];
+  if (!s) return [];
+  var out = [];
+  for (var i = s.v.length - 1; i >= 0 && out.length < n; i--) if (s.v[i] != null) out.push(s.v[i]);
+  return out;
+}
+function regionSale(k, area) {
+  var key = area === 59 ? "a59" : (area === 84 ? "a84" : null);
+  var v = key ? median(lastVals(key, k, 3)) : null;
+  if (v != null) return { v: v, basis: key };
+  var pm = lastVal("salePm", k);
+  return pm != null ? { v: pm * area, basis: "pm" } : null;
+}
+function regionJr(k) { return median(lastVals("jr", k, 3)); }
+function regionJeonse(k, sale) {
+  var jr = regionJr(k);
+  return (sale != null && jr != null) ? sale * jr / 100 : null;
+}
+
 /* price(만원)와 지역·내 조건으로 대출가능액과 필요현금 산출 */
 function finance(region, price, cond, flags) {
   var reg = flags ? !!flags.reg : isRegulated(region);
@@ -908,7 +967,8 @@ function buildRank(root) {
       '<th>서열</th><th>지역</th><th>㎡당가</th><th>매수가</th><th>대출</th><th>필요현금</th><th>꼬리표</th><th>전세가율</th><th>10년</th></tr>' +
       '</thead><tbody></tbody></table></div>' +
       '<div class="note"><b>필요현금</b> = 매수가 − 대출가능액 + 취득세 + 중개보수 + 등기·이사비. ' +
-        '매수가는 그 지역 ㎡당 평균가 × 기준 전용면적이라 <b>지역 평균 기준</b>입니다 — 대장 단지는 이보다 30~50% 비쌀 수 있습니다. ' +
+        '매수가는 그 지역 <b>기준 면적의 최근 3개월 중위 실거래가</b>(자료가 없으면 ㎡당가 × 면적 환산)입니다 — ' +
+        '지역의 중간 단지 기준이라 대장 단지는 30~50% 비쌀 수 있습니다. ' +
         '대출 꼬리표는 LTV·총액상한·DSR 중 가장 낮은 값이 무엇이었는지 보여줍니다. ' +
         '기준값은 기준·설정 탭에서 바꿀 수 있습니다.</div></div>';
 }
@@ -920,7 +980,8 @@ function renderRank() {
   var rows = RANKED.map(function (k, i) {
     var pm = lastVal("salePm", k);
     var jpm = lastVal("jeonsePm", k);
-    var f = finance(k, pm * area, cond);
+    var rs = regionSale(k, area);
+    var f = finance(k, rs ? rs.v : pm * area, cond);
     f.key = k; f.rank = i + 1; f.pm = pm;
     f.jr = (jpm && pm) ? jpm / pm * 100 : null;
     return f;
@@ -1195,7 +1256,7 @@ function buildGap(root) {
       '<p class="desc">회색 영역이 최근 10년 밴드, 점선이 밴드 중앙값입니다.</p>' +
       '<div class="chartbox"><canvas id="gp-chart"></canvas></div></div>' +
     '<div class="card"><div class="eyebrow">Table</div><h2>전국 갭투자 표 (서열순)</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="갭투자">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="gp-table" data-name="갭투자">엑셀 저장</button></div>' +
-      '<p class="desc">갭 = (매매 − 전세) × 기준 면적. 필요현금은 갭 + 취득세·중개보수·부대비이며 ' +
+      '<p class="desc">갭 = 기준 면적의 <b>최근 3개월 중위 실거래</b> 매매 − 전세. 필요현금은 갭 + 취득세·중개보수·부대비이며 ' +
         '<b>대출 없이 전세를 낀 매수</b> 기준입니다. 예산(내 조건의 현금) 안이면 하이라이트됩니다.</p>' +
       '<div class="tblwrap"><table id="gp-table"><thead><tr>' +
       '<th>서열</th><th>지역</th><th>전세가율</th><th>밴드 위치</th><th>갭</th><th>필요현금</th><th>10년</th><th></th></tr>' +
@@ -1225,9 +1286,10 @@ function renderGap() {
   var sArr = pmSeries("salePm", GAP.region), jArr = pmSeries("jeonsePm", GAP.region);
   var ratio = ratioSeries(jArr, sArr, 100);
   var band = bandStats(ratio, 120);
-  var sCur = lastVal("salePm", GAP.region), jCur = lastVal("jeonsePm", GAP.region);
-  var gap = (sCur != null && jCur != null) ? (sCur - jCur) * area : null;
-  var f = gap != null ? finance(GAP.region, sCur * area, cond) : null;
+  var rsG = regionSale(GAP.region, area);
+  var jeG = rsG ? regionJeonse(GAP.region, rsG.v) : null;
+  var gap = (rsG && jeG != null) ? rsG.v - jeG : null;
+  var f = gap != null ? finance(GAP.region, rsG.v, cond) : null;
   var needGap = (gap != null && f) ? gap + f.acq + f.broker + f.etc : null;
 
   var k = "";
@@ -1257,9 +1319,10 @@ function renderGap() {
   tb.innerHTML = RANKED.map(function (key, i) {
     var s = pmSeries("salePm", key), j = pmSeries("jeonsePm", key);
     var b = bandStats(ratioSeries(j, s, 100), 120);
-    var sc = lastVal("salePm", key), jc = lastVal("jeonsePm", key);
-    var g = (sc != null && jc != null) ? (sc - jc) * area : null;
-    var fin = g != null ? finance(key, sc * area, cond) : null;
+    var rs2 = regionSale(key, area);
+    var jc2 = rs2 ? regionJeonse(key, rs2.v) : null;
+    var g = (rs2 && jc2 != null) ? rs2.v - jc2 : null;
+    var fin = g != null ? finance(key, rs2.v, cond) : null;
     var need = (g != null && fin) ? g + fin.acq + fin.broker + fin.etc : null;
     var t = tagOf(b, false);
     var hit = cash > 0 && need != null && need <= cash;
@@ -1277,7 +1340,7 @@ function renderGap() {
     b2.addEventListener("click", function () {
       showTab("danji");
       var sel = document.getElementById("dj-region");
-      if (sel && LAWD[b2.dataset.gdj]) sel.value = LAWD[b2.dataset.gdj];
+      if (sel && LAWD[b2.dataset.gdj]) { sel.value = LAWD[b2.dataset.gdj]; fireChange(sel); }
     });
   });
 }
@@ -1457,13 +1520,14 @@ var RECO = { sort: "rank", budgetOnly: false, buy: "auto" };
 /* 전세 끼고 매수: 필요현금 = 갭 + 취득세 + 중개보수 + 부대비 (대출 없음)
    규제지역은 실거주 의무로 전세 승계가 막히므로 불가 처리 */
 function financeJeonse(k, price, cond) {
-  var pm = lastVal("salePm", k), jpm = lastVal("jeonsePm", k);
-  if (pm == null || jpm == null) return null;
-  if (isRegulated(k)) return null;
+  if (price == null || isRegulated(k)) return null;
+  var je = regionJeonse(k, price);                /* 같은 면적대 전세가율(최근 3개월 중위) */
+  if (je == null) return null;
   var f = finance(k, price, cond);
-  var gap = (pm - jpm) * cond.area;
+  var gap = price - je;
   return { need: gap + f.acq + f.broker + f.etc, gap: gap, tag: "전세 끼고",
-           jr: jpm / pm * 100, acq: f.acq, broker: f.broker, etc: f.etc, reg: false };
+           jr: je / price * 100, sale: price, je: je,
+           acq: f.acq, broker: f.broker, etc: f.etc, reg: false };
 }
 /* 매수 방식 결정: auto면 필요현금이 적은 쪽 */
 function buyPlan(k, price, cond, mode) {
@@ -1570,7 +1634,8 @@ function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 /* 지역 하나의 5축 점수 + 종합 */
 /* ══ 추천받기 마법사 ═══════════════════════════════════════
    메인 기능. 4문항(지역 → 기간 → 연식 → 예산)에 답하면 단지 TOP 5를 바로 보여준다.
-   계산은 전부 저장본(trades/ + kapt/)에서 하므로 실거래 API를 한 번도 부르지 않는다.
+   추천 계산은 전부 저장본(trades/ + kapt/)에서 한다. 실거래 API는 결과 카드의
+   시세표(최근 6개월 · 결과 지역만, 지역당 12회)에만 쓴다.
    상세 화면(아파트 찾기·지역 채점표)을 다녀와도 상태가 남아 있어 이어서 진행된다. */
 var WIZ = { step: 1, mode: "pick", picks: [], macro: "", horizon: 10, age: "any",
             band: 84, budget: 0, busy: false, out: null };
@@ -1589,10 +1654,14 @@ function wizName(code) {
 }
 /* 훑을 평형대 — '소형'은 36·46 두 밴드를 함께 본다 */
 function wizBands() {
-  return WIZ.band === "small" ? [36, 46] : [Number(WIZ.band)];
+  if (WIZ.band === "small") return [36, 46];
+  if (WIZ.band === "big") return [101, 135];
+  return [Number(WIZ.band)];
 }
 function wizBandLabel() {
-  return WIZ.band === "small" ? "소형(46㎡ 이하)" : WIZ.band + "㎡대";
+  if (WIZ.band === "small") return "소형(46㎡ 이하)";
+  if (WIZ.band === "big") return "대형(101㎡ 이상)";
+  return WIZ.band + "㎡대";
 }
 function wizAgeOk(buildY, thisY) {
   if (WIZ.age === "any" || !buildY) return WIZ.age === "any";
@@ -1676,7 +1745,7 @@ function wizRun() {
     return;
   }
   WIZ.busy = true;
-  box.innerHTML = '<div class="callout">저장본을 여는 중… (' + regions.length + "개 지역 · 실거래 조회 없음)</div>";
+  box.innerHTML = '<div class="callout">저장본을 여는 중… (' + regions.length + "개 지역 · 추천 계산은 실거래 조회 없음)</div>";
   var thisY = new Date().getFullYear();
   var rankOf = {};
   RANKED.forEach(function (k, i) { rankOf[k] = i; });
@@ -1776,9 +1845,9 @@ function renderWizStep() {
     h += '<div class="wizq">연식은 어느 쪽이 좋으세요?</div>' +
       chipsHtml("wiz-age", [["new", "신축", "10년 이내"], ["semi", "준신축", "10~20년"],
                             ["old", "구축", "20년 초과"], ["any", "상관없음", ""]], WIZ.age) +
-      '<div class="note" style="margin-top:8px">평형: ' +
-      chipsHtml("wiz-band", [["small", "소형", "46㎡ 이하"], ["59", "59㎡대", ""],
-                             ["84", "84㎡대", ""], ["101", "101㎡대", ""]], WIZ.band) + "</div>" +
+      '<div class="wizq" style="margin-top:14px">평형은요?</div>' +
+      chipsHtml("wiz-band", [["small", "소형", "46㎡ 이하"], ["59", "59㎡대", "약 24평"],
+                             ["84", "84㎡대", "약 34평"], ["big", "대형", "101㎡ 이상"]], WIZ.band, "grid4") +
       wizNavHtml(true);
   } else {
     h += '<div class="wizq">예산은 어느 정도인가요? <span style="font-weight:400;font-size:.8rem;color:var(--ink-soft)">(매매가 기준)</span></div>' +
@@ -1801,7 +1870,7 @@ function renderWizStep() {
     bindChips("wiz-hz", function (v) { WIZ.horizon = Number(v); });
   } else if (WIZ.step === 3) {
     bindChips("wiz-age", function (v) { WIZ.age = v; });
-    bindChips("wiz-band", function (v) { WIZ.band = v === "small" ? "small" : Number(v); });
+    bindChips("wiz-band", function (v) { WIZ.band = (v === "small" || v === "big") ? v : Number(v); });
   } else {
     bindChips("wiz-bud", function (v) {
       WIZ.budget = Number(v);
@@ -1895,36 +1964,28 @@ function renderWizResult() {
   var h = '<div class="callout"><b>' + escHtml(condTxt) + "</b> — 후보 " + fmt(o.total) + "곳 중 TOP " + o.top.length + "</div>";
   h += o.top.map(function (t, i) {
     var age = t.buildY ? thisY - t.buildY : null;
-    return '<div class="reco' + (i === 0 ? " best" : "") + '" style="flex-wrap:wrap">' +
-      '<div class="no">' + (i + 1) + "</div>" +
-      '<div class="body">' +
-        '<div class="name">' + escHtml(t.apt) +
-          ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">' +
-          escHtml(wizName(t.code)) + " " + escHtml(t.dong) +
-          (t.buildY ? " · " + t.buildY + "년 (" + age + "년차)" : "") +
-          (t.hh ? " · " + fmt(t.hh) + "세대" : "") + "</span></div>" +
-        '<div class="chips">' +
-          '<span class="tagmini gold">' + (t.band || WIZ.band) + "㎡대 매매 " + eok(t.price) +
-            " <span style='opacity:.7'>(" + String(t.lastYear).slice(2) + "년 중위)</span></span>" +
-          (t.je != null
-            ? '<span class="tagmini">전세 ' + eok(t.je) +
-              (t.jeYear !== t.lastYear ? " <span style='opacity:.7'>(" + String(t.jeYear).slice(2) + "년)</span>" : "") + "</span>"
-            : "") +
-          (t.je != null && t.jeYear === t.lastYear
-            ? '<span class="tagmini">갭 ' + eok(t.price - t.je) + "</span>" : "") +
-          '<span class="tagmini ' + (t.cagr >= 7.2 ? "ok" : "") + '">' + WIZ.horizon + "년 " +
-            pct(t.cagr, 1) + "/년" + (t.thin ? "~" : "") + "</span>" +
-          '<span class="tagmini">급지 ' + (t.rankIdx >= 0 ? (t.rankIdx + 1) + "위" : "—") + "</span>" +
-          '<span class="tagmini">거래 ' + fmt(t.cnt) + "건</span>" +
-        "</div>" +
-        '<div class="btnrow" style="margin-top:8px">' +
-          '<button class="btn sm ghost" data-wzwhy="' + i + '">왜 추천했나요?</button>' +
-          '<button class="btn sm ghost" data-wzdj="' + i + '">이 지역 단지 더 보기</button>' +
-        "</div>" +
-        '<div id="wiz-why-' + i + '" style="display:none;margin-top:8px" class="note"></div>' +
+    return '<div class="wcard' + (i === 0 ? " best" : "") + '">' +
+      '<div class="whead">' +
+        '<div class="wrank">' + (i + 1) + "</div>" +
+        '<div class="wtitle"><div class="wname">' + escHtml(t.apt) + "</div>" +
+          '<div class="wmeta">' + escHtml(wizName(t.code)) + " " + escHtml(t.dong) +
+          (t.buildY ? " · " + t.buildY + "년(" + age + "년차)" : "") +
+          (t.hh ? " · " + fmt(t.hh) + "세대" : "") + "</div></div>" +
+        '<div class="wscore"><b>' + t.score.toFixed(0) + "</b><span>종합</span></div>" +
       "</div>" +
-      '<div class="money"><div class="score">' + t.score.toFixed(0) + "</div>" +
-        '<div class="need">종합 점수</div></div>' +
+      '<div class="wchips">' +
+        '<span class="tagmini gold">' + (t.band || 84) + "㎡대</span>" +
+        '<span class="tagmini' + (t.cagr >= 7.2 ? " ok" : "") + '">' + WIZ.horizon + "년 연 " +
+          pct(t.cagr, 1) + (t.thin ? "~" : "") + "</span>" +
+        '<span class="tagmini">급지 ' + (t.rankIdx >= 0 ? (t.rankIdx + 1) + "위" : "—") + "</span>" +
+        '<span class="tagmini">거래 ' + fmt(t.cnt) + "건</span>" +
+      "</div>" +
+      '<div class="pxbox" id="wiz-px-' + i + '">' + wizPxStoreHtml(t) + "</div>" +
+      '<div class="btnrow" style="margin-top:10px">' +
+        '<button class="btn sm ghost" data-wzwhy="' + i + '">왜 추천했나요?</button>' +
+        '<button class="btn sm ghost" data-wzdj="' + i + '">이 지역 단지 더 보기</button>' +
+      "</div>" +
+      '<div id="wiz-why-' + i + '" class="whybox" style="display:none"></div>' +
     "</div>";
   }).join("");
   h += '<div class="note" style="margin-top:10px"><b>다음 단계</b> — ' +
@@ -1939,32 +2000,36 @@ function renderWizResult() {
       var i = Number(b.dataset.wzwhy), t = WIZ.out.top[i];
       var d = document.getElementById("wiz-why-" + i);
       if (d.style.display === "block") { d.style.display = "none"; return; }
-      /* 근거마다 그 주장을 검증할 수 있는 화면으로 가는 길을 단다 —
-         저관심자는 안 눌러도 되고, 고관심자는 눌러서 파고든다 */
+      /* 근거마다 검증 화면으로 가는 길을 단다 — 누르면 이 단지·지역이 조건에 들어간 채로 조회된다 */
       function vlink(tab, label) {
         return ' <button class="btn sm ghost" data-wzgo="' + tab + '" style="padding:2px 8px;font-size:.72rem">' +
           label + " →</button>";
       }
       d.innerHTML =
-        "<b>① 성과</b> — 이 단지 " + (t.band || WIZ.band) + "㎡대의 최근 " + Math.round(t.yrs) + "년 연평균 상승률이 <b>" +
-          pct(t.cagr, 1) + "</b>입니다. 이 앱의 통과선(10년에 두 배 = 연 7.2%)" +
+        '<div class="whyrow"><div class="whyk">성과</div><div class="whyv">' +
+          (t.band || 84) + "㎡대 최근 " + Math.round(t.yrs) + "년 연평균 <b>" + pct(t.cagr, 1) +
+          "</b> — 통과선(10년에 두 배 = 연 7.2%)" +
           (t.cagr >= 7.2 ? "을 넘었습니다" : "에는 못 미치지만 조건 안에서는 상위입니다") + "." +
-          (t.thin ? " 다만 비교 구간 한쪽이 거래 1건뿐이라(~) 표본이 얇습니다." : "") +
-          vlink("cmpx", "10년 추이 직접 보기") + "<br>" +
-        "<b>② 급지</b> — " + escHtml(wizName(t.code)) + "는 전국 실거래 평당가 서열 <b>" +
+          (t.thin ? " 비교 구간 한쪽이 거래 1건뿐(~)이라 표본이 얇습니다." : "") +
+          vlink("cmpx", "이 단지 10년 추이") + "</div></div>" +
+        '<div class="whyrow"><div class="whyk">급지</div><div class="whyv">' +
+          escHtml(wizName(t.code)) + " — 전국 실거래 평당가 서열 <b>" +
           (t.rankIdx >= 0 ? (t.rankIdx + 1) + "위 / " + RANKED.length + "곳" : "집계 밖") +
-          "</b>입니다. 상위 급지일수록 이후 10년 성과가 체계적으로 높았습니다." +
-          vlink("reco", "채점표·백테스트") + vlink("tiers", "전국 등급표") + "<br>" +
-        "<b>③ 거래</b> — 17년간 " + fmt(t.cnt) + "건이 거래된 단지라 시세가 꾸준히 확인되고, 팔 때도 상대가 있습니다." +
-          vlink("vol", "거래량 흐름") + "<br>" +
-        "<b>④ 조건</b> — " + t.lastYear + "년 중위가 " + eok(t.price) +
-          (WIZ.budget ? "로 예산(" + eok(WIZ.budget) + ") 안" : "") +
-          (t.buildY ? " · " + (new Date().getFullYear() - t.buildY) + "년차로 고르신 연식 범위" : "") + "에 맞습니다." +
-          vlink("calc", "대출·필요현금 계산") + "<br>" +
-        '<span style="color:var(--ink-soft)">각 화면을 보고 뒤로가기(또는 위 추천받기 탭)로 돌아오면 이 결과가 그대로 있습니다.</span>';
+          "</b>. 상위 급지일수록 이후 10년 성과가 체계적으로 높았습니다." +
+          vlink("reco", "이 지역 채점표") + vlink("tiers", "전국 등급표") + "</div></div>" +
+        '<div class="whyrow"><div class="whyk">거래</div><div class="whyv">17년간 <b>' + fmt(t.cnt) +
+          "건</b> — 시세가 꾸준히 확인되고, 팔 때도 상대가 있습니다." +
+          vlink("vol", "이 지역 거래량") + "</div></div>" +
+        '<div class="whyrow"><div class="whyk">조건</div><div class="whyv">' + t.lastYear + "년 중위가 <b>" +
+          eok(t.price) + "</b>" +
+          (WIZ.budget ? " — 예산(" + eok(WIZ.budget) + ") 안" : "") +
+          (t.buildY ? " · " + (thisY - t.buildY) + "년차로 고르신 연식 범위 안" : "") + "입니다." +
+          vlink("calc", "이 가격 필요현금") + "</div></div>" +
+        '<div class="pxcap">버튼을 누르면 이 단지·지역이 <b>조건에 들어간 채로 조회</b>됩니다. ' +
+        "뒤로가기(또는 추천받기 탭)로 돌아오면 이 결과가 그대로 있습니다.</div>";
       d.style.display = "block";
       d.querySelectorAll("button[data-wzgo]").forEach(function (vb) {
-        vb.addEventListener("click", function () { showTab(vb.dataset.wzgo); window.scrollTo(0, 0); });
+        vb.addEventListener("click", function () { wizGo(vb.dataset.wzgo, t); });
       });
     });
   });
@@ -1975,9 +2040,13 @@ function renderWizResult() {
          값을 먼저 넣으면 지워진다 (v5.22의 버그) */
       showTab("danji");
       var sel = document.getElementById("dj-region");
-      if (sel) sel.value = t.code;
+      /* 값만 넣으면 화면의 조회조건(선택 버튼 라벨)이 안 바뀐다 — change까지 쏜다 (v5.24의 버그) */
+      if (sel) { sel.value = t.code; fireChange(sel); }
       var bandSel = document.getElementById("dj-band");
-      if (bandSel) bandSel.value = String(t.band || (WIZ.band === "small" ? 46 : WIZ.band));
+      if (bandSel) {
+        bandSel.value = String(t.band || (WIZ.band === "small" ? 46 : (WIZ.band === "big" ? 101 : WIZ.band)));
+        fireChange(bandSel);
+      }
       window.scrollTo(0, 0);
       var go = document.getElementById("dj-go");
       if (go && sel && sel.value === t.code) go.click();
@@ -1985,12 +2054,172 @@ function renderWizResult() {
   });
   var tg = document.getElementById("wiz-toguide");
   if (tg) tg.addEventListener("click", function () { showTab("guide"); window.scrollTo(0, 0); });
+  wizLoadDetails();
+}
+
+/* change를 프로그램으로 쏠 때 — 지역 선택 버튼 라벨 등 화면 동기화용 */
+function fireChange(el) {
+  var ev;
+  try { ev = new Event("change", { bubbles: true }); }
+  catch (e) { ev = document.createEvent("HTMLEvents"); ev.initEvent("change", true, false); }
+  el.dispatchEvent(ev);
+}
+
+/* ── 결과 카드 시세표 ──
+   처음엔 저장본 연 중위로 그려 두고, 최근 6개월 실거래가 도착하면
+   최근 거래(금액·층·년월) / 6개월 중위 / 최고가(층)로 바꾼다. */
+function wizPxStoreHtml(t) {
+  var sMed = eok(t.price) + " <small>(" + String(t.lastYear).slice(2) + "년)</small>";
+  var jMed = t.je != null ? eok(t.je) + " <small>(" + String(t.jeYear).slice(2) + "년)</small>" : "—";
+  var cap = "저장본 연 중위 기준";
+  if (t.je != null && t.jeYear === t.lastYear) cap += " · 갭 " + eok(t.price - t.je);
+  return '<table class="pxt"><thead><tr><th></th><th>최근 실거래</th><th>중위</th><th>최고</th></tr></thead><tbody>' +
+    "<tr><th>매매</th><td>—</td><td><b>" + sMed + "</b></td><td>—</td></tr>" +
+    "<tr><th>전세</th><td>—</td><td>" + jMed + "</td><td>—</td></tr>" +
+    "</tbody></table>" +
+    '<div class="pxcap">' + cap + " · 최근 6개월 실거래 불러오는 중…</div>";
+}
+/* 최근 6개월 실거래에서 이 단지·평형대의 최근/중위/최고 (층 포함) */
+function wizDetailStats(data, t) {
+  var key = btKey(t.dong, t.apt, "");
+  function pick(monthArr, field) {
+    var deals = [];
+    monthArr.forEach(function (m) {
+      m.deals.forEach(function (dd) {
+        if (inBand(dd.area, t.band || 84) && dealKey(dd) === key) deals.push(dd);
+      });
+    });
+    if (!deals.length) return null;
+    deals.sort(function (a, b) { return (Number(a.ym) - Number(b.ym)) || ((a.day || 0) - (b.day || 0)); });
+    var hi = deals[0];
+    deals.forEach(function (dd) { if (dd[field] > hi[field]) hi = dd; });
+    return { last: deals[deals.length - 1], med: median(deals.map(function (dd) { return dd[field]; })),
+             hi: hi, n: deals.length, field: field };
+  }
+  return { sale: pick(data.sale, "amount"), rent: pick(data.rent, "deposit") };
+}
+function wizPxCell(d, isLast) {
+  if (!d) return "—";
+  var dd = isLast ? d.last : d.hi;
+  var s = "<b>" + eok(dd[d.field]) + "</b>";
+  if (dd.floor) s += " <small>" + dd.floor + "층</small>";
+  if (isLast && dd.ym) s += " <small>" + String(dd.ym).slice(2, 4) + "." + Number(String(dd.ym).slice(4)) + "</small>";
+  return s;
+}
+function wizPxLiveHtml(t, st) {
+  var s = st.sale, r = st.rent;
+  if (!s && !r) return wizPxStoreHtml(t).replace("최근 6개월 실거래 불러오는 중…", "최근 6개월 이 평형대 실거래 없음");
+  var cap = "최근 6개월 " + (t.band || 84) + "㎡대 실거래 — 매매 " + (s ? s.n : 0) + "건 · 전세 " + (r ? r.n : 0) + "건";
+  if (s && r) cap += " · 갭(중위) " + eok(s.med - r.med);
+  return '<table class="pxt"><thead><tr><th></th><th>최근 실거래</th><th>6개월 중위</th><th>최고</th></tr></thead><tbody>' +
+    "<tr><th>매매</th><td>" + wizPxCell(s, true) + "</td><td>" + (s ? eok(s.med) : "—") + "</td><td>" + wizPxCell(s, false) + "</td></tr>" +
+    "<tr><th>전세</th><td>" + wizPxCell(r, true) + "</td><td>" + (r ? eok(r.med) : "—") + "</td><td>" + wizPxCell(r, false) + "</td></tr>" +
+    "</tbody></table>" + '<div class="pxcap">' + cap + "</div>";
+}
+/* 결과 지역만 순차 조회 (지역당 12회, TRADE_MEMO 캐시 재사용) */
+function wizLoadDetails() {
+  var out = WIZ.out;
+  if (!out || !out.top.length) return;
+  var codes = [];
+  out.top.forEach(function (t) { if (codes.indexOf(t.code) < 0) codes.push(t.code); });
+  var chain = Promise.resolve();
+  codes.forEach(function (c) {
+    chain = chain.then(function () {
+      if (WIZ.out !== out) return null;              /* 그 사이 다시 추천했으면 버린다 */
+      return fetchMonths(c, 6).then(function (data) {
+        if (WIZ.out !== out) return;
+        out.top.forEach(function (t, i) {
+          if (t.code !== c) return;
+          var el = document.getElementById("wiz-px-" + i);
+          if (el) el.innerHTML = wizPxLiveHtml(t, wizDetailStats(data, t));
+        });
+      })["catch"](function () {
+        out.top.forEach(function (t, i) {
+          if (t.code !== c) return;
+          var el = document.getElementById("wiz-px-" + i);
+          var cap = el && el.querySelector(".pxcap");
+          if (cap) cap.textContent = "최근 실거래 조회 실패 — 저장본 연 중위 기준입니다.";
+        });
+      });
+    });
+  });
+}
+
+/* 검증 링크 — 화면만 여는 게 아니라 이 단지·지역을 조건에 넣고 조회까지 */
+function wizGo(tab, t) {
+  showTab(tab);
+  window.scrollTo(0, 0);
+  if (tab === "cmpx") {
+    var rb = document.querySelector('#cx-range button[data-r="y"]');
+    if (rb) rb.click();                              /* 10년 모드 — 저장본이라 조회 0회 */
+    var r0 = document.getElementById("cx-r0");
+    if (r0) {
+      for (var oi = 0; oi < r0.options.length; oi++)
+        if (String(r0.options[oi].value).split(":")[0] === String(t.code)) { r0.selectedIndex = oi; break; }
+      fireChange(r0);
+    }
+    var b0 = document.getElementById("cx-b0");
+    if (b0) { b0.value = String(t.band || 84); fireChange(b0); }
+    loadCmpSlot(0);                                  /* 저장본을 연 뒤 단지까지 골라 준다 */
+    var tries = 0, id = btKey(t.dong, t.apt, "");
+    var tm = setInterval(function () {
+      var a0 = document.getElementById("cx-a0");
+      if (a0 && a0.options.length > 1) {
+        clearInterval(tm);
+        for (var ai = 0; ai < a0.options.length; ai++)
+          if (a0.options[ai].value === id) { a0.selectedIndex = ai; fireChange(a0); break; }
+      } else if (++tries > 40) clearInterval(tm);
+    }, 150);
+  } else if (tab === "reco") {
+    flashRegionRow("rc-table", t.code);
+  } else if (tab === "tiers") {
+    var sb = document.querySelector('#tr-sido button[data-s="' + kbSido(t.code) + '"]');
+    if (sb) sb.click();
+    flashRegionRow("tr-table", t.code);
+  } else if (tab === "vol") {
+    var vr = document.getElementById("vl-region");
+    if (vr) {
+      for (var vi = 0; vi < vr.options.length; vi++)
+        if (String(vr.options[vi].value).split(":")[0] === String(t.code)) { vr.selectedIndex = vi; break; }
+      fireChange(vr);
+    }
+    var vgo = document.getElementById("vl-go");
+    if (vgo) vgo.click();
+  } else if (tab === "calc") {
+    CALC.price = t.price; CALC.reg = isRegulated(t.code); CALC.metro = !!METRO[t.code];
+    var cp = document.getElementById("cl-price");
+    if (cp) cp.value = t.price;
+    var cr = document.getElementById("cl-reg"), cm = document.getElementById("cl-metro");
+    if (cr) cr.checked = CALC.reg;
+    if (cm) cm.checked = CALC.metro;
+    renderCalc();
+  }
+}
+/* 표에서 해당 지역 행을 찾아 잠깐 강조 */
+function flashRegionRow(tid, code) {
+  setTimeout(function () {
+    var tb = document.querySelector("#" + tid + " tbody");
+    if (!tb) return;
+    var tr = tb.querySelector('tr[data-k="' + code + '"]');
+    if (!tr) {
+      var nm = "";
+      try { nm = disp(code); } catch (e) {}
+      if (nm) for (var i = 0; i < tb.rows.length; i++)
+        if (tb.rows[i].textContent.indexOf(nm) >= 0) { tr = tb.rows[i]; break; }
+    }
+    if (!tr) return;
+    tr.classList.add("flash");
+    if (tr.scrollIntoView) tr.scrollIntoView({ block: "center" });
+    setTimeout(function () { tr.classList.remove("flash"); }, 2600);
+  }, 150);
 }
 
 function scoreRegion(k, idx, cond, homePmArr) {
   var N = RANKED.length;
   var pm = lastVal("salePm", k);
-  var f = finance(k, pm * cond.area, cond);
+  var rs = regionSale(k, cond.area);
+  var basePrice = rs ? rs.v : pm * cond.area;
+  var f = finance(k, basePrice, cond);
 
   /* ① 급지: 서열 백분위 */
   var sRank = (1 - idx / (N - 1)) * 100;
@@ -2019,7 +2248,7 @@ function scoreRegion(k, idx, cond, homePmArr) {
   }
 
   /* ⑤ 자금: 현금/필요현금 (매수 방식 반영) */
-  var plan = buyPlan(k, pm * cond.area, cond, RECO.buy) || f;
+  var plan = buyPlan(k, basePrice, cond, RECO.buy) || f;
   var sCash = 50;
   if (cond.cash > 0 && plan.need > 0) sCash = clamp(cond.cash / plan.need * 100, 0, 100);
 
@@ -2028,7 +2257,7 @@ function scoreRegion(k, idx, cond, homePmArr) {
   var total = (sRank * W.wRank + sPerf * W.wPerf + sSupply * W.wSupply +
                sTiming * W.wTiming + sCash * W.wCash) / wSum;
 
-  return { key: k, rank: idx + 1, pm: pm, fin: plan, loanFin: f, cagr: cagr,
+  return { key: k, rank: idx + 1, pm: pm, base: basePrice, fin: plan, loanFin: f, cagr: cagr,
            dist: cond.home ? distKm(cond.home, k) : null,
            s: { rank: sRank, perf: sPerf, supply: sSupply, timing: sTiming, cash: sCash },
            timingNote: timingNote, total: total };
@@ -2098,8 +2327,9 @@ function buildReco(root) {
       '<div class="tblwrap"><table id="rc-table"><thead><tr>' +
       '<th>#</th><th>지역</th><th>종합</th><th>급지</th><th>성과</th><th>수급</th><th>타이밍</th><th>자금</th><th>방식</th><th>필요현금</th><th>거리</th></tr>' +
       '</thead><tbody></tbody></table></div>' +
-      '<div class="note">추천 카드의 필요현금은 <b>그 지역 ㎡당 평균가</b> 기준입니다. 실제 단지는 평균 위아래로 ' +
-        '흩어져 있고 대장 단지는 평균보다 30~50% 비싼 경우가 흔합니다 — 단지 단위 확인은 단지 찾기 탭(다음 버전)에서 합니다.</div></div>';
+      '<div class="note">필요현금·갭은 <b>그 지역 기준 면적의 최근 3개월 중위 실거래가</b>' +
+        '(59·84㎡ 외 평형은 ㎡당가 × 면적 환산) 기준입니다. 지역의 <b>중간 단지</b> 값이라 실제 단지는 위아래로 ' +
+        '흩어져 있고, 대장 단지는 30~50% 비싼 경우가 흔합니다 — 단지 단위 확인은 각 카드의 [단지 보기]로 이어집니다.</div></div>';
 
   root.querySelectorAll("#rc-sort button").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -2199,10 +2429,10 @@ function renderReco() {
         var tier = Math.min(10, Math.floor(r.rank / RANKED.length * 10) + 1);
         /* 같은 예산으로 전세 끼고 가능한 다른 후보 3곳 */
         var alts = rows.filter(function (x) {
-          var j = financeJeonse(x.key, x.pm * cond.area, cond);
+          var j = financeJeonse(x.key, x.base, cond);
           return j && cond.cash > 0 && j.need <= cond.cash && x.key !== r.key;
         }).slice(0, 3).map(function (x) {
-          var j = financeJeonse(x.key, x.pm * cond.area, cond);
+          var j = financeJeonse(x.key, x.base, cond);
           return disp(x.key) + " " + eok(j.need);
         });
         var bl = [];
@@ -2244,7 +2474,9 @@ function renderReco() {
           ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">서열 ' + r.rank + "위 · " + fmt(r.pm) + "만/㎡" +
           (r.dist != null ? " · 내 지역에서 " + r.dist + "km" : "") + (isRegulated(r.key) ? " · 규제지역" : "") + "</span></div>" +
         '<div class="rowinfo" style="margin:4px 0 6px">' + r.fin.modeName + " · 필요현금 <b>" + eok(r.fin.need) + "</b>" +
-          (r.fin.mode === "jeonse" ? " (갭 " + eok(r.fin.gap) + ")" : (r.loanFin.loan > 0 ? " · 대출 " + eok(r.loanFin.loan) : "")) +
+          (r.fin.mode === "jeonse"
+            ? " (갭 " + eok(r.fin.gap) + " — 중위 매매 " + eok(r.fin.sale) + " · 전세 " + eok(r.fin.je) + ")"
+            : (r.loanFin.loan > 0 ? " · 대출 " + eok(r.loanFin.loan) : "")) +
           (cond.cash > 0 ? (r.fin.need <= cond.cash ? ' <span class="tagmini ok">실행 가능</span>' : ' <span class="tagmini no">부족 ' + eok(r.fin.need - cond.cash) + "</span>") : "") + "</div>" +
         radar + rationale +
         '<div class="btnrow" style="margin-top:8px">' +
@@ -2261,7 +2493,7 @@ function renderReco() {
         if (b.dataset.rc === "danji") {
           showTab("danji");
           var sel = document.getElementById("dj-region");
-          if (sel && LAWD[k2]) sel.value = LAWD[k2];
+          if (sel && LAWD[k2]) { sel.value = LAWD[k2]; fireChange(sel); }
         } else if (b.dataset.rc === "map") {
           showTab("mapx"); renderMapx();
           if (COORDS[k2]) showMapDetail(k2);
@@ -2299,7 +2531,7 @@ function renderReco() {
   var tb = document.querySelector("#rc-table tbody");
   tb.innerHTML = list.map(function (r, i) {
     var hit = cond.cash > 0 && r.fin.need <= cond.cash;
-    return '<tr class="' + (hit ? "hit " : "") + (isMine(r.key) ? "mine" : "") + '"><td>' + (i + 1) + "</td>" +
+    return '<tr data-k="' + r.key + '" class="' + (hit ? "hit " : "") + (isMine(r.key) ? "mine" : "") + '"><td>' + (i + 1) + "</td>" +
       "<td>" + regionCell(r.key) + "</td>" +
       "<td><b>" + r.total.toFixed(1) + "</b></td>" +
       "<td>" + r.s.rank.toFixed(0) + "</td>" +
@@ -5576,8 +5808,9 @@ function mapPinData(scope) {
     return true;
   }).map(function (k) {
     var pm = lastVal("salePm", k), jpm = lastVal("jeonsePm", k);
+    var rsM = regionSale(k, cond.area);
     return { key: k, lat: COORDS[k][0], lng: COORDS[k][1], pm: pm,
-             price: pm * cond.area, jr: (pm && jpm) ? jpm / pm * 100 : null,
+             price: rsM ? rsM.v : pm * cond.area, jr: (pm && jpm) ? jpm / pm * 100 : null,
              rank: RANKED.indexOf(k) + 1 };
   });
   /* 분위 색: 표시 지역들 안에서의 가격 순위 기반 */
@@ -5651,7 +5884,8 @@ function showMapDetail(k) {
   var cond = getCond();
   var pm = lastVal("salePm", k), jpm = lastVal("jeonsePm", k);
   var idx = RANKED.indexOf(k);
-  var f = finance(k, pm * cond.area, cond);
+  var rsD = regionSale(k, cond.area);
+  var f = finance(k, rsD ? rsD.v : pm * cond.area, cond);
   var r10 = idxChange("sale", ik(k), 120);
   var jr = (pm && jpm) ? jpm / pm * 100 : null;
   var upper = idx > 0 ? RANKED[idx - 1] : null;
@@ -5663,7 +5897,7 @@ function showMapDetail(k) {
       ' <span class="badge ok">서열 ' + (idx + 1) + "위 / " + RANKED.length + "곳</span></h2>" +
     '<div class="status" style="margin-top:10px">' +
       statBox("㎡당가", fmt(pm) + " 만원") +
-      statBox(cond.area + "㎡ 매수가", eok(pm * cond.area)) +
+      statBox(cond.area + "㎡ 매수가(중위)", eok(f.price)) +
       statBox("전세가율", jr != null ? jr.toFixed(1) + "%" : "—") +
       statBox("내 조건 필요현금", eok(f.need), (cond.cash > 0 && f.need <= cond.cash) ? "up" : "down") +
       statBox("10년 상승률", r10 != null ? pct(r10, 1) : "—", cls(r10)) +

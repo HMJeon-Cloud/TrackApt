@@ -305,6 +305,9 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 .whybtns .btn{padding:3px 10px;font-size:.72rem}
 .attbox{margin:8px 0 4px}
 .reco>.attbox{flex-basis:100%;width:100%;margin:2px 0 0}
+.reco>.rcfull{flex-basis:100%;width:100%;order:3;margin-top:4px}
+.reco>.attbox{order:4}
+.reco .body{flex:1 1 auto}
 .atgrp{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:8px 0;background:rgba(255,255,255,.02)}
 .atgh{font-weight:800;font-size:.8rem;margin-bottom:2px}
 .atgh small{color:var(--ink-soft);font-weight:400}
@@ -389,7 +392,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.31</span>
+    <span class="ver">v5.33</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1576,6 +1579,17 @@ function financeJeonse(k, price, cond) {
    조건 평형대의 최근 연 중위가를 단지별로 뽑아, 연식으로 가른 뒤
    각 묶음의 대장(1위)·중위(중앙)·하위(하위 25% 지점) 단지를 이름째 보여준다.
    연식 미상 단지는 뺀다(애매한 데이터는 비운다는 원칙). */
+/* 옛 연도 값을 현재 시점으로 환산하는 배수 — 그 지역 매매지수 비율.
+   지수가 없으면 1(환산 없음)로 두어 조용히 예전처럼 동작한다. */
+function tierYearAdj(code, fromY, toY) {
+  if (!code || fromY === toY) return 1;
+  try {
+    var a = decVal("sale", ik(code), fromY), b = decVal("sale", ik(code), toY);
+    if (a == null || b == null || a <= 0) return 1;
+    var m = b / a;
+    return (m > 0.5 && m < 2) ? m : 1;      /* 말이 안 되는 배수는 쓰지 않는다 */
+  } catch (e) { return 1; }
+}
 function ageTierMatrix(st, band, thisY) {
   if (!st || !st.cx) return null;
   var groups = { new: [], semi: [], old: [] };
@@ -1583,8 +1597,13 @@ function ageTierMatrix(st, band, thisY) {
     if (!cx.y) return;
     var s = cx.s && cx.s[String(band)];
     if (!s) return;
+    /* 그 해 거래가 1건뿐인 중위가는 대표값이 못 된다 —
+       마법사(cnt>=5)와 달리 가드가 없어 1건짜리가 '중위' 자리에 올라왔다(v5.32).
+       2건 이상인 가장 최근 해를 쓰고, 그런 해가 없으면 1건이라도 쓰되 건수를 밝힌다. */
     var last = -1, i;
-    for (i = s.p.length - 1; i >= 0; i--) if (s.p[i] != null) { last = i; break; }
+    for (i = s.p.length - 1; i >= 0; i--)
+      if (s.p[i] != null && (!s.c || s.c[i] >= 2)) { last = i; break; }
+    if (last < 0) for (i = s.p.length - 1; i >= 0; i--) if (s.p[i] != null) { last = i; break; }
     if (last < 0) return;
     var yr = st.y0 + s.o + last;
     if (yr < thisY - 2) return;                      /* 거래가 끊긴 단지 제외 */
@@ -1592,14 +1611,20 @@ function ageTierMatrix(st, band, thisY) {
     if (rj) for (i = rj.p.length - 1; i >= 0; i--) if (rj.p[i] != null) {
       je = rj.p[i]; jy = st.y0 + rj.o + i; break;
     }
-    if (jy != null && jy < yr - 1) je = null;        /* 옛 전세는 안 쓴다 */
+    /* 다른 해의 전세로 갭을 만들지 않는다 — 매매 2026·전세 2025를 빼면 그 숫자는 뜻이 없다
+       (v5.20 원칙. v5.32까지 1년 차이를 허용하고 있었다) */
+    if (jy !== yr) je = null;
     var a = thisY - cx.y;
     var g = a <= 10 ? "new" : (a <= 20 ? "semi" : "old");
-    groups[g].push({ apt: cx.n, y: cx.y, price: s.p[last], je: je, yr: yr });
+    groups[g].push({ apt: cx.n, y: cx.y, price: s.p[last], je: je, yr: yr,
+                     cnt: s.c ? s.c[last] : null,
+                     /* 순위는 **같은 시점으로 환산한 값**으로 매긴다 — 2024년 9.0억이
+                        2026년 8.5억보다 위에 오면 그 사이 오른 시장이 통째로 무시된다 */
+                     padj: s.p[last] * tierYearAdj(st.code, yr, thisY) });
   });
   var out = { any: false };
   ["new", "semi", "old"].forEach(function (g) {
-    var arr = groups[g].sort(function (a, b) { return b.price - a.price; });
+    var arr = groups[g].sort(function (a, b) { return b.padj - a.padj; });
     if (!arr.length) { out[g] = null; return; }
     out.any = true;
     out[g] = { n: arr.length, top: arr[0],
@@ -1620,7 +1645,7 @@ function cellNeed(k, c, cond) {
 function ageTierHtml(mx, code, cond) {
   if (!mx) return '<div class="pxcap">이 지역 저장본이 없거나 ' + cond.area +
     "㎡대 거래 단지가 없어 연식·급별 표를 만들 수 없습니다.</div>";
-  var AGE = [["new", "신축 ~10년"], ["semi", "준신축 10~20년"], ["old", "구축 20년~"]];
+  var AGE = [["new", "신축 10년 이하"], ["semi", "준신축 11~20년"], ["old", "구축 21년 이상"]];
   var TIER = [["top", "대장"], ["mid", "중위"], ["low", "하위 25%"]];
   var h = AGE.map(function (a) {
     var g = mx[a[0]];
@@ -1638,7 +1663,8 @@ function ageTierHtml(mx, code, cond) {
           '<div class="atbody"><div class="atname" title="' + escHtml(c.apt) + '">' + escHtml(c.apt) +
             " <small>" + c.y + "년</small></div>" +
           '<div class="atrow">매매 <b>' + eok(c.price) + "</b> <small>(" + String(c.yr).slice(2) +
-            "년 중위)</small> · 필요현금 <b>" + eok(f.need) + "</b> <small>(" + f.mode +
+            "년 중위 · " + (c.cnt != null ? fmt(c.cnt) + "건" : "건수 미상") + ")</small></div>" +
+          '<div class="atrow">필요현금 <b>' + eok(f.need) + "</b> <small>(" + f.mode +
             (hit ? " · 가능" : "") + ")</small></div></div></div>";
       }).join("");
     } else {
@@ -1646,13 +1672,22 @@ function ageTierHtml(mx, code, cond) {
         '<div class="atbody"><div class="atrow">이 연식대에 최근 거래 단지가 없습니다.</div></div></div>';
     }
     return '<div class="atgrp"><div class="atgh">' + a[1] +
-      (g ? ' <small>' + g.n + "곳</small>" : "") + "</div>" + items + "</div>";
+      (g ? ' <small title="' + escHtml("기준 면적 실거래가 최근 2년 안에 있는 단지 수입니다 — 이 면적대 거래가 없는 단지는 빠집니다") +
+        '">' + g.n + "곳</small>" +
+        (g.n < 3 ? ' <small style="color:var(--ink-soft)">· ' + g.n +
+          "곳뿐이라 " + (g.n === 1 ? "대장만" : "대장·하위만") + " 표시</small>" : "") : "") +
+      "</div>" + items + "</div>";
   }).join("");
   return h +
     '<div class="pxcap">' + cond.area + "㎡대 · <b>매매</b>는 그 단지의 최근 연도 <b>중위 실거래가</b>(저장본 — " +
     "마지막 한 건이 아니라 그 해 거래들의 중앙값) · <b>필요현금</b>은 전세 끼고면 갭(단지 전세 실거래)+취득세·부대비, " +
     "대출 매수면 매수가−대출+취득세·부대비 · <b>초록 = 시작 탭에 적은 동원 가능 현금</b>으로 감당되는 칸" +
-    (cond.cash > 0 ? "" : " (현금을 입력하면 표시됩니다)") + " · 연식 미상 단지는 뺐습니다.</div>";
+    (cond.cash > 0 ? "" : " (현금을 입력하면 표시됩니다)") + " · 연식 미상 단지는 뺐습니다. " +
+    "<b>거래 2건 이상인 가장 최근 해</b>를 쓰며, 그런 해가 없으면 1건이라도 쓰되 건수를 그대로 적습니다 — " +
+    "<b>1건</b>이면 특이 거래일 수 있으니 참고만 하세요.<br>" +
+    "<b>순위 방법</b> — 대장·중위·하위는 <b>각 연식 그룹 안에서의 순위</b>이며(지역 전체 순위가 아닙니다), " +
+    "단지마다 기준 연도가 다를 수 있어 <b>지역 매매지수로 현재 시점에 환산한 값</b>으로 줄을 세웁니다. " +
+    "표시 금액은 실제 거래된 그 해의 중위가 그대로입니다. 갭은 <b>같은 해 전세</b>가 있을 때만 만듭니다.</div>";
 }
 /* 상위 카드 5곳의 행렬을 순차로 채운다 (loadStore 캐시라 두 번째부터는 즉시) */
 function recoLoadTiers(keys, cond) {
@@ -2022,8 +2057,8 @@ function renderWizStep() {
       wizNavHtml(true);
   } else if (WIZ.step === 3) {
     h += '<div class="wizq">연식은 어느 쪽이 좋으세요?</div>' +
-      chipsHtml("wiz-age", [["new", "신축", "10년 이내"], ["semi", "준신축", "10~20년"],
-                            ["old", "구축", "20년 초과"], ["any", "상관없음", ""]], WIZ.age) +
+      chipsHtml("wiz-age", [["new", "신축", "10년 이하"], ["semi", "준신축", "11~20년"],
+                            ["old", "구축", "21년 이상"], ["any", "상관없음", ""]], WIZ.age) +
       '<div class="wizq" style="margin-top:14px">평형은요?</div>' +
       chipsHtml("wiz-band", [["small", "소형", "46㎡ 이하"], ["59", "59㎡대", "약 24평"],
                              ["84", "84㎡대", "약 34평"], ["big", "대형", "101㎡ 이상"]], WIZ.band, "grid4") +
@@ -2551,13 +2586,19 @@ function scoreRegion(k, idx, cond, homePmArr) {
   var sSupply = SUPPLY_SCORE[k] != null ? SUPPLY_SCORE[k] : 60;
 
   /* ④ 타이밍: 무주택=전세가율 밴드(높을수록↑), 유주택=배율 밴드(낮을수록↑) → 40~100 */
-  var sTiming = 70, timingNote = "중립";
+  var sTiming = 70, timingNote = "중립", timingMode = "none", timingPct = null;
   if (cond.own === "none" || !homePmArr) {
     var b = bandStats(ratioSeries(pmSeries("jeonsePm", k), pmSeries("salePm", k), 100), 120);
-    if (b && b.count >= 24) { sTiming = 40 + b.pctile * 0.6; timingNote = "전세가율 " + b.pctile.toFixed(0) + "%"; }
+    if (b && b.count >= 24) {
+      sTiming = 40 + b.pctile * 0.6; timingNote = "전세가율 " + b.pctile.toFixed(0) + "%";
+      timingMode = "jr"; timingPct = b.pctile;
+    }
   } else {
     var b2 = bandStats(ratioSeries(pmSeries("salePm", k), homePmArr, 1), 120);
-    if (b2 && b2.count >= 24) { sTiming = 40 + (100 - b2.pctile) * 0.6; timingNote = "배율 " + b2.pctile.toFixed(0) + "%"; }
+    if (b2 && b2.count >= 24) {
+      sTiming = 40 + (100 - b2.pctile) * 0.6; timingNote = "배율 " + b2.pctile.toFixed(0) + "%";
+      timingMode = "mult"; timingPct = b2.pctile;
+    }
   }
 
   /* ⑤ 자금: 현금/필요현금 (매수 방식 반영) */
@@ -2573,7 +2614,7 @@ function scoreRegion(k, idx, cond, homePmArr) {
   return { key: k, rank: idx + 1, pm: pm, base: basePrice, fin: plan, loanFin: f, cagr: cagr,
            dist: cond.home ? distKm(cond.home, k) : null,
            s: { rank: sRank, perf: sPerf, supply: sSupply, timing: sTiming, cash: sCash },
-           timingNote: timingNote, total: total };
+           timingNote: timingNote, timingMode: timingMode, timingPct: timingPct, total: total };
 }
 
 function buildReco(root) {
@@ -2766,9 +2807,19 @@ function renderReco() {
             (alts.length ? " 같은 예산의 다른 후보: " + alts.join(" · ") + "." : "")
           : "<b>대출 매수</b> 기준입니다 — " + r.loanFin.tag + "에 걸려 대출 " + eok(r.loanFin.loan) + ", 자기자금 " +
             eok(r.fin.need) + "이 필요합니다." + (isRegulated(r.key) ? " 규제지역이라 실거주 의무가 있어 전세 끼고 매수는 막힙니다." : ""));
-        if (jb && jb.count >= 24) bl.push("진입 타이밍 — 전세가율이 10년 밴드의 <b>" + jb.pctile.toFixed(0) + "%</b> 지점입니다. " +
-          (jb.pctile >= 70 ? "역대 대비 높아 갭이 얇은, 진입 부담이 낮은 구간입니다." :
-           jb.pctile <= 30 ? "역대 최저권이라 매매가에 기대가 많이 실린 상태입니다." : "중립 구간입니다."));
+        /* 점수에 실제로 쓴 지표로 설명한다 — 유주택인데 전세가율을 설명하면 칩(배율)과 어긋난다(v5.32) */
+        if (r.timingMode === "mult") {
+          bl.push("진입 타이밍 — 유주택이라 <b>내 지역 대비 가격 배율</b>로 봅니다. 지금은 10년 밴드의 <b>" +
+            r.timingPct.toFixed(0) + "%</b> 지점입니다. " +
+            (r.timingPct <= 30 ? "격차가 역대 대비 좁아 적은 추가금으로 올라갈 수 있는 구간입니다." :
+             r.timingPct >= 70 ? "격차가 역대 대비 벌어져 갈아타기 비용이 큰 구간입니다." : "중립 구간입니다.") +
+            (jb && jb.count >= 24 ? " (무주택 기준으로 보면 전세가율은 밴드의 " + jb.pctile.toFixed(0) + "% 지점입니다.)" : ""));
+        } else if (r.timingMode === "jr" && jb && jb.count >= 24) {
+          bl.push("진입 타이밍 — 무주택이라 <b>전세가율</b>로 봅니다. 지금은 10년 밴드의 <b>" +
+            jb.pctile.toFixed(0) + "%</b> 지점입니다. " +
+            (jb.pctile >= 70 ? "역대 대비 높아 갭이 얇은, 진입 부담이 낮은 구간입니다." :
+             jb.pctile <= 30 ? "역대 최저권이라 매매가에 기대가 많이 실린 상태입니다." : "중립 구간입니다."));
+        }
         bl.push("이 순위는 5개 축의 가중 합계입니다. 점수 자체보다 <b>어느 축이 낮은지</b>를 보고, 단지 단계로 내려가 " +
           "세대수·역세권 조건까지 맞추면 최종 검토 탭에서 6축 보고서를 받습니다.");
         rationale = '<div class="rowinfo" style="margin-top:8px"><b>추천 근거</b>' +
@@ -2784,8 +2835,12 @@ function renderReco() {
       return '<div class="reco' + (i === 0 ? " best" : "") + '" style="flex-wrap:wrap">' +
         '<div class="no">' + (i + 1) + "</div>" +
         '<div class="body"><div class="name">' + regionCell(r.key) +
-          ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">서열 ' + r.rank + "위 · " + fmt(r.pm) + "만/㎡" +
-          (r.dist != null ? " · 내 지역에서 " + r.dist + "km" : "") + (isRegulated(r.key) ? " · 규제지역" : "") + "</span></div>" +
+          ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">서열 ' + r.rank + "위 · " +
+          '<span title="' + escHtml("모든 평형 실거래를 섞은 ㎡당 중위가입니다 — 소형이 ㎡당 비싸 기준 면적 매수가와 다를 수 있습니다") +
+          '">' + fmt(r.pm) + "만/㎡</span> · " + cond.area + "㎡ 중위 <b>" + eok(r.base) + "</b>" +
+          (r.dist != null ? " · 내 지역에서 " + r.dist + "km" : "") + (isRegulated(r.key) ? " · 규제지역" : "") + "</span></div></div>" +
+        /* 필요현금·레이더·근거·버튼은 좁은 본문 칸이 아니라 카드 전체 폭을 쓴다 (v5.32) */
+        '<div class="rcfull">' +
         '<div class="rowinfo" style="margin:4px 0 6px">' + r.fin.modeName + " · 필요현금 <b>" + eok(r.fin.need) + "</b>" +
           (r.fin.mode === "jeonse"
             ? " (갭 " + eok(r.fin.gap) + " — 중위 매매 " + eok(r.fin.sale) + " · 전세 " + eok(r.fin.je) + ")"

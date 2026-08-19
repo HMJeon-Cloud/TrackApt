@@ -168,6 +168,15 @@ table{width:100%;border-collapse:collapse;font-size:.84rem;white-space:nowrap}
   /* 여러 칸을 합친 안내 줄(표본 없음 등) */
   table.carded tbody td[colspan]{display:block;text-align:left}
   table.carded tbody td[colspan]::before{content:none}
+  /* 펼치기 상세 속의 작은 표는 카드 규칙에서 제외 — 행렬은 표로 남아야 읽힌다 */
+  table.carded .pxt thead{display:table-header-group}
+  table.carded .pxt tbody tr{display:table-row;border:0;border-radius:0;padding:0;margin:0;
+    background:none;box-shadow:none}
+  table.carded .pxt tbody td,table.carded .pxt tbody th{display:table-cell;padding:6px 8px;
+    border-bottom:1px solid var(--line);text-align:left}
+  table.carded .pxt tbody td::before{content:none}
+  table.carded .pxt tbody td:first-child{display:table-cell;font-size:inherit;margin:0;
+    padding:6px 8px;border-bottom:1px solid var(--line)}
 }
 /* 정렬 칩 — 카드 모드에선 머리글이 사라져 정렬을 누를 수 없으므로 표 위에 따로 둔다.
    기본 규칙을 **미디어 쿼리보다 먼저** 적어야 한다. 뒤에 두면 우선순위가 같아 늦게 온 쪽이
@@ -290,10 +299,14 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 .whyk{font-weight:800;font-size:.76rem;color:var(--brand);padding-top:1px}
 .whybtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 .whybtns .btn{padding:3px 10px;font-size:.72rem}
-.attbox{margin:8px 0 4px;overflow:auto}
-.pxt.att td{text-align:left}
-.pxt.att .atname{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-size:.72rem;color:var(--ink-soft)}
+.attbox{margin:8px 0 4px;overflow-x:auto}
+.pxt.att{table-layout:fixed;min-width:560px}
+.pxt.att th:first-child{width:104px}
+.pxt.att td{text-align:left;vertical-align:top}
+.pxt.att .atname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:.74rem;font-weight:700;color:var(--ink)}
+.pxt.att .atrow{font-size:.76rem;margin-top:2px;white-space:nowrap}
+.detrow .attbox{padding:2px 0 6px}
 .pxt.att td b{font-size:.84rem}
 .pxt.att td small,.pxt.att th small{color:var(--ink-soft);font-weight:400;font-size:.68rem}
 .pxt.att td.hit2 b{color:var(--up)}
@@ -363,7 +376,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.26</span>
+    <span class="ver">v5.27</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1596,8 +1609,10 @@ function ageTierHtml(mx, code, cond) {
     var f = cellNeed(code, c, cond);
     var hit = cond.cash > 0 && f.need <= cond.cash;
     return "<td" + (hit ? ' class="hit2"' : "") + '><div class="atname" title="' + escHtml(c.apt) +
-      " · " + c.y + '년">' + escHtml(c.apt) + "</div><b>" + eok(c.price) + "</b>" +
-      "<small> " + f.mode + " 필 " + eok(f.need) + "</small></td>";
+      " · " + c.y + '년">' + escHtml(c.apt) + "</div>" +
+      '<div class="atrow">매매 <b>' + eok(c.price) + "</b> <small>(" + String(c.yr).slice(2) + "년 중위)</small></div>" +
+      '<div class="atrow">필요현금 <b>' + eok(f.need) + "</b> <small>(" + f.mode +
+        (hit ? " · 가능" : "") + ")</small></div></td>";
   }
   var rows = AGE.map(function (a) {
     var g = mx[a[0]];
@@ -1606,8 +1621,10 @@ function ageTierHtml(mx, code, cond) {
   }).join("");
   return '<table class="pxt att"><thead><tr><th></th><th>대장</th><th>중위</th><th>하위 25%</th></tr></thead><tbody>' +
     rows + "</tbody></table>" +
-    '<div class="pxcap">' + cond.area + "㎡대 최근 연 중위 실거래(저장본) · 필 = 필요현금(현재 매수 방식 기준, " +
-    "단지 전세 실거래로 갭 계산 — 전세가 없으면 대출 기준) · 초록 = 내 현금 안. 연식 미상 단지는 뺐습니다.</div>";
+    '<div class="pxcap">' + cond.area + "㎡대 · <b>매매</b>는 그 단지의 최근 연도 <b>중위 실거래가</b>(저장본 — " +
+    "마지막 한 건이 아니라 그 해 거래들의 중앙값) · <b>필요현금</b>은 전세 끼고면 갭(단지 전세 실거래)+취득세·부대비, " +
+    "대출 매수면 매수가−대출+취득세·부대비 · <b>초록 = 시작 탭에 적은 동원 가능 현금</b>으로 감당되는 칸" +
+    (cond.cash > 0 ? "" : " (현금을 입력하면 표시됩니다)") + " · 연식 미상 단지는 뺐습니다.</div>";
 }
 /* 상위 카드 5곳의 행렬을 순차로 채운다 (loadStore 캐시라 두 번째부터는 즉시) */
 function recoLoadTiers(keys, cond) {
@@ -2243,26 +2260,7 @@ function wizGo(tab, t) {
   showTab(tab);
   window.scrollTo(0, 0);
   if (tab === "cmpx") {
-    var rb = document.querySelector('#cx-range button[data-r="y"]');
-    if (rb) rb.click();                              /* 10년 모드 — 저장본이라 조회 0회 */
-    var r0 = document.getElementById("cx-r0");
-    if (r0) {
-      for (var oi = 0; oi < r0.options.length; oi++)
-        if (String(r0.options[oi].value).split(":")[0] === String(t.code)) { r0.selectedIndex = oi; break; }
-      fireChange(r0);
-    }
-    var b0 = document.getElementById("cx-b0");
-    if (b0) { b0.value = String(t.band || 84); fireChange(b0); }
-    loadCmpSlot(0);                                  /* 저장본을 연 뒤 단지까지 골라 준다 */
-    var tries = 0, id = btKey(t.dong, t.apt, "");
-    var tm = setInterval(function () {
-      var a0 = document.getElementById("cx-a0");
-      if (a0 && a0.options.length > 1) {
-        clearInterval(tm);
-        for (var ai = 0; ai < a0.options.length; ai++)
-          if (a0.options[ai].value === id) { a0.selectedIndex = ai; fireChange(a0); break; }
-      } else if (++tries > 40) clearInterval(tm);
-    }, 150);
+    wizGoCmpx(t);
   } else if (tab === "reco") {
     flashRegionRow("rc-table", t.code);
   } else if (tab === "tiers") {
@@ -2288,6 +2286,89 @@ function wizGo(tab, t) {
     renderCalc();
   }
 }
+/* 저장본에서 평형대의 단지를 최근 연 중위가 순으로 (비교 상대 고르기용) */
+function storeTops(st, band, thisY) {
+  var out = [];
+  if (!st || !st.cx) return out;
+  st.cx.forEach(function (cx) {
+    var s = cx.s && cx.s[String(band)];
+    if (!s) return;
+    var last = -1, i;
+    for (i = s.p.length - 1; i >= 0; i--) if (s.p[i] != null) { last = i; break; }
+    if (last < 0) return;
+    if (st.y0 + s.o + last < thisY - 2) return;
+    out.push({ apt: cx.n, dong: cx.d, price: s.p[last], id: btKey(cx.d, cx.n, "") });
+  });
+  out.sort(function (a, b) { return b.price - a.price; });
+  return out;
+}
+/* 비교 3칸 계획 — [ [지역코드, 단지id] | null ] × 3
+   혼자 넣으면 비교가 안 된다는 피드백(v5.27):
+   내가 우리 구 1등이 아니면 → 나 + 우리 구 대장 + 상위구 대장
+   내가 우리 구 1등이면     → 나 + 상위구 대장 + 상위구 중위
+   최상위 구(상위구 없음)면 → 내가 1~3등이면 그 1·2·3등, 아니면 나 + 그 구 1·2등 */
+function wizCmpPlan(t, mine, up, upperCode) {
+  var myId = btKey(t.dong, t.apt, "");
+  var myPos = -1, i;
+  for (i = 0; i < mine.length; i++) if (mine[i].id === myId) { myPos = i; break; }
+  if (!up || !up.length) {
+    if (myPos >= 0 && myPos <= 2) {
+      var p3 = mine.slice(0, 3).map(function (x) { return [t.code, x.id]; });
+      while (p3.length < 3) p3.push(null);
+      return p3;
+    }
+    return [[t.code, myId],
+            mine[0] ? [t.code, mine[0].id] : null,
+            mine[1] ? [t.code, mine[1].id] : null];
+  }
+  if (myPos === 0) {
+    var upMid = up[Math.floor((up.length - 1) / 2)];
+    return [[t.code, myId], [upperCode, up[0].id],
+            (upMid && upMid.id !== up[0].id) ? [upperCode, upMid.id] : null];
+  }
+  return [[t.code, myId],
+          mine[0] ? [t.code, mine[0].id] : null,
+          [upperCode, up[0].id]];
+}
+function cmpSetSlot(i, code, band, aptId) {
+  var r = document.getElementById("cx-r" + i);
+  if (!r) return Promise.resolve();
+  for (var oi = 0; oi < r.options.length; oi++)
+    if (String(r.options[oi].value).split(":")[0] === String(code)) { r.selectedIndex = oi; break; }
+  fireChange(r);
+  var b = document.getElementById("cx-b" + i);
+  if (b) { b.value = String(band); fireChange(b); }
+  return Promise.resolve(loadCmpSlot(i)).then(function () {
+    var a = document.getElementById("cx-a" + i);
+    if (!a) return;
+    for (var ai = 0; ai < a.options.length; ai++)
+      if (a.options[ai].value === aptId) { a.selectedIndex = ai; fireChange(a); break; }
+  });
+}
+function cmpClearSlot(i) {
+  var a = document.getElementById("cx-a" + i);
+  if (a && a.value) { a.value = ""; fireChange(a); }
+  return Promise.resolve();
+}
+function wizGoCmpx(t) {
+  var rb = document.querySelector('#cx-range button[data-r="y"]');
+  if (rb) rb.click();                                /* 10년 모드 — 저장본이라 조회 0회 */
+  var thisY = new Date().getFullYear();
+  var band = t.band || 84;
+  var upper = (t.rankIdx > 0 && RANKED[t.rankIdx - 1]) ? RANKED[t.rankIdx - 1] : null;
+  Promise.all([loadStore(t.code), upper ? loadStore(upper) : Promise.resolve(null)])
+    .then(function (sts) {
+      var plan = wizCmpPlan(t, storeTops(sts[0], band, thisY),
+                            storeTops(sts[1], band, thisY), upper);
+      var chain = Promise.resolve();
+      plan.forEach(function (p, i) {
+        chain = chain.then(function () {
+          return p ? cmpSetSlot(i, p[0], band, p[1]) : cmpClearSlot(i);
+        });
+      });
+    });
+}
+
 /* 표에서 해당 지역 행을 찾아 잠깐 강조 */
 function flashRegionRow(tid, code) {
   setTimeout(function () {
@@ -3684,7 +3765,11 @@ function cardify(tb) {
   if (tb.classList.contains("srctbl")) return;
   var head = tb.querySelectorAll("thead th");
   if (!head.length) return;
-  var rows = tb.querySelectorAll("tbody tr");
+  /* 펼치기 상세(detrow)가 품은 작은 표(.pxt)의 행까지 집으면 행렬이 카드로 부서진다 —
+     이 표 바로 아래의 행만 다룬다 */
+  var rows = Array.prototype.filter.call(tb.querySelectorAll("tbody tr"), function (r) {
+    return r.parentNode && r.parentNode.parentNode === tb;
+  });
   var stamp = rows.length + "/" + head.length;
   /* 표를 다시 그리면 tbody가 통째로 갈리므로 새 칸에는 data-l이 없다.
      행 수가 같아도 그걸로 판별해야 한다 — 정렬만 바꿔도 칸이 전부 새로 만들어진다. */
@@ -5575,10 +5660,10 @@ function renderCmpxShell() {
 function loadCmpSlot(i) {
   var s = CMP.slots[i];
   s.region = document.getElementById("cx-r" + i).value;
-  if (!s.region) return;
+  if (!s.region) return Promise.resolve();
   var btn = document.getElementById("cx-load" + i);
   btn.disabled = true; btn.textContent = "여는 중…";
-  loadStore(s.region).then(function (st) {
+  return loadStore(s.region).then(function (st) {
     s.store = st || null;
     if (st) { fillAptSelect(i); return null; }
     /* 저장본이 없는 지역만 예전처럼 24개월을 받아 목록을 만든다 */
@@ -7763,11 +7848,17 @@ function renderCalc() {
     return '<tr' + (i === rows.length - 1 ? ' class="hit"' : "") + "><td>" + r[0] + "</td><td><b>" + r[1] + "</b></td><td>" + r[2] + "</td></tr>";
   }).join("");
 
-  var prices = [50000, 90000, 120000, RULES.capT1Lim, RULES.capT1Lim + 1, 200000, RULES.capT2Lim, RULES.capT2Lim + 1, 300000];
+  /* 문턱+1만원은 표시가 문턱과 같아 "15억이 두 줄"로 보였다(v5.26) — 문턱 다음 줄은 +1억 */
+  var prices = [50000, 90000, 120000, RULES.capT1Lim, RULES.capT1Lim + 10000, 200000,
+                RULES.capT2Lim, RULES.capT2Lim + 10000, 300000]
+    .filter(function (p, i, a) { return a.indexOf(p) === i; })
+    .sort(function (a, b) { return a - b; });
   document.querySelector("#cl-table tbody").innerHTML = prices.map(function (p) {
     var x = finance("", p, cond, flags);
     var ok = cond.cash > 0 && x.need <= cond.cash;
-    return '<tr class="' + (ok ? "hit" : "") + '"><td>' + eok(p) + "</td>" +
+    var thr = (p === RULES.capT1Lim || p === RULES.capT2Lim)
+      ? ' <small style="color:var(--ink-soft)">문턱</small>' : "";
+    return '<tr class="' + (ok ? "hit" : "") + '"><td>' + eok(p) + thr + "</td>" +
       "<td>" + (x.loan > 0 ? eok(x.loan) : "—") + "</td>" +
       "<td>" + x.tag + "</td>" +
       "<td>" + eok(x.acq) + "</td>" +

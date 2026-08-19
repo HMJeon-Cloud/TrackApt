@@ -155,8 +155,9 @@ table{width:100%;border-collapse:collapse;font-size:.84rem;white-space:nowrap}
     display:block;text-align:left;font-size:.92rem;line-height:1.45;
     padding:0 0 7px;margin-bottom:5px;border-bottom:1px solid var(--line)}
   table.carded tbody td:first-child::before{content:none}
-  /* 값 없는 칸은 접어서 카드를 짧게 */
-  table.carded tbody td[data-none]{display:none}
+  /* 값 없는 칸도 **항목은 남긴다** — 항목까지 사라지면
+     자료가 없는 건지 칸이 없는 건지 헷갈린다. 흐리게 칠해 눈이 지나가게만 한다. */
+  table.carded tbody td[data-none]{opacity:.45}
   /* 버튼이 든 칸은 한 줄 통째로 */
   table.carded tbody td:has(button){display:block;text-align:left;padding-top:8px}
   table.carded tbody td:has(button)::before{content:none}
@@ -293,7 +294,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.20</span>
+    <span class="ver">v5.21</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2235,9 +2236,10 @@ function buildDanji(root) {
           '<option value="10">10년 이내</option><option value="20">20년 이내</option>' +
           '<option value="30">30년 이내</option></select></div>' +
         '<div class="field"><label for="dj-band">평형</label><select id="dj-band">' +
-          '<option value="0">전체 평형</option><option value="36">36㎡대 (20~45)</option>' +
+          '<option value="36">36㎡대 (20~45)</option>' +
           '<option value="46">46㎡대 (45~55)</option><option value="59">59㎡대 (55~70)</option>' +
-          '<option value="84" selected>84㎡대 (70~95)</option><option value="101">101㎡대 (95~120)</option></select></div>' +
+          '<option value="84" selected>84㎡대 (70~95)</option><option value="101">101㎡대 (95~120)</option>' +
+          '<option value="135">135㎡대 (120~)</option></select></div>' +
       '</div>' +
       '<div class="btnrow"><button class="btn" id="dj-go" style="width:auto">단지 불러오기</button>' +
         '<button class="btn sm ghost" data-exp="img" data-name="단지솔팅">이미지 저장</button>' +
@@ -2256,7 +2258,11 @@ function buildDanji(root) {
         '<b>이름값만 있던 단지</b>가 구분됩니다. 손품으로 후보를 좁힌 뒤 임장은 그 몇 곳만 다니면 됩니다.<br>' +
         '<b>표 머리글을 누르면</b> 그 항목 기준으로 정렬됩니다 (한 번 더 누르면 오름/내림 전환). ' +
         '휴대폰에서는 표가 <b>카드</b>로 접히고 머리글이 사라지므로, 표 위의 <b>정렬 칩</b>을 쓰세요. ' +
-        '카드에서는 값이 없는 항목(<b>—</b>)을 숨겨 짧게 보여줍니다. ' +
+        '값이 없는 항목도 <b>—</b>로 남겨 둡니다 — 항목까지 사라지면 자료가 없는 건지 칸이 없는 건지 ' +
+        '헷갈리기 때문입니다.<br>' +
+        '<b>평형은 반드시 하나를 고릅니다.</b> 예전엔 "전체 평형"이 있었는데, 그러면 매매는 84㎡ 위주인데 ' +
+        '전세는 59㎡만 나오는 단지에서 전세가율이 실제보다 훨씬 낮게 찍혔습니다. 평형을 고정하면 ' +
+        '매매·전세·평당가·갭이 <b>모두 같은 평형 안에서</b> 계산되어 그런 어긋남이 생기지 않습니다. ' +
         '평당가는 전용면적 기준(거래가 ÷ 전용㎡ × 3.3058)이라 공급면적 평당가보다 25%쯤 높으니 네이버 시세와 ' +
         '직접 비교하지 마세요.<br>' +
         '<b>지하철</b>은 K-apt에 <b>관리사무소가 직접 적어 넣은</b> 도보 시간입니다. 역이 없는 동네에도 ' +
@@ -2279,10 +2285,11 @@ function buildDanji(root) {
         'K-apt는 의무관리대상 단지만 담고 있어 소규모 단지는 애초에 없고, ' +
         '등록된 단지라도 세대수 칸이 비어 있는 곳이 더러 있습니다.<br>' +
         '<b>전세</b>는 조회 기간 안의 같은 평형대 계약입니다. 그 기간에 전세가 없으면 저장본에서 ' +
-        '가장 최근 연 중위가를 끌어와 <code>3.2억 (24년)</code>처럼 <b>연도를 붙이고 흐리게</b> 보여줍니다 — ' +
-        '평형을 고른 경우에만 그렇게 하며, <b>전체 평형</b>일 때는 어느 평형의 전세인지 고를 수 없어 비워 둡니다.<br>' +
-        '옛 전세로는 <b>전세가율·갭을 만들지 않습니다</b>(<b>—</b>). 서로 다른 해의 매매와 전세를 나눈 숫자는 ' +
-        '뜻이 없기 때문입니다 — 참고하기 애매한 값은 흐리게 칠하는 대신 아예 비웁니다.<br>' +
+        '<b>같은 평형대</b>의 가장 최근 연 중위가를 끌어와 <code>3.2억 (24년)</code>처럼 ' +
+        '<b>연도를 붙이고 흐리게</b> 보여줍니다.<br>' +
+        '다만 그 옛 전세로는 <b>전세가율·갭을 만들지 않습니다</b>(<b>—</b>). 서로 다른 해의 매매와 전세를 ' +
+        '나눈 숫자는 뜻이 없기 때문입니다 — 참고하기 애매한 값은 흐리게 칠하는 대신 아예 비웁니다. ' +
+        '빈칸에 마우스를 올리면(휴대폰은 길게 누르면) 왜 비었는지 나옵니다.<br>' +
         '<b>10년</b> 열은 저장본(trades/)에서 읽은 <b>그 단지의 10년 연평균 상승률</b>입니다. ' +
         '연 중위가를 10년 전과 비교하며, 실거래 조회를 추가로 하지 않습니다. ' +
         '한쪽이라도 거래 1건뿐이면 <b>~</b>를 붙여 표본이 얇음을 알립니다. ' +
@@ -2806,7 +2813,7 @@ function cardify(tb) {
     for (j = 0; j < tds.length; j++) {
       var td = tds[j], span = Number(td.getAttribute("colspan") || 1);
       if (span === 1 && labels[col]) td.setAttribute("data-l", labels[col]);
-      /* 값이 없는 칸은 카드에서 접는다 — 12칸이 다 보이면 카드가 화면을 넘긴다 */
+      /* 값이 없는 칸은 흐리게만 한다 (숨기지 않는다) */
       var t = td.textContent.trim();
       if (j > 0 && (t === "—" || t === "·" || t === "")) td.setAttribute("data-none", "1");
       else td.removeAttribute("data-none");
@@ -3334,6 +3341,13 @@ function subwayNote(k) {
   return s ? s + " 기준 (K-apt 관리사무소 신고값)" : "";
 }
 
+/* 왜 비었는지 알려 준다 — 빈칸만 있으면 고장으로 오해한다 */
+function jeTip(r) {
+  return r.jeOld
+    ? ' title="' + escHtml("전세가 조회 기간 밖(저장본 " + r.jeYear + "년) 값이라 비웠습니다 — " +
+        "다른 해의 매매와 전세를 나눈 숫자는 뜻이 없습니다.") + '"'
+    : "";
+}
 function renderDanjiTable() {
   if (!DJ.rows.length || !document.getElementById("dj-table")) return;
   var band = Number(document.getElementById("dj-band").value) || 0;
@@ -3354,15 +3368,14 @@ function renderDanjiTable() {
     var jd = band ? g.rentDeals.filter(function (t) { return inBand(t.area, band); }) : g.rentDeals;
     r.je = jd.length ? median(jd.map(function (t) { return t.deposit; })) : null;
     r.jeOld = false; r.jeYear = null;
-    /* 조회 기간에 전세가 없으면 저장본의 최근 연 중위가로 채운다.
-       단, **평형대를 지정했을 때만** — 전체 평형에서는 저장본이 평형대별로 나뉘어 있어
-       어느 평형의 전세인지 고를 수 없고, 소형 전세가 84㎡ 매매 옆에 앉는 일이 생긴다. */
+    /* 조회 기간에 전세가 없으면 저장본의 **같은 평형대** 최근 연 중위가로 채운다 */
     if (r.je == null && stc && band) {
       var sj = storeJeonse(DJ.store, stc, band);
       if (sj && sj.band === band) { r.je = sj.dep; r.jeOld = true; r.jeYear = sj.year; }
     }
     /* 옛 전세로는 전세가율·갭을 만들지 않는다 — 다른 해의 두 값을 나눈 숫자는 뜻이 없다.
-       흐리게 칠하는 정도로는 부족하다. 표에 숫자가 있으면 사람은 읽는다. */
+       흐리게 칠하는 정도로는 부족하다. 표에 숫자가 있으면 사람은 읽는다.
+       (평형은 v5.21부터 반드시 고르게 되어 있어 매매·전세가 늘 같은 평형대다) */
     r.jr = (r.je != null && !r.jeOld) ? r.je / r.amt * 100 : null;
     r.gap = (r.je != null && !r.jeOld) ? r.amt - r.je : null;
     /* K-apt가 0을 주는 단지가 있다 — 세대수 0은 값이 아니라 결측이다 */
@@ -3423,9 +3436,9 @@ function renderDanjiTable() {
         (r.je != null ? eok(r.je) +
           (r.jeOld ? " <span style='font-size:.72rem'>(" + String(r.jeYear).slice(2) + "년)</span>" : "")
         : "—") + "</td>" +
-      '<td class="' + (r.jr != null && r.jr >= 70 ? "up" : "") + '">' +
+      '<td class="' + (r.jr != null && r.jr >= 70 ? "up" : "") + '"' + jeTip(r) + ">" +
         (r.jr != null ? r.jr.toFixed(1) + "%" : "—") + "</td>" +
-      "<td>" + (r.gap != null ? eok(r.gap) : "—") + "</td>" +
+      "<td" + jeTip(r) + ">" + (r.gap != null ? eok(r.gap) : "—") + "</td>" +
       "<td>" + r.cnt + "건</td>" +
       '<td class="' + cls(r.c10) + '">' +
         (r.c10 != null ? pct(r.c10) + "/년" + (r.c10thin ? "~" : "") : (DJ.store ? "—" : "·")) + "</td>" +
@@ -4255,9 +4268,24 @@ function renderRota() {
 }
 
 /* ══ 평형대·월별 중위 공용 헬퍼 ═══════════════ */
-var BANDS = { 36: [20, 45], 46: [45, 55], 59: [55, 70], 84: [70, 95], 101: [95, 120] };
+var BANDS = { 36: [20, 45], 46: [45, 55], 59: [55, 70], 84: [70, 95], 101: [95, 120], 135: [120, 9999] };
 function bandLabel2(b) { return b + "㎡대 (" + BANDS[b][0] + "~" + BANDS[b][1] + ")"; }
 function inBand(area, b) { return area >= BANDS[b][0] && area < BANDS[b][1]; }
+/* 면적 → 평형대 */
+function bandOfArea(a) {
+  for (var b in BANDS) if (a >= BANDS[b][0] && a < BANDS[b][1]) return Number(b);
+  return 0;
+}
+/* 거래가 가장 많은 평형대 — 그 단지의 '주력 평형' */
+function domBand(list) {
+  var cnt = {}, best = 0, bb = 0, i, b;
+  for (i = 0; i < list.length; i++) {
+    b = bandOfArea(list[i].area);
+    if (b) cnt[b] = (cnt[b] || 0) + 1;
+  }
+  for (b in cnt) if (cnt[b] > best) { best = cnt[b]; bb = Number(b); }
+  return bb;
+}
 
 /* (lawd → 월별 매매·전세) 메모리 캐시 — 대장·비교 탭 공용 */
 var TRADE_CACHE = {};
@@ -4317,7 +4345,8 @@ function buildFlag(root) {
       '<div class="grid">' +
         '<div class="field"><label for="fg-band">평형대</label><select id="fg-band">' +
           '<option value="36">36㎡대</option><option value="46">46㎡대</option><option value="59">59㎡대</option>' +
-          '<option value="84" selected>84㎡대</option><option value="101">101㎡대</option></select></div>' +
+          '<option value="84" selected>84㎡대</option><option value="101">101㎡대</option>' +
+          '<option value="135">135㎡대</option></select></div>' +
         '<div class="field"><label for="fg-top">지역당 표시</label><select id="fg-top">' +
           '<option value="1">상위 1개 단지</option><option value="2">상위 2개 단지</option>' +
           '<option value="3" selected>상위 3개 단지</option></select></div>' +
@@ -4575,7 +4604,7 @@ function buildCmpx(root) {
         '<option value="36">36㎡대</option><option value="46">46㎡대</option><option value="59">59㎡대</option>' +
         '<option value="84"' + (CMP.slots[i].band === 84 ? " selected" : "") + '>84㎡대</option>' +
         '<option value="59"' + (CMP.slots[i].band === 59 && i === 2 ? " selected" : "") + ' hidden></option>' +
-        '<option value="101">101㎡대</option></select></div>' +
+        '<option value="101">101㎡대</option><option value="135">135㎡대</option></select></div>' +
       '<div class="field full"><button class="btn ghost" id="cx-load' + i + '">단지 목록 채우기</button></div>' +
       '<div class="field full"><label>단지</label><select id="cx-a' + i + '"><option value="">먼저 단지를 불러오세요</option></select></div>' +
       "</div></div>";

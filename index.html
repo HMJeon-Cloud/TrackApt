@@ -297,6 +297,10 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pkitem:hover{border-color:var(--brand)}
 .pkitem.on{background:var(--gold-grad,#d4af6a);color:#11161f;border-color:transparent;font-weight:700}
+.pkitem.pkall{background:none;border-style:dashed;color:var(--brand);font-weight:600}
+.pkitem.home{box-shadow:0 0 0 1px var(--brand) inset}
+.pkitem.home::before{content:"\2605 "}
+.pkitem.on.home{box-shadow:none}
 .pkitem.solo{display:block;width:100%;margin:6px 0;text-align:left}
 @media(max-width:520px){.pkitems{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}}
 
@@ -313,7 +317,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.23</span>
+    <span class="ver">v5.24</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1831,17 +1835,20 @@ function renderWizModeBody() {
   if (!el) return;
   if (WIZ.mode === "pick") {
     el.innerHTML =
-      '<div class="grid"><div class="field"><label>시·도</label><select id="wiz-sido"></select></div></div>' +
-      '<div class="pickchips sm" id="wiz-gu"></div>' +
+      '<button type="button" class="pkbtn" id="wiz-pick"><span>지역 선택하기</span><span class="pkcaret">\u25be</span></button>' +
       '<div class="wizsel" id="wiz-picks"></div>' +
-      '<div class="note">시·도를 고르면 시·군·구가 펼쳐집니다 — <b>눌러서 여러 곳을 한 번에</b> 담고 뺄 수 있습니다. ' +
+      '<div class="note">[지역 선택하기]를 누르면 시·도별 목록이 열립니다 — <b>여러 곳을 한 번에</b> 담고 뺄 수 있습니다. ' +
         '직장·거주지·생활권 때문에 살 수 있는 지역이 정해져 있다면 그 지역들만 담으세요.</div>';
-    var sel = document.getElementById("wiz-sido");
-    sel.innerHTML = LAWD_GROUPS.map(function (g, i) {
-      return '<option value="' + i + '">' + escHtml(g.sido) + "</option>";
-    }).join("");
-    sel.addEventListener("change", renderWizGu);
-    renderWizGu();
+    document.getElementById("wiz-pick").addEventListener("click", function () {
+      openRegionPickerMulti({
+        isOn: function (code) { return WIZ.picks.indexOf(code) >= 0; },
+        toggle: function (code) {
+          var i = WIZ.picks.indexOf(code);
+          if (i >= 0) WIZ.picks.splice(i, 1); else WIZ.picks.push(code);
+        },
+        onChange: renderWizPicks
+      });
+    });
     renderWizPicks();
   } else {
     el.innerHTML =
@@ -1851,28 +1858,10 @@ function renderWizModeBody() {
   }
   wizNextGate();
 }
-/* 고른 시·도의 시·군·구를 칩으로 — 누르면 담고, 다시 누르면 뺀다 */
-function renderWizGu() {
-  var el = document.getElementById("wiz-gu"), sel = document.getElementById("wiz-sido");
-  if (!el || !sel) return;
-  var g = LAWD_GROUPS[Number(sel.value) || 0];
-  if (!g) { el.innerHTML = ""; return; }
-  el.innerHTML = g.items.map(function (it) {
-    var code = String(it[1]).split(":")[0];
-    return '<button type="button" data-v="' + code + '"' +
-      (WIZ.picks.indexOf(code) >= 0 ? ' class="on"' : "") + ">" + escHtml(it[0]) + "</button>";
-  }).join("");
-  /* 시·도를 바꿀 때마다 다시 그리므로 addEventListener를 쌓으면 한 번 눌러도 여러 번 토글된다 */
-  el.onclick = function (e) {
-    var b = e.target.closest("button[data-v]");
-    if (!b) return;
-    var code = b.dataset.v, i = WIZ.picks.indexOf(code);
-    if (i >= 0) { WIZ.picks.splice(i, 1); b.classList.remove("on"); }
-    else { WIZ.picks.push(code); b.classList.add("on"); }
-    renderWizPicks();
-  };
-}
 function renderWizPicks() {
+  var pb = document.getElementById("wiz-pick");
+  if (pb) pb.firstChild.textContent =
+    WIZ.picks.length ? "고른 지역 " + WIZ.picks.length + "곳" : "지역 선택하기";
   var el = document.getElementById("wiz-picks");
   if (!el) return;
   el.innerHTML = WIZ.picks.map(function (k, i) {
@@ -2651,8 +2640,8 @@ function refreshHomeMarksInner() {
       if (isHome) o.style.cssText = "color:var(--brand);font-weight:700";
     });
   });
-  /* 대장 아파트 체크 목록 */
-  document.querySelectorAll("#fg-picker .pitem").forEach(function (b) {
+  /* 여러 곳 고르기 판 (지역 선택 판이 열려 있을 때) */
+  document.querySelectorAll("#pklist .pkitem[data-code]").forEach(function (b) {
     b.classList.remove("home");
     if (!homeKey) return;
     var c = String(b.dataset.code).split(":")[0];
@@ -2934,7 +2923,7 @@ function upgradeRegionSelects(root) {
     btn.addEventListener("click", function () { openRegionPicker(sel, btn); });
   });
 }
-function openRegionPicker(sel, btn) {
+function pkEnsureOverlay() {
   var ov = document.getElementById("pkov");
   if (!ov) {
     ov = document.createElement("div");
@@ -2951,7 +2940,12 @@ function openRegionPicker(sel, btn) {
     ov.querySelector("#pkclose").addEventListener("click", closeRegionPicker);
     ov.querySelector("#pksearch").addEventListener("input", function () { pkFilter(this.value); });
   }
+  return ov;
+}
+function openRegionPicker(sel, btn) {
+  var ov = pkEnsureOverlay();
   var list = ov.querySelector("#pklist");
+  list.onclick = null;                      /* 다중판이 걸어둔 위임 처리기 제거 */
   var cur = sel.selectedIndex, html = "", gi = 0, idx = 0;
   Array.prototype.forEach.call(sel.children, function (node) {
     if (node.tagName === "OPTGROUP") {
@@ -3014,6 +3008,74 @@ function pkFilter(q) {
   Array.prototype.forEach.call(list.querySelectorAll(".pkitem.solo"), function (b) {
     b.style.display = (!q || b.textContent.replace(/\s/g, "").indexOf(q) >= 0) ? "" : "none";
   });
+}
+
+/* ── 여러 곳 고르기 판 ──
+   같은 겉모습(지역 선택 판)을 쓰되, 항목을 눌러도 닫히지 않고 금색 표시만 켜고 끈다.
+   대장 아파트(이름 보관)와 추천 마법사(코드 보관)가 함께 쓰도록 isOn/toggle을 넘겨받는다.
+   opts: { isOn(code, name), toggle(code, name), onChange() } */
+function openRegionPickerMulti(opts) {
+  var ov = pkEnsureOverlay();
+  var list = ov.querySelector("#pklist"), html = "";
+  LAWD_GROUPS.forEach(function (g, gi) {
+    var items = '<button type="button" class="pkitem pkall" data-g="' + gi + '">전체 선택</button>';
+    g.items.forEach(function (it) {
+      var code = String(it[1]).split(":")[0];
+      items += '<button type="button" class="pkitem" data-code="' + code +
+        '" data-name="' + escHtml(g.sido + " " + it[0]) + '">' + escHtml(it[0]) + "</button>";
+    });
+    html += '<div class="pkgrp" data-g="' + gi + '">' +
+      '<button type="button" class="pkgh"><span>' + escHtml(g.sido) + "</span>" +
+      '<span class="pkn">' + g.items.length + "</span></button>" +
+      '<div class="pkitems">' + items + "</div></div>";
+  });
+  list.innerHTML = html;
+  Array.prototype.forEach.call(list.querySelectorAll(".pkgh"), function (h) {
+    h.addEventListener("click", function () { h.parentNode.classList.toggle("open"); });
+  });
+  function paint() {
+    Array.prototype.forEach.call(list.querySelectorAll(".pkitem[data-code]"), function (b) {
+      b.classList.toggle("on", !!opts.isOn(b.dataset.code, b.dataset.name));
+    });
+    Array.prototype.forEach.call(list.querySelectorAll(".pkgrp"), function (grp) {
+      var all = grp.querySelectorAll(".pkitem[data-code]").length;
+      var on = grp.querySelectorAll(".pkitem[data-code].on").length;
+      var n = grp.querySelector(".pkn");
+      n.textContent = on ? on + " / " + all : String(all);
+      n.style.color = on ? "var(--up)" : "";
+      var allBtn = grp.querySelector(".pkall");
+      if (allBtn) allBtn.textContent = (all && on === all) ? "전체 해제" : "전체 선택";
+    });
+  }
+  /* #pklist는 판과 함께 계속 남는 요소 — addEventListener를 쓰면 열 때마다 쌓인다 */
+  list.onclick = function (e) {
+    var b = e.target.closest ? e.target.closest(".pkitem") : null;
+    if (!b) return;
+    if (b.classList.contains("pkall")) {
+      var grp = b.parentNode.parentNode;
+      var btns = grp.querySelectorAll(".pkitem[data-code]");
+      var allOn = grp.querySelectorAll(".pkitem[data-code].on").length === btns.length;
+      Array.prototype.forEach.call(btns, function (x) {
+        var on = !!opts.isOn(x.dataset.code, x.dataset.name);
+        if (allOn ? on : !on) opts.toggle(x.dataset.code, x.dataset.name);
+      });
+    } else if (b.dataset.code) {
+      opts.toggle(b.dataset.code, b.dataset.name);
+    } else { return; }
+    paint();
+    if (opts.onChange) opts.onChange();
+  };
+  ov.querySelector("#pksearch").value = "";
+  pkFilter("");
+  paint();
+  try { refreshHomeMarksInner(); } catch (e) {}
+  ov.classList.add("on");
+  var firstOn = list.querySelector(".pkitem[data-code].on");
+  if (firstOn) {
+    var og = firstOn.closest ? firstOn.closest(".pkgrp") : null;
+    if (og) og.classList.add("open");
+    if (firstOn.scrollIntoView) firstOn.scrollIntoView({ block: "center" });
+  }
 }
 
 function fillRegionSelects(ids) {
@@ -4825,8 +4887,8 @@ function buildFlag(root) {
           '<option value="1">상위 1개 단지</option><option value="2">상위 2개 단지</option>' +
           '<option value="3" selected>상위 3개 단지</option></select></div>' +
       '</div>' +
-      '<div class="field full" style="margin-top:10px"><label>지역 (시·도를 누르면 전체 선택, 개별 선택도 가능)</label>' +
-        '<div class="picker" id="fg-picker"></div>' +
+      '<div class="field full" style="margin-top:10px"><label>지역 (여러 곳을 고를 수 있습니다 — 시·도 전체 선택도 가능)</label>' +
+        '<button type="button" class="pkbtn" id="fg-pick"><span>지역 선택하기</span><span class="pkcaret">\u25be</span></button>' +
         '<div class="chosen" id="fg-chosen"></div></div>' +
       '<div class="btnrow"><button class="btn" id="fg-go" style="width:auto">대장 아파트 불러오기</button>' +
         '<button class="btn ghost sm" id="fg-clear">선택 해제</button></div>' +
@@ -4848,78 +4910,45 @@ function buildFlag(root) {
   root.querySelector("#fg-clear").addEventListener("click", function () {
     FG.picked = []; renderPicker();
   });
+  root.querySelector("#fg-pick").addEventListener("click", function () {
+    openRegionPickerMulti({
+      isOn: function (code, name) { return FG.picked.indexOf(name) >= 0; },
+      toggle: function (code, name) {
+        var i = FG.picked.indexOf(name);
+        if (i >= 0) FG.picked.splice(i, 1); else FG.picked.push(name);
+      },
+      onChange: renderPicker
+    });
+  });
 }
 
 function renderFlagShell() {
-  var box = document.getElementById("fg-picker");
-  if (!box || box.children.length) { renderPicker(); return; }
-  box.innerHTML = LAWD_GROUPS.map(function (g, gi) {
-    return '<div class="pgroup" data-gi="' + gi + '">' +
-      '<div class="phead"><span class="arw">▶</span>' +
-        '<label class="check" style="gap:6px"><input type="checkbox" data-sido="' + gi + '"> ' + g.sido + "</label>" +
-        '<span class="cnt">' + g.items.length + "곳</span></div>" +
-      '<div class="pbody">' + g.items.map(function (it) {
-        return '<button type="button" class="pitem" data-code="' + it[1] +
-          '" data-name="' + g.sido + " " + it[0] + '">' + it[0] + "</button>";
-      }).join("") + "</div></div>";
-  }).join("");
-
-  box.querySelectorAll(".phead").forEach(function (h) {
-    h.addEventListener("click", function (ev) {
-      if (ev.target.tagName === "INPUT") return;   /* 체크박스는 별도 처리 */
-      h.parentElement.classList.toggle("open");
-      h.querySelector(".arw").textContent = h.parentElement.classList.contains("open") ? "▼" : "▶";
-    });
-  });
-  box.querySelectorAll("input[data-sido]").forEach(function (cb) {
-    cb.addEventListener("change", function () {
-      var g = LAWD_GROUPS[Number(cb.dataset.sido)];
-      var names = g.items.map(function (it) { return g.sido + " " + it[0]; });
-      if (cb.checked) {
-        names.forEach(function (nm) { if (FG.picked.indexOf(nm) < 0) FG.picked.push(nm); });
-      } else {
-        FG.picked = FG.picked.filter(function (nm) { return names.indexOf(nm) < 0; });
-      }
-      renderPicker();
-    });
-  });
-  box.querySelectorAll(".pitem").forEach(function (b) {
-    b.addEventListener("click", function () {
-      var nm = b.dataset.name, i = FG.picked.indexOf(nm);
-      if (i >= 0) FG.picked.splice(i, 1); else FG.picked.push(nm);
-      renderPicker();
-    });
-  });
   renderPicker();
   refreshHomeMarks();
 }
 
 /* 선택 상태를 화면에 반영 */
 function renderPicker() {
-  var box = document.getElementById("fg-picker");
-  if (!box) return;
-  box.querySelectorAll(".pitem").forEach(function (b) {
-    b.classList.toggle("on", FG.picked.indexOf(b.dataset.name) >= 0);
-  });
-  box.querySelectorAll("input[data-sido]").forEach(function (cb) {
-    var g = LAWD_GROUPS[Number(cb.dataset.sido)];
-    var names = g.items.map(function (it) { return g.sido + " " + it[0]; });
-    var sel = names.filter(function (nm) { return FG.picked.indexOf(nm) >= 0; }).length;
-    cb.checked = sel === names.length;
-    cb.indeterminate = sel > 0 && sel < names.length;
-    var cnt = cb.closest(".phead").querySelector(".cnt");
-    cnt.textContent = sel ? sel + " / " + names.length + "곳" : names.length + "곳";
-    cnt.style.color = sel ? "var(--up)" : "";
-  });
+  var btn = document.getElementById("fg-pick");
+  if (btn) btn.firstChild.textContent =
+    FG.picked.length ? "고른 지역 " + FG.picked.length + "곳" : "지역 선택하기";
   var ch = document.getElementById("fg-chosen");
+  if (!ch) return;
   ch.innerHTML = FG.picked.length
-    ? FG.picked.slice(0, 12).map(function (nm) { return '<span class="tag">' + nm + "</span>"; }).join("") +
-      (FG.picked.length > 12 ? '<span class="tag">외 ' + (FG.picked.length - 12) + "곳</span>" : "")
+    ? FG.picked.map(function (nm, i) {
+        return '<span class="tag" data-i="' + i + '" style="cursor:pointer" title="누르면 뺍니다">' +
+          escHtml(nm) + " \u2715</span>";
+      }).join("")
     : '<span class="hint" style="margin:0">선택된 지역이 없습니다.</span>';
+  Array.prototype.forEach.call(ch.querySelectorAll(".tag[data-i]"), function (s) {
+    s.addEventListener("click", function () {
+      FG.picked.splice(Number(s.dataset.i), 1); renderPicker();
+    });
+  });
 }
 
 function loadFlag() {
-  if (!FG.picked.length) { alert("지역을 하나 이상 선택하세요. 시·도 체크박스를 누르면 전체가 선택됩니다."); return; }
+  if (!FG.picked.length) { alert("지역을 하나 이상 선택하세요. [지역 선택하기]를 누르면 목록이 열립니다."); return; }
   var nameToCode = {};
   LAWD_GROUPS.forEach(function (g) {
     g.items.forEach(function (it) { nameToCode[g.sido + " " + it[0]] = it[1]; });

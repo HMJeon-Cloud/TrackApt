@@ -299,13 +299,21 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 .whyk{font-weight:800;font-size:.76rem;color:var(--brand);padding-top:1px}
 .whybtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 .whybtns .btn{padding:3px 10px;font-size:.72rem}
-.attbox{margin:8px 0 4px;overflow-x:auto}
-.pxt.att{table-layout:fixed;min-width:560px}
-.pxt.att th:first-child{width:104px}
-.pxt.att td{text-align:left;vertical-align:top}
-.pxt.att .atname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-size:.74rem;font-weight:700;color:var(--ink)}
-.pxt.att .atrow{font-size:.76rem;margin-top:2px;white-space:nowrap}
+.attbox{margin:8px 0 4px}
+.atgrp{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:8px 0;background:rgba(255,255,255,.02)}
+.atgh{font-weight:800;font-size:.8rem;margin-bottom:2px}
+.atgh small{color:var(--ink-soft);font-weight:400}
+.atitem{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px dashed var(--line)}
+.atgh+.atitem{border-top:0}
+.atk{flex:none;min-width:56px;text-align:center;font-size:.68rem;font-weight:800;
+  border:1px solid var(--line);border-radius:6px;padding:3px 4px;color:var(--ink-soft);margin-top:1px}
+.atk.gold{background:var(--gold-grad,#d4af6a);color:#11161f;border-color:transparent}
+.atbody{min-width:0;flex:1}
+.atname{font-size:.8rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atname small,.atrow small{color:var(--ink-soft);font-weight:400}
+.atrow{font-size:.74rem;margin-top:2px;color:var(--ink-soft)}
+.atrow b{color:var(--ink);font-variant-numeric:tabular-nums}
+.atitem.hit2 .atrow b{color:var(--up)}
 .detrow .attbox{padding:2px 0 6px}
 .pxt.att td b{font-size:.84rem}
 .pxt.att td small,.pxt.att th small{color:var(--ink-soft);font-weight:400;font-size:.68rem}
@@ -376,7 +384,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.27</span>
+    <span class="ver">v5.28</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -416,7 +424,8 @@ var DEFAULT_RULES = {
   capT2: 40000, capT2Lim: 250000,   // 15~25억 → 상한 4억
   capT3: 20000,                      // 25억 초과 → 상한 2억
   dsr: 40,             // DSR %
-  stress: 1.5,         // 스트레스 가산 %p
+  stress: 3.0,         // 스트레스 가산 %p — 수도권·규제지역 (10·15 대책으로 1.5→3.0)
+  stressLocal: 1.5,    // 스트레스 가산 %p — 그 외 지역
   loanYears: 30,       // 대출 만기 (년)
   acq2Reg: 8,          // 조정지역 2주택 취득세 %
   acq3Reg: 12,         // 조정지역 3주택 이상 취득세 %
@@ -434,7 +443,8 @@ var DEFAULT_RULES = {
     "41115","41173","41465","41430","41450","41597","41463","41310",
   ],
 
-  regVer: 20260701      /* 규제지역 기준일 — 올라가면 저장된 목록을 새 기본값으로 갈아끼운다 */
+  regVer: 20260701,     /* 규제지역 기준일 — 올라가면 저장된 목록을 새 기본값으로 갈아끼운다 */
+  ruleVer: 20251015     /* 대출 기준일 — 올라가면 저장된 스트레스 가산을 새 기본값으로 */
 };
 var RULES = JSON.parse(JSON.stringify(DEFAULT_RULES));
 
@@ -947,7 +957,9 @@ function finance(region, price, cond, flags) {
   /* 3) DSR (연소득 0이면 미적용) */
   var dsrAmt = Infinity;
   if (cond.income > 0 && ltv > 0) {
-    var r = (cond.rate + RULES.stress) / 100 / 12;
+    var sPp = (metro || reg) ? RULES.stress
+      : (RULES.stressLocal != null ? RULES.stressLocal : RULES.stress);
+    var r = (cond.rate + sPp) / 100 / 12;
     var n = RULES.loanYears * 12;
     var pay = cond.income * RULES.dsr / 100 / 12;
     dsrAmt = r > 0 ? pay * (1 - Math.pow(1 + r, -n)) / r : pay * n;
@@ -1604,23 +1616,34 @@ function ageTierHtml(mx, code, cond) {
   if (!mx) return '<div class="pxcap">이 지역 저장본이 없거나 ' + cond.area +
     "㎡대 거래 단지가 없어 연식·급별 표를 만들 수 없습니다.</div>";
   var AGE = [["new", "신축 ~10년"], ["semi", "준신축 10~20년"], ["old", "구축 20년~"]];
-  function cell(c) {
-    if (!c) return "<td>—</td>";
-    var f = cellNeed(code, c, cond);
-    var hit = cond.cash > 0 && f.need <= cond.cash;
-    return "<td" + (hit ? ' class="hit2"' : "") + '><div class="atname" title="' + escHtml(c.apt) +
-      " · " + c.y + '년">' + escHtml(c.apt) + "</div>" +
-      '<div class="atrow">매매 <b>' + eok(c.price) + "</b> <small>(" + String(c.yr).slice(2) + "년 중위)</small></div>" +
-      '<div class="atrow">필요현금 <b>' + eok(f.need) + "</b> <small>(" + f.mode +
-        (hit ? " · 가능" : "") + ")</small></div></td>";
-  }
-  var rows = AGE.map(function (a) {
+  var TIER = [["top", "대장"], ["mid", "중위"], ["low", "하위 25%"]];
+  var h = AGE.map(function (a) {
     var g = mx[a[0]];
-    return "<tr><th>" + a[1] + (g ? ' <small>' + g.n + "곳</small>" : "") + "</th>" +
-      (g ? cell(g.top) + cell(g.mid) + cell(g.low) : "<td>—</td><td>—</td><td>—</td>") + "</tr>";
+    var items = "";
+    if (g) {
+      var seen = [];
+      items = TIER.map(function (tt) {
+        var c = g[tt[0]];
+        if (!c || seen.indexOf(c) >= 0) return "";   /* 단지가 1~2곳이면 같은 단지가 반복된다 */
+        seen.push(c);
+        var f = cellNeed(code, c, cond);
+        var hit = cond.cash > 0 && f.need <= cond.cash;
+        return '<div class="atitem' + (hit ? " hit2" : "") + '">' +
+          '<span class="atk' + (tt[0] === "top" ? " gold" : "") + '">' + tt[1] + "</span>" +
+          '<div class="atbody"><div class="atname" title="' + escHtml(c.apt) + '">' + escHtml(c.apt) +
+            " <small>" + c.y + "년</small></div>" +
+          '<div class="atrow">매매 <b>' + eok(c.price) + "</b> <small>(" + String(c.yr).slice(2) +
+            "년 중위)</small> · 필요현금 <b>" + eok(f.need) + "</b> <small>(" + f.mode +
+            (hit ? " · 가능" : "") + ")</small></div></div></div>";
+      }).join("");
+    } else {
+      items = '<div class="atitem"><span class="atk">—</span>' +
+        '<div class="atbody"><div class="atrow">이 연식대에 최근 거래 단지가 없습니다.</div></div></div>';
+    }
+    return '<div class="atgrp"><div class="atgh">' + a[1] +
+      (g ? ' <small>' + g.n + "곳</small>" : "") + "</div>" + items + "</div>";
   }).join("");
-  return '<table class="pxt att"><thead><tr><th></th><th>대장</th><th>중위</th><th>하위 25%</th></tr></thead><tbody>' +
-    rows + "</tbody></table>" +
+  return h +
     '<div class="pxcap">' + cond.area + "㎡대 · <b>매매</b>는 그 단지의 최근 연도 <b>중위 실거래가</b>(저장본 — " +
     "마지막 한 건이 아니라 그 해 거래들의 중앙값) · <b>필요현금</b>은 전세 끼고면 갭(단지 전세 실거래)+취득세·부대비, " +
     "대출 매수면 매수가−대출+취득세·부대비 · <b>초록 = 시작 탭에 적은 동원 가능 현금</b>으로 감당되는 칸" +
@@ -1820,11 +1843,27 @@ function wizScanStore(st, code, rankIdx, thisY) {
       if (WIZ.age !== "any" && !wizAgeOk(cx.y, thisY)) return;
       var cnt = sumArr(s.c);
       if (cnt < 5) return;                          /* 표본이 너무 얇으면 순위가 소음이 된다 */
+      var first = -1;
+      for (i = 0; i < s.p.length; i++) if (s.p[i] != null) { first = i; break; }
+      var histYrs = Math.max(1, last - first + 1);
       var cg = storeCagr(cx, b, WIZ.horizon);
-      if (!cg || cg.cagr == null) return;
-      var sPerf = clamp(cg.cagr / 7.2, 0, 1) * 100; /* 연 7.2%(10년 두 배)가 만점 기준 */
+      /* 신축 보정(v5.28) — 이력 5년 미만이면 단지의 짧은 등락은 분양가·프리미엄 소음이라
+         ① 지역의 10년 성과 ② 후보들 사이 상대가격(대장성)으로 평가한다.
+         신축은 자기 이력이 없어서 입지(지역)와 시장이 매긴 가격 위치가 더 믿을 만하다.
+         (대장성은 후보가 다 모인 뒤 2차로 얹는다) */
+      var sPerf, perfSrc = "self", regC = null;
+      if (cg && cg.cagr != null && cg.yrs >= 5) {
+        sPerf = clamp(cg.cagr / 7.2, 0, 1) * 100;   /* 연 7.2%(10년 두 배)가 만점 기준 */
+      } else {
+        regC = wizRegionCagr(code);
+        sPerf = regC != null ? clamp(regC / 7.2, 0, 1) * 100 : 50;
+        perfSrc = "region";
+      }
       var sRank = (rankIdx >= 0 && N > 1) ? (1 - rankIdx / (N - 1)) * 100 : 50;
-      var sLiq = clamp(cnt / 120, 0, 1) * 100;      /* 거래가 꾸준한 단지가 팔기도 쉽다 */
+      /* 거래 꾸준함은 총량이 아니라 **연평균** — 3년 된 신축이 17년 된 구축과 총량으로
+         겨루면 무조건 진다. 연 7건(17년 120건 상당)이면 만점. */
+      var perYr = cnt / Math.min(histYrs, 17);
+      var sLiq = clamp(perYr / 7, 0, 1) * 100;
       /* 같은 평형대의 전세 — 최근 연 중위가와 그 해. 매매와 같은 해면 갭도 만든다. */
       var je = null, jeYear = null;
       var rj = cx.r && cx.r[String(b)];
@@ -1834,7 +1873,9 @@ function wizScanStore(st, code, rankIdx, thisY) {
       var row = {
         code: code, apt: cx.n, dong: cx.d, buildY: cx.y || null, band: b,
         price: price, lastYear: lastYear, je: je, jeYear: jeYear,
-        cagr: cg.cagr, yrs: cg.yrs, thin: cg.thin,
+        cagr: cg && cg.cagr != null ? cg.cagr : regC,
+        yrs: cg ? cg.yrs : histYrs, thin: cg ? cg.thin : true,
+        perfSrc: perfSrc, regCagr: regC,
         cnt: cnt, rankIdx: rankIdx,
         sPerf: sPerf, sRank: sRank, sLiq: sLiq,
         score: sPerf * 0.5 + sRank * 0.3 + sLiq * 0.2
@@ -1843,7 +1884,29 @@ function wizScanStore(st, code, rankIdx, thisY) {
     });
     if (best) out.push(best);
   });
+  /* 신축 보정 2차 — 같은 평형대 후보들 사이의 상대가격(대장성).
+     비싼 신축이 그 지역의 대장 자리이고, 대장은 이후 성과도 체계적으로 좋았다. */
+  var byBand = {};
+  out.forEach(function (r) { (byBand[r.band] = byBand[r.band] || []).push(r.price); });
+  out.forEach(function (r) {
+    if (r.perfSrc !== "region") return;
+    var med = median(byBand[r.band]);
+    if (med > 0) {
+      var sPrem = clamp((r.price / med - 0.7) / 0.6, 0, 1) * 100;  /* 중위 0.7배↓ 0점 · 1.3배↑ 만점 */
+      r.sPerf = r.sPerf * 0.6 + sPrem * 0.4;
+    }
+    r.score = r.sPerf * 0.5 + r.sRank * 0.3 + r.sLiq * 0.2;
+  });
   return out;
+}
+/* 지역 매매지수의 최근 10년 연복리 — 이력 짧은 신축 평가용 */
+function wizRegionCagr(code) {
+  try {
+    if (!DB) return null;
+    var r10 = idxChange("sale", ik(code), 120);
+    if (r10 == null) return null;
+    return (Math.pow(1 + r10 / 100, 1 / 10) - 1) * 100;
+  } catch (e) { return null; }
 }
 function wizRun() {
   if (WIZ.busy) return;
@@ -2086,8 +2149,11 @@ function renderWizResult() {
       "</div>" +
       '<div class="wchips">' +
         '<span class="tagmini gold">' + (t.band || 84) + "㎡대</span>" +
-        '<span class="tagmini' + (t.cagr >= 7.2 ? " ok" : "") + '">' + WIZ.horizon + "년 연 " +
-          pct(t.cagr, 1) + (t.thin ? "~" : "") + "</span>" +
+        (t.perfSrc === "region"
+          ? '<span class="tagmini">신축 — 지역 10년 ' +
+              (t.regCagr != null ? pct(t.regCagr, 1) + "/년" : "성과") + " 기준</span>"
+          : '<span class="tagmini' + (t.cagr >= 7.2 ? " ok" : "") + '">' + WIZ.horizon + "년 연 " +
+              pct(t.cagr, 1) + (t.thin ? "~" : "") + "</span>") +
         '<span class="tagmini">급지 ' + (t.rankIdx >= 0 ? (t.rankIdx + 1) + "위" : "—") + "</span>" +
         '<span class="tagmini">거래 ' + fmt(t.cnt) + "건</span>" +
       "</div>" +
@@ -2117,10 +2183,15 @@ function renderWizResult() {
       }
       d.innerHTML =
         '<div class="whyrow"><div class="whyk">성과</div><div class="whyv">' +
-          (t.band || 84) + "㎡대 최근 " + Math.round(t.yrs) + "년 연평균 <b>" + pct(t.cagr, 1) +
-          "</b> — 통과선(10년에 두 배 = 연 7.2%)" +
-          (t.cagr >= 7.2 ? "을 넘었습니다" : "에는 못 미치지만 조건 안에서는 상위입니다") + "." +
-          (t.thin ? " 비교 구간 한쪽이 거래 1건뿐(~)이라 표본이 얇습니다." : "") +
+          (t.perfSrc === "region"
+            ? "거래 이력이 " + Math.round(t.yrs) + "년뿐이라 단지 자체 상승률 대신 <b>지역 10년 성과 " +
+              (t.regCagr != null ? pct(t.regCagr, 1) + "/년" : "—") +
+              "</b>과 <b>후보들 사이 상대가격(대장성)</b>으로 평가했습니다. 신축의 짧은 등락은 " +
+              "분양가·프리미엄 소음이라, 입지와 시장이 매긴 가격 위치가 더 믿을 만합니다."
+            : (t.band || 84) + "㎡대 최근 " + Math.round(t.yrs) + "년 연평균 <b>" + pct(t.cagr, 1) +
+              "</b> — 통과선(10년에 두 배 = 연 7.2%)" +
+              (t.cagr >= 7.2 ? "을 넘었습니다" : "에는 못 미치지만 조건 안에서는 상위입니다") + "." +
+              (t.thin ? " 비교 구간 한쪽이 거래 1건뿐(~)이라 표본이 얇습니다." : "")) +
           '<div class="whybtns">' + vlink("cmpx", "이 단지 10년 추이") + "</div></div></div>" +
         '<div class="whyrow"><div class="whyk">급지</div><div class="whyv">' +
           escHtml(wizName(t.code)) + " — 전국 실거래 평당가 서열 <b>" +
@@ -2130,8 +2201,12 @@ function renderWizResult() {
         '<div class="whyrow"><div class="whyk">거래</div><div class="whyv">17년간 <b>' + fmt(t.cnt) +
           "건</b> — 시세가 꾸준히 확인되고, 팔 때도 상대가 있습니다." +
           '<div class="whybtns">' + vlink("vol", "이 지역 거래량") + "</div></div></div>" +
-        '<div class="whyrow"><div class="whyk">조건</div><div class="whyv">' + t.lastYear + "년 중위가 <b>" +
-          eok(t.price) + "</b>" +
+        '<div class="whyrow"><div class="whyk">조건</div><div class="whyv">' +
+          (t.lastDeal
+            ? "최근 실거래 <b>" + eok(t.lastDeal.amount) + "</b> <small>(" +
+              String(t.lastDeal.ym).slice(2, 4) + "." + Number(String(t.lastDeal.ym).slice(4)) +
+              (t.lastDeal.floor ? " · " + t.lastDeal.floor + "층" : "") + ")</small>"
+            : t.lastYear + "년 중위가 <b>" + eok(t.price) + "</b>") +
           (WIZ.budget ? " — 예산(" + eok(WIZ.budget) + ") 안" : "") +
           (t.buildY ? " · " + (thisY - t.buildY) + "년차로 고르신 연식 범위 안" : "") + "입니다." +
           '<div class="whybtns">' + vlink("calc", "이 가격 필요현금") + "</div></div></div>" +
@@ -2150,16 +2225,28 @@ function renderWizResult() {
          값을 먼저 넣으면 지워진다 (v5.22의 버그) */
       showTab("danji");
       var sel = document.getElementById("dj-region");
-      /* 값만 넣으면 화면의 조회조건(선택 버튼 라벨)이 안 바뀐다 — change까지 쏜다 (v5.24의 버그) */
-      if (sel) { sel.value = t.code; fireChange(sel); }
+      /* 값만 넣으면 조회조건 표시가 안 바뀌고(v5.24), 값 대입은 꼬리 붙은 코드에서
+         조용히 실패한다(v5.27 — 시흥에서 이전 지역 표가 그대로 남았다).
+         옵션을 훑어 코드를 맞추고 change까지 쏜다. */
+      var matched = false;
+      if (sel) {
+        for (var oi = 0; oi < sel.options.length; oi++)
+          if (String(sel.options[oi].value).split(":")[0] === String(t.code)) {
+            sel.selectedIndex = oi; matched = true; break;
+          }
+        fireChange(sel);
+      }
       var bandSel = document.getElementById("dj-band");
       if (bandSel) {
         bandSel.value = String(t.band || (WIZ.band === "small" ? 46 : (WIZ.band === "big" ? 101 : WIZ.band)));
         fireChange(bandSel);
       }
+      var mSel = document.getElementById("dj-months");
+      if (mSel) { mSel.value = "6"; fireChange(mSel); }   /* 카드 시세표와 같은 6개월 창 */
       window.scrollTo(0, 0);
+      DJ.flashApt = t.apt;                                 /* 표가 그려지면 이 단지를 강조 */
       var go = document.getElementById("dj-go");
-      if (go && sel && sel.value === t.code) go.click();
+      if (go && matched) go.click();
     });
   });
   var tg = document.getElementById("wiz-toguide");
@@ -2240,8 +2327,10 @@ function wizLoadDetails() {
         if (WIZ.out !== out) return;
         out.top.forEach(function (t, i) {
           if (t.code !== c) return;
+          var stt = wizDetailStats(data, t);
+          t.lastDeal = stt.sale ? stt.sale.last : null;   /* 조건 근거·계산기가 이 값을 쓴다 */
           var el = document.getElementById("wiz-px-" + i);
-          if (el) el.innerHTML = wizPxLiveHtml(t, wizDetailStats(data, t));
+          if (el) el.innerHTML = wizPxLiveHtml(t, stt);
         });
       })["catch"](function () {
         out.top.forEach(function (t, i) {
@@ -2277,9 +2366,10 @@ function wizGo(tab, t) {
     var vgo = document.getElementById("vl-go");
     if (vgo) vgo.click();
   } else if (tab === "calc") {
-    CALC.price = t.price; CALC.reg = isRegulated(t.code); CALC.metro = !!METRO[t.code];
+    var px = (t.lastDeal && t.lastDeal.amount) || t.price;   /* 최근 실거래가 우선 */
+    CALC.price = px; CALC.reg = isRegulated(t.code); CALC.metro = !!METRO[t.code];
     var cp = document.getElementById("cl-price");
-    if (cp) cp.value = t.price;
+    if (cp) cp.value = px;
     var cr = document.getElementById("cl-reg"), cm = document.getElementById("cl-metro");
     if (cr) cr.checked = CALC.reg;
     if (cm) cm.checked = CALC.metro;
@@ -2311,24 +2401,32 @@ function wizCmpPlan(t, mine, up, upperCode) {
   var myId = btKey(t.dong, t.apt, "");
   var myPos = -1, i;
   for (i = 0; i < mine.length; i++) if (mine[i].id === myId) { myPos = i; break; }
+  var out;
   if (!up || !up.length) {
     if (myPos >= 0 && myPos <= 2) {
-      var p3 = mine.slice(0, 3).map(function (x) { return [t.code, x.id]; });
-      while (p3.length < 3) p3.push(null);
-      return p3;
+      out = mine.slice(0, 3).map(function (x) { return [t.code, x.id]; });
+      while (out.length < 3) out.push(null);
+      out.mode = "apex3";
+      return out;
     }
-    return [[t.code, myId],
-            mine[0] ? [t.code, mine[0].id] : null,
-            mine[1] ? [t.code, mine[1].id] : null];
+    out = [[t.code, myId],
+           mine[0] ? [t.code, mine[0].id] : null,
+           mine[1] ? [t.code, mine[1].id] : null];
+    out.mode = "apexOut";
+    return out;
   }
   if (myPos === 0) {
     var upMid = up[Math.floor((up.length - 1) / 2)];
-    return [[t.code, myId], [upperCode, up[0].id],
-            (upMid && upMid.id !== up[0].id) ? [upperCode, upMid.id] : null];
+    out = [[t.code, myId], [upperCode, up[0].id],
+           (upMid && upMid.id !== up[0].id) ? [upperCode, upMid.id] : null];
+    out.mode = "top";
+    return out;
   }
-  return [[t.code, myId],
-          mine[0] ? [t.code, mine[0].id] : null,
-          [upperCode, up[0].id]];
+  out = [[t.code, myId],
+         mine[0] ? [t.code, mine[0].id] : null,
+         [upperCode, up[0].id]];
+  out.mode = "notTop";
+  return out;
 }
 function cmpSetSlot(i, code, band, aptId) {
   var r = document.getElementById("cx-r" + i);
@@ -2350,16 +2448,52 @@ function cmpClearSlot(i) {
   if (a && a.value) { a.value = ""; fireChange(a); }
   return Promise.resolve();
 }
+/* 상위구는 전국 서열이 아니라 **같은 도** 안에서 고른다 —
+   시흥에서 갑자기 대구와 비교하면 어리둥절하다 (v5.28). */
+function wizUpperOf(code, rankIdx) {
+  if (!(rankIdx > 0)) return null;
+  var pfx = String(code).slice(0, 2);
+  for (var ui = rankIdx - 1; ui >= 0; ui--)
+    if (String(RANKED[ui]).slice(0, 2) === pfx) return RANKED[ui];
+  return null;
+}
 function wizGoCmpx(t) {
   var rb = document.querySelector('#cx-range button[data-r="y"]');
   if (rb) rb.click();                                /* 10년 모드 — 저장본이라 조회 0회 */
   var thisY = new Date().getFullYear();
   var band = t.band || 84;
-  var upper = (t.rankIdx > 0 && RANKED[t.rankIdx - 1]) ? RANKED[t.rankIdx - 1] : null;
+  var upper = wizUpperOf(t.code, t.rankIdx);
   Promise.all([loadStore(t.code), upper ? loadStore(upper) : Promise.resolve(null)])
     .then(function (sts) {
-      var plan = wizCmpPlan(t, storeTops(sts[0], band, thisY),
-                            storeTops(sts[1], band, thisY), upper);
+      var mine = storeTops(sts[0], band, thisY);
+      var up = storeTops(sts[1], band, thisY);
+      var plan = wizCmpPlan(t, mine, up, upper);
+      /* 왜 이 셋이 골라졌는지 — 갑자기 3개가 채워지면 어리둥절하다 */
+      var nameOf = {};
+      mine.forEach(function (x) { nameOf[t.code + "|" + x.id] = x.apt; });
+      if (upper) up.forEach(function (x) { nameOf[upper + "|" + x.id] = x.apt; });
+      var slots = [];
+      plan.forEach(function (p) {
+        if (!p) return;
+        slots.push("<b>" + escHtml(nameOf[p[0] + "|" + p[1]] || t.apt) + "</b> <small>(" +
+          escHtml(wizName(p[0])) + ")</small>");
+      });
+      var why = plan.mode === "top"
+        ? "이 단지가 " + escHtml(wizName(t.code)) + "의 대장이라, 같은 도 상위 급지 <b>" +
+          escHtml(wizName(upper)) + "</b>의 대장·중위 단지를 붙였습니다."
+        : plan.mode === "notTop"
+        ? "같은 지역의 대장, 그리고 같은 도 상위 급지 <b>" + escHtml(wizName(upper)) +
+          "</b>의 대장을 붙였습니다."
+        : plan.mode === "apex3"
+        ? "이 지역이 이 도의 최상위 급지라, 지역 1·2·3등끼리 비교합니다."
+        : "이 지역이 이 도의 최상위 급지라, 지역 1·2등을 붙였습니다.";
+      var note = document.getElementById("cx-autonote");
+      if (note) {
+        note.style.display = "";
+        note.innerHTML = "<b>추천받기에서 넘어왔습니다</b> — 비교 상대를 자동으로 채웠습니다. " +
+          why + "<br>" + slots.join(" · ") +
+          ' <span style="color:var(--ink-soft)">아래 칸에서 직접 바꿀 수 있습니다.</span>';
+      }
       var chain = Promise.resolve();
       plan.forEach(function (p, i) {
         chain = chain.then(function () {
@@ -2756,8 +2890,6 @@ function buildVol(root) {
         '호가만 오르는 상승 동력 둔화입니다.</p>' +
       '<div class="grid">' +
         '<div class="field"><label for="vl-region">지역</label><select id="vl-region"></select></div>' +
-        '<div class="field"><label for="vl-lawd">법정동코드 직접 입력 (선택)</label>' +
-          '<input id="vl-lawd" type="text" inputmode="numeric" maxlength="5" placeholder="5자리"></div>' +
         '<div class="field"><label>조회 기간</label><div class="seg" id="vl-months">' +
           '<button data-m="12">12개월</button><button data-m="24" class="on">24개월</button></div></div>' +
         '<div class="field"><label>&nbsp;</label><button class="btn" id="vl-go">거래량 불러오기</button></div>' +
@@ -2794,8 +2926,7 @@ function median(arr) {
 }
 
 function loadVol() {
-  var manual = (document.getElementById("vl-lawd").value || "").trim();
-  var lawd = /^\d{5}$/.test(manual) ? manual : document.getElementById("vl-region").value;
+  var lawd = document.getElementById("vl-region").value;
   if (!lawd) { alert("지역을 선택하세요."); return; }
   VOL.lawd = lawd;
   var btn = document.getElementById("vl-go");
@@ -4440,6 +4571,18 @@ function renderDanjiTable() {
   tb.querySelectorAll("button[data-djc]").forEach(function (b) {
     b.addEventListener("click", function () { addToCart(DJ.view[Number(b.dataset.djc)], b); });
   });
+  /* 추천받기에서 넘어온 단지를 잠깐 강조 — 못 찾으면 (필터에 걸렸으면) 조용히 넘어간다 */
+  if (DJ.flashApt) {
+    var fa = DJ.flashApt;
+    DJ.flashApt = "";
+    Array.prototype.some.call(tb.querySelectorAll("tr"), function (trr) {
+      if (trr.textContent.indexOf(fa) < 0) return false;
+      trr.classList.add("flash");
+      if (trr.scrollIntoView) trr.scrollIntoView({ block: "center" });
+      setTimeout(function () { trr.classList.remove("flash"); }, 2600);
+      return true;
+    });
+  }
 }
 
 function addToCart(r, btn) {
@@ -5577,7 +5720,8 @@ function buildCmpx(root) {
         '<button type="button" data-r="12">최근 12개월</button>' +
         '<button type="button" data-r="24" class="on">최근 24개월</button>' +
         '<button type="button" data-r="y">10년 (연 단위)</button></div>' +
-      '<div class="note" style="margin-top:10px" id="cx-rangenote"></div></div>' +
+      '<div class="note" style="margin-top:10px" id="cx-rangenote"></div>' +
+      '<div class="callout" id="cx-autonote" style="display:none;margin-top:10px"></div></div>' +
     slotHtml(0, "A") + slotHtml(1, "B") + slotHtml(2, "C (선택)") +
     '<div class="card" id="cx-resultcard" style="display:none">' +
       '<div class="eyebrow">Result</div><h2>비교 표</h2>' +
@@ -7067,6 +7211,7 @@ function buildTiers(root) {
           '<button type="button" data-a="59">59㎡ 기준</button></div>' +
         '<label class="check"><input type="checkbox" id="tr-top3"> 1~3분위만</label>' +
       '</div>' +
+      '<div class="note" id="tr-help" style="display:none;margin-bottom:8px"></div>' +
       '<div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="전국등급표">이미지 저장</button>' +
       '<button class="btn sm ghost" data-exp="xlsx" data-table="tr-table" data-name="전국등급표">엑셀 저장</button></div>' +
       '<div class="tblwrap"><table id="tr-table"><thead><tr>' +
@@ -7074,7 +7219,7 @@ function buildTiers(root) {
         "<th>전세</th><th>전세가율</th><th>밴드 (10년)</th><th>3년</th><th>10년</th>" +
         "<th>10Y CAGR</th><th>전체 CAGR</th><th>100%</th><th>규제</th>" +
       "</tr></thead><tbody></tbody></table></div>" +
-      '<div class="note"><b>읽는 법</b> — <b>분위</b>는 평당가 10등분(1분위=상위 10%). <b>밴드</b>는 최근 120개월 ' +
+      '<div class="note"><b>읽는 법</b> — 표 <b>머리글을 누르면</b> 그 열의 설명이 위에 나옵니다(다시 누르면 닫힘). <b>분위</b>는 평당가 10등분(1분위=상위 10%). <b>밴드</b>는 최근 120개월 ' +
         '평당가 분포에서 지금이 어디쯤인지(낮을수록 역대 대비 저렴). <b>100%</b>는 10년 상승률이 두 배(연복리 7.2%)를 ' +
         '넘었는지 — 이 앱의 장기 성과 통과선입니다. <b>전체 CAGR</b>은 실거래 자료가 시작된 시점부터의 연복리라 지역마다 ' +
         '기산점이 다릅니다(오래된 곳은 1986년, 신도시는 편입 시점부터).</div></div>';
@@ -7099,6 +7244,40 @@ function buildTiers(root) {
       x.classList.toggle("on", x === b);
     });
     renderTiers();
+  });
+  /* 머리글 클릭 → 열 설명 토글 (한 번 더 누르면 닫힘) */
+  var TR_HELP = {
+    "지역": "시·군·구입니다. ⛔는 규제지역(설정 탭 기준).",
+    "전국 서열": "㎡당 매매 중위가로 전국 시·군·구를 줄 세운 순위 — 1위가 가장 비쌉니다.",
+    "분위": "평당가 10등분 급지 — 1분위 = 상위 10%. 상위 분위일수록 이후 10년 성과가 체계적으로 높았습니다.",
+    "평당가": "최근 달 ㎡당 중위 실거래가 × 3.3058 (전용면적 기준 — 공급면적 평당가보다 25%쯤 높게 보입니다).",
+    "84㎡ 매매": "84㎡대의 최근 달 중위 실거래가입니다.",
+    "59㎡ 매매": "59㎡대의 최근 달 중위 실거래가입니다.",
+    "전세": "같은 평형대의 전세 중위 실거래가입니다.",
+    "전세가율": "전세 ÷ 매매 (%). 높을수록 갭이 얇아 전세 끼고 진입하기 쉽습니다.",
+    "밴드 (10년)": "최근 120개월 평당가 분포에서 지금 가격의 백분위 — 낮을수록 역대 대비 저렴한 구간입니다.",
+    "3년": "최근 36개월 매매지수 상승률입니다.",
+    "10년": "최근 120개월 매매지수 상승률 — 100%면 10년에 두 배입니다.",
+    "10Y CAGR": "10년 상승률을 연복리로 환산한 값 — 연 7.2%가 10년 두 배입니다.",
+    "전체 CAGR": "실거래 자료가 시작된 시점부터의 연복리 — 기산점이 지역마다 달라 서로 비교는 조심하세요.",
+    "100%": "10년 상승률이 두 배(연 7.2%)를 넘었는지 — 이 앱의 장기 성과 통과선입니다.",
+    "규제": "규제지역 여부(설정 탭 목록 기준). 대출 LTV 40% · 전세 끼고 매수 불가."
+  };
+  root.querySelector("#tr-table thead").addEventListener("click", function (e) {
+    var th = e.target.closest("th");
+    if (!th) return;
+    var key = th.textContent.replace(/[⇅↑↓]/g, "").trim();
+    var hp = document.getElementById("tr-help");
+    if (!hp) return;
+    if (hp.dataset.k === key && hp.style.display !== "none") {
+      hp.style.display = "none"; hp.dataset.k = "";
+      return;
+    }
+    var txt = TR_HELP[key];
+    if (!txt) return;
+    hp.innerHTML = "<b>" + escHtml(key) + "</b> — " + txt;
+    hp.dataset.k = key;
+    hp.style.display = "";
   });
 }
 
@@ -8087,6 +8266,12 @@ function loadRules() {
       RULES.regulated = DEFAULT_RULES.regulated.slice();
       RULES.regVer = DEFAULT_RULES.regVer;
     }
+    /* 대출 기준일이 올라갔으면 (10·15: 수도권·규제 스트레스 1.5→3.0%p) 새 기본값으로 */
+    if (Number(r.ruleVer || 0) < DEFAULT_RULES.ruleVer) {
+      RULES.stress = DEFAULT_RULES.stress;
+      RULES.stressLocal = DEFAULT_RULES.stressLocal;
+      RULES.ruleVer = DEFAULT_RULES.ruleVer;
+    }
   } catch (e) {}
 }
 function saveRules() { try { localStorage.setItem(LS_RULES, JSON.stringify(RULES)); } catch (e) {} }
@@ -8609,14 +8794,17 @@ function buildSetting(root) {
     '<div class="card">' +
       '<div class="eyebrow">Rules</div><h2>대출·세금 기준</h2>' +
       '<p class="desc">필요현금 계산에 쓰이는 기준입니다. 규정이 바뀌면 여기서 직접 고치세요. ' +
-        '기본값은 2026.8 기준(규제 LTV 40 · 비규제 70 · 총액상한 6/4/2억 · DSR 40 + 스트레스 1.5%p)입니다.</p>' +
+        '기본값은 2026.8 기준 — 규제 LTV 40 · 비규제 70 · 총액상한 6/4/2억(15억·25억 문턱) · DSR 40 · ' +
+        '스트레스 가산 <b>수도권·규제 3.0%p / 그 외 1.5%p</b>(10·15 대책 반영)입니다. ' +
+        '전세대출 이자의 DSR 산입(1주택 수도권) 같은 세부 규정은 계산에 넣지 않으니 최종 한도는 은행에서 확정하세요.</p>' +
       '<div class="grid3">' +
         num("r-ltvReg", "규제지역 LTV (%)", RULES.ltvReg) +
         num("r-ltvFree", "비규제 LTV (%)", RULES.ltvFree) +
         num("r-ltvFirstLocal", "생애최초·지방 LTV (%)", RULES.ltvFirstLocal) +
         num("r-ltvMulti", "추가매수·비규제 LTV (%)", RULES.ltvMulti) +
         num("r-dsr", "DSR (%)", RULES.dsr) +
-        num("r-stress", "스트레스 가산 (%p)", RULES.stress, "0.1") +
+        num("r-stress", "스트레스 — 수도권·규제 (%p)", RULES.stress, "0.1") +
+        num("r-stressLocal", "스트레스 — 그 외 지역 (%p)", RULES.stressLocal, "0.1") +
         num("r-loanYears", "대출 만기 (년)", RULES.loanYears) +
         num("r-capT1", "상한① 금액 (만원)", RULES.capT1) +
         num("r-capT1Lim", "상한① 적용가 이하 (만원)", RULES.capT1Lim) +
@@ -8654,7 +8842,7 @@ function buildSetting(root) {
   regCount();
 
   document.getElementById("r-save").addEventListener("click", function () {
-    ["ltvReg","ltvFree","ltvFirstLocal","ltvMulti","dsr","stress","loanYears",
+    ["ltvReg","ltvFree","ltvFirstLocal","ltvMulti","dsr","stress","stressLocal","loanYears",
      "capT1","capT1Lim","capT2","capT2Lim","capT3","acq2Reg","acq3Reg",
      "wRank","wPerf","wSupply","wTiming","wCash",
      "broker","etcRate","etcFixed"].forEach(function (k) {

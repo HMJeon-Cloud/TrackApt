@@ -384,7 +384,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.28</span>
+    <span class="ver">v5.29</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1633,7 +1633,8 @@ function ageTierHtml(mx, code, cond) {
           '<div class="atbody"><div class="atname" title="' + escHtml(c.apt) + '">' + escHtml(c.apt) +
             " <small>" + c.y + "년</small></div>" +
           '<div class="atrow">매매 <b>' + eok(c.price) + "</b> <small>(" + String(c.yr).slice(2) +
-            "년 중위)</small> · 필요현금 <b>" + eok(f.need) + "</b> <small>(" + f.mode +
+            "년 중위)</small></div>" +
+          '<div class="atrow">필요현금 <b>' + eok(f.need) + "</b> <small>(" + f.mode +
             (hit ? " · 가능" : "") + ")</small></div></div></div>";
       }).join("");
     } else {
@@ -2905,7 +2906,9 @@ function buildVol(root) {
       '<div class="tblwrap"><table id="vl-table"><thead><tr>' +
       '<th>월</th><th>거래건수</th><th>전월 대비</th><th>12개월 평균</th><th>평당가 중위</th></tr></thead><tbody></tbody></table></div>' +
       '<div class="note"><b>주의</b> — 실거래 신고 기한(계약 후 30일) 때문에 최근 1~2개월은 실제보다 적게 ' +
-        '집계됩니다. 마지막 막대가 낮은 건 하락이 아니라 <b>아직 다 들어오지 않은 것</b>일 수 있습니다.</div></div>';
+        '집계됩니다. 마지막 막대가 낮은 건 하락이 아니라 <b>아직 다 들어오지 않은 것</b>일 수 있습니다. ' +
+        '<code>*</code>가 붙은 12개월 평균은 조회 창보다 오래된 달을 <b>월별 저장본(market_core)</b>의 ' +
+        '거래량으로 이어 계산한 값입니다.</div></div>';
 
   root.querySelector("#vl-go").addEventListener("click", loadVol);
   root.querySelectorAll("#vl-months button").forEach(function (b) {
@@ -2959,15 +2962,29 @@ function loadVol() {
   });
 }
 
+/* market_core 월 거래량 — 조회 창 밖 과거를 이어붙이는 용도 */
+function volStoreAt(code, ymNumVal) {
+  var blk = DB && DB.vol, s = blk && blk.series && blk.series[code];
+  if (!s) return null;
+  var i = (Math.floor(ymNumVal / 100) * 12 + (ymNumVal % 100)) - ymNum(blk.dates[0]) - s.o;
+  return (i >= 0 && i < s.v.length) ? s.v[i] : null;
+}
 function renderVolResult() {
   var rows = VOL.rows;
-  /* 12개월 이동평균 */
+  /* 12개월 이동평균 — 창 앞머리 11개월은 창 안에서 평균을 못 만든다.
+     비워 두면 "값이 없다"는 문의가 온다(v5.29) → 저장본(market_core) 월 거래량으로
+     창 밖 과거를 이어붙여 전 구간을 계산한다. 저장본이 없으면 예전처럼 —. */
+  var code = String(VOL.lawd).split(":")[0];
   rows.forEach(function (r, i) {
-    if (i >= 11) {
-      var s = 0;
-      for (var j = i - 11; j <= i; j++) s += rows[j].cnt;
-      r.ma = s / 12;
-    } else r.ma = null;
+    var s = 0, miss = false, fromStore = false;
+    for (var j = i - 11; j <= i; j++) {
+      if (j >= 0) { s += rows[j].cnt; continue; }
+      var v = volStoreAt(code, ymShift(Number(rows[0].ym), j));
+      if (v == null) { miss = true; break; }
+      s += v; fromStore = true;
+    }
+    r.ma = miss ? null : s / 12;
+    r.maStore = fromStore && !miss;
   });
   /* 최근 1개월은 신고 지연으로 제외하고 판정 */
   var solid = rows.slice(0, -1);
@@ -3026,7 +3043,8 @@ function renderVolResult() {
     return "<tr><td>" + r.ym.slice(0, 4) + "." + r.ym.slice(4) + "</td>" +
       "<td><b>" + r.cnt + "건</b></td>" +
       '<td class="' + cls(chg) + '">' + (chg != null ? pct(chg, 1) : "—") + "</td>" +
-      "<td>" + (r.ma != null ? r.ma.toFixed(1) + "건" : "—") + "</td>" +
+      "<td" + (r.maStore ? ' title="조회 창 이전 달은 저장본(market_core) 월 거래량으로 이어 계산"' : "") + ">" +
+        (r.ma != null ? r.ma.toFixed(1) + "건" + (r.maStore ? "*" : "") : "—") + "</td>" +
       "<td>" + (r.pyMed != null ? fmt(r.pyMed) + "만" : "—") + "</td></tr>";
   }).join("");
 }
@@ -3269,7 +3287,7 @@ function buildDanji(root) {
       '<div class="note" id="dj-missbox" style="display:none;margin-top:10px"></div>' +
       '<div class="sortchips" id="dj-sortchips"></div>' +
       '<div class="tblwrap" style="margin-top:12px"><table id="dj-table"><thead><tr>' +
-      '<th data-sort="apt">단지 ⇅</th><th data-sort="amt">최근 실거래 ⇅</th><th data-sort="py">평당가 ⇅</th>' +
+      '<th data-sort="apt">단지 ⇅</th><th data-sort="amt">매매 ⇅</th><th data-sort="py">평당가 ⇅</th>' +
       '<th data-sort="hh">세대수 ⇅</th><th data-sort="year">준공 ⇅</th><th data-sort="sub">지하철 ⇅</th>' +
       '<th data-sort="je">전세 ⇅</th><th data-sort="jr">전세가율 ⇅</th><th data-sort="gap">갭 ⇅</th>' +
       '<th data-sort="cnt">거래 ⇅</th><th data-sort="c10">10년 ⇅</th>' +
@@ -3281,6 +3299,8 @@ function buildDanji(root) {
         '휴대폰에서는 표가 <b>카드</b>로 접히고 머리글이 사라지므로, 표 위의 <b>정렬 칩</b>을 쓰세요. ' +
         '값이 없는 항목도 <b>—</b>로 남겨 둡니다 — 항목까지 사라지면 자료가 없는 건지 칸이 없는 건지 ' +
         '헷갈리기 때문입니다.<br>' +
+        '<b>매매 칸의 큰 숫자는 조회 기간의 중위 거래가</b>입니다 — 평당가·전세가율·갭이 전부 이 값 기준이라 ' +
+        '한 건짜리 특이 거래에 흔들리지 않습니다. 작은 줄이 가장 최근 실거래 한 건입니다.<br>' +
         '<b>평형은 반드시 하나를 고릅니다.</b> 예전엔 "전체 평형"이 있었는데, 그러면 매매는 84㎡ 위주인데 ' +
         '전세는 59㎡만 나오는 단지에서 전세가율이 실제보다 훨씬 낮게 찍혔습니다. 평형을 고정하면 ' +
         '매매·전세·평당가·갭이 <b>모두 같은 평형 안에서</b> 계산되어 그런 어긋남이 생기지 않습니다. ' +
@@ -4548,7 +4568,10 @@ function renderDanjiTable() {
           ? ' <span class="tagmini gold"' + (r.subNote ? ' title="' + escHtml(r.subNote) + '"' : "") +
             ">역세권" + (r.station ? "" : "*") + "</span>" : "") +
         " <span style='color:var(--ink-soft);font-size:.74rem'>" + r.dong + "</span></td>" +
-      "<td>" + eok(r.amt) + "</td>" +
+      "<td><b>" + eok(r.amt) + "</b>" +
+        (r.last ? "<br><small style='color:var(--ink-soft)'>최근 " + eok(r.last.amount) +
+          " · " + String(r.last.ym).slice(2, 4) + "." + Number(String(r.last.ym).slice(4)) + "</small>" : "") +
+      "</td>" +
       "<td><b>" + pyFmt(r.py) + "</b></td>" +
       "<td" + (r.hhShared ? ' style="opacity:.62" title="관리단지 전체 세대수 — 이 차수만의 값이 아닙니다"' : "") +
         ">" + (r.hh != null ? fmt(r.hh) + (r.hhShared ? "~" : "") : "—") + "</td>" +
@@ -8035,9 +8058,15 @@ function renderCalc() {
   document.querySelector("#cl-table tbody").innerHTML = prices.map(function (p) {
     var x = finance("", p, cond, flags);
     var ok = cond.cash > 0 && x.need <= cond.cash;
-    var thr = (p === RULES.capT1Lim || p === RULES.capT2Lim)
-      ? ' <small style="color:var(--ink-soft)">문턱</small>' : "";
-    return '<tr class="' + (ok ? "hit" : "") + '"><td>' + eok(p) + thr + "</td>" +
+    var lbl = eok(p);
+    if (p === RULES.capT1Lim || p === RULES.capT2Lim) {
+      lbl = eok(p) + ' <small style="color:var(--ink-soft)">이하</small>';
+    } else if (p === RULES.capT1Lim + 10000) {
+      lbl = eok(RULES.capT1Lim) + ' 초과 <small style="color:var(--ink-soft)">(' + eok(p) + " 기준)</small>";
+    } else if (p === RULES.capT2Lim + 10000) {
+      lbl = eok(RULES.capT2Lim) + ' 초과 <small style="color:var(--ink-soft)">(' + eok(p) + " 기준)</small>";
+    }
+    return '<tr class="' + (ok ? "hit" : "") + '"><td>' + lbl + "</td>" +
       "<td>" + (x.loan > 0 ? eok(x.loan) : "—") + "</td>" +
       "<td>" + x.tag + "</td>" +
       "<td>" + eok(x.acq) + "</td>" +

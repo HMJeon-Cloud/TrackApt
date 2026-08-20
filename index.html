@@ -291,6 +291,13 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 #progbox .pg-cnt{font-size:.78rem;color:var(--ink-soft);min-height:1.1em}
 #progbox .pg-hide{margin-top:10px;background:none;border:0;color:var(--ink-soft);font:inherit;
   font-size:.74rem;cursor:pointer;text-decoration:underline}
+/* 미니 모드 — 결과가 이미 보이는 채우기 로딩용: 화면을 가리지 않고 하단에 작게 (v5.44) */
+#progbox.mini{align-items:flex-end;justify-content:center;pointer-events:none}
+#progbox.mini .pg-dim{display:none}
+#progbox.mini .pg-card{margin-bottom:18px;width:min(300px,80vw);padding:12px 18px 10px;pointer-events:auto}
+#progbox.mini .pg-title{font-size:.78rem;margin-bottom:6px}
+#progbox.mini .pg-pct{font-size:1.1rem}
+#progbox.mini .pg-hide{display:none}
 .rowinfo{font-size:.74rem;color:var(--ink-soft);background:var(--bg);border-radius:6px;padding:6px 8px;margin-top:4px;line-height:1.5}
 .reco{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
 .reco.best{border-color:var(--up);background:rgba(47,191,155,.06)}
@@ -429,7 +436,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.43</span>
+    <span class="ver">v5.44</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1959,13 +1966,10 @@ function wizScanStore(st, code, rankIdx, thisY, opts) {
   var out = [];
   if (!st || !st.cx) return out;
   var N = RANKED.length || 1, bands = opts.anyBand ? [36, 46, 59, 84, 101, 135] : wizBands();
-  /* 이름이 스스로 밝히는 비(非)아파트 — 주상복합·오피스텔·도시형생활주택 등은
-     아파트 상승 공식(급지·대장성)이 통하지 않는 별개 시장이다 (v5.42) */
-  var NON_APT_RE = /주상복합|오피스텔|도시형|생활주택|생숙|레지던스/;
   st.cx.forEach(function (cx) {
     if (opts.only && btKey(cx.d, cx.n, "") !== opts.only) return;   /* 내 집 한 곳만 채점 */
     /* 내 집 채점(only)은 유형과 무관한 기준선이므로 거르지 않는다 */
-    if (!opts.only && NON_APT_RE.test(cx.n)) { if (opts.stats) opts.stats.nonApt++; return; }
+    if (!opts.only && nonAptType(cx.n)) { if (opts.stats) opts.stats.nonApt++; return; }
     var best = null;
     bands.forEach(function (b) {
       var s = cx.s[String(b)];
@@ -2660,7 +2664,9 @@ function wizLoadDetails() {
   if (!out || !out.top.length) return;
   var codes = [];
   out.top.forEach(function (t) { if (codes.indexOf(t.code) < 0) codes.push(t.code); });
-  progOpen("추천 단지 시세 불러오는 중", codes.length * 12);   /* 지역당 매매 6 + 전세 6 */
+  /* 추천 카드는 이미 다 읽을 수 있다(저장본 기준) — 화면을 가리지 않는 미니 표시로,
+     시세표는 차오르는 대로 채워진다 (v5.44) */
+  progOpen("추천 단지 시세 불러오는 중", codes.length * 12, true);   /* 지역당 매매 6 + 전세 6 */
   var chain = Promise.resolve();
   codes.forEach(function (c) {
     chain = chain.then(function () {
@@ -4358,6 +4364,16 @@ function cardifyAll() {
     for (i = 0; i < t.length; i++) cardify(t[i]);
   }, 60);
 }
+/* 이름이 스스로 밝히는 비(非)아파트 유형 — 아파트와 값이 다르게 움직이는 별개 시장.
+   추천받기는 후보에서 빼고(wizScanStore), 찾기·대장·검토 화면은 전수 조사가 목적이라
+   빼는 대신 유형 태그로 알린다 (v5.44). */
+function nonAptType(nm) {
+  var m = String(nm || "").match(/주상복합|오피스텔|도시형생활주택|도시형|생활주택|생숙|레지던스/);
+  if (!m) return "";
+  if (m[0] === "도시형" || m[0] === "생활주택") return "도시형생활주택";
+  if (m[0] === "생숙") return "생활숙박시설";
+  return m[0];
+}
 /* ── 버튼 아이콘 (v5.38) — 글자만 있던 버튼에 작은 그림을 얹는다 ── */
 var BICONS = {
   pin: '<path d="M1.8 3.8 6 2.3l4 1.5 4.2-1.5v10.4L10 14.2l-4-1.5-4.2 1.5z"/><path d="M6 2.3v10.4M10 3.8v10.4"/>',
@@ -4431,7 +4447,9 @@ function closeMapSheet() {
    총량 0이면 무한 흐름 막대(호출 수만 표시). '백그라운드로'는 오버레이만 내린다 —
    로딩은 계속되고 버튼 카운터가 그대로 남아 있어 진행을 잃지 않는다. */
 var PROG = { total: 0, done: 0, open: false };
-function progOpen(title, total) {
+/* mini=true — 화면을 가리지 않는 하단 진행 카드. 결과가 이미 보이는 '채우기' 로딩용
+   (v5.43이 추천 결과까지 덮어 더 느려 보인다는 소감의 원인이었다). */
+function progOpen(title, total, mini) {
   PROG.total = total > 0 ? total : 0; PROG.done = 0; PROG.open = true;
   var el = document.getElementById("progbox");
   if (!el) {
@@ -4451,6 +4469,7 @@ function progOpen(title, total) {
       el.style.display = "none";                     /* 내리기만 — 로딩은 계속 */
     });
   }
+  el.classList.toggle("mini", !!mini);
   document.getElementById("pg-title").textContent = title || "불러오는 중";
   el.style.display = "flex";
   progPaint();
@@ -5093,6 +5112,9 @@ function renderDanjiTable() {
         (r.hh != null && r.hh >= 1000 ? ' <span class="tagmini ok">대단지</span>' : "") +
         (age != null && age <= 5 ? ' <span class="tagmini ok">신축</span>' : "") +
         (age != null && age >= 30 ? ' <span class="tagmini no">재건축연한</span>' : "") +
+        (nonAptType(r.apt)
+          ? ' <span class="tagmini no" title="' + escHtml("이름으로 확인된 유형 — 아파트와 값이 다르게 움직이는 별개 시장입니다. 추천받기에서는 후보에서 빠집니다") +
+            '">' + nonAptType(r.apt) + "</span>" : "") +
         (r.sub != null && r.sub <= 10 && (r.station || r.line)
           ? ' <span class="tagmini gold"' + (r.subNote ? ' title="' + escHtml(r.subNote) + '"' : "") +
             ">역세권" + (r.station ? "" : "*") + "</span>" : "") +
@@ -5340,6 +5362,9 @@ function renderCartReport() {
       bl.push("<b>" + c.apt + "</b>은 " + (c.regionName || disp(rk || "")) + " " + c.dong + " 소재로, 평당 " +
         pyFmt(c.py || c.pmAvg * 3.3058) + " · 매매 중위 " + eok(price) +
         (vsRegion != null ? " — 지역 평균 대비 <b>" + pct(vsRegion, 0) + "</b>" : "") + "입니다.");
+      if (nonAptType(c.apt)) bl.push("이름으로 보아 <b>" + nonAptType(c.apt) + "</b>입니다 — " +
+        "아파트와 값이 다르게 움직이는 별개 시장이라 이 채점표의 공식(급지·대장성)이 잘 맞지 않습니다. " +
+        "환금성·대출 조건도 아파트와 다르니 따로 확인하세요.");
       if (c.households) bl.push("단지 규모 " + fmt(c.households) + "세대" +
         (c.dongCnt ? " · " + c.dongCnt + "개 동" : "") +
         (parkRatio ? " · 세대당 주차 " + parkRatio.toFixed(2) + "대" + (parkRatio >= 1.2 ? " (여유)" : (parkRatio < 0.7 ? " (부족)" : "")) : "") +
@@ -6192,7 +6217,11 @@ function renderFlagTable() {
       var inCart = cart.some(function (c) { return c.id === cid; });
       return '<tr class="' + (i === 0 ? "hit" : "") + '">' +
         "<td>" + (i === 0 ? (r.regionName || lawdName(r.region)) : "") + (i === 0 ? "" : "&nbsp;&nbsp;└ " + (i + 1) + "위") + "</td>" +
-        "<td><b>" + g.apt + "</b> <span style='color:var(--ink-soft);font-size:.74rem'>" + g.dong + "</span></td>" +
+        "<td><b>" + g.apt + "</b>" +
+          (nonAptType(g.apt)
+            ? ' <span class="tagmini no" title="' + escHtml("이름으로 확인된 유형 — 아파트와 값이 다르게 움직이는 별개 시장입니다") +
+              '">' + nonAptType(g.apt) + "</span>" : "") +
+          " <span style='color:var(--ink-soft);font-size:.74rem'>" + g.dong + "</span></td>" +
         "<td><b>" + eok(g.med) + "</b></td>" +
         "<td>" + eok(g.max) + "</td>" +
         "<td>" + (g.jeonse != null ? eok(g.jeonse) : "—") + "</td>" +

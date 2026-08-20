@@ -261,6 +261,21 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 .grade.C{background:rgba(224,140,58,.14);color:var(--down)} .grade.D{background:var(--chip);color:var(--miss)}
 .btn.sm.ghost{border-width:1px}
 .bicon{width:13px;height:13px;vertical-align:-2px;margin-right:4px}
+/* 위치 → 지도 앱 선택창 (아래에서 올라오는 시트, v5.40) */
+#mapsheet{position:fixed;inset:0;z-index:1200;display:none}
+#mapsheet .ms-dim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+#mapsheet .ms-body{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:560px;
+  background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;
+  padding:18px 20px 26px;box-shadow:0 -8px 30px rgba(0,0,0,.45)}
+#mapsheet .ms-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#mapsheet .ms-head b{font-size:.95rem;line-height:1.4;word-break:keep-all}
+#mapsheet .ms-x{background:var(--panel2);border:1px solid var(--line);color:var(--ink-soft);flex:0 0 auto;
+  width:32px;height:32px;border-radius:9px;cursor:pointer;font:inherit;font-size:.95rem}
+#mapsheet .ms-apps{display:flex;gap:8px;margin-top:14px}
+#mapsheet .msapp{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:0;
+  cursor:pointer;font:inherit;font-size:.72rem;font-weight:600;color:var(--ink-soft);padding:6px 0}
+#mapsheet .mico{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:1.15rem;box-shadow:0 1px 6px rgba(0,0,0,.3)}
 .rowinfo{font-size:.74rem;color:var(--ink-soft);background:var(--bg);border-radius:6px;padding:6px 8px;margin-top:4px;line-height:1.5}
 .reco{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
 .reco.best{border-color:var(--up);background:rgba(47,191,155,.06)}
@@ -399,7 +414,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.39</span>
+    <span class="ver">v5.40</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2473,7 +2488,7 @@ function renderWizResult() {
   box.querySelectorAll("button[data-wzloc]").forEach(function (b) {
     b.addEventListener("click", function () {
       var t = WIZ.out.top[Number(b.dataset.wzloc)];
-      if (t) openKakaoMap(wizName(t.code) + " " + t.dong + " " + t.apt);
+      if (t) openMapSheet(wizName(t.code) + " " + t.dong + " " + t.apt, t.apt);
     });
   });
   box.querySelectorAll("button[data-wzdj]").forEach(function (b) {
@@ -4289,11 +4304,62 @@ function bicon(n) {
   return '<svg class="bicon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (BICONS[n] || "") + "</svg>";
 }
-/* 위치 버튼 — 좌표 자료가 없어도 '지역 동 단지명' 검색 딥링크면 카카오맵이 찾는다.
-   휴대폰에선 카카오맵 앱으로, PC에선 웹 지도로 열린다. */
-function openKakaoMap(q) {
-  window.open("https://map.kakao.com/link/search/" +
-    encodeURIComponent(String(q).replace(/\s+/g, " ").trim()), "_blank", "noopener");
+/* 위치 버튼 — 좌표 자료가 없어도 '지역 동 단지명' 검색 딥링크면 지도 앱이 찾는다.
+   어느 지도를 쓸지는 사람마다 달라 선택창(openMapSheet)에서 고른다 (v5.40).
+   TMAP만 웹이 없어 tmap:// 스킴 — 휴대폰에 앱이 있어야 열린다. */
+function mapAppUrl(id, q) {
+  var e = encodeURIComponent(String(q).replace(/\s+/g, " ").trim());
+  if (id === "naver") return "https://map.naver.com/p/search/" + e;
+  if (id === "google") return "https://www.google.com/maps/search/?api=1&query=" + e;
+  if (id === "tmap") return "tmap://search?name=" + e;
+  return "https://map.kakao.com/link/search/" + e;
+}
+function openKakaoMap(q) { window.open(mapAppUrl("kakao", q), "_blank", "noopener"); }
+/* 공식 로고는 상표라 못 쓴다 — 브랜드색 배경 + 일반 핀·글자로 알아보게만 한다 */
+function msPin(color) {
+  return '<svg width="24" height="24" viewBox="0 0 16 16" fill="' + color +
+    '"><path d="M8 1.2a5 5 0 0 0-5 5c0 3.7 5 8.6 5 8.6s5-4.9 5-8.6a5 5 0 0 0-5-5zm0 6.9a1.9 1.9 0 1 1 0-3.8 1.9 1.9 0 0 1 0 3.8z"/></svg>';
+}
+var MAP_APPS = [
+  { id: "naver",  n: "네이버지도", ic: '<span class="mico" style="background:#03c75a;color:#fff">N</span>' },
+  { id: "kakao",  n: "카카오맵",  ic: '<span class="mico" style="background:#fee500">' + msPin("#1e6dff") + "</span>" },
+  { id: "google", n: "구글지도",  ic: '<span class="mico" style="background:#fff">' + msPin("#ea4335") + "</span>" },
+  { id: "tmap",   n: "TMAP",     ic: '<span class="mico" style="background:#fff;color:#0264fb">T</span>' }
+];
+var MS_Q = "";
+function openMapSheet(q, title) {
+  MS_Q = q;
+  var el = document.getElementById("mapsheet");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "mapsheet";
+    el.innerHTML =
+      '<div class="ms-dim"></div>' +
+      '<div class="ms-body">' +
+        '<div class="ms-head"><b id="ms-title"></b><button class="ms-x" aria-label="닫기">✕</button></div>' +
+        '<div class="hint" style="margin:6px 0 0">지도·내비 앱으로 열기 — 쓰시는 앱을 고르세요. ' +
+          "TMAP은 휴대폰에 앱이 있어야 열립니다.</div>" +
+        '<div class="ms-apps">' +
+          MAP_APPS.map(function (a) {
+            return '<button class="msapp" data-mapapp="' + a.id + '">' + a.ic + "<span>" + a.n + "</span></button>";
+          }).join("") +
+        "</div></div>";
+    document.body.appendChild(el);
+    el.querySelector(".ms-dim").addEventListener("click", closeMapSheet);
+    el.querySelector(".ms-x").addEventListener("click", closeMapSheet);
+    el.querySelectorAll("button[data-mapapp]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        window.open(mapAppUrl(b.dataset.mapapp, MS_Q), "_blank", "noopener");
+        closeMapSheet();
+      });
+    });
+  }
+  document.getElementById("ms-title").textContent = title || q;
+  el.style.display = "block";
+}
+function closeMapSheet() {
+  var el = document.getElementById("mapsheet");
+  if (el) el.style.display = "none";
 }
 function escHtml(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -4939,7 +5005,7 @@ function renderDanjiTable() {
   tb.querySelectorAll("button[data-djloc]").forEach(function (b) {
     b.addEventListener("click", function () {
       var r = DJ.view[Number(b.dataset.djloc)];
-      if (r) openKakaoMap(lawdName(DJ.lawd) + " " + r.dong + " " + r.apt);
+      if (r) openMapSheet(lawdName(DJ.lawd) + " " + r.dong + " " + r.apt, r.apt);
     });
   });
   /* 추천받기에서 넘어온 단지를 잠깐 강조 — 못 찾으면 (필터에 걸렸으면) 조용히 넘어간다 */
@@ -5267,7 +5333,7 @@ function renderCartReport() {
   box.querySelectorAll("button[data-cloc]").forEach(function (b) {
     b.addEventListener("click", function () {
       var c = getCart()[Number(b.dataset.cloc)];
-      if (c) openKakaoMap((c.regionName || lawdName(c.lawd)) + " " + c.dong + " " + c.apt);
+      if (c) openMapSheet((c.regionName || lawdName(c.lawd)) + " " + c.dong + " " + c.apt, c.apt);
     });
   });
   document.getElementById("cart-img").style.display = "";
@@ -6021,7 +6087,7 @@ function renderFlagTable() {
   var tb = document.querySelector("#fg-table tbody");
   tb.innerHTML = rowsHtml;
   tb.querySelectorAll("button[data-fgloc]").forEach(function (b) {
-    b.addEventListener("click", function () { openKakaoMap(decodeURIComponent(b.dataset.fgloc)); });
+    b.addEventListener("click", function () { openMapSheet(decodeURIComponent(b.dataset.fgloc)); });
   });
   tb.querySelectorAll("button[data-fgcart]").forEach(function (b) {
     b.addEventListener("click", function () {

@@ -309,7 +309,7 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 .reco>.attbox{flex-basis:100%;width:100%;margin:2px 0 0}
 /* 첫 줄은 [번호][제목][점수], 그 아래로 본문과 행렬이 카드 전체 폭을 쓴다.
    order를 기본값에 기대면 카드 종류마다 다르게 흐른다 — 전부 못 박는다 (v5.36) */
-.reco>.no{order:0}
+.reco>.no,.reco>.grade{order:0}
 .reco>.body{order:1;flex:1 1 0;min-width:0}
 .reco>.money{order:2;flex:0 0 auto}
 .reco>.rcfull{order:3;flex-basis:100%;width:100%;margin-top:4px}
@@ -398,7 +398,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.36</span>
+    <span class="ver">v5.37</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -5146,6 +5146,9 @@ function renderCartReport() {
             ' <span style="font-weight:600;color:var(--ink-soft);font-size:.78rem">' +
             (c.regionName || disp(rk || c.lawd)) + " " + c.dong +
             (c.buildYear ? " · " + c.buildYear + "년" : "") + (c.households ? " · " + fmt(c.households) + "세대" : "") + "</span></div>" +
+        "</div>" +
+        /* 칩·레이더·환경·메모는 좁은 본문 칸이 아니라 카드 전체 폭을 쓴다 (v5.37) */
+        '<div class="rcfull">' +
           '<div class="chips" style="margin:6px 0">' +
             kv("평당", pyFmt(c.py || c.pmAvg * 3.3058)) +
             kv("매매", eok(price)) +

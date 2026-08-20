@@ -392,7 +392,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.32</span>
+    <span class="ver">v5.34</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -437,7 +437,10 @@ var DEFAULT_RULES = {
   loanYears: 30,       // 대출 만기 (년)
   acq2Reg: 8,          // 조정지역 2주택 취득세 %
   acq3Reg: 12,         // 조정지역 3주택 이상 취득세 %
-  wRank: 35, wPerf: 25, wSupply: 15, wTiming: 15, wCash: 10,   // 추천 가중치
+  /* 추천 가중치 — FAQ Q17(채점표 100개월 백테스트) 결론에 맞춘 값.
+     급지 8/10 적중(강함) · 전세 뒷받침은 급지 안에서 7/10(조건부) ·
+     수급 예측력 약함 · 장기 성과 가점은 8~9/10 '거꾸로' → 통과 여부 확인용으로만 남긴다. */
+  wRank: 45, wPerf: 10, wSupply: 10, wTiming: 20, wCash: 15,
   broker: 0.4,         // 중개보수 요율 %
   etcRate: 0.3,        // 등기 등 부대비용 요율 %
   etcFixed: 300,       // 이사 등 고정비 (만원)
@@ -452,7 +455,8 @@ var DEFAULT_RULES = {
   ],
 
   regVer: 20260701,     /* 규제지역 기준일 — 올라가면 저장된 목록을 새 기본값으로 갈아끼운다 */
-  ruleVer: 20251015     /* 대출 기준일 — 올라가면 저장된 스트레스 가산을 새 기본값으로 */
+  ruleVer: 20251015,    /* 대출 기준일 — 올라가면 저장된 스트레스 가산을 새 기본값으로 */
+  wVer: 20260820        /* 가중치 기준일 — 올라가면 저장된 옛 가중치를 새 기본값으로 */
 };
 var RULES = JSON.parse(JSON.stringify(DEFAULT_RULES));
 
@@ -582,6 +586,7 @@ function showTab(id) {
   if (id === "tiers") renderTiers();
   if (id === "fun") renderFun();
   if (id === "supply") autoLoadSupply();
+  if (id === "guide") { try { renderGuideMine(); } catch (e) {} }
   if (id === "faq") faqRefresh(false);
   if (id === "cart") renderCart();
   renderStepBar();
@@ -1579,6 +1584,17 @@ function financeJeonse(k, price, cond) {
    조건 평형대의 최근 연 중위가를 단지별로 뽑아, 연식으로 가른 뒤
    각 묶음의 대장(1위)·중위(중앙)·하위(하위 25% 지점) 단지를 이름째 보여준다.
    연식 미상 단지는 뺀다(애매한 데이터는 비운다는 원칙). */
+/* 옛 연도 값을 현재 시점으로 환산하는 배수 — 그 지역 매매지수 비율.
+   지수가 없으면 1(환산 없음)로 두어 조용히 예전처럼 동작한다. */
+function tierYearAdj(code, fromY, toY) {
+  if (!code || fromY === toY) return 1;
+  try {
+    var a = decVal("sale", ik(code), fromY), b = decVal("sale", ik(code), toY);
+    if (a == null || b == null || a <= 0) return 1;
+    var m = b / a;
+    return (m > 0.5 && m < 2) ? m : 1;      /* 말이 안 되는 배수는 쓰지 않는다 */
+  } catch (e) { return 1; }
+}
 function ageTierMatrix(st, band, thisY) {
   if (!st || !st.cx) return null;
   var groups = { new: [], semi: [], old: [] };
@@ -1600,15 +1616,20 @@ function ageTierMatrix(st, band, thisY) {
     if (rj) for (i = rj.p.length - 1; i >= 0; i--) if (rj.p[i] != null) {
       je = rj.p[i]; jy = st.y0 + rj.o + i; break;
     }
-    if (jy != null && jy < yr - 1) je = null;        /* 옛 전세는 안 쓴다 */
+    /* 다른 해의 전세로 갭을 만들지 않는다 — 매매 2026·전세 2025를 빼면 그 숫자는 뜻이 없다
+       (v5.20 원칙. v5.32까지 1년 차이를 허용하고 있었다) */
+    if (jy !== yr) je = null;
     var a = thisY - cx.y;
     var g = a <= 10 ? "new" : (a <= 20 ? "semi" : "old");
     groups[g].push({ apt: cx.n, y: cx.y, price: s.p[last], je: je, yr: yr,
-                     cnt: s.c ? s.c[last] : null });
+                     cnt: s.c ? s.c[last] : null,
+                     /* 순위는 **같은 시점으로 환산한 값**으로 매긴다 — 2024년 9.0억이
+                        2026년 8.5억보다 위에 오면 그 사이 오른 시장이 통째로 무시된다 */
+                     padj: s.p[last] * tierYearAdj(st.code, yr, thisY) });
   });
   var out = { any: false };
   ["new", "semi", "old"].forEach(function (g) {
-    var arr = groups[g].sort(function (a, b) { return b.price - a.price; });
+    var arr = groups[g].sort(function (a, b) { return b.padj - a.padj; });
     if (!arr.length) { out[g] = null; return; }
     out.any = true;
     out[g] = { n: arr.length, top: arr[0],
@@ -1629,7 +1650,7 @@ function cellNeed(k, c, cond) {
 function ageTierHtml(mx, code, cond) {
   if (!mx) return '<div class="pxcap">이 지역 저장본이 없거나 ' + cond.area +
     "㎡대 거래 단지가 없어 연식·급별 표를 만들 수 없습니다.</div>";
-  var AGE = [["new", "신축 ~10년"], ["semi", "준신축 10~20년"], ["old", "구축 20년~"]];
+  var AGE = [["new", "신축 10년 이하"], ["semi", "준신축 11~20년"], ["old", "구축 21년 이상"]];
   var TIER = [["top", "대장"], ["mid", "중위"], ["low", "하위 25%"]];
   var h = AGE.map(function (a) {
     var g = mx[a[0]];
@@ -1656,7 +1677,11 @@ function ageTierHtml(mx, code, cond) {
         '<div class="atbody"><div class="atrow">이 연식대에 최근 거래 단지가 없습니다.</div></div></div>';
     }
     return '<div class="atgrp"><div class="atgh">' + a[1] +
-      (g ? ' <small>' + g.n + "곳</small>" : "") + "</div>" + items + "</div>";
+      (g ? ' <small title="' + escHtml("기준 면적 실거래가 최근 2년 안에 있는 단지 수입니다 — 이 면적대 거래가 없는 단지는 빠집니다") +
+        '">' + g.n + "곳</small>" +
+        (g.n < 3 ? ' <small style="color:var(--ink-soft)">· ' + g.n +
+          "곳뿐이라 " + (g.n === 1 ? "대장만" : "대장·하위만") + " 표시</small>" : "") : "") +
+      "</div>" + items + "</div>";
   }).join("");
   return h +
     '<div class="pxcap">' + cond.area + "㎡대 · <b>매매</b>는 그 단지의 최근 연도 <b>중위 실거래가</b>(저장본 — " +
@@ -1664,7 +1689,10 @@ function ageTierHtml(mx, code, cond) {
     "대출 매수면 매수가−대출+취득세·부대비 · <b>초록 = 시작 탭에 적은 동원 가능 현금</b>으로 감당되는 칸" +
     (cond.cash > 0 ? "" : " (현금을 입력하면 표시됩니다)") + " · 연식 미상 단지는 뺐습니다. " +
     "<b>거래 2건 이상인 가장 최근 해</b>를 쓰며, 그런 해가 없으면 1건이라도 쓰되 건수를 그대로 적습니다 — " +
-    "<b>1건</b>이면 특이 거래일 수 있으니 참고만 하세요.</div>";
+    "<b>1건</b>이면 특이 거래일 수 있으니 참고만 하세요.<br>" +
+    "<b>순위 방법</b> — 대장·중위·하위는 <b>각 연식 그룹 안에서의 순위</b>이며(지역 전체 순위가 아닙니다), " +
+    "단지마다 기준 연도가 다를 수 있어 <b>지역 매매지수로 현재 시점에 환산한 값</b>으로 줄을 세웁니다. " +
+    "표시 금액은 실제 거래된 그 해의 중위가 그대로입니다. 갭은 <b>같은 해 전세</b>가 있을 때만 만듭니다.</div>";
 }
 /* 상위 카드 5곳의 행렬을 순차로 채운다 (loadStore 캐시라 두 번째부터는 즉시) */
 function recoLoadTiers(keys, cond) {
@@ -1877,6 +1905,7 @@ function wizScanStore(st, code, rankIdx, thisY) {
         perfSrc = "region";
       }
       var sRank = (rankIdx >= 0 && N > 1) ? (1 - rankIdx / (N - 1)) * 100 : 50;
+      var sTime = wizRegionTiming(code);      /* 지역 채점표와 같은 타이밍 축 (전세 뒷받침) */
       /* 거래 꾸준함은 총량이 아니라 **연평균** — 3년 된 신축이 17년 된 구축과 총량으로
          겨루면 무조건 진다. 연 7건(17년 120건 상당)이면 만점. */
       var perYr = cnt / Math.min(histYrs, 17);
@@ -1894,8 +1923,10 @@ function wizScanStore(st, code, rankIdx, thisY) {
         yrs: cg ? cg.yrs : histYrs, thin: cg ? cg.thin : true,
         perfSrc: perfSrc, regCagr: regC,
         cnt: cnt, rankIdx: rankIdx,
-        sPerf: sPerf, sRank: sRank, sLiq: sLiq,
-        score: sPerf * 0.5 + sRank * 0.3 + sLiq * 0.2
+        sPerf: sPerf, sRank: sRank, sLiq: sLiq, sTime: sTime.score, timeNote: sTime.note,
+        /* 배점도 FAQ Q17에 맞춘다 — 급지를 가장 크게, 과거 상승률은 통과선 확인용으로 낮게.
+           v5.33까지는 성과 0.5·급지 0.3이라 "많이 오른 단지"에 가장 큰 가점을 주고 있었다. */
+        score: sRank * 0.45 + sPerf * 0.25 + sLiq * 0.15 + sTime.score * 0.15
       };
       if (!best || row.score > best.score) best = row;   /* 소형은 36·46 중 나은 쪽 하나만 */
     });
@@ -1910,11 +1941,32 @@ function wizScanStore(st, code, rankIdx, thisY) {
     var med = median(byBand[r.band]);
     if (med > 0) {
       var sPrem = clamp((r.price / med - 0.7) / 0.6, 0, 1) * 100;  /* 중위 0.7배↓ 0점 · 1.3배↑ 만점 */
-      r.sPerf = r.sPerf * 0.6 + sPrem * 0.4;
+      /* FAQ Q4 — 대장 프리미엄은 지방에서만 통했다(수도권 7곳 평균 −13%p, 지방 6곳 +28%p).
+         수도권에서는 "동네를 올리고", 지방에서는 "단지를 올린다". */
+      var wPrem = METRO[r.code] ? 0.15 : 0.4;
+      r.sPerf = r.sPerf * (1 - wPrem) + sPrem * wPrem;
+      r.premW = wPrem;
     }
-    r.score = r.sPerf * 0.5 + r.sRank * 0.3 + r.sLiq * 0.2;
+    r.score = r.sRank * 0.45 + r.sPerf * 0.25 + r.sLiq * 0.15 + (r.sTime || 50) * 0.15;
   });
   return out;
+}
+/* 지역 타이밍 축 — 지역 채점표(scoreRegion)와 **같은 지표**를 쓴다.
+   FAQ Q17 ②: 전세 뒷받침은 급지 안에서만 유효 → 40~100으로 좁혀 순서만 조정하게 둔다. */
+function wizRegionTiming(code) {
+  try {
+    var cond = getCond();
+    var homeArr = (cond.own !== "none" && cond.home && DB.salePm.series[cond.home])
+      ? pmSeries("salePm", cond.home) : null;
+    if (cond.own === "none" || !homeArr) {
+      var b = bandStats(ratioSeries(pmSeries("jeonsePm", code), pmSeries("salePm", code), 100), 120);
+      if (b && b.count >= 24) return { score: 40 + b.pctile * 0.6, note: "전세가율 밴드 " + b.pctile.toFixed(0) + "%" };
+    } else {
+      var b2 = bandStats(ratioSeries(pmSeries("salePm", code), homeArr, 1), 120);
+      if (b2 && b2.count >= 24) return { score: 40 + (100 - b2.pctile) * 0.6, note: "내 지역 대비 배율 밴드 " + b2.pctile.toFixed(0) + "%" };
+    }
+  } catch (e) {}
+  return { score: 50, note: "" };
 }
 /* 지역 매매지수의 최근 10년 연복리 — 이력 짧은 신축 평가용 */
 function wizRegionCagr(code) {
@@ -2034,11 +2086,15 @@ function renderWizStep() {
       wizNavHtml(true);
   } else if (WIZ.step === 3) {
     h += '<div class="wizq">연식은 어느 쪽이 좋으세요?</div>' +
-      chipsHtml("wiz-age", [["new", "신축", "10년 이내"], ["semi", "준신축", "10~20년"],
-                            ["old", "구축", "20년 초과"], ["any", "상관없음", ""]], WIZ.age) +
+      chipsHtml("wiz-age", [["new", "신축", "10년 이하"], ["semi", "준신축", "11~20년"],
+                            ["old", "구축", "21년 이상"], ["any", "상관없음", ""]], WIZ.age) +
       '<div class="wizq" style="margin-top:14px">평형은요?</div>' +
       chipsHtml("wiz-band", [["small", "소형", "46㎡ 이하"], ["59", "59㎡대", "약 24평"],
                              ["84", "84㎡대", "약 34평"], ["big", "대형", "101㎡ 이상"]], WIZ.band, "grid4") +
+      '<div class="note" style="margin-top:10px">자체 검증에서 나온 것 — ' +
+        '<b>평형</b>은 기본이 중형(59·84㎡)이고 대형은 지역이 갈립니다(FAQ Q5). ' +
+        '<b>연식</b>은 좋은 동네일수록 구축이 오히려 나았습니다(FAQ Q14). ' +
+        '<b>규모</b>는 300세대를 최소 조건으로 보세요 — 같은 값이면 대단지가 앞섰고 16곳 중 예외가 없었습니다(FAQ Q3).</div>' +
       wizNavHtml(true);
   } else {
     h += '<div class="wizq">예산은 어느 정도인가요? <span style="font-weight:400;font-size:.8rem;color:var(--ink-soft)">(매매가 기준)</span></div>' +
@@ -2173,6 +2229,9 @@ function renderWizResult() {
               pct(t.cagr, 1) + (t.thin ? "~" : "") + "</span>") +
         '<span class="tagmini">급지 ' + (t.rankIdx >= 0 ? (t.rankIdx + 1) + "위" : "—") + "</span>" +
         '<span class="tagmini">거래 ' + fmt(t.cnt) + "건</span>" +
+        (t.hh != null && t.hh < 300
+          ? ' <span class="tagmini no" title="' + escHtml("FAQ Q3 — 300세대를 최소 조건으로 걸라는 검증 결과(나홀로→중형 +38%p, 예외 0곳)") +
+            '">300세대 미만</span>' : "") +
       "</div>" +
       '<div class="pxbox" id="wiz-px-' + i + '">' + wizPxStoreHtml(t) + "</div>" +
       '<div class="btnrow" style="margin-top:10px">' +
@@ -2184,7 +2243,9 @@ function renderWizResult() {
   }).join("");
   h += '<div class="note" style="margin-top:10px"><b>다음 단계</b> — ' +
     '<button class="btn sm ghost" id="wiz-toguide">투자 로드맵으로 이어서 진행 →</button><br>' +
-    '점수는 성과 50% + 급지 30% + 거래 꾸준함 20%로 매기며, 자세한 근거와 검증 자료는 각 카드의 ' +
+    '점수는 <b>급지 45% + 성과 25% + 거래 꾸준함 15% + 타이밍 15%</b>로 매깁니다 — ' +
+    '과거에 많이 오른 곳에 가점을 주면 거꾸로 작동한다는 자체 검증(FAQ Q17)에 맞춰 성과는 ' +
+    '<b>통과선(10년 두 배)</b> 확인용으로만 씁니다. 자세한 근거와 검증 자료는 각 카드의 ' +
     '<b>왜 추천했나요?</b>에 있습니다. 다른 화면을 다녀와도 이 결과는 남아 있습니다.' +
     (o.noStore ? "<br>저장본이 없는 지역 " + o.noStore + "곳은 검토에서 빠졌습니다." : "") + "</div>";
   box.innerHTML = h;
@@ -2217,7 +2278,21 @@ function renderWizResult() {
           '<div class="whybtns">' + vlink("reco", "이 지역 채점표") + vlink("tiers", "전국 등급표") + "</div></div></div>" +
         '<div class="whyrow"><div class="whyk">거래</div><div class="whyv">17년간 <b>' + fmt(t.cnt) +
           "건</b> — 시세가 꾸준히 확인되고, 팔 때도 상대가 있습니다." +
+          (t.hh != null
+            ? " 세대수 <b>" + fmt(t.hh) + "</b>" +
+              (t.hh < 300 ? " — <b>300세대 미만</b>입니다. 같은 값이면 대단지가 앞섰다는 검증(FAQ Q3, 16곳 예외 0)이 있어 주의해서 보세요."
+                          : "세대로 규모 기준(300세대)은 넘습니다.")
+            : "") +
           '<div class="whybtns">' + vlink("vol", "이 지역 거래량") + "</div></div></div>" +
+        '<div class="whyrow"><div class="whyk">타이밍</div><div class="whyv">' +
+          (t.timeNote
+            ? escHtml(t.timeNote) + " 지점입니다. " +
+              (t.sTime >= 70 ? "역대 대비 진입이 수월한 구간입니다."
+                             : t.sTime <= 55 ? "역대 대비 부담이 큰 구간입니다." : "중립 구간입니다.") +
+              " 다만 타이밍은 <b>같은 급지 안에서 순서를 정할 때만</b> 쓰세요 — 급지를 낮추면서 " +
+              "전세가율 좋은 곳을 좇으면 안 된다는 검증 결과가 있습니다(FAQ Q17)."
+            : "표본이 24개월에 못 미쳐 타이밍은 중립으로 뒀습니다.") +
+          '<div class="whybtns">' + vlink("gap", "전세가율 밴드") + vlink("supply", "입주 물량·미분양") + "</div></div></div>" +
         '<div class="whyrow"><div class="whyk">조건</div><div class="whyv">' +
           (t.lastDeal
             ? "최근 실거래 <b>" + eok(t.lastDeal.amount) + "</b> <small>(" +
@@ -2610,7 +2685,8 @@ function buildReco(root) {
           '가격 서열은 시장이 이미 매긴 평가라 입지·학군·교통·희소성이 전부 값에 반영돼 있다고 봅니다. ' +
           '2016년 분위로 나눠 10년을 검증하면 상위 1~3분위 +177%, 중위 +87%, 하위 +60%로 거의 단조 정렬됩니다.</p></div>' +
         '<div class="di"><b>장기 성과 <span style="color:var(--ink-soft)">가중치 ' + RULES.wPerf + '%</span></b>' +
-          '<p>실거래 중위가로 만든 <b>자체 지수의 최근 10년 상승률</b>입니다. 10년에 두 배(연복리 7.2%)를 만점 기준으로 잡습니다. ' +
+          '<p><b>많이 올랐다고 점수를 더 주지 않습니다</b> — 검증 결과 그 가점이 거꾸로 작동했기 때문입니다(FAQ Q2·Q17). ' +
+          '10년에 두 배(연복리 7.2%)를 <b>넘었는지만</b> 보는 통과선 지표로 쓰고 배점도 낮게 둡니다. ' +
           '이 선을 못 넘으면 물가와 시장 평균을 이기지 못한 구간으로 봅니다. 서울 아파트 40년 연복리가 5.7%, ' +
           '최근 10년이 6.1%인 것과 비교해 보세요.</p></div>' +
         '<div class="di"><b>수급 <span style="color:var(--ink-soft)">가중치 ' + RULES.wSupply + '%</span></b>' +
@@ -2650,7 +2726,10 @@ function buildReco(root) {
       '<p class="desc">10년 전(2016.7) ㎡당가 분위로 지역을 나눠, 이후 10년 실제 매매지수 성과를 ' +
         '<b>지금 이 데이터로 직접 계산</b>한 결과입니다.</p>' +
       '<div class="status" id="rc-bt"></div>' +
-      '<div class="note"><b>왜 급지에 35%를 주나</b> — 상위 급지일수록 이후 성과가 체계적으로 높았기 때문입니다. ' +
+      '<div class="note"><b>왜 급지에 ' + RULES.wRank + '%를 주나</b> — 이 채점표를 100개월 되돌려 검증했더니 ' +
+        '(FAQ Q17) <b>급지는 10번 중 8번 적중</b>했고, <b>과거 상승률 가점은 8~9번이 거꾸로</b>였으며, ' +
+        '수급은 3년 매매 예측력이 거의 없었습니다. 그래서 급지를 올리고 성과 배점은 ' +
+        '<b>통과선(10년 두 배) 확인용</b>으로만 남겼습니다. ' +
         '타이밍과 수급은 점수 범위를 좁혀(40~100 / 20~100) 같은 급지 안에서 순서만 조정합니다 — ' +
         '전세가율이 바닥이라고 상급지가 하급지 밑으로 내려가는 일은 없습니다. ' +
         '<b>서열 높은 순</b>과 <b>종합 점수 순</b>의 1위가 다르면, 그 차이가 곧 "지금 사도 되는가"에 대한 정보입니다.</div></div>' +
@@ -8176,29 +8255,39 @@ var TOURS = {
   none: { name: "무주택 · 첫 집", steps: [
     { go: "start", t: "내 조건 넣기",
       d: "현금·거주 지역·평형·소득·이동 가능 범위를 넣습니다. 이 값이 모든 탭의 계산에 그대로 쓰입니다." },
+    { go: "wiz", t: "추천받기 — 한 번에 후보 뽑기",
+      d: "네 가지만 답하면 조건에 맞는 단지 TOP 5가 나옵니다. 급지 45% + 통과선 25% + 거래 15% + 타이밍 15%로 매깁니다." },
     { go: "rank", t: "내 서열 확인하기",
       d: "필요현금 사다리에서 주황 점선(내 현금)에 닿는 가장 위쪽 지역을 봅니다. 그게 지금 내 자리입니다." },
-    { go: "reco", t: "추천 받기",
-      d: "5개 축 채점으로 후보를 좁힙니다. 서열순 1위와 점수순 1위가 다르면 그 차이가 곧 타이밍 정보입니다." },
+    { go: "reco", t: "지역 채점표로 근거 확인",
+      d: "5개 축 채점으로 후보 지역을 검증합니다. 서열순 1위와 점수순 1위가 다르면 그 차이가 곧 타이밍 정보입니다." },
+    { go: "tiers", t: "전국 등급표에서 위치 보기",
+      d: "고른 지역이 전국 몇 분위인지, 10년 밴드 어디쯤인지 확인합니다. 급지 효과가 가장 강한 축입니다." },
+    { go: "supply", t: "입주 물량·미분양 점검",
+      d: "새 물량이 몰리면 전세부터 눌립니다(FAQ Q9). 전세를 끼고 들어갈 계획이면 특히 먼저 보세요." },
     { go: "gap", t: "못 닿으면 전세 끼고",
       d: "예산이 모자라면 전세를 승계해 갭만으로 들어가는 길을 봅니다. 전세가율 밴드가 높을수록 부담이 적습니다." },
     { go: "danji", t: "아파트까지 내려가기",
-      d: "고른 지역의 실거래를 불러와 세대수·역세권·연식으로 거르고, 마음에 들면 담습니다." },
+      d: "고른 지역의 실거래를 불러와 세대수·역세권·연식으로 거릅니다. 300세대는 최소 조건으로 보세요(FAQ Q3)." },
     { go: "cart", t: "최종 검토 받기",
       d: "담은 아파트를 6개 축으로 채점하고 비교 해석·차트로 마지막 점검을 합니다." } ] },
   own: { name: "유주택 · 갈아타기", steps: [
     { go: "start", t: "내 조건 넣기",
       d: "지금 사는 지역과 보유 상태(갈아타기/추가매수)를 정확히 넣습니다. 내 집이 기준점이 됩니다." },
+    { go: "wiz", t: "추천받기 — 갈 만한 곳 먼저 좁히기",
+      d: "관심 지역을 골라 단지 TOP 5를 먼저 받습니다. 유주택이면 타이밍 축이 '내 지역 대비 배율'로 바뀝니다." },
     { go: "move", t: "갈아타기 격차 보기",
       d: "목표 지역과 내 지역의 배율이 10년 밴드에서 어디쯤인지 봅니다. 하단이면 역대 대비 적은 추가금으로 올라갑니다." },
     { go: "rota", t: "다음 오를 곳 찾기",
       d: "내 지역이 이미 많이 올랐다면, 같이 움직이던 동네 중 아직 안 오른 곳이 있는지 확인합니다." },
     { go: "vol", t: "지금 국면 확인하기",
       d: "거래량과 가격의 조합으로 지금이 매물이 붙는 장인지 관망 장인지 봅니다. 파는 쪽 타이밍이기도 합니다." },
+    { go: "gap", t: "전세 끼고 가는 길도 열어두기",
+      d: "비규제지역이면 전세를 승계해 갭만으로 들어갈 수 있습니다. 추가매수라면 이쪽이 유일한 길인 경우도 많습니다." },
     { go: "calc", t: "갈아타기 자금 계산",
       d: "기존 집을 팔고 올라갈 때 실제로 더 필요한 돈을 계산합니다. 15억·25억 문턱을 넘는지가 관건입니다." },
     { go: "danji", t: "아파트 고르고 담기",
-      d: "목표 지역의 실거래로 단지를 추리고 담습니다." },
+      d: "목표 지역의 실거래로 단지를 추리고 담습니다. 멀리 갈수록 결과가 좋았습니다(FAQ Q16)." },
     { go: "cart", t: "최종 검토 받기",
       d: "담은 아파트를 6개 축으로 채점하고 비교 해석·차트로 마지막 점검을 합니다." } ] }
 };
@@ -8300,6 +8389,7 @@ function buildGuide(root) {
   }
 
   root.innerHTML =
+    '<div id="g-mine"></div>' +
     '<div class="card">' +
       '<div class="eyebrow">Guide</div><h2>이 순서로 보세요</h2>' +
       '<p class="desc">TrackApt는 "싼 곳을 찾아주는" 도구가 아닙니다. 전국 가격 서열을 시장이 내린 집계 평가로 ' +
@@ -8366,6 +8456,7 @@ function buildGuide(root) {
         '실거래·단지정보·분양공고는 조회할 때마다 실시간입니다.</div>' +
     '<div id="g-sources"></div>';
 
+  renderGuideMine();
   root.querySelectorAll(".gstep").forEach(function (el) {
     el.addEventListener("click", function () {
       startTour(el.dataset.tourmode, Number(el.dataset.touridx));
@@ -8394,6 +8485,13 @@ function loadRules() {
       RULES.stress = DEFAULT_RULES.stress;
       RULES.stressLocal = DEFAULT_RULES.stressLocal;
       RULES.ruleVer = DEFAULT_RULES.ruleVer;
+    }
+    /* 가중치 기준일이 올라갔으면 (FAQ Q17 반영) 새 배점으로 — 직접 고친 값은 다시 고치면 된다 */
+    if (Number(r.wVer || 0) < DEFAULT_RULES.wVer) {
+      ["wRank", "wPerf", "wSupply", "wTiming", "wCash"].forEach(function (k) {
+        RULES[k] = DEFAULT_RULES[k];
+      });
+      RULES.wVer = DEFAULT_RULES.wVer;
     }
   } catch (e) {}
 }
@@ -8665,6 +8763,67 @@ function faqTbl(head, rows) {
     }).join("") + "</tbody></table></div>";
 }
 function faqSrc(t) { return '<div class="note" style="margin-top:8px;font-size:.76rem">' + t + "</div>"; }
+
+/* 로드맵 맨 위 '내 상황' — 내 조건·추천 결과·지역 지표를 실제 값으로 채운다.
+   v5.33까지 로드맵은 100% 정적이라 다른 탭에서 만든 값이 하나도 들어오지 않았다. */
+function renderGuideMine() {
+  var el = document.getElementById("g-mine");
+  if (!el) return;
+  if (!DB || !RANKED.length) { el.innerHTML = ""; return; }
+  var cond = getCond();
+  var ownName = { none: "무주택", switch: "갈아타기", add: "추가매수", multi: "다주택" }[cond.own] || "—";
+  var k = "";
+  k += statBox("동원 가능 현금", cond.cash > 0 ? eok(cond.cash) : "미입력", cond.cash > 0 ? "" : "down");
+  k += statBox("기준 면적", cond.area + "㎡");
+  k += statBox("보유 상태", ownName + (cond.home ? " · " + disp(cond.home) : ""));
+  var maxP = maxPriceForCash(cond, { reg: false, metro: true });
+  k += statBox("이 현금으로 최대", maxP != null ? eok(maxP) : "—");
+
+  var body = "";
+  /* 추천받기 결과가 있으면 그대로 이어 붙인다 — 로드맵이 추천의 후속이 되도록 */
+  if (WIZ.out && WIZ.out.top && WIZ.out.top.length) {
+    var t3 = WIZ.out.top.slice(0, 3).map(function (t) {
+      return "<li><b>" + escHtml(t.apt) + "</b> <span style='color:var(--ink-soft)'>" +
+        escHtml(wizName(t.code)) + " · " + (t.band || 84) + "㎡대 " + eok(t.price) +
+        " · 종합 " + t.score.toFixed(0) + "점</span></li>";
+    }).join("");
+    body += "<b>추천받기에서 나온 후보</b><ul style='margin:6px 0 0 16px;line-height:1.7'>" + t3 + "</ul>";
+    /* 그 지역들의 5축을 지역 채점표와 같은 방법으로 다시 계산해 붙인다 */
+    var homeArr = (cond.own !== "none" && cond.home && DB.salePm.series[cond.home])
+      ? pmSeries("salePm", cond.home) : null;
+    var seen = {}, lines = [];
+    WIZ.out.top.forEach(function (t) {
+      if (seen[t.code]) return;
+      seen[t.code] = 1;
+      var idx = RANKED.indexOf(t.code);
+      if (idx < 0) return;
+      var r = scoreRegion(t.code, idx, cond, homeArr);
+      lines.push("<li><b>" + escHtml(disp(t.code)) + "</b> — 급지 " + r.s.rank.toFixed(0) +
+        " · 성과 " + r.s.perf.toFixed(0) + " · 수급 " + r.s.supply.toFixed(0) +
+        " · 타이밍 " + r.s.timing.toFixed(0) + " · 자금 " + r.s.cash.toFixed(0) +
+        " <span style='color:var(--ink-soft)'>(" + r.fin.modeName + " 필요현금 " + eok(r.fin.need) +
+        (cond.cash > 0 && r.fin.need <= cond.cash ? " · 실행 가능" : "") + ")</span></li>");
+    });
+    if (lines.length) body += "<b style='display:block;margin-top:10px'>그 지역들의 5축 (지역 채점표와 같은 계산)</b>" +
+      "<ul style='margin:6px 0 0 16px;line-height:1.7'>" + lines.join("") + "</ul>";
+  } else {
+    body += "아직 <b>추천받기</b>를 돌리지 않았습니다. 먼저 추천을 받으면 여기에 후보와 그 지역의 " +
+      "5축 점수·필요현금이 채워지고, 아래 단계가 그 결과를 이어받습니다.";
+  }
+  el.innerHTML =
+    '<div class="card"><div class="eyebrow">My Status</div><h2>지금 내 상황</h2>' +
+      '<div class="status">' + k + "</div>" +
+      '<div class="note" style="margin-top:10px">' + body + "</div>" +
+      '<div class="btnrow"><button class="btn sm ghost" id="g-towiz">추천받기로</button>' +
+      '<button class="btn sm ghost" id="g-tostart">내 조건 고치기</button>' +
+      '<button class="btn sm ghost" id="g-toreco">지역 채점표</button></div></div>';
+  var b1 = document.getElementById("g-towiz");
+  if (b1) b1.addEventListener("click", function () { showTab("wiz"); window.scrollTo(0, 0); });
+  var b2 = document.getElementById("g-tostart");
+  if (b2) b2.addEventListener("click", function () { showTab("start"); window.scrollTo(0, 0); });
+  var b3 = document.getElementById("g-toreco");
+  if (b3) b3.addEventListener("click", function () { showTab("reco"); window.scrollTo(0, 0); });
+}
 
 function buildFaq(root) {
   var H = "<b>", E = "</b>";
@@ -8967,7 +9126,7 @@ function buildSetting(root) {
   document.getElementById("r-save").addEventListener("click", function () {
     ["ltvReg","ltvFree","ltvFirstLocal","ltvMulti","dsr","stress","stressLocal","loanYears",
      "capT1","capT1Lim","capT2","capT2Lim","capT3","acq2Reg","acq3Reg",
-     "wRank","wPerf","wSupply","wTiming","wCash",
+     "wRank","wPerf","wSupply","wTiming","wCash","wVer",
      "broker","etcRate","etcFixed"].forEach(function (k) {
       var v = Number(val("r-" + k));
       if (!isNaN(v)) RULES[k] = v;

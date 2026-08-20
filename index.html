@@ -76,6 +76,8 @@ section.tab{display:none} section.tab.on{display:block}
 .gstep{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer}
 .gstep:hover{border-color:var(--brand)}
 .gstep .no{font-size:1.2rem;font-weight:800;color:var(--brand);min-width:26px;text-align:center}
+.gstep.done{opacity:.62}
+.gstep.done .no{color:var(--up)}
 .gstep .t{font-weight:800;font-size:.92rem}
 .gstep .d{font-size:.8rem;color:var(--ink-soft);margin-top:2px;line-height:1.5}
 .stepbar{display:flex;align-items:center;gap:8px;background:var(--note);border:1px solid var(--line);
@@ -305,9 +307,13 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 .whybtns .btn{padding:3px 10px;font-size:.72rem}
 .attbox{margin:8px 0 4px}
 .reco>.attbox{flex-basis:100%;width:100%;margin:2px 0 0}
-.reco>.rcfull{flex-basis:100%;width:100%;order:3;margin-top:4px}
-.reco>.attbox{order:4}
-.reco .body{flex:1 1 auto}
+/* 첫 줄은 [번호][제목][점수], 그 아래로 본문과 행렬이 카드 전체 폭을 쓴다.
+   order를 기본값에 기대면 카드 종류마다 다르게 흐른다 — 전부 못 박는다 (v5.36) */
+.reco>.no{order:0}
+.reco>.body{order:1;flex:1 1 0;min-width:0}
+.reco>.money{order:2;flex:0 0 auto}
+.reco>.rcfull{order:3;flex-basis:100%;width:100%;margin-top:4px}
+.reco>.attbox{order:4;flex-basis:100%;width:100%}
 .atgrp{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:8px 0;background:rgba(255,255,255,.02)}
 .atgh{font-weight:800;font-size:.8rem;margin-bottom:2px}
 .atgh small{color:var(--ink-soft);font-weight:400}
@@ -392,7 +398,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.34</span>
+    <span class="ver">v5.36</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -605,6 +611,10 @@ function buildStart(root) {
           '<option value="59">59㎡ · 24평형</option><option value="84" selected>84㎡ · 34평형</option>' +
           '<option value="101">101㎡ · 40평형</option></select></div>' +
         '<div class="field full"><label for="f-home">지금 사는 지역</label><select id="f-home"><option value="">데이터 로드 중…</option></select></div>' +
+        '<div class="field full"><label for="f-homeapt">지금 사는 아파트 <span style="font-weight:400;color:var(--ink-soft)">' +
+          '(선택 — 갈아타기 기준선이 됩니다)</span></label>' +
+          '<select id="f-homeapt"><option value="">지역을 먼저 고르세요</option></select>' +
+          '<span class="hint" id="f-homeapt-hint" style="margin:4px 0 0"></span></div>' +
         '<div class="field"><label for="f-income">연소득 (만원 · DSR용)</label><input id="f-income" type="number" inputmode="numeric" placeholder="0이면 미적용"></div>' +
         '<div class="field"><label for="f-rate">주담대 금리 (%)</label><input id="f-rate" type="number" step="0.1" inputmode="decimal" placeholder="예: 4.0"></div>' +
         '<div class="field"><label for="f-own">보유 주택 상태</label><select id="f-own">' +
@@ -619,8 +629,49 @@ function buildStart(root) {
       '<p class="hint" id="save-hint">값은 이 브라우저에만 저장됩니다.</p>' +
     '</div>' +
 '';
-  ["f-cash","f-area","f-home","f-income","f-rate","f-own","f-first","f-range"].forEach(function (id) {
+  ["f-cash","f-area","f-home","f-income","f-rate","f-own","f-first","f-range","f-homeapt"].forEach(function (id) {
     root.querySelector("#" + id).addEventListener("change", saveCond);
+  });
+  /* 지역을 바꾸면 그 지역 저장본에서 단지 목록을 채운다 (조회 0회) */
+  root.querySelector("#f-home").addEventListener("change", function () { fillHomeApts(""); });
+  fillHomeApts(COND_PENDING_APT);
+}
+var COND_PENDING_APT = "";
+/* 내 지역 저장본의 기준 면적 단지 목록 — 갈아타기 기준선을 잡기 위해 */
+function fillHomeApts(preset) {
+  var sel = document.getElementById("f-homeapt");
+  if (!sel) return;
+  var home = val("f-home");
+  if (!home) { sel.innerHTML = '<option value="">지역을 먼저 고르세요</option>'; return; }
+  var area = Number(val("f-area")) || 84;
+  sel.innerHTML = '<option value="">여는 중…</option>';
+  loadStore(String(home).split(":")[0]).then(function (st) {
+    var list = st ? storeTops(st, area, new Date().getFullYear()) : [];
+    sel.innerHTML = '<option value="">선택 안 함</option>' +
+      list.map(function (x) {
+        return '<option value="' + escHtml(x.id) + '">' + escHtml(x.apt) + " · " + escHtml(x.dong) +
+          " (" + eok(x.price) + ")</option>";
+      }).join("");
+    if (preset) sel.value = preset;
+    var hint = document.getElementById("f-homeapt-hint");
+    if (hint) hint.textContent = list.length
+      ? area + "㎡대 실거래가 있는 " + list.length + "곳 (저장본 기준)"
+      : "이 지역 저장본이 없거나 " + area + "㎡대 거래가 없습니다.";
+    homeAptRefresh();
+  });
+}
+/* 고른 내 집의 시세 — 갈아타기 기준선 */
+var HOME_APT = { id: "", apt: "", price: null, code: "" };
+function homeAptRefresh() {
+  var id = val("f-homeapt"), home = val("f-home");
+  HOME_APT = { id: id, apt: "", price: null, code: String(home || "").split(":")[0] };
+  if (!id || !home) return;
+  loadStore(HOME_APT.code).then(function (st) {
+    if (!st) return;
+    var area = Number(val("f-area")) || 84;
+    storeTops(st, area, new Date().getFullYear()).forEach(function (x) {
+      if (x.id === id) { HOME_APT.apt = x.apt; HOME_APT.price = x.price; }
+    });
   });
 }
 
@@ -629,6 +680,7 @@ function getCond() {
     cash:   Number(val("f-cash")) || 0,
     area:   Number(val("f-area")) || 84,
     home:   val("f-home"),
+    homeApt: val("f-homeapt"),
     income: Number(val("f-income")) || 0,
     rate:   Number(val("f-rate")) || 4.0,
     own:    val("f-own") || "none",
@@ -651,6 +703,8 @@ function restoreCond() {
   try {
     var c = JSON.parse(raw);
     setVal("f-cash", c.cash); setVal("f-area", c.area); setVal("f-home", c.home);
+    COND_PENDING_APT = c.homeApt || "";
+    try { fillHomeApts(COND_PENDING_APT); } catch (e) {}
     setVal("f-income", c.income); setVal("f-rate", c.rate); setVal("f-own", c.own);
     setVal("f-range", c.range);
     var f = document.getElementById("f-first"); if (f) f.checked = !!c.first;
@@ -1869,11 +1923,13 @@ function wizRegions() {
   return out;
 }
 /* 한 지역 저장본에서 후보 단지를 뽑아 채점한다 */
-function wizScanStore(st, code, rankIdx, thisY) {
+function wizScanStore(st, code, rankIdx, thisY, opts) {
+  opts = opts || {};
   var out = [];
   if (!st || !st.cx) return out;
   var N = RANKED.length || 1, bands = wizBands();
   st.cx.forEach(function (cx) {
+    if (opts.only && btKey(cx.d, cx.n, "") !== opts.only) return;   /* 내 집 한 곳만 채점 */
     var best = null;
     bands.forEach(function (b) {
       var s = cx.s[String(b)];
@@ -1884,8 +1940,8 @@ function wizScanStore(st, code, rankIdx, thisY) {
       var lastYear = st.y0 + s.o + last;
       if (lastYear < thisY - 2) return;             /* 거래가 끊긴 단지(재건축 이주 등) 제외 */
       var price = s.p[last];
-      if (WIZ.budget > 0 && price > WIZ.budget) return;
-      if (WIZ.age !== "any" && !wizAgeOk(cx.y, thisY)) return;
+      if (WIZ.budget > 0 && price > WIZ.budget && !opts.noBudget) return;
+      if (WIZ.age !== "any" && !wizAgeOk(cx.y, thisY) && !opts.noAge) return;
       var cnt = sumArr(s.c);
       if (cnt < 5) return;                          /* 표본이 너무 얇으면 순위가 소음이 된다 */
       var first = -1;
@@ -1951,6 +2007,41 @@ function wizScanStore(st, code, rankIdx, thisY) {
   });
   return out;
 }
+/* 갈아타기 기준선 — 내가 고른 '지금 사는 아파트'의 기준 면적 시세.
+   무주택이거나 아파트를 안 골랐으면 null(기준선 없음). */
+function wizHomeBase() {
+  try {
+    var cond = getCond();
+    if (cond.own === "none" || cond.own === "multi") return null;
+    if (!cond.homeApt || !HOME_APT || HOME_APT.id !== cond.homeApt) return null;
+    return HOME_APT.price != null ? HOME_APT.price : null;
+  } catch (e) { return null; }
+}
+/* 내 집을 후보와 **같은 축으로** 채점해 둔 기준 (wizRun이 채운다) */
+var HOME_REF = null;
+/* 갈아타기로 실제 갈 수 있는 상한 —
+   갈아타기: 지금 집을 판 돈 + 동원 현금 (+ 대출 여력은 필요현금 계산에서 따로 본다)
+   추가매수: 기존 집은 그대로 두므로 현금·대출로만 살 수 있는 최대. */
+function wizMoveCap() {
+  try {
+    var cond = getCond();
+    if (!HOME_REF) return null;
+    if (cond.own === "switch") return HOME_REF.price + (cond.cash || 0);
+    var mx = maxPriceForCash(cond, { reg: false, metro: true });
+    return mx != null ? mx : null;
+  } catch (e) { return null; }
+}
+/* 지금 집보다 '좋은' 단지인가 — 두 갈래로 본다.
+   ① 상급 이동: 내 집보다 비싸면서 감당 가능한 금액 안 (FAQ Q16 — 갈 수 있는 최상단으로)
+   ② 동급 교체: 비슷한 값(±15%)인데 점수가 더 높은 단지 (같은 돈으로 더 나은 물건) */
+function wizMoveKind(row) {
+  if (!HOME_REF) return "";
+  var cap = wizMoveCap();
+  var near = Math.abs(row.price - HOME_REF.price) <= HOME_REF.price * 0.15;
+  if (near && row.score > HOME_REF.score + 2) return "swap";
+  if (row.price > HOME_REF.price * 1.05 && (cap == null || row.price <= cap)) return "up";
+  return "";
+}
 /* 지역 타이밍 축 — 지역 채점표(scoreRegion)와 **같은 지표**를 쓴다.
    FAQ Q17 ②: 전세 뒷받침은 급지 안에서만 유효 → 40~100으로 좁혀 순서만 조정하게 둔다. */
 function wizRegionTiming(code) {
@@ -1992,11 +2083,29 @@ function wizRun() {
   var thisY = new Date().getFullYear();
   var rankOf = {};
   RANKED.forEach(function (k, i) { rankOf[k] = i; });
-  Promise.all(regions.map(loadStore)).then(function (sts) {
+  /* 갈아타기·추가매수라면 내 집도 **같은 축으로** 채점해 비교 기준을 만든다 */
+  var condR = getCond();
+  var homeCode = (wizHomeBase() != null) ? HOME_APT.code : null;
+  var homeP = homeCode ? loadStore(homeCode) : Promise.resolve(null);
+  HOME_REF = null;
+  Promise.all([Promise.all(regions.map(loadStore)), homeP]).then(function (both) {
+    var sts = both[0], homeSt = both[1];
+    if (homeSt && homeCode) {
+      var hr = wizScanStore(homeSt, homeCode, rankOf[homeCode] != null ? rankOf[homeCode] : -1, thisY,
+                            { only: HOME_APT.id, noAge: true, noBudget: true })[0];
+      if (hr) HOME_REF = { apt: HOME_APT.apt || hr.apt, price: hr.price, score: hr.score, code: homeCode };
+      else if (HOME_APT.price != null)
+        HOME_REF = { apt: HOME_APT.apt, price: HOME_APT.price, score: 0, code: homeCode };
+    }
     var all = [];
     sts.forEach(function (st, i) {
       all = all.concat(wizScanStore(st, regions[i], rankOf[regions[i]] != null ? rankOf[regions[i]] : -1, thisY));
     });
+    /* 내 집 기준이 있으면 '지금보다 나은' 두 갈래만 남긴다 */
+    if (HOME_REF) {
+      all.forEach(function (r) { r.moveKind = wizMoveKind(r); });
+      all = all.filter(function (r) { return r.moveKind; });
+    }
     all.sort(function (a, b) { return b.score - a.score; });
     /* 한 지역이 독식하지 않게 지역당 2곳까지 */
     var perR = {}, top = [];
@@ -2006,7 +2115,26 @@ function wizRun() {
       perR[c] = (perR[c] || 0) + 1;
       top.push(all[i]);
     }
-    WIZ.out = { top: top, total: all.length, regions: regions, noStore: sts.filter(function (s) { return !s; }).length };
+    /* 점수가 다 80점대로 보이는 이유 — 조건을 통과한 후보들 사이의 상대 평가라
+       상위 5곳만 보면 당연히 높다. 판단 기준이 되도록 후보 전체 분포를 함께 남긴다. */
+    var scores = all.map(function (x) { return x.score; });
+    var dist = null;
+    if (scores.length) {
+      var sSorted = scores.slice().sort(function (a, b) { return a - b; });
+      dist = {
+        n: scores.length,
+        avg: scores.reduce(function (a, b) { return a + b; }, 0) / scores.length,
+        med: median(scores), max: sSorted[sSorted.length - 1], min: sSorted[0],
+        sorted: sSorted
+      };
+      top.forEach(function (t) {
+        var below = 0;
+        for (var si = 0; si < sSorted.length; si++) if (sSorted[si] < t.score) below++;
+        t.pctile = below / sSorted.length * 100;           /* 후보 안에서의 백분위 */
+      });
+    }
+    WIZ.out = { top: top, total: all.length, regions: regions, dist: dist,
+                noStore: sts.filter(function (s) { return !s; }).length };
     /* 세대수는 결과 5곳만 kapt 저장본에서 붙인다 */
     var codes = [];
     top.forEach(function (t) { if (codes.indexOf(t.code) < 0) codes.push(t.code); });
@@ -2201,14 +2329,28 @@ function renderWizResult() {
   var condTxt = (WIZ.mode === "macro" ? WIZ.macro + " 급지 상위" : WIZ.picks.length + "개 관심지역") +
     " · " + (WIZ.horizon === 5 ? "단기 3~5년" : "장기 10년") + " · " +
     { new: "신축", semi: "준신축", old: "구축", any: "연식 무관" }[WIZ.age] +
-    " · " + wizBandLabel() + " · " + (WIZ.budget ? eok(WIZ.budget) + " 이하" : "가격 무관");
+    " · " + wizBandLabel() + " · " + (WIZ.budget ? eok(WIZ.budget) + " 이하" : "가격 무관") +
+    (HOME_REF ? " · 내 집(" + HOME_REF.apt + " " + eok(HOME_REF.price) + " · " +
+      HOME_REF.score.toFixed(0) + "점)보다 나은 곳만" : "");
   if (!o.top.length) {
     box.innerHTML = '<div class="callout warn"><b>' + escHtml(condTxt) + "</b><br>" +
       "조건에 맞는 단지를 찾지 못했습니다 (검토 " + o.total + "곳). 예산을 늘리거나 연식을 <b>상관없음</b>으로 바꿔보세요." +
+      (HOME_REF ? " 지금은 <b>내 집(" + escHtml(HOME_REF.apt) + " " + eok(HOME_REF.price) + ")보다 나은 곳</b>만 " +
+        "보고 있습니다 — 상급 이동은 <b>" + (wizMoveCap() != null ? eok(wizMoveCap()) + " 이내" : "감당 가능 금액 이내") +
+        "</b>, 동급 교체는 <b>비슷한 값에 점수가 더 높은 곳</b>만 남깁니다. 내 조건에서 아파트 선택을 " +
+        "<b>선택 안 함</b>으로 두면 전체를 봅니다." : "") +
       (o.noStore ? "<br>저장본이 없는 지역 " + o.noStore + "곳은 검토에서 빠졌습니다." : "") + "</div>";
     return;
   }
-  var h = '<div class="callout"><b>' + escHtml(condTxt) + "</b> — 후보 " + fmt(o.total) + "곳 중 TOP " + o.top.length + "</div>";
+  var h = '<div class="callout"><b>' + escHtml(condTxt) + "</b> — 후보 " + fmt(o.total) + "곳 중 TOP " + o.top.length +
+    (HOME_REF ? "<br><span style='font-size:.82rem'><b>지금보다 나은 곳</b>만 남겼습니다 — " +
+      "<b>상급 이동</b>(내 집보다 비싸고 " + (wizMoveCap() != null ? eok(wizMoveCap()) + " 이내" : "감당 가능") + ") 또는 " +
+      "<b>동급 교체</b>(±15% 값에 점수가 더 높음)</span>" : "") +
+    (o.dist ? "<br><span style='font-size:.82rem'>후보 " + fmt(o.dist.n) + "곳 점수 분포 — 최고 " +
+      o.dist.max.toFixed(0) + " · 중간 " + o.dist.med.toFixed(0) + " · 최저 " + o.dist.min.toFixed(0) +
+      " <span style='color:var(--ink-soft)'>(점수는 <b>조건을 통과한 후보들 사이의 상대 평가</b>라 " +
+      "상위 5곳은 원래 높게 나옵니다 — 절대 등급이 아니라 <b>상위 몇 %</b>로 보세요)</span></span>" : "") +
+    "</div>";
   h += o.top.map(function (t, i) {
     var age = t.buildY ? thisY - t.buildY : null;
     return '<div class="wcard' + (i === 0 ? " best" : "") + '">' +
@@ -2218,7 +2360,8 @@ function renderWizResult() {
           '<div class="wmeta">' + escHtml(wizName(t.code)) + " " + escHtml(t.dong) +
           (t.buildY ? " · " + t.buildY + "년(" + age + "년차)" : "") +
           (t.hh ? " · " + fmt(t.hh) + "세대" : "") + "</div></div>" +
-        '<div class="wscore"><b>' + t.score.toFixed(0) + "</b><span>종합</span></div>" +
+        '<div class="wscore"><b>' + t.score.toFixed(0) + "</b><span>" +
+          (t.pctile != null ? "상위 " + Math.max(1, Math.round(100 - t.pctile)) + "%" : "종합") + "</span></div>" +
       "</div>" +
       '<div class="wchips">' +
         '<span class="tagmini gold">' + (t.band || 84) + "㎡대</span>" +
@@ -2232,6 +2375,12 @@ function renderWizResult() {
         (t.hh != null && t.hh < 300
           ? ' <span class="tagmini no" title="' + escHtml("FAQ Q3 — 300세대를 최소 조건으로 걸라는 검증 결과(나홀로→중형 +38%p, 예외 0곳)") +
             '">300세대 미만</span>' : "") +
+        (t.moveKind && HOME_REF
+          ? ' <span class="tagmini ok" title="' + escHtml("지금 사는 " + HOME_REF.apt + " " + eok(HOME_REF.price) +
+              " · 종합 " + HOME_REF.score.toFixed(0) + "점 대비") + '">' +
+            (t.moveKind === "up"
+              ? "상급 이동 +" + eok(t.price - HOME_REF.price)
+              : "동급 교체 · 점수 +" + (t.score - HOME_REF.score).toFixed(0)) + "</span>" : "") +
       "</div>" +
       '<div class="pxbox" id="wiz-px-' + i + '">' + wizPxStoreHtml(t) + "</div>" +
       '<div class="btnrow" style="margin-top:10px">' +
@@ -2242,7 +2391,7 @@ function renderWizResult() {
     "</div>";
   }).join("");
   h += '<div class="note" style="margin-top:10px"><b>다음 단계</b> — ' +
-    '<button class="btn sm ghost" id="wiz-toguide">투자 로드맵으로 이어서 진행 →</button><br>' +
+    '<button class="btn sm ghost" id="wiz-toguide">다음 단계로 →</button><br>' +
     '점수는 <b>급지 45% + 성과 25% + 거래 꾸준함 15% + 타이밍 15%</b>로 매깁니다 — ' +
     '과거에 많이 오른 곳에 가점을 주면 거꾸로 작동한다는 자체 검증(FAQ Q17)에 맞춰 성과는 ' +
     '<b>통과선(10년 두 배)</b> 확인용으로만 씁니다. 자세한 근거와 검증 자료는 각 카드의 ' +
@@ -2302,6 +2451,15 @@ function renderWizResult() {
           (WIZ.budget ? " — 예산(" + eok(WIZ.budget) + ") 안" : "") +
           (t.buildY ? " · " + (thisY - t.buildY) + "년차로 고르신 연식 범위 안" : "") + "입니다." +
           '<div class="whybtns">' + vlink("calc", "이 가격 필요현금") + "</div></div></div>" +
+        (WIZ.out.dist
+          ? '<div class="whyrow"><div class="whyk">점수</div><div class="whyv">종합 <b>' + t.score.toFixed(0) +
+            "점</b> — 조건을 통과한 후보 " + fmt(WIZ.out.dist.n) + "곳 중 <b>상위 " +
+            Math.max(1, Math.round(100 - (t.pctile || 0))) + "%</b>입니다(중간 " +
+            WIZ.out.dist.med.toFixed(0) + "점 · 최고 " + WIZ.out.dist.max.toFixed(0) + "점). " +
+            "이 점수는 <b>절대 등급이 아니라 후보들 사이의 상대 위치</b>입니다 — 조건을 좁게 걸수록 " +
+            "남은 후보가 다 좋아 보이므로, 점수보다 <b>어느 축이 낮은지</b>와 상위 %를 함께 보세요." +
+            "</div></div>"
+          : "") +
         '<div class="pxcap">버튼을 누르면 이 단지·지역이 <b>조건에 들어간 채로 조회</b>됩니다. ' +
         "뒤로가기(또는 추천받기 탭)로 돌아오면 이 결과가 그대로 있습니다.</div>";
       d.style.display = "block";
@@ -2342,7 +2500,17 @@ function renderWizResult() {
     });
   });
   var tg = document.getElementById("wiz-toguide");
-  if (tg) tg.addEventListener("click", function () { showTab("guide"); window.scrollTo(0, 0); });
+  if (tg) tg.addEventListener("click", function () {
+    /* 안내를 따라온 중이면 로드맵으로 되돌아가지 않고 **다음 단계**로 간다 —
+       로드맵 → 추천받기 → 로드맵으로 도는 고리를 끊는다 (v5.35) */
+    if (TOUR.mode && TOURS[TOUR.mode]) {
+      var steps = TOURS[TOUR.mode].steps;
+      var cur = -1, i;
+      for (i = 0; i < steps.length; i++) if (steps[i].go === "wiz") cur = i;
+      if (cur >= 0 && cur + 1 < steps.length) { startTour(TOUR.mode, cur + 1); return; }
+    }
+    showTab("guide"); window.scrollTo(0, 0);
+  });
   wizLoadDetails();
 }
 
@@ -2457,6 +2625,25 @@ function wizGo(tab, t) {
     }
     var vgo = document.getElementById("vl-go");
     if (vgo) vgo.click();
+  } else if (tab === "gap") {
+    GAP.region = t.code;
+    var gs = document.getElementById("gp-region");
+    if (gs) {
+      for (var gi = 0; gi < gs.options.length; gi++)
+        if (String(gs.options[gi].value).split(":")[0] === String(t.code)) { gs.selectedIndex = gi; break; }
+    }
+    try { renderGap(); } catch (e) {}
+  } else if (tab === "supply") {
+    /* 입주물량은 시·도 단위 자료다 — 이 단지가 속한 시·도를 골라 바로 불러온다 */
+    var ss = document.getElementById("sp-sido");
+    if (ss) {
+      var sd = kbSido(t.code);
+      for (var si = 0; si < ss.options.length; si++)
+        if (ss.options[si].value === sd) { ss.selectedIndex = si; break; }
+      fireChange(ss);
+    }
+    var sgo = document.getElementById("sp-go");
+    if (sgo) sgo.click();
   } else if (tab === "calc") {
     var px = (t.lastDeal && t.lastDeal.amount) || t.price;   /* 최근 실거래가 우선 */
     CALC.price = px; CALC.reg = isRegulated(t.code); CALC.metro = !!METRO[t.code];
@@ -6748,7 +6935,9 @@ function autoLoadSupply() {
 }
 
 var SUPPLY_MEMO = {};
+var SUPPLY_LOADED = false;
 function loadSupply() {
+  SUPPLY_LOADED = true;
   SP.loading = true;
   var btn = document.getElementById("sp-go");
   btn.disabled = true;
@@ -8292,6 +8481,20 @@ var TOURS = {
       d: "담은 아파트를 6개 축으로 채점하고 비교 해석·차트로 마지막 점검을 합니다." } ] }
 };
 var TOUR = { mode: null, idx: -1 };   /* 진행 중인 안내 */
+/* 그 단계를 이미 했는지 — 로드맵을 돌 때마다 같은 걸 다시 시키지 않으려고 */
+function tourStepDone(go) {
+  try {
+    var cond = getCond();
+    if (go === "start") return cond.cash > 0;
+    if (go === "wiz") return !!(WIZ.out && WIZ.out.top && WIZ.out.top.length);
+    if (go === "danji") return !!(DJ.rows && DJ.rows.length);
+    if (go === "cart") return getCart().length > 0;
+    if (go === "vol") return !!(VOL.rows && VOL.rows.length);
+    if (go === "supply") return !!SUPPLY_LOADED;
+    if (go === "move") return !!MOVE.target;
+  } catch (e) {}
+  return false;
+}
 
 function startTour(mode, idx) {
   TOUR.mode = mode; TOUR.idx = idx;
@@ -8377,15 +8580,24 @@ function buildGuide(root) {
       '<div class="eyebrow">' + (mode === "none" ? "First Home" : "Move Up") + '</div>' +
       "<h2>" + tr.name + "</h2>" +
       '<p class="desc">' + (mode === "none"
-        ? "집이 없다면 <b>내 돈이 닿는 가장 위쪽</b>을 찾는 게 핵심입니다. 못 닿으면 전세를 끼는 길을 봅니다."
-        : "집이 있다면 절대 가격이 아니라 <b>내 집과 목표의 격차</b>가 핵심입니다. 격차가 좁혀졌을 때가 올라탈 때입니다.") + "</p>" +
+        ? "집이 없다면 <b>내 돈이 닿는 가장 위쪽</b>을 찾는 게 핵심입니다. 못 닿으면 전세를 끼는 길을 봅니다.<br>" +
+          "<b>이 코스만의 것</b> — 필요현금 사다리(지역 순위) · 전국 등급표 · 입주물량 · 전세 끼고. " +
+          "타이밍은 <b>전세가율 밴드</b>로 봅니다."
+        : "집이 있다면 절대 가격이 아니라 <b>내 집과 목표의 격차</b>가 핵심입니다. 격차가 좁혀졌을 때가 올라탈 때입니다.<br>" +
+          "<b>이 코스만의 것</b> — 갈아타기 배율 · 다음 오를 곳 · 거래량 국면 · 갈아타기 자금. " +
+          "타이밍은 <b>내 지역 대비 배율 밴드</b>로 바뀌고, 내 조건에 <b>지금 사는 아파트</b>를 넣으면 " +
+          "추천이 <b>그보다 나은 단지만</b> 골라 옵니다.") + "</p>" +
       tr.steps.map(function (s, i) {
-        return '<div class="gstep" data-tourmode="' + mode + '" data-touridx="' + i + '">' +
-          '<div class="no">' + (i + 1) + '</div><div><div class="t">' + s.t + '</div>' +
+        var done = tourStepDone(s.go);
+        return '<div class="gstep' + (done ? " done" : "") + '" data-tourmode="' + mode + '" data-touridx="' + i + '">' +
+          '<div class="no">' + (done ? "✓" : (i + 1)) + '</div><div><div class="t">' + s.t +
+          (done ? ' <span class="tagmini ok">완료</span>' : "") + '</div>' +
           '<div class="d">' + s.d + "</div></div></div>";
       }).join("") +
-      '<div class="btnrow"><button class="btn" data-tourstart="' + mode + '" style="width:auto">' +
-        "1단계부터 따라가기</button></div></div>";
+      '<div class="btnrow"><button class="btn" data-tourgo="' + mode + '" style="width:auto">' +
+        "이어서 하기</button>" +
+        '<button class="btn ghost sm" data-tourstart="' + mode + '">1단계부터</button></div>' +
+      '<p class="hint">✓는 이미 해 둔 단계입니다 — <b>이어서 하기</b>는 아직 안 한 첫 단계로 바로 갑니다.</p></div>';
   }
 
   root.innerHTML =
@@ -8464,6 +8676,13 @@ function buildGuide(root) {
   });
   root.querySelectorAll("button[data-tourstart]").forEach(function (b) {
     b.addEventListener("click", function () { startTour(b.dataset.tourstart, 0); });
+  });
+  root.querySelectorAll("button[data-tourgo]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var m = b.dataset.tourgo, steps = TOURS[m].steps, i = 0;
+      for (; i < steps.length; i++) if (!tourStepDone(steps[i].go)) break;
+      startTour(m, Math.min(i, steps.length - 1));
+    });
   });
 }
 

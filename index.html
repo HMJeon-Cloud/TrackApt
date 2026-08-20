@@ -276,6 +276,21 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
   cursor:pointer;font:inherit;font-size:.72rem;font-weight:600;color:var(--ink-soft);padding:6px 0}
 #mapsheet .mico{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;
   font-weight:800;font-size:1.15rem;box-shadow:0 1px 6px rgba(0,0,0,.3)}
+/* 화면 중앙 진행 표시 (v5.43) — 버튼 속 카운터는 눈에 안 띈다는 사용 소감 */
+#progbox{position:fixed;inset:0;z-index:1300;display:none;align-items:center;justify-content:center}
+#progbox .pg-dim{position:absolute;inset:0;background:rgba(6,9,14,.72)}
+#progbox .pg-card{position:relative;width:min(340px,86vw);background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;padding:22px 24px 18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#progbox .pg-title{font-weight:700;font-size:.92rem;margin-bottom:10px;word-break:keep-all}
+#progbox .pg-pct{font-size:1.9rem;font-weight:800;color:var(--brand);letter-spacing:.02em;line-height:1.1}
+#progbox .pg-bar{height:8px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);
+  overflow:hidden;margin:12px 0 8px}
+#progbox .pg-fill{height:100%;width:0%;background:var(--gold-grad);transition:width .25s}
+#progbox .pg-fill.indet{width:40%;animation:pgslide 1.2s linear infinite}
+@keyframes pgslide{0%{margin-left:-40%}100%{margin-left:100%}}
+#progbox .pg-cnt{font-size:.78rem;color:var(--ink-soft);min-height:1.1em}
+#progbox .pg-hide{margin-top:10px;background:none;border:0;color:var(--ink-soft);font:inherit;
+  font-size:.74rem;cursor:pointer;text-decoration:underline}
 .rowinfo{font-size:.74rem;color:var(--ink-soft);background:var(--bg);border-radius:6px;padding:6px 8px;margin-top:4px;line-height:1.5}
 .reco{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
 .reco.best{border-color:var(--up);background:rgba(47,191,155,.06)}
@@ -414,7 +429,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.41</span>
+    <span class="ver">v5.43</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1943,9 +1958,14 @@ function wizScanStore(st, code, rankIdx, thisY, opts) {
   opts = opts || {};
   var out = [];
   if (!st || !st.cx) return out;
-  var N = RANKED.length || 1, bands = wizBands();
+  var N = RANKED.length || 1, bands = opts.anyBand ? [36, 46, 59, 84, 101, 135] : wizBands();
+  /* 이름이 스스로 밝히는 비(非)아파트 — 주상복합·오피스텔·도시형생활주택 등은
+     아파트 상승 공식(급지·대장성)이 통하지 않는 별개 시장이다 (v5.42) */
+  var NON_APT_RE = /주상복합|오피스텔|도시형|생활주택|생숙|레지던스/;
   st.cx.forEach(function (cx) {
     if (opts.only && btKey(cx.d, cx.n, "") !== opts.only) return;   /* 내 집 한 곳만 채점 */
+    /* 내 집 채점(only)은 유형과 무관한 기준선이므로 거르지 않는다 */
+    if (!opts.only && NON_APT_RE.test(cx.n)) { if (opts.stats) opts.stats.nonApt++; return; }
     var best = null;
     bands.forEach(function (b) {
       var s = cx.s[String(b)];
@@ -2004,13 +2024,33 @@ function wizScanStore(st, code, rankIdx, thisY, opts) {
     });
     if (best) out.push(best);
   });
+  /* 규모 검증(FAQ Q3, v5.42) — kapt 저장본이 있으면 후보 전체에 세대수를 붙이고,
+     이력이 짧아 지역 성과를 빌리는 신축(perfSrc=region)은 규모부터 확인한다.
+     · 300세대 미만 → 빌린 성과 50점 상한 (나홀로→중형 +38%p·예외 0곳)
+     · K-apt(의무관리대상)에 아예 없음 → 사실상 소규모·나홀로·주상복합 — 40점 상한
+     자기 이력 5년+로 채점된 단지는 제 기록이 우선이라 손대지 않는다. */
+  if (opts.kapt && opts.kapt.cx) {
+    var slist = opts.kapt.cx.map(function (x) { return { kaptCode: x.k, name: x.n, addr: x.a, _st: x }; });
+    var hits = matchKaptAll(slist, out);
+    out.forEach(function (r, i2) {
+      var hK = hits[i2] && hits[i2].it && hits[i2].it._st;
+      if (hK && hK.hh) r.hh = hK.hh;
+    });
+    out.forEach(function (r) {
+      if (r.perfSrc !== "region") return;
+      if (r.hh == null) { r.q3 = "unk"; r.sPerf = Math.min(r.sPerf, 40); }
+      else if (r.hh < 300) { r.q3 = "small"; r.sPerf = Math.min(r.sPerf, 50); }
+    });
+  }
   /* 신축 보정 2차 — 같은 평형대 후보들 사이의 상대가격(대장성).
      비싼 신축이 그 지역의 대장 자리이고, 대장은 이후 성과도 체계적으로 좋았다. */
   var byBand = {};
   out.forEach(function (r) { (byBand[r.band] = byBand[r.band] || []).push(r.price); });
   out.forEach(function (r) {
     if (r.perfSrc !== "region") return;
-    var med = median(byBand[r.band]);
+    /* 규모 미달·미확인 신축은 대장성도 빌려주지 않는다 — 비싼 나홀로 신축이
+       '대장'으로 읽히는 것을 막는다 (v5.42, FAQ Q3) */
+    var med = r.q3 ? 0 : median(byBand[r.band]);
     if (med > 0) {
       var sPrem = clamp((r.price / med - 0.7) / 0.6, 0, 1) * 100;  /* 중위 0.7배↓ 0점 · 1.3배↑ 만점 */
       /* FAQ Q4 — 대장 프리미엄은 지방에서만 통했다(수도권 7곳 평균 −13%p, 지방 6곳 +28%p).
@@ -2054,7 +2094,7 @@ function wizMoveKind(row) {
   if (!HOME_REF) return "";
   var cap = wizMoveCap();
   var near = Math.abs(row.price - HOME_REF.price) <= HOME_REF.price * 0.15;
-  if (near && row.score > HOME_REF.score + 2) return "swap";
+  if (near && HOME_REF.score != null && row.score > HOME_REF.score + 2) return "swap";
   if (row.price > HOME_REF.price * 1.05 && (cap == null || row.price <= cap)) return "up";
   return "";
 }
@@ -2104,18 +2144,23 @@ function wizRun() {
   var homeCode = (wizHomeBase() != null) ? HOME_APT.code : null;
   var homeP = homeCode ? loadStore(homeCode) : Promise.resolve(null);
   HOME_REF = null;
-  Promise.all([Promise.all(regions.map(loadStore)), homeP]).then(function (both) {
-    var sts = both[0], homeSt = both[1];
+  var scanStats = { nonApt: 0 };
+  Promise.all([Promise.all(regions.map(loadStore)), homeP,
+               Promise.all(regions.map(loadKaptStore))]).then(function (both) {
+    var sts = both[0], homeSt = both[1], kapts = both[2];
     if (homeSt && homeCode) {
       var hr = wizScanStore(homeSt, homeCode, rankOf[homeCode] != null ? rankOf[homeCode] : -1, thisY,
-                            { only: HOME_APT.id, noAge: true, noBudget: true })[0];
+                            { only: HOME_APT.id, noAge: true, noBudget: true, anyBand: true })[0];
       if (hr) HOME_REF = { apt: HOME_APT.apt || hr.apt, price: hr.price, score: hr.score, code: homeCode };
       else if (HOME_APT.price != null)
-        HOME_REF = { apt: HOME_APT.apt, price: HOME_APT.price, score: 0, code: homeCode };
+        /* 채점 실패(표본 부족 등) — 0점으로 두면 모든 후보가 '동급 교체'가 돼 버린다(v5.41의
+           '점수 +92' 배지). null이면 점수 비교(swap)는 끄고 가격 비교(상급 이동)만 남는다. */
+        HOME_REF = { apt: HOME_APT.apt, price: HOME_APT.price, score: null, code: homeCode };
     }
     var all = [];
     sts.forEach(function (st, i) {
-      all = all.concat(wizScanStore(st, regions[i], rankOf[regions[i]] != null ? rankOf[regions[i]] : -1, thisY));
+      all = all.concat(wizScanStore(st, regions[i], rankOf[regions[i]] != null ? rankOf[regions[i]] : -1, thisY,
+                                    { kapt: kapts[i], stats: scanStats }));
     });
     /* 내 집 기준이 있으면 '지금보다 나은' 두 갈래만 남긴다 */
     if (HOME_REF) {
@@ -2149,7 +2194,7 @@ function wizRun() {
         t.pctile = below / sSorted.length * 100;           /* 후보 안에서의 백분위 */
       });
     }
-    WIZ.out = { top: top, total: all.length, regions: regions, dist: dist,
+    WIZ.out = { top: top, total: all.length, regions: regions, dist: dist, nonApt: scanStats.nonApt,
                 noStore: sts.filter(function (s) { return !s; }).length };
     /* 세대수는 결과 5곳만 kapt 저장본에서 붙인다 */
     var codes = [];
@@ -2346,8 +2391,8 @@ function renderWizResult() {
     " · " + (WIZ.horizon === 5 ? "단기 3~5년" : "장기 10년") + " · " +
     { new: "신축", semi: "준신축", old: "구축", any: "연식 무관" }[WIZ.age] +
     " · " + wizBandLabel() + " · " + (WIZ.budget ? eok(WIZ.budget) + " 이하" : "가격 무관") +
-    (HOME_REF ? " · 내 집(" + HOME_REF.apt + " " + eok(HOME_REF.price) + " · " +
-      HOME_REF.score.toFixed(0) + "점)보다 나은 곳만" : "");
+    (HOME_REF ? " · 내 집(" + HOME_REF.apt + " " + eok(HOME_REF.price) +
+      (HOME_REF.score != null ? " · " + HOME_REF.score.toFixed(0) + "점" : "") + ")보다 나은 곳만" : "");
   if (!o.top.length) {
     box.innerHTML = '<div class="callout warn"><b>' + escHtml(condTxt) + "</b><br>" +
       "조건에 맞는 단지를 찾지 못했습니다 (검토 " + o.total + "곳). 예산을 늘리거나 연식을 <b>상관없음</b>으로 바꿔보세요." +
@@ -2362,6 +2407,8 @@ function renderWizResult() {
     (HOME_REF ? "<br><span style='font-size:.82rem'><b>지금보다 나은 곳</b>만 남겼습니다 — " +
       "<b>상급 이동</b>(내 집보다 비싸고 " + (wizMoveCap() != null ? eok(wizMoveCap()) + " 이내" : "감당 가능") + ") 또는 " +
       "<b>동급 교체</b>(±15% 값에 점수가 더 높음)</span>" : "") +
+    (o.nonApt ? "<br><span style='font-size:.82rem'>이름에 주상복합·오피스텔·도시형·생활주택이 든 <b>" +
+      o.nonApt + "곳</b>은 아파트와 값이 다르게 움직이는 유형이라 후보에서 뺐습니다</span>" : "") +
     (o.dist ? "<br><span style='font-size:.82rem'>후보 " + fmt(o.dist.n) + "곳 점수 분포 — 최고 " +
       o.dist.max.toFixed(0) + " · 중간 " + o.dist.med.toFixed(0) + " · 최저 " + o.dist.min.toFixed(0) +
       " <span style='color:var(--ink-soft)'>(점수는 <b>조건을 통과한 후보들 사이의 상대 평가</b>라 " +
@@ -2382,18 +2429,22 @@ function renderWizResult() {
       '<div class="wchips">' +
         '<span class="tagmini gold">' + (t.band || 84) + "㎡대</span>" +
         (t.perfSrc === "region"
-          ? '<span class="tagmini">신축 — 지역 10년 ' +
-              (t.regCagr != null ? pct(t.regCagr, 1) + "/년" : "성과") + " 기준</span>"
+          ? (t.q3
+              ? '<span class="tagmini no" title="' +
+                  escHtml("FAQ Q3 — 나홀로·소단지는 지역 상승을 못 따라간다는 자체 검증(중형 대비 +38%p, 예외 0곳). 규모가 확인돼야 지역 성과를 빌려줍니다") + '">' +
+                  (t.q3 === "unk" ? "세대수 미확인 — 지역 성과 미적용" : "300세대 미만 — 지역 성과 제한") + "</span>"
+              : '<span class="tagmini">신축 — 지역 10년 ' +
+                  (t.regCagr != null ? pct(t.regCagr, 1) + "/년" : "성과") + " 기준</span>")
           : '<span class="tagmini' + (t.cagr >= 7.2 ? " ok" : "") + '">' + WIZ.horizon + "년 연 " +
               pct(t.cagr, 1) + (t.thin ? "~" : "") + "</span>") +
         '<span class="tagmini">급지 ' + (t.rankIdx >= 0 ? (t.rankIdx + 1) + "위" : "—") + "</span>" +
         '<span class="tagmini">거래 ' + fmt(t.cnt) + "건</span>" +
-        (t.hh != null && t.hh < 300
+        (t.hh != null && t.hh < 300 && t.q3 !== "small"
           ? ' <span class="tagmini no" title="' + escHtml("FAQ Q3 — 300세대를 최소 조건으로 걸라는 검증 결과(나홀로→중형 +38%p, 예외 0곳)") +
             '">300세대 미만</span>' : "") +
         (t.moveKind && HOME_REF
           ? ' <span class="tagmini ok" title="' + escHtml("지금 사는 " + HOME_REF.apt + " " + eok(HOME_REF.price) +
-              " · 종합 " + HOME_REF.score.toFixed(0) + "점 대비") + '">' +
+              (HOME_REF.score != null ? " · 종합 " + HOME_REF.score.toFixed(0) + "점" : "") + " 대비") + '">' +
             (t.moveKind === "up"
               ? "상급 이동 +" + eok(t.price - HOME_REF.price)
               : "동급 교체 · 점수 +" + (t.score - HOME_REF.score).toFixed(0)) + "</span>" : "") +
@@ -2427,7 +2478,14 @@ function renderWizResult() {
       }
       d.innerHTML =
         '<div class="whyrow"><div class="whyk">성과</div><div class="whyv">' +
-          (t.perfSrc === "region"
+          (t.perfSrc === "region" && t.q3
+            ? "거래 이력이 " + Math.round(t.yrs) + "년뿐인 신축인데 " +
+              (t.q3 === "unk" ? "<b>K-apt(의무관리대상 단지 목록)에 없는 소규모 건물</b>이라"
+                              : "세대수 <b>" + fmt(t.hh) + "</b> — 300세대 미만이라") +
+              " 지역 성과·대장성을 빌려주지 않았습니다. 나홀로·소단지는 지역 상승을 못 따라간다는 " +
+              "자체 검증(FAQ Q3, 16곳 예외 0) 때문이며, 성과 축을 <b>" + (t.q3 === "unk" ? "40" : "50") +
+              "점 상한</b>으로 눌렀습니다. 주상복합·오피스텔·도시형이면 아파트와 다른 시장이니 더 주의하세요."
+            : t.perfSrc === "region"
             ? "거래 이력이 " + Math.round(t.yrs) + "년뿐이라 단지 자체 상승률 대신 <b>지역 10년 성과 " +
               (t.regCagr != null ? pct(t.regCagr, 1) + "/년" : "—") +
               "</b>과 <b>후보들 사이 상대가격(대장성)</b>으로 평가했습니다. 신축의 짧은 등락은 " +
@@ -2602,11 +2660,12 @@ function wizLoadDetails() {
   if (!out || !out.top.length) return;
   var codes = [];
   out.top.forEach(function (t) { if (codes.indexOf(t.code) < 0) codes.push(t.code); });
+  progOpen("추천 단지 시세 불러오는 중", codes.length * 12);   /* 지역당 매매 6 + 전세 6 */
   var chain = Promise.resolve();
   codes.forEach(function (c) {
     chain = chain.then(function () {
       if (WIZ.out !== out) return null;              /* 그 사이 다시 추천했으면 버린다 */
-      return fetchMonths(c, 6).then(function (data) {
+      return fetchMonths(c, 6, progTick).then(function (data) {
         if (WIZ.out !== out) return;
         out.top.forEach(function (t, i) {
           if (t.code !== c) return;
@@ -2625,6 +2684,7 @@ function wizLoadDetails() {
       });
     });
   });
+  chain.then(progClose)["catch"](progClose);
 }
 
 /* 검증 링크 — 화면만 여는 게 아니라 이 단지·지역을 조건에 넣고 조회까지 */
@@ -3276,10 +3336,11 @@ function loadVol() {
   var months = ymList(VOL.months).reverse();   /* 과거→현재 순 */
   var done = 0;
   btn.textContent = "불러오는 중… (0/" + months.length + ")";
+  progOpen("거래량 불러오는 중", months.length);
   Promise.all(months.map(function (ym) {
     return fetchTrade(lawd, "sale", ym)
       .then(function (j) {
-        done++; btn.textContent = "불러오는 중… (" + done + "/" + months.length + ")";
+        done++; btn.textContent = "불러오는 중… (" + done + "/" + months.length + ")"; progTick();
         if (j.error) throw new Error(j.error + (j.msg ? " · " + j.msg : ""));
         var deals = (j.items || []).filter(function (t) { return !t.canceled && t.amount > 0 && t.area > 0; });
         return { ym: ym, cnt: deals.length,
@@ -3297,6 +3358,7 @@ function loadVol() {
     alert("거래량 조회 실패: " + m + (/제한|초과|502/i.test(m)
       ? "\n\n공공데이터 서버 요청이 몰린 상태입니다. 20~30초 뒤 다시 시도하거나, 조회 기간을 12개월로 줄여보세요." : ""));
   }).finally(function () {
+    progClose();
     btn.disabled = false; btn.textContent = "거래량 불러오기";
   });
 }
@@ -4184,8 +4246,9 @@ function loadDanji() {
   var btn = document.getElementById("dj-go");
   btn.disabled = true;
   var total = DJ.months * 2, done = 0;
-  function tick() { done++; btn.textContent = "실거래 조회… (" + done + "/" + total + ")"; }
+  function tick() { done++; btn.textContent = "실거래 조회… (" + done + "/" + total + ")"; progTick(); }
   btn.textContent = "실거래 조회… (0/" + total + ")";
+  progOpen("아파트 찾기 — 실거래 불러오는 중", total);
   var months = ymList(DJ.months);
   /* 화면에 "언제 자료인지"를 명시한다 — 최근 N개월만 고를 수 있어 기간이 안 보이면 혼동된다 */
   DJ.ymTo = months[0]; DJ.ymFrom = months[months.length - 1];
@@ -4235,10 +4298,12 @@ function loadDanji() {
     /* 실거래가 도착했으면 표부터 즉시 보여준다 */
     updateDanjiMeta();
     renderDanjiTable();
+    progClose();
     btn.disabled = false; btn.textContent = "단지 불러오기";
     /* K-apt 단지정보는 백그라운드에서 붙이고, 붙는 대로 표를 갱신한다 */
     attachKapt();
   }).catch(function (e) {
+    progClose();
     alert("조회 실패: " + e.message);
     btn.disabled = false; btn.textContent = "단지 불러오기";
   });
@@ -4359,6 +4424,63 @@ function openMapSheet(q, title) {
 }
 function closeMapSheet() {
   var el = document.getElementById("mapsheet");
+  if (el) el.style.display = "none";
+}
+/* ── 화면 중앙 진행 표시 (v5.43) ──────────────────────────
+   progOpen(제목, 총량) → progTick() 호출마다 %·막대가 차오르고 → progClose()로 내린다.
+   총량 0이면 무한 흐름 막대(호출 수만 표시). '백그라운드로'는 오버레이만 내린다 —
+   로딩은 계속되고 버튼 카운터가 그대로 남아 있어 진행을 잃지 않는다. */
+var PROG = { total: 0, done: 0, open: false };
+function progOpen(title, total) {
+  PROG.total = total > 0 ? total : 0; PROG.done = 0; PROG.open = true;
+  var el = document.getElementById("progbox");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "progbox";
+    el.innerHTML =
+      '<div class="pg-dim"></div>' +
+      '<div class="pg-card">' +
+        '<div class="pg-title" id="pg-title"></div>' +
+        '<div class="pg-pct" id="pg-pct"></div>' +
+        '<div class="pg-bar"><div class="pg-fill" id="pg-fill"></div></div>' +
+        '<div class="pg-cnt" id="pg-cnt"></div>' +
+        '<button class="pg-hide" id="pg-hide">백그라운드로 (로딩은 계속됩니다)</button>' +
+      "</div>";
+    document.body.appendChild(el);
+    el.querySelector("#pg-hide").addEventListener("click", function () {
+      el.style.display = "none";                     /* 내리기만 — 로딩은 계속 */
+    });
+  }
+  document.getElementById("pg-title").textContent = title || "불러오는 중";
+  el.style.display = "flex";
+  progPaint();
+}
+function progTick(n) {
+  if (!PROG.open) return;
+  PROG.done += (n || 1);
+  if (PROG.total > 0) PROG.done = Math.min(PROG.total, PROG.done);
+  progPaint();
+}
+function progPaint() {
+  var pct = document.getElementById("pg-pct"), fill = document.getElementById("pg-fill"),
+      cnt = document.getElementById("pg-cnt");
+  if (!fill) return;
+  if (PROG.total > 0) {
+    var p = Math.round(PROG.done / PROG.total * 100);
+    fill.classList.remove("indet");
+    fill.style.width = p + "%";
+    if (pct) pct.textContent = p + "%";
+    if (cnt) cnt.textContent = PROG.done + " / " + PROG.total;
+  } else {
+    fill.classList.add("indet");
+    fill.style.width = "";
+    if (pct) pct.textContent = "…";
+    if (cnt) cnt.textContent = PROG.done ? PROG.done + "회 조회" : "";
+  }
+}
+function progClose() {
+  PROG.open = false;
+  var el = document.getElementById("progbox");
   if (el) el.style.display = "none";
 }
 function escHtml(s) {
@@ -6005,8 +6127,9 @@ function loadFlag() {
   var btn = document.getElementById("fg-go");
   btn.disabled = true;
   var total = regions.length * 12, done = 0;
-  function tick() { done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")"; }
+  function tick() { done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")"; progTick(); }
   tick(); done = 0; btn.textContent = "불러오는 중… (0/" + total + ")";
+  progOpen("대장 아파트 불러오는 중", total);
 
   /* 지역 순차 처리 (API 부하 완화) */
   var results = [];
@@ -6054,6 +6177,7 @@ function loadFlag() {
   }).catch(function (e) {
     alert("대장 아파트 조회 실패: " + e.message);
   }).finally(function () {
+    progClose();
     btn.disabled = false; btn.textContent = "대장 아파트 불러오기";
   });
 }
@@ -6265,12 +6389,14 @@ function loadCmpSlot(i) {
     /* 저장본이 없는 지역만 예전처럼 24개월을 받아 목록을 만든다 */
     var total = 48, done = 0;
     btn.textContent = "불러오는 중… (0/" + total + ")";
+    progOpen("단지 목록 만드는 중", total);
     return fetchMonths(s.region, 24, function () {
-      done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")";
+      done++; btn.textContent = "불러오는 중… (" + done + "/" + total + ")"; progTick();
     }).then(function (data) { s.data = data; s.months = 24; fillAptSelect(i); });
   })["catch"](function (e) {
     alert("단지 목록 실패: " + (e && e.message || e));
   }).then(function () {
+    progClose();
     btn.disabled = false; btn.textContent = "단지 목록 채우기";
   });
 }
@@ -6326,12 +6452,13 @@ function ensureCmpData(i) {
   var btn = document.getElementById("cx-load" + i);
   var total = CMP.range * 2, done = 0;
   if (btn) { btn.disabled = true; btn.textContent = "실거래 조회… (0/" + total + ")"; }
+  progOpen("비교 단지 실거래 조회 중", total);
   return fetchMonths(s.region, CMP.range, function () {
-    done++; if (btn) btn.textContent = "실거래 조회… (" + done + "/" + total + ")";
+    done++; if (btn) btn.textContent = "실거래 조회… (" + done + "/" + total + ")"; progTick();
   }).then(function (d) {
     s.data = d; s.months = CMP.range;
   })["catch"](function () { s.data = null; })
-    .then(function () { if (btn) { btn.disabled = false; btn.textContent = "단지 목록 채우기"; } });
+    .then(function () { progClose(); if (btn) { btn.disabled = false; btn.textContent = "단지 목록 채우기"; } });
 }
 
 function cmpSeries(s) {
@@ -7068,10 +7195,11 @@ function loadSupply() {
     var sidos = Object.keys(SIDO_POP);
     var done = 0;
     btn.textContent = "전국 불러오는 중… (0/" + sidos.length + ")";
+    progOpen("전국 입주물량 불러오는 중", sidos.length);
     p = Promise.all(sidos.map(function (s) {
       return one(s).then(function (j) {
         done++;
-        btn.textContent = "전국 불러오는 중… (" + done + "/" + sidos.length + ")";
+        btn.textContent = "전국 불러오는 중… (" + done + "/" + sidos.length + ")"; progTick();
         return { s: s, j: j };
       });
     })).then(function (res) {
@@ -7101,7 +7229,7 @@ function loadSupply() {
       renderSupply();
     })
     .catch(function (e) { alert("입주물량 조회 실패: " + e.message); })
-    .finally(function () { SP.loading = false; btn.disabled = false; btn.textContent = "입주물량 불러오기"; });
+    .finally(function () { progClose(); SP.loading = false; btn.disabled = false; btn.textContent = "입주물량 불러오기"; });
 }
 
 function sigunguOf(addr, sido) {
@@ -7438,8 +7566,9 @@ function runBtest() {
   var oldYms = [ymShift(curYm, -(mBack + 2)), ymShift(curYm, -(mBack + 1)), ymShift(curYm, -mBack)].map(String);
   var pastYear = Math.floor(Number(oldYms[2]) / 100);
   var done = 0;
-  function tick() { done++; btn.textContent = "검증 중… (" + done + ")"; }
+  function tick() { done++; btn.textContent = "검증 중… (" + done + ")"; progTick(); }
   btn.textContent = "검증 중… (0)";
+  progOpen("검증 자료 불러오는 중", 0);   /* 저장본 여부에 따라 호출 수가 달라 총량 미정 */
 
   /* 과거 구간은 저장본이 있으면 그것으로 — 두 지역 다 있어야 같은 잣대로 비교된다 */
   Promise.all([loadStore(BT.a), loadStore(BT.b)]).then(function (sts) {
@@ -7534,6 +7663,7 @@ function runBtest() {
   }).catch(function (e) {
     alert("백테스트 실패: " + e.message);
   }).finally(function () {
+    progClose();
     btn.disabled = false; btn.textContent = "검증하기";
   });
 }

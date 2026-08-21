@@ -298,6 +298,9 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 #progbox.mini .pg-title{font-size:.78rem;margin-bottom:6px}
 #progbox.mini .pg-pct{font-size:1.1rem}
 #progbox.mini .pg-hide{display:none}
+#progbox .pg-stop{display:none}
+#progbox.mini .pg-stop{display:inline-block}
+#progbox .pg-el{font-size:.72rem;color:var(--ink-soft);margin-top:2px;min-height:1em}
 .rowinfo{font-size:.74rem;color:var(--ink-soft);background:var(--bg);border-radius:6px;padding:6px 8px;margin-top:4px;line-height:1.5}
 .reco{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
 .reco.best{border-color:var(--up);background:rgba(47,191,155,.06)}
@@ -338,10 +341,11 @@ tr.mine td{background:rgba(212,175,106,.10)!important;
 .pxcap{font-size:.7rem;color:var(--ink-soft);margin-top:6px;line-height:1.5}
 .whybox{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:rgba(255,255,255,.02)}
 .whyrow{display:grid;grid-template-columns:52px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line);
-  font-size:.82rem;line-height:1.65}
+  font-size:.82rem;line-height:1.65;align-items:center}
 .whyrow:last-of-type{border-bottom:0}
-.whyk{font-weight:800;font-size:.76rem;color:var(--brand);padding-top:1px}
-.whybtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.whyk{font-weight:800;font-size:.76rem;color:var(--brand)}
+/* 항목 이름과 버튼이 한 줄에 나란히 서도록 — 위 여백을 두면 버튼만 내려앉는다 (v5.46) */
+.whybtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .whybtns .btn{padding:3px 10px;font-size:.72rem}
 .attbox{margin:8px 0 4px}
 .reco>.attbox{flex-basis:100%;width:100%;margin:2px 0 0}
@@ -441,7 +445,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.45</span>
+    <span class="ver">v5.46</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2441,11 +2445,8 @@ function renderWizResult() {
          o.nonApt ? "주상복합·오피스텔 등 " + fmt(o.nonApt) + "곳" : ""].filter(Boolean).join(" · ") +
         " <span style='color:var(--ink-soft)'>(같은 값이면 대단지가 앞섰다는 자체 검증 FAQ Q3 — " +
         "300세대를 최소 조건으로 겁니다)</span></span>" : "") +
-    (o.dist ? "<br><span style='font-size:.82rem'>후보 " + fmt(o.dist.n) + "곳 점수 분포 — 최고 " +
-      o.dist.max.toFixed(0) + " · 중간 " + o.dist.med.toFixed(0) + " · 최저 " + o.dist.min.toFixed(0) +
-      " <span style='color:var(--ink-soft)'>(점수는 <b>조건을 통과한 후보들 사이의 상대 평가</b>라 " +
-      "상위 5곳은 원래 높게 나옵니다 — 절대 등급이 아니라 <b>상위 몇 %</b>로 보세요)</span></span>" : "") +
     "</div>";
+  h += wizOverviewHtml(o);                    /* 근거는 카드마다 반복하지 않고 여기 모은다 (v5.46) */
   h += o.top.map(function (t, i) {
     var age = t.buildY ? thisY - t.buildY : null;
     return '<div class="wcard' + (i === 0 ? " best" : "") + '">' +
@@ -2569,8 +2570,8 @@ function renderWizResult() {
           : "") +
         '<div class="pxcap">버튼을 누르면 이 단지·지역이 <b>조건에 들어간 채로 조회</b>됩니다. ' +
         "뒤로가기(또는 추천받기 탭)로 돌아오면 이 결과가 그대로 있습니다.</div>";
-      /* 2위 아래는 설명 구조가 1위와 같고 숫자만 다르다 — 검증 버튼만 남긴다 (v5.45) */
-      if (i > 0) {
+      /* 설명은 카드마다 반복하지 않는다 — 위쪽 총평으로 모으고 카드엔 검증 버튼만 (v5.46) */
+      if (true) {
         Array.prototype.forEach.call(d.querySelectorAll(".whyrow"), function (row) {
           var v = row.querySelector(".whyv"), btns = v && v.querySelector(".whybtns");
           if (!btns) { row.parentNode.removeChild(row); return; }   /* 점수 줄처럼 버튼 없는 줄은 뺀다 */
@@ -2578,8 +2579,8 @@ function renderWizResult() {
           v.appendChild(btns);
         });
         var capEl = d.querySelector(".pxcap");
-        if (capEl) capEl.innerHTML = "항목별 <b>검증 버튼</b>만 남겼습니다 — 설명 문장은 구조가 같고 " +
-          "숫자만 달라 <b>1위 카드</b>에 있습니다. 버튼을 누르면 이 단지·지역이 조건에 들어간 채로 조회됩니다.";
+        if (capEl) capEl.innerHTML = "버튼을 누르면 이 단지·지역이 <b>조건에 들어간 채로 조회</b>됩니다. " +
+          "채점 방식과 다섯 곳의 공통점은 결과 맨 위의 <b>총평</b>에 있습니다.";
       }
       d.style.display = "block";
       d.querySelectorAll("button[data-wzgo]").forEach(function (vb) {
@@ -2650,6 +2651,62 @@ function fireChange(el) {
 /* ── 결과 카드 시세표 ──
    처음엔 저장본 연 중위로 그려 두고, 최근 6개월 실거래가 도착하면
    최근 거래(금액·층·년월) / 6개월 중위 / 최고가(층)로 바꾼다. */
+/* ── 결과 총평 (v5.46) ─────────────────────────────────
+   같은 구조의 근거 문장을 카드마다 반복하지 않고, TOP 5를 하나로 읽는 표를 위에 둔다. */
+function wizOverviewHtml(o) {
+  if (!o || !o.top || !o.top.length) return "";
+  var top = o.top, rows = [];
+  var regs = [];
+  top.forEach(function (t) { if (regs.indexOf(t.code) < 0) regs.push(t.code); });
+  var ranks = top.map(function (t) { return t.rankIdx >= 0 ? t.rankIdx + 1 : null; }).filter(function (x) { return x != null; });
+  var prices = top.map(function (t) { return t.price; });
+  var hhs = top.map(function (t) { return t.hh; }).filter(function (x) { return x != null; });
+  var cagrs = top.map(function (t) { return t.cagr; }).filter(function (x) { return x != null; });
+  function rng(a, fmtf) {
+    if (!a.length) return "—";
+    var mn = Math.min.apply(null, a), mx = Math.max.apply(null, a);
+    return mn === mx ? fmtf(mn) : fmtf(mn) + " ~ " + fmtf(mx);
+  }
+  rows.push(["채점 방식",
+    "<b>급지 45% + 성과 25% + 거래 꾸준함 15% + 타이밍 15%</b>. 과거에 많이 오른 곳에 가점을 주면 " +
+    "거꾸로 작동한다는 자체 검증(FAQ Q17)에 맞춰, 성과는 <b>통과선(10년에 두 배 = 연 7.2%)</b> " +
+    "확인용으로만 씁니다. 그래서 <b>어디인가(급지)</b>가 가장 크게 작용합니다."]);
+  rows.push(["뽑힌 다섯 곳",
+    fmt(regs.length) + "개 지역 · 급지 <b>" + rng(ranks, function (v) { return v + "위"; }) + "</b>" +
+    " / 전국 " + RANKED.length + "곳 · 매매 <b>" + rng(prices, eok) + "</b>" +
+    (hhs.length ? " · 세대수 " + rng(hhs, fmt) : "") +
+    ". 한 지역이 독식하지 않도록 <b>지역당 2곳</b>까지만 올립니다."]);
+  if (cagrs.length) rows.push(["성과 범위",
+    "연평균 <b>" + rng(cagrs, function (v) { return pct(v, 1); }) + "</b> — " +
+    (Math.max.apply(null, cagrs) >= 7.2 ? "통과선(연 7.2%)을 넘긴 곳이 있습니다."
+                                        : "통과선(연 7.2%)에는 못 미치지만 조건 안에서는 상위입니다.") +
+    " 이력이 5년이 안 되는 신축은 <b>지역 10년 성과</b>로 대신 봅니다."]);
+  rows.push(["뺀 곳",
+    ((o.small || o.unreg || o.nonApt)
+      ? [o.small ? "<b>" + WIZ_MIN_HH + "세대 미만</b> " + fmt(o.small) + "곳" : "",
+         o.unreg ? "<b>K-apt 미등록</b>(소규모·빌라·나홀로) " + fmt(o.unreg) + "곳" : "",
+         o.nonApt ? "<b>주상복합·오피스텔 등</b> " + fmt(o.nonApt) + "곳" : ""].filter(Boolean).join(" · ") +
+        " — 같은 값이면 대단지가 앞섰다는 자체 검증(FAQ Q3, 16곳 예외 0)에 따라 300세대를 최소 조건으로 겁니다."
+      : "이번 조건에서는 규모·유형으로 걸러낸 곳이 없습니다.")]);
+  if (o.dist) rows.push(["점수 읽는 법",
+    "후보 " + fmt(o.dist.n) + "곳 분포는 최고 " + o.dist.max.toFixed(0) + " · 중간 " + o.dist.med.toFixed(0) +
+    " · 최저 " + o.dist.min.toFixed(0) + "점입니다. 점수는 <b>절대 등급이 아니라 조건을 통과한 후보들 " +
+    "사이의 상대 위치</b>라, 조건을 좁게 걸수록 남은 곳이 다 높아 보입니다 — <b>상위 몇 %</b>와 " +
+    "<b>어느 축이 낮은지</b>를 함께 보세요."]);
+  if (HOME_REF) rows.push(["내 집 대비",
+    "지금 사는 <b>" + escHtml(HOME_REF.apt) + " " + eok(HOME_REF.price) + "</b>보다 나은 곳만 남겼습니다 — " +
+    "<b>상급 이동</b>(더 비싸고 " + (wizMoveCap() != null ? eok(wizMoveCap()) + " 이내" : "감당 가능") + ") 또는 " +
+    "<b>동급 교체</b>(±15% 값에 점수가 더 높음)."]);
+  rows.push(["다음에 할 일",
+    "각 카드의 <b>왜 추천했나요?</b>를 누르면 항목별 <b>검증 버튼</b>이 나옵니다 — 누르면 그 단지·지역이 " +
+    "조건에 들어간 채로 해당 화면이 열려 <b>숫자를 직접 확인</b>할 수 있습니다. " +
+    "마음에 드는 곳은 <b>이 지역 단지 더 보기</b>에서 담아 최종 검토로 보내세요."]);
+  return '<div class="note" style="margin-bottom:10px"><b>총평 — 왜 이 다섯 곳인가</b>' +
+    '<div class="tblwrap" style="margin-top:6px"><table class="srctbl">' +
+    '<colgroup><col style="width:24%"><col style="width:76%"></colgroup><tbody>' +
+    rows.map(function (x) { return "<tr><th>" + x[0] + "</th><td>" + x[1] + "</td></tr>"; }).join("") +
+    "</tbody></table></div></div>";
+}
 function wizPxStoreHtml(t) {
   var sMed = eok(t.price) + " <small>(" + String(t.lastYear).slice(2) + "년)</small>";
   var jMed = t.je != null ? eok(t.je) + " <small>(" + String(t.jeYear).slice(2) + "년)</small>" : "—";
@@ -2699,6 +2756,19 @@ function wizPxLiveHtml(t, st) {
     "</tbody></table>" + '<div class="pxcap">' + cap + "</div>";
 }
 /* 결과 지역만 순차 조회 (지역당 12회, TRADE_MEMO 캐시 재사용) */
+/* 지역 하나에 쓰는 시간 상한 — 넘으면 저장본 기준으로 두고 다음 지역으로 */
+var WIZ_PX_BUDGET_MS = 25000;
+/* 실거래를 못 채운 카드는 왜 저장본 기준인지 밝힌다 (빈칸으로 두지 않는다) */
+function wizPxGiveUp(out, code, isTimeout) {
+  out.top.forEach(function (t, i) {
+    if (t.code !== code) return;
+    var el = document.getElementById("wiz-px-" + i);
+    var cap = el && el.querySelector(".pxcap");
+    if (cap) cap.textContent = isTimeout
+      ? "최근 실거래가 늦어 저장본 연 중위 기준으로 둡니다 — [이 지역 단지 더 보기]에서 다시 받을 수 있습니다."
+      : "최근 실거래 불러오기를 멈췄습니다 — 저장본 연 중위 기준입니다.";
+  });
+}
 function wizLoadDetails() {
   var out = WIZ.out;
   if (!out || !out.top.length) return;
@@ -2706,13 +2776,19 @@ function wizLoadDetails() {
   out.top.forEach(function (t) { if (codes.indexOf(t.code) < 0) codes.push(t.code); });
   /* 추천 카드는 이미 다 읽을 수 있다(저장본 기준) — 화면을 가리지 않는 미니 표시로,
      시세표는 차오르는 대로 채워진다 (v5.44) */
-  progOpen("추천 단지 시세 불러오는 중", codes.length * 12, true);   /* 지역당 매매 6 + 전세 6 */
+  progOpen("추천 단지 시세 불러오는 중 (카드 내용은 이미 나와 있습니다)", codes.length * 12, true);
   var chain = Promise.resolve();
   codes.forEach(function (c) {
     chain = chain.then(function () {
       if (WIZ.out !== out) return null;              /* 그 사이 다시 추천했으면 버린다 */
-      return fetchMonths(c, 6, progTick).then(function (data) {
+      if (PROG.canceled) { wizPxGiveUp(out, c); return null; }
+      /* 서버가 몰리면 한 호출에 20초×3회까지 간다 — 지역마다 예산을 두고 넘으면 넘어간다 */
+      return Promise.race([
+        fetchMonths(c, 6, progTick),
+        sleep(WIZ_PX_BUDGET_MS).then(function () { return "timeout"; })
+      ]).then(function (data) {
         if (WIZ.out !== out) return;
+        if (data === "timeout") { wizPxGiveUp(out, c, true); return; }
         out.top.forEach(function (t, i) {
           if (t.code !== c) return;
           var stt = wizDetailStats(data, t);
@@ -3076,6 +3152,49 @@ function buildReco(root) {
   });
 }
 
+/* ── 지역 채점표 총평 (v5.46) — 카드마다 반복하던 근거를 하나로 모은다 ── */
+function recoOverviewHtml(list, rows, cond) {
+  if (!list || !list.length) return "";
+  var top = list.slice(0, 5), out = [];
+  var ranks = top.map(function (r) { return r.rank; });
+  var needs = top.map(function (r) { return r.fin.need; });
+  var jeonseN = top.filter(function (r) { return r.fin.mode === "jeonse"; }).length;
+  var regN = top.filter(function (r) { return isRegulated(r.key); }).length;
+  function rng(a, fmtf) {
+    var mn = Math.min.apply(null, a), mx = Math.max.apply(null, a);
+    return mn === mx ? fmtf(mn) : fmtf(mn) + " ~ " + fmtf(mx);
+  }
+  out.push(["채점 방식",
+    "<b>급지 45 · 성과 10 · 수급 10 · 타이밍 20 · 자금 15</b>(100점 환산)로 지역을 줄 세웁니다. " +
+    "과거 상승률에 가점을 주면 거꾸로 작동한다는 자체 검증(FAQ Q17)에 따라 성과 비중은 낮고, " +
+    "<b>급지</b>와 <b>내 돈이 닿는가(자금)</b>가 크게 작용합니다."]);
+  out.push(["뽑힌 다섯 곳",
+    "전국 서열 <b>" + rng(ranks, function (v) { return v + "위"; }) + "</b> / " + RANKED.length + "곳 · " +
+    "필요현금 <b>" + rng(needs, eok) + "</b>" +
+    (jeonseN ? " · 전세 끼고 가능 " + jeonseN + "곳" : "") +
+    (regN ? " · 규제지역 " + regN + "곳(실거주 의무)" : "") + "."]);
+  out.push(["1순위",
+    "<b>" + disp(top[0].key) + "</b> — " + top[0].total.toFixed(0) + "점 · " + top[0].fin.modeName +
+    " 필요현금 <b>" + eok(top[0].fin.need) + "</b>" +
+    (cond.cash > 0 ? (top[0].fin.need <= cond.cash ? " <b>(실행 가능)</b>"
+                                                   : " (부족 " + eok(top[0].fin.need - cond.cash) + ")") : "") +
+    ". 가장 강한 축은 <b>" + ({ rank: "급지", perf: "성과", supply: "수급", timing: "타이밍", cash: "자금" })[
+      ["rank", "perf", "supply", "timing", "cash"].sort(function (a, b) { return top[0].s[b] - top[0].s[a]; })[0]
+    ] + "</b>입니다."]);
+  out.push(["숫자의 기준",
+    "필요현금·갭은 그 지역 <b>기준 면적의 최근 3개월 중위 실거래가</b>입니다 — <b>지역의 중간 단지</b> 값이라 " +
+    "실제 단지는 위아래로 흩어져 있고, <b>대장 단지는 30~50% 비쌉니다</b>. 카드의 <b>펼치기</b>로 " +
+    "신축·준신축·구축 × 대장·중위·하위 단지의 실제 값을 확인하세요."]);
+  out.push(["읽는 법",
+    "점수 자체보다 <b>어느 축이 낮은지</b>를 보세요. 타이밍은 <b>같은 급지 안에서 순서를 정할 때만</b> 씁니다 — " +
+    "급지를 낮추면서 전세가율 좋은 곳을 좇으면 안 된다는 검증 결과가 있습니다(FAQ Q17). " +
+    "단지까지 좁혔으면 <b>단지 보기</b> → 담기 → <b>최종 검토</b>에서 6축 보고서를 받으세요."]);
+  return '<div class="note" style="margin-bottom:10px"><b>총평 — 왜 이 다섯 곳인가</b>' +
+    '<div class="tblwrap" style="margin-top:6px"><table class="srctbl">' +
+    '<colgroup><col style="width:24%"><col style="width:76%"></colgroup><tbody>' +
+    out.map(function (x) { return "<tr><th>" + x[0] + "</th><td>" + x[1] + "</td></tr>"; }).join("") +
+    "</tbody></table></div></div>";
+}
 function renderReco() {
   if (!DB || !RANKED.length) return;
   var cond = getCond();
@@ -3140,12 +3259,12 @@ function renderReco() {
         '<div class="axtrack"><div class="axfill" style="width:' + v.toFixed(0) + '%"></div></div>' +
         "<b>" + v.toFixed(0) + "</b>" + (sub ? "<small>" + sub + "</small>" : "") + "</div>";
     }
-    topEl.innerHTML = heroHtml + list.slice(0, 5).map(function (r, i) {
+    topEl.innerHTML = heroHtml + recoOverviewHtml(list, rows, cond) +
+      list.slice(0, 5).map(function (r, i) {
       var grade = r.total >= 80 ? "A" : (r.total >= 65 ? "B" : (r.total >= 50 ? "C" : "D"));
       var rationale = "";
-      /* 근거 문장은 카드마다 구조가 같고 숫자만 달라 읽는 부담만 컸다 —
-         1위에만 남기고 나머지는 칩·레이더·행렬·버튼으로 본다 (v5.45) */
-      if (i === 0) {
+      /* 근거 문장은 카드마다 구조가 같고 숫자만 달랐다 — 카드에서 빼고 위쪽 총평으로 모은다 (v5.46) */
+      if (false) {
         var axArr = Object.keys(AXN).map(function (k2) { return [k2, r.s[k2]]; })
           .sort(function (a, b) { return b[1] - a[1]; });
         var r10v = idxChange("sale", ik(r.key), 120);
@@ -3199,9 +3318,6 @@ function renderReco() {
         rationale = '<div class="rowinfo" style="margin-top:8px"><b>추천 근거</b>' +
           "<ul style='margin:6px 0 0 16px;line-height:1.7'>" +
           bl.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul></div>";
-      } else {
-        rationale = '<div class="pxcap" style="margin-top:6px">근거 문장은 구조가 같고 숫자만 달라 ' +
-          "<b>1위 카드</b>에만 적었습니다 — 이 카드는 위의 레이더·필요현금·연식별 단지표로 보세요.</div>";
       }
       var radar = '<div style="width:100%;max-width:320px;margin:8px auto 0">' +
         radarSvg([{ n: "급지", v: r.s.rank }, { n: "성과", v: r.s.perf }, { n: "수급", v: r.s.supply },
@@ -4506,11 +4622,12 @@ function closeMapSheet() {
    progOpen(제목, 총량) → progTick() 호출마다 %·막대가 차오르고 → progClose()로 내린다.
    총량 0이면 무한 흐름 막대(호출 수만 표시). '백그라운드로'는 오버레이만 내린다 —
    로딩은 계속되고 버튼 카운터가 그대로 남아 있어 진행을 잃지 않는다. */
-var PROG = { total: 0, done: 0, open: false };
+var PROG = { total: 0, done: 0, open: false, canceled: false, t0: 0, timer: null };
 /* mini=true — 화면을 가리지 않는 하단 진행 카드. 결과가 이미 보이는 '채우기' 로딩용
    (v5.43이 추천 결과까지 덮어 더 느려 보인다는 소감의 원인이었다). */
 function progOpen(title, total, mini) {
-  PROG.total = total > 0 ? total : 0; PROG.done = 0; PROG.open = true;
+  PROG.total = total > 0 ? total : 0; PROG.done = 0; PROG.open = true; PROG.canceled = false;
+  PROG.t0 = nowMs();
   var el = document.getElementById("progbox");
   if (!el) {
     el = document.createElement("div");
@@ -4522,18 +4639,29 @@ function progOpen(title, total, mini) {
         '<div class="pg-pct" id="pg-pct"></div>' +
         '<div class="pg-bar"><div class="pg-fill" id="pg-fill"></div></div>' +
         '<div class="pg-cnt" id="pg-cnt"></div>' +
+        '<div class="pg-el" id="pg-el"></div>' +
         '<button class="pg-hide" id="pg-hide">백그라운드로 (로딩은 계속됩니다)</button>' +
+        '<button class="btn sm ghost pg-stop" id="pg-stop" style="margin-top:8px">그만 기다리기</button>' +
       "</div>";
     document.body.appendChild(el);
     el.querySelector("#pg-hide").addEventListener("click", function () {
       el.style.display = "none";                     /* 내리기만 — 로딩은 계속 */
     });
+    /* 서버가 몰리면 한 호출에 20초씩 걸린다 — 기다리지 않고 저장본으로 볼 수 있게 (v5.46) */
+    el.querySelector("#pg-stop").addEventListener("click", function () {
+      PROG.canceled = true;
+      progClose();
+    });
   }
   el.classList.toggle("mini", !!mini);
   document.getElementById("pg-title").textContent = title || "불러오는 중";
   el.style.display = "flex";
+  if (PROG.timer) clearInterval(PROG.timer);
+  PROG.timer = setInterval(progPaint, 1000);        /* 경과 시간이 흘러야 멈춘 게 아님을 안다 */
   progPaint();
 }
+/* Date.now()를 직접 부르지 않고 한 곳으로 모은다 (시험에서 갈아 끼우기 쉽다) */
+function nowMs() { return new Date().getTime(); }
 function progTick(n) {
   if (!PROG.open) return;
   PROG.done += (n || 1);
@@ -4542,8 +4670,12 @@ function progTick(n) {
 }
 function progPaint() {
   var pct = document.getElementById("pg-pct"), fill = document.getElementById("pg-fill"),
-      cnt = document.getElementById("pg-cnt");
+      cnt = document.getElementById("pg-cnt"), el = document.getElementById("pg-el");
   if (!fill) return;
+  if (el) {
+    var sec = Math.max(0, Math.round((nowMs() - PROG.t0) / 1000));
+    el.textContent = PROG.open ? sec + "초 경과 — 공공데이터 서버가 몰리면 느려집니다" : "";
+  }
   if (PROG.total > 0) {
     var p = Math.round(PROG.done / PROG.total * 100);
     fill.classList.remove("indet");
@@ -4559,6 +4691,7 @@ function progPaint() {
 }
 function progClose() {
   PROG.open = false;
+  if (PROG.timer) { clearInterval(PROG.timer); PROG.timer = null; }
   var el = document.getElementById("progbox");
   if (el) el.style.display = "none";
 }
@@ -6186,7 +6319,12 @@ var TRADE_CACHE = {};
    전세까지 받느라 호출이 두 배였다. 캐시 키도 갈라 둔다(전세 없는 결과가 섞이면 안 된다). */
 function fetchMonths(lawd, nMonths, onTick, guName, saleOnly) {
   var key = lawd + ":" + nMonths + ":" + (guName || "") + (saleOnly ? ":s" : "");
-  if (TRADE_CACHE[key]) return Promise.resolve(TRADE_CACHE[key]);
+  if (TRADE_CACHE[key]) {
+    /* 캐시 적중이면 호출이 없어 onTick도 안 불렸다 — 진행률이 0에 붙박여 '멈춘 것처럼'
+       보이던 원인(v5.46). 받은 만큼 한 번에 진행시킨다. */
+    if (onTick) { var nTick = nMonths * (saleOnly ? 1 : 2), ti; for (ti = 0; ti < nTick; ti++) onTick(); }
+    return Promise.resolve(TRADE_CACHE[key]);
+  }
   var months = ymList(nMonths).reverse();
   var saleP = Promise.all(months.map(function (ym) {
     return fetchTrade(lawd, "sale", ym, guName).then(function (j) {

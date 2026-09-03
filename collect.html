@@ -60,7 +60,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.13</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.14</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -1588,7 +1588,9 @@ function splitRow(line, K) {
 }
 /* "123-4" · "123" · "산 12-3" → "123-4" 꼴 (앱 normJibun과 같은 규칙) */
 function normJb(s) {
-  var m = String(s || "").match(/(산)?\s*(\d+)(?:-(\d+))?\s*$/);
+  var t = String(s || "");
+  var m = t.match(/(?:동|리|가|읍|면)\s+(산\s*)?(\d+)(?:-(\d+))?(?=\s|$)/);   /* 동·리 뒤 번지 우선 (v2.14) */
+  if (!m) m = t.match(/(산)?\s*(\d+)(?:-(\d+))?\s*$/);
   if (!m) return "";
   return (m[1] ? "산" : "") + String(Number(m[2])) + "-" + String(Number(m[3] || 0));
 }
@@ -1941,6 +1943,9 @@ function kgRow(it, info) {
   var jsrc = info.kaptAddr || info.addr || info.jibunAddr || it.addr || "";
   var jn = normJb(jsrc);
   if (jn) o.j = jn;
+  /* 사용승인연도 — 실거래에 건축년도가 없는 단지의 준공연도 보완용 (v2.14) */
+  var ud = String(info.useDate || "").match(/^(\d{4})\d{4}/);
+  if (ud) o.ud = Number(ud[1]);
   var m = String(info.subwayWay || "").match(/(\d+)/);
   if (Number(info.households) > 0) o.hh = Number(info.households);
   if (Number(info.dongCnt) > 0) o.dc = Number(info.dongCnt);

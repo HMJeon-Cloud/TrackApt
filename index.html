@@ -464,7 +464,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 <header>
   <div class="brand">
     <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.48</span>
+    <span class="ver">v5.49</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -5295,7 +5295,11 @@ var KAPT_LOOSE = 0.42, KAPT_TIGHT = 0.68, KAPT_DONG_BONUS = 0.15, KAPT_SHARE = 0
 /* 지번 정규화 (v5.48) — "123-4" · "123" · "산 12-3" · "서울특별시 은평구 응암동 123-4" 전부 "123-4" 꼴로.
    실거래 API의 jibun과 K-apt 주소의 번지가 같으면 이름이 달라도 같은 단지다. */
 function normJibun(s) {
-  var m = String(s || "").match(/(산)?\s*(\d+)(?:-(\d+))?\s*$/);
+  var t = String(s || "");
+  /* ① 동·리·가·읍·면 바로 뒤의 번지 — K-apt 주소는 번지 뒤에 단지명이 붙는다 (v5.49) */
+  var m = t.match(/(?:동|리|가|읍|면)\s+(산\s*)?(\d+)(?:-(\d+))?(?=\s|$)/);
+  /* ② 없으면 문자열 끝의 번지 — 실거래 API의 jibun("123-4")이 이 꼴 */
+  if (!m) m = t.match(/(산)?\s*(\d+)(?:-(\d+))?\s*$/);
   if (!m) return "";
   return (m[1] ? "산" : "") + String(Number(m[2])) + "-" + String(Number(m[3] || 0));
 }

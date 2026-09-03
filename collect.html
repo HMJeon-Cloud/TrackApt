@@ -60,7 +60,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.12</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.13</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -1582,7 +1582,15 @@ function splitRow(line, K) {
   var c2 = head.indexOf(",", c1 + 1); if (c2 < 0) return null;
   var apt = head.slice(c2 + 1);
   if (apt.charCodeAt(0) === 34) apt = apt.slice(1, -1).replace(/""/g, '"');
-  return { sgg: head.slice(0, c1), apt: apt, f: tailFields(line, K) };
+  /* 번지 — 엑셀 날짜 깨짐 방지로 ="1-39" 꼴로 저장돼 있을 수 있다 (v2.13: 지번 매칭용) */
+  var jb = head.slice(c1 + 1, c2).replace(/^="?|"?$/g, "").trim();
+  return { sgg: head.slice(0, c1), apt: apt, jb: jb, f: tailFields(line, K) };
+}
+/* "123-4" · "123" · "산 12-3" → "123-4" 꼴 (앱 normJibun과 같은 규칙) */
+function normJb(s) {
+  var m = String(s || "").match(/(산)?\s*(\d+)(?:-(\d+))?\s*$/);
+  if (!m) return "";
+  return (m[1] ? "산" : "") + String(Number(m[2])) + "-" + String(Number(m[3] || 0));
 }
 function dongOf(sgg) {
   var p = sgg.split(" ");
@@ -1624,6 +1632,8 @@ function tsProcess(acc, lines, kind, isSup) {
     cx = R.cx[ak] || (R.cx[ak] = { n: row.apt, d: dongOf(row.sgg), yr: {}, s: {}, r: {} });
     var by = parseInt(f[kind === "rent" ? 6 : 5], 10);      /* 건축년도 */
     if (by > 1900) cx.yr[by] = (cx.yr[by] || 0) + 1;
+    var jbn = normJb(row.jb);                                 /* 번지 최빈값용 (v2.13) */
+    if (jbn) { cx.jb = cx.jb || {}; cx.jb[jbn] = (cx.jb[jbn] || 0) + 1; }
     var blk = kind === "sale" ? cx.s : cx.r;
     var bb = blk[band] || (blk[band] = {});
     q = ym;                                                /* 일단 ym으로 모아두고 조립 때 분기로 접는다 */
@@ -1737,8 +1747,9 @@ function tsBuild() {
       if (!R) return;
       for (var ak in R.cx) {
         var src2 = R.cx[ak];
-        var o = byKey[ak] || (byKey[ak] = { n: src2.n, d: src2.d, yr: {}, s: {}, r: {} });
+        var o = byKey[ak] || (byKey[ak] = { n: src2.n, d: src2.d, yr: {}, jb: {}, s: {}, r: {} });
         for (var y in src2.yr) o.yr[y] = (o.yr[y] || 0) + src2.yr[y];
+        if (src2.jb) for (var jj in src2.jb) o.jb[jj] = (o.jb[jj] || 0) + src2.jb[jj];
         var from = which === "s" ? src2.s : src2.r, to = which === "s" ? o.s : o.r;
         for (var b in from) {
           var tb = to[b] || (to[b] = {});
@@ -1755,6 +1766,10 @@ function tsBuild() {
       var best = null, bn = 0;
       for (var yy in o2.yr) if (o2.yr[yy] > bn) { bn = o2.yr[yy]; best = +yy; }
       if (best) rec.y = best;
+      /* 번지도 최빈값 — 같은 단지가 여러 필지에 걸쳐도 대표 번지 하나면 K-apt와 맞출 수 있다 (v2.13) */
+      var bj = "", bjn = 0;
+      for (var jk in o2.jb) if (o2.jb[jk] > bjn) { bjn = o2.jb[jk]; bj = jk; }
+      if (bj) rec.j = bj;
       for (b2 in o2.s) { var fs2 = foldYears(o2.s[b2], base, nQ); if (fs2) { rec.s[b2] = fs2; got = true; } }
       for (b2 in o2.r) { var fr2 = foldYears(o2.r[b2], base, nQ); if (fr2) { rec.r[b2] = fr2; got = true; } }
       if (got) cxs.push(rec);
@@ -1765,7 +1780,7 @@ function tsBuild() {
       v: 2, code: code, nm: LAWD_NAME[code] || code,
       y0: Number(q0), years: nQ,
       bands: TS_BANDS.map(function (x) { return x[0]; }),
-      rule: "연 중위가(만원) · c=건수 · 해제거래 제외 · 전세=월세 0원 · 단지=단지명+법정동"
+      rule: "연 중위가(만원) · c=건수 · 해제거래 제외 · 전세=월세 0원 · 단지=단지명+법정동 · j=번지(최빈)"
     };
     /* 단지마다 줄바꿈 — 크기는 6%만 늘고 GitHub 웹에서 파일이 열린다
        (한 줄짜리 큰 JSON은 뷰어가 시간 초과로 못 연다) */
@@ -1921,6 +1936,11 @@ function kgPool(items, limit, worker) {
 function kgRow(it, info) {
   var o = { k: it.kaptCode, n: it.name, a: it.addr || "" };
   if (!info) return o;
+  /* 번지 — 기본정보의 지번 주소(kaptAddr)나 목록 주소에 번지가 있으면 싣는다 (v2.13, 앱 지번 매칭용).
+     api/apt.js가 주소 필드를 안 넘기면 비어 있고, 그때는 종전처럼 이름으로 맞춘다. */
+  var jsrc = info.kaptAddr || info.addr || info.jibunAddr || it.addr || "";
+  var jn = normJb(jsrc);
+  if (jn) o.j = jn;
   var m = String(info.subwayWay || "").match(/(\d+)/);
   if (Number(info.households) > 0) o.hh = Number(info.households);
   if (Number(info.dongCnt) > 0) o.dc = Number(info.dongCnt);

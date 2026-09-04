@@ -60,7 +60,7 @@ th{color:var(--ink-soft);font-weight:600}
 
 <div class="card">
   <div class="eyebrow">Collector</div>
-  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.14</span></h1>
+  <h1>국토부 실거래 수집기 <span style="color:var(--ink-soft);font-size:.8rem">v2.15</span></h1>
   <p class="desc">이 앱의 Vercel 프록시(<code>/api/trades</code>)를 통해 국토교통부 아파트 실거래가를
     기간·지역별로 모아 <b>엑셀에서 바로 열리는 CSV</b>로 저장합니다. 인증키는 서버에만 있으므로
     이 화면에 키를 넣을 일은 없습니다.</p>
@@ -1894,7 +1894,11 @@ function kgAll() {
    502·504는 국토부 쪽이 잠깐 먹통일 때 자주 나오므로 넉넉히 기다렸다 다시 친다.
    실패해도 응답 본문 앞부분을 메시지에 실어 둔다 — 원인을 못 보면 고칠 수가 없다. */
 var KG_BACKOFF = [1000, 2500, 5000, 10000];
-function kgQuotaish(s) { return /트래픽|일일|LIMITED_NUMBER|EXCEEDS|SERVICE_ACCESS_DENIED|초과/i.test(s); }
+/* 한도(내일 풀림)와 접근거부(활용신청 문제 — 기다려도 안 풀림)를 가른다 (v2.15).
+   전에는 SERVICE_ACCESS_DENIED도 '한도'로 안내해, 활용신청이 만료·미승인인 경우
+   다음 날을 기다려도 영영 안 되는 상황을 만들었다. */
+function kgQuotaish(s) { return /트래픽|일일|LIMITED_NUMBER|EXCEEDS|초과/i.test(s); }
+function kgDeniedish(s) { return /SERVICE_ACCESS_DENIED|SERVICE ACCESS DENIED|auth:20|UNREGISTERED_SERVICE|SERVICE_KEY_IS_NOT_REGISTERED|미승인|등록되지 않은/i.test(s); }
 function kgFetch(url, tryNo) {
   tryNo = tryNo || 0;
   return fetch(url)
@@ -1902,18 +1906,28 @@ function kgFetch(url, tryNo) {
       if (r.ok) return r.json();
       return r.text()["catch"](function () { return ""; }).then(function (t) {
         var head = String(t).replace(/\s+/g, " ").slice(0, 160);
-        if (kgQuotaish(head)) throw new Error("QUOTA:" + head);
-        throw new Error("HTTP " + r.status + (head ? " — " + head : ""));
+        /* 프록시의 502 JSON은 tried[]에 폴백한 엔드포인트별 진짜 원인을 담고 있다 (v2.15) */
+        var errs = "";
+        try {
+          var pj = JSON.parse(t);
+          if (pj && pj.tried && pj.tried.length)
+            errs = pj.tried.map(function (x) { return x.err || ""; }).filter(Boolean).join(" | ");
+        } catch (e2) {}
+        var reason = errs || head;
+        if (kgDeniedish(reason)) throw new Error("DENIED:" + reason.slice(0, 300));
+        if (kgQuotaish(reason)) throw new Error("QUOTA:" + reason.slice(0, 200));
+        throw new Error("HTTP " + r.status + (reason ? " — " + reason.slice(0, 200) : ""));
       });
     })
     .then(function (j) {
       var msg = String((j && j.error) || "") + " " + String((j && j.detail) || "") +
                 " " + String((j && j.msg) || "");
+      if (kgDeniedish(msg)) throw new Error("DENIED:" + msg.replace(/\s+/g, " ").trim().slice(0, 300));
       if (kgQuotaish(msg)) throw new Error("QUOTA:" + msg.replace(/\s+/g, " ").trim());
       return j;
     })
     ["catch"](function (e) {
-      if (/^QUOTA:/.test(e.message) || tryNo >= KG_BACKOFF.length) throw e;
+      if (/^(QUOTA|DENIED):/.test(e.message) || tryNo >= KG_BACKOFF.length) throw e;
       return new Promise(function (r) { setTimeout(r, KG_BACKOFF[tryNo]); })
         .then(function () { return kgFetch(url, tryNo + 1); });
     });
@@ -1970,7 +1984,7 @@ function kgRegion(code) {
           out.push(kgRow(it, j2 && j2.info));
         })
         ["catch"](function (e) {
-          if (/^QUOTA:/.test(e.message)) throw e;      /* 한도는 위로 올려 전체를 멈춘다 */
+          if (/^(QUOTA|DENIED):/.test(e.message)) throw e;   /* 한도·접근거부는 전체를 멈춘다 */
           KG.calls++;
           out.push(kgRow(it, null));                   /* 개별 실패는 이름만 담고 넘어간다 */
         });
@@ -2110,7 +2124,7 @@ $("kg-go").addEventListener("click", function () {
         kgLog(code + " " + (LAWD_NAME[code] || "") + " — 단지 " + (saved ? saved.n : 0) + "곳 · 정보 " +
               (saved ? kgFilled(saved.cx) : 0) + "곳");
       }, function (e) {
-        if (/^QUOTA:/.test(String(e && e.message))) throw e;   /* 한도만 전체를 멈춘다 */
+        if (/^(QUOTA|DENIED):/.test(String(e && e.message))) throw e;   /* 한도·접근거부만 전체를 멈춘다 */
         KG.failed.push(code);
         kgLog("건너뜀 — " + code + " " + (LAWD_NAME[code] || "") + " : " + (e && e.message || e), "warn");
       }).then(function () {
@@ -2129,12 +2143,22 @@ $("kg-go").addEventListener("click", function () {
       kgLog("건너뛴 지역: " + KG.failed.join(", "), "warn");
     } else kgLog("완료 — [kapt.zip 저장]을 눌러 받으세요.", "ok");
   })["catch"](function (e) {
-    if (/^QUOTA:/.test(String(e && e.message))) {
+    if (/^DENIED:/.test(String(e && e.message))) {
+      kgLog("접근 거부 — 한도가 아니라 활용신청 문제입니다. 다음 날을 기다려도 풀리지 않습니다.", "warn");
+      kgLog("공공데이터포털(data.go.kr) 로그인 → 마이페이지 → 활용신청 목록에서 " +
+            "'공동주택 기본 정보제공 서비스'와 '공동주택 상세 정보제공 서비스'의 상태를 보세요. " +
+            "만료·중지·심사중이면 연장 또는 재신청하고, 승인 뒤 반영까지 몇 시간 걸릴 수 있습니다.", "warn");
+      kgLog("원인 원문 — " + String(e.message).slice(7, 260), "warn");
+      kgLog("직접 확인: 브라우저에서 /api/apt?kind=info&kapt=A10020526&debug=1 을 열면 " +
+            "엔드포인트별 오류 코드가 그대로 보입니다.", "warn");
+    } else if (/^QUOTA:/.test(String(e && e.message))) {
       KG.quota = true;
       kgLog("일일 트래픽 한도에 걸렸습니다 — 여기까지 저장했습니다.", "warn");
-      kgLog("내일 다시 [모으기]를 누르면 남은 지역부터 이어서 합니다.", "warn");
+      kgLog("내일 다시 [모으기]를 누르면 남은 지역부터 이어서 합니다. " +
+            "한도는 활용신청(서비스)별이라 목록은 되는데 기본정보만 막힐 수 있습니다.", "warn");
     } else {
       kgLog("오류 — " + (e && e.message || e), "warn");
+      kgLog("원인 확인: 브라우저에서 /api/apt?kind=info&kapt=A10020526&debug=1 을 열어 보세요.", "warn");
     }
   }).then(function () {
     KG.busy = false;

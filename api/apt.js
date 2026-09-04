@@ -1,9 +1,10 @@
+
 // /api/apt?kind=list&lawd=41593        → 시군구 내 K-apt 단지 목록 (kaptCode, kaptName, 주소)
 // /api/apt?kind=info&kapt=A10027875    → 단지 기본정보 (세대수/동수/주차/난방/사용승인일 등)
 //
 // 국토교통부_공동주택 기본/목록 정보제공 서비스 프록시
 // 엔드포인트가 기관코드(1613000 V3 / 1611000 구버전)로 갈라져 있어 순차 폴백한다.
-
+ 
 // auth:20(접근거부)이 난 AptListService3/getSigunguAptList3가 실제 존재하는 서비스.
 // → 이를 최우선으로. (20은 오퍼레이션은 있으나 활용신청 미승인/동기화 대기 신호)
 const LIST_EPS = (function(){
@@ -21,29 +22,44 @@ const LIST_EPS = (function(){
   out.push({ url: 'https://apis.data.go.kr/1611000/AptListService/getSigunguAptList', param: 'sigunguCode' });
   return out;
 })();
-
+ 
+// 2026.08 국토부 개편으로 종전 V2~V4 경로가 전부 auth:12(폐기됨)가 됐다 (2026.09.03 확인).
+// 살아남은 목록 서비스가 'AptListService4/getSigunguAptList4' 꼴(번호만, V 없음)로 바뀐 것을
+// 근거로, 기본정보도 같은 이름 규칙의 후보를 최우선 시도한다. 종전 경로는 후순위로 유지.
 const INFO_EPS = [
+  'https://apis.data.go.kr/1613000/AptBasisInfoService4/getAphusBassInfo4',
+  'https://apis.data.go.kr/1613000/AptBasisInfoService4/getAphusBassInfo',
+  'https://apis.data.go.kr/1613000/AptBasisInfoServiceV5/getAphusBassInfoV5',
+  'https://apis.data.go.kr/1613000/AptBasisInfoService5/getAphusBassInfo5',
   'https://apis.data.go.kr/1613000/AptBasisInfoServiceV4/getAphusBassInfoV4',
-  'https://apis.data.go.kr/1613000/AptBasisInfoServiceV4/getAphusBassInfo',
   'https://apis.data.go.kr/1613000/AptBasisInfoServiceV3/getAphusBassInfoV3',
-  'https://apis.data.go.kr/1613000/AptBasisInfoServiceV2/getAphusBassInfoV2',
   'https://apis.data.go.kr/1611000/AptBasisInfoService/getAphusBassInfo'
 ];
-
+// 한 번 성공한 엔드포인트를 기억해 다음 호출부터 맨 앞에 둔다 — 수집기는 수천 번 부르므로
+// 매번 폐기된 주소부터 훑으면 그만큼 느려진다 (서버리스 웜 인스턴스 동안 유지).
+let INFO_HIT = '';
+let DETAIL_HIT = '';
+function ordered(list, hit) {
+  return hit ? [hit].concat(list.filter((u) => u !== hit)) : list;
+}
+ 
 // 상세정보(주차·지하철·편의시설). 기본정보와 같은 서비스의 다른 오퍼레이션.
 const DETAIL_EPS = [
+  'https://apis.data.go.kr/1613000/AptBasisInfoService4/getAphusDtlInfo4',
+  'https://apis.data.go.kr/1613000/AptBasisInfoService4/getAphusDtlInfo',
+  'https://apis.data.go.kr/1613000/AptBasisInfoServiceV5/getAphusDtlInfoV5',
+  'https://apis.data.go.kr/1613000/AptBasisInfoService5/getAphusDtlInfo5',
   'https://apis.data.go.kr/1613000/AptBasisInfoServiceV4/getAphusDtlInfoV4',
-  'https://apis.data.go.kr/1613000/AptBasisInfoServiceV3/getAphusDtlInfoV3',
-  'https://apis.data.go.kr/1613000/AptBasisInfoServiceV2/getAphusDtlInfoV2'
+  'https://apis.data.go.kr/1613000/AptBasisInfoServiceV3/getAphusDtlInfoV3'
 ];
-
+ 
 function pick(xml, tag) {
   const m = xml.match(new RegExp('<' + tag + '>([\\s\\S]*?)</' + tag + '>'));
   return m ? m[1].trim() : '';
 }
 function toInt(s){ return parseInt(String(s).replace(/,/g, ''), 10) || 0; }
 function toNum(s){ return parseFloat(String(s).replace(/,/g, '')) || 0; }
-
+ 
 // 인증/공통 오류면 문자열 반환, 정상이면 null (XML/JSON 공통)
 function errOf(text){
   const authErr = pick(text, 'returnReasonCode');
@@ -63,7 +79,7 @@ function errOf(text){
   }
   return null;
 }
-
+ 
 // 응답에서 첫 item을 뽑기 (JSON·XML 모두). 반환: item 객체 또는 null
 function parseItem(text){
   const t = text.trim();
@@ -116,16 +132,16 @@ function f(item, key){
   if (item.__xml !== undefined) return pick(item.__xml, key);
   return item[key] != null ? String(item[key]).trim() : '';
 }
-
+ 
 export default async function handler(req, res) {
   const kind = req.query.kind === 'info' ? 'info' : 'list';
   const { lawd, kapt } = req.query;
-
+ 
   const rawKey = process.env.MOLIT_API_KEY;
   if (!rawKey) return res.status(500).json({ error: 'MOLIT_API_KEY 환경변수가 설정되지 않았습니다.' });
   const raw = rawKey.trim();
   const key = raw.includes('%') ? raw : encodeURIComponent(raw);
-
+ 
   try {
     if (kind === 'list') {
       if (!/^\d{5}$/.test(lawd || '')) {
@@ -149,7 +165,7 @@ export default async function handler(req, res) {
           tried.push(debug ? { url: url.replace(key, 'KEY'), err: e, raw: body.slice(0, 300) } : { ep: ep.url, err: e });
           continue;
         }
-
+ 
         const rawItems = parseItems(body);
         const items = [];
         for (const it of rawItems) {
@@ -173,14 +189,14 @@ export default async function handler(req, res) {
         hint: debug ? undefined : '원인 확인은 URL 뒤에 &debug=1 을 붙여 다시 호출하세요.'
       });
     }
-
+ 
     // kind === 'info'
     if (!/^[A-Za-z0-9]+$/.test(kapt || '')) {
       return res.status(400).json({ error: 'kapt(단지코드)가 필요합니다.' });
     }
     const tried = [];
     const dbg = req.query.debug === '1';
-    for (const ep of INFO_EPS) {
+    for (const ep of ordered(INFO_EPS, INFO_HIT)) {
       const url = ep + '?serviceKey=' + key + '&kaptCode=' + encodeURIComponent(kapt) + '&_type=json';
       let body = '';
       try {
@@ -192,13 +208,13 @@ export default async function handler(req, res) {
       }
       const e = errOf(body);
       if (e){ tried.push(dbg ? { ep, err: e, raw: body.slice(0,300) } : { ep, err: e }); continue; }
-
+ 
       const src = parseItem(body);
       if (!src || !f(src, 'kaptCode')){
         tried.push(dbg ? { ep, err: 'empty', raw: body.slice(0,300) } : { ep, err: 'empty' });
         continue;
       }
-
+ 
       const info = {
         kaptCode: f(src, 'kaptCode'),
         name: f(src, 'kaptName'),
@@ -213,11 +229,11 @@ export default async function handler(req, res) {
         builder: f(src, 'kaptBcompany'),              // 시공사
         totalArea: toNum(f(src, 'kaptTarea'))         // 연면적
       };
-
+ 
       // 상세정보(주차·지하철·편의시설) 병합 시도 — 같은 kaptCode
       let detailSrc = 'none';
       let detailKeys = null;
-      for (const dep of DETAIL_EPS) {
+      for (const dep of ordered(DETAIL_EPS, DETAIL_HIT)) {
         try {
           const dr = await fetch(dep + '?serviceKey=' + key + '&kaptCode=' + encodeURIComponent(kapt) + '&_type=json');
           const dbody = await dr.text();
@@ -235,19 +251,26 @@ export default async function handler(req, res) {
           info.convenient = f(d, 'convenientFacility'); // 편의시설
           info.education = f(d, 'educationFacility');   // 교육시설
           detailSrc = dep;
+          DETAIL_HIT = dep;
           // debug: 상세 응답의 모든 필드명 노출 (역명 필드 확인용)
           if (dbg && d && d.__xml === undefined) detailKeys = Object.keys(d);
           break;
         } catch (e) { /* 상세 실패해도 기본정보는 반환 */ }
       }
-
+ 
+      INFO_HIT = ep;
       res.setHeader('Cache-Control', 's-maxage=604800, stale-while-revalidate');
       return res.status(200).json(
         dbg ? { info, source: ep, detailSource: detailSrc, detailKeys } : { info, source: ep, detailSource: detailSrc }
       );
     }
-    return res.status(502).json({ error: 'K-apt 단지정보 조회 실패', tried, hint: dbg ? undefined : '원인 확인은 URL 뒤에 &debug=1 을 붙여 다시 호출하세요.' });
-
+    return res.status(502).json({
+      error: 'K-apt 단지정보 조회 실패', tried,
+      hint: dbg
+        ? '전부 auth:12(폐기됨)라면 국토부가 또 개편한 것 — data.go.kr 마이페이지 → 해당 활용신청 상세의 End Point를 확인해 INFO_EPS 맨 앞에 추가하세요.'
+        : '원인 확인은 URL 뒤에 &debug=1 을 붙여 다시 호출하세요.'
+    });
+ 
   } catch (err) {
     return res.status(500).json({ error: '프록시 예외', detail: String(err) });
   }

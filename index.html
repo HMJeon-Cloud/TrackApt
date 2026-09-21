@@ -604,12 +604,25 @@ document.addEventListener("DOMContentLoaded", function () {
     else s.innerHTML = '<div class="placeholder">「' + t.name + '」 화면은 다음 버전에서 구현됩니다.</div>';
   });
 
-  showTab("wiz");
+  showTab(initialTab());
   watchTables();
   mountGloss();                     /* 어느 화면에서나 ? 버튼으로 용어 풀이 (v5.48) */
   loadData();
 });
 
+/* 주소의 #뒤를 읽어 그 탭부터 연다 (v5.51) — 링크로 특정 화면을 바로 열 수 있게.
+   showTab은 이미 주소를 #탭이름으로 바꿔 두고 있었지만, 처음 켤 때 그걸 읽지 않아
+   항상 추천받기로 시작했다. 모르는 이름이면 조용히 기본 탭으로 돌아간다. */
+function initialTab() {
+  var h = "";
+  try { h = decodeURIComponent(String(location.hash || "").replace(/^#!?\/?/, "")).trim(); }
+  catch (e) { h = ""; }
+  h = h.split(/[?&/]/)[0].toLowerCase();
+  if (!h) return "wiz";
+  for (var i = 0; i < TABS.length; i++) if (TABS[i].id.toLowerCase() === h) return TABS[i].id;
+  return "wiz";
+}
+     
 function showGroup(gid) {
   CURGROUP = gid;
   var g = GROUPS.filter(function (x) { return x.id === gid; })[0];

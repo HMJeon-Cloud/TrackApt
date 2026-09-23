@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0f14">
+<meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="TrackApt">
 <meta name="description" content="TrackApt — 국토부 실거래로 보는 전국 아파트 가격 서열과 투자 타이밍">
 <title>TrackApt</title>
-<meta name="theme-color" content="#0f4c5c">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f4c5c'/%3E%3Cpath d='M14 22h36M32 22v24' stroke='%23fff' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='46' cy='44' r='6' fill='%23e2571b'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233182f6'/%3E%3Cpath d='M14 22h36M32 22v24' stroke='%23fff' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='46' cy='44' r='6' fill='%23ffd43b'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -26,13 +25,15 @@
 </script>
 <style>
 :root{
-  /* 다크 · 자산가 무드: 딥 네이비 바탕 + 샴페인 골드 + 에메랄드 상승색 */
-  --bg:#0b1017; --panel:#131a24; --panel2:#0f151e; --ink:#e8ecf2; --ink-soft:#8b96a5;
-  --line:#243040; --line-soft:#1b2532;
-  --brand:#d4af6a; --brand-ink:#10131a;
-  --up:#2fbf9b; --down:#e08c3a; --miss:#5b6675; --cash:#e8b04b;
-  --chip:#1a2330; --note:#141c27; --grid:#1e2836; --radius:14px;
-  --gold-grad:linear-gradient(135deg,#e6c98a 0%,#d4af6a 45%,#b98c3f 100%);
+  /* v6.0 밝은 토스 스타일 — 흰 카드 + 파랑 강조. 등락은 한국식(상승 빨강 · 하락 파랑) */
+  --bg:#f2f4f6; --panel:#ffffff; --panel2:#f9fafb; --panel-2:#f9fafb;
+  --ink:#191f28; --ink2:#333d4b; --ink-soft:#6b7684; --sub:#8b95a1; --miss:#b0b8c1;
+  --line:#e5e8eb; --line-soft:#f2f4f6;
+  --accent:#3182f6; --accentSoft:#e8f3ff; --brand:#3182f6; --brand-ink:#ffffff; --gold:#3182f6;
+  --up:#f04452; --down:#3182f6; --good:#03a15b; --goodSoft:#e6f6ee; --warn:#f08c00; --warnSoft:#fff4e0;
+  --cash:#f08c00; --chip:#f2f4f6; --note:#f9fafb; --grid:#eef0f3;
+  --radius:16px; --r-card:20px; --r-ctl:12px;
+  --gold-grad:#3182f6;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px}
@@ -466,14 +467,335 @@ tr.flash td{animation:rowflash 2.4s ease-out}
 .tier.t1{background:var(--gold-grad,#d4af6a);color:#11161f;border-color:transparent}
 .tier.t2{color:var(--brand);border-color:var(--brand)}
 .tier.t3{color:var(--brand)}
+
+/* ══════════════════════════════════════════════════════════════
+   v6.0 밝은 테마 (토스 스타일) — 위의 옛 규칙을 덮어쓴다.
+   색은 전부 :root 변수로만 쓴다. 한국식 등락색: 상승 빨강 · 하락 파랑.
+   ══════════════════════════════════════════════════════════════ */
+body{background:var(--bg);color:var(--ink);letter-spacing:-.2px}
+b,strong{font-weight:700}
+
+/* ── 머리글 ── */
+header{background:rgba(255,255,255,.9);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);
+  border-bottom:1px solid rgba(0,0,0,.05);padding:calc(env(safe-area-inset-top) + 10px) 16px 0}
+.brand{max-width:860px;margin:0 auto;align-items:center;padding-bottom:8px;gap:8px}
+.brand h1{font-size:1.35rem;font-weight:800;letter-spacing:-.6px;color:var(--ink);cursor:pointer}
+.brand h1 .accent{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--accent)}
+.brand .ver{font-size:.68rem;font-weight:700;color:var(--sub);background:var(--bg);padding:2px 8px;border-radius:999px}
+#datainfo{background:none!important;padding:0!important;color:var(--sub)!important}
+#glbtn{position:static;width:32px;height:32px;flex:none;border-radius:50%;background:var(--bg);color:var(--ink-soft);
+  border:0;font:700 .95rem/1 inherit;box-shadow:none;cursor:pointer}
+#glbtn:hover{background:var(--line)}
+
+/* 윗줄 탭 (넓은 화면) — 밑줄형 */
+#nav{display:flex;gap:26px;max-width:860px;margin:0 auto;padding:0;overflow-x:auto}
+#nav button{background:none;border:0;border-radius:0;padding:8px 0 11px;font-size:.96rem;font-weight:600;color:var(--sub);
+  border-bottom:2px solid transparent;display:flex;align-items:center;gap:5px}
+#nav button:hover{color:var(--ink)}
+#nav button.on{background:none;color:var(--ink);border-bottom-color:var(--ink)}
+#nav button .ic{display:none}
+.navcnt{display:inline-block;min-width:18px;height:18px;line-height:18px;padding:0 5px;border-radius:999px;background:var(--up);
+  color:#fff;font-size:.66rem;font-weight:700;text-align:center}
+.navcnt:empty{display:none}
+
+/* 아랫줄 알약 (같은 묶음의 화면들) */
+#subnav{display:flex;gap:6px;max-width:860px;margin:0 auto;padding:8px 0 10px;overflow-x:auto}
+#subnav.empty{display:none}
+#subnav button{background:var(--bg);border:0;color:var(--ink-soft);border-radius:999px;padding:7px 14px;font-size:.84rem;font-weight:600}
+#subnav button.on{background:var(--ink);color:#fff}
+#subnav button.back{background:none;color:var(--sub);padding-left:4px;padding-right:6px}
+
+/* 아래 탭바 (휴대폰) */
+#botnav{display:none}
+@media (max-width:700px){
+  #nav{display:none}
+  #datainfo{display:none}
+  #botnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(255,255,255,.97);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    padding:6px 4px calc(env(safe-area-inset-bottom) + 6px)}
+  #botnav button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;
+    font-size:.68rem;font-weight:600;color:var(--sub);padding:4px 0;cursor:pointer;position:relative}
+  #botnav .ic{font-size:1.3rem;line-height:1;filter:grayscale(1);opacity:.5}
+  #botnav button.on{color:var(--ink)}
+  #botnav button.on .ic{filter:none;opacity:1}
+  #botnav .navcnt{position:absolute;top:0;left:52%;min-width:16px;height:16px;line-height:16px;font-size:.6rem}
+  main{padding-bottom:calc(env(safe-area-inset-bottom) + 90px)!important}
+  footer{padding-bottom:calc(env(safe-area-inset-bottom) + 96px)!important}
+}
+
+main{max-width:860px;padding:14px 16px 56px}
+#condbar{max-width:860px;padding:12px 16px 0!important}
+#condbar .cb{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border-radius:999px;padding:7px 14px;
+  font-size:.78rem;color:var(--ink-soft);box-shadow:0 1px 3px rgba(0,0,0,.04);max-width:100%;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis}
+#condbar .cb b{color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis}
+#condbar .cb .ed{color:var(--accent);font-weight:700;flex:none}
+footer{color:var(--sub)!important;font-size:.7rem!important}
+
+/* ── 카드 ── */
+.card{background:var(--panel);border:0;box-shadow:0 1px 3px rgba(0,0,0,.03);border-radius:var(--r-card);
+  padding:22px 20px;margin-bottom:12px}
+.card .eyebrow{display:none}
+.card h2{font-size:1.17rem;font-weight:700;letter-spacing:-.4px;margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.4}
+.card p.desc,.card .sub{font-size:.86rem;color:var(--sub);margin:-2px 0 14px;line-height:1.55}
+.card .sub{display:block}
+.segHide{display:none!important}
+
+/* 설명 팝업 단추 */
+.infoBtn{width:22px;height:22px;flex:none;border-radius:50%;border:0;background:var(--bg);color:var(--sub);
+  font:700 .74rem/22px inherit;text-align:center;cursor:pointer;padding:0}
+.infoBtn:hover{background:var(--accentSoft);color:var(--accent)}
+.infoIn{background:none;border:0;color:var(--sub);font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;padding:4px 2px}
+.infoIn:hover{color:var(--accent)}
+.popSrc{display:none!important}
+.card.infoOnly{cursor:pointer;padding:18px 20px}
+.card.infoOnly h2{margin:0;justify-content:space-between}
+.card.infoOnly h2::after{content:"›";color:var(--miss);font-size:1.4rem;font-weight:400;margin-left:auto}
+.card.infoOnly .infoBtn{display:none}
+.card.infoOnly .sub{margin:4px 0 0}
+
+/* 팝업(모달) — 넓은 화면은 가운데, 휴대폰은 아래에서 올라오는 시트 */
+#infomodal{position:fixed;inset:0;z-index:1400;display:none;align-items:center;justify-content:center}
+#infomodal.on{display:flex}
+#infomodal .im-dim{position:absolute;inset:0;background:rgba(0,0,0,.4)}
+#infomodal .im-box{position:relative;width:min(560px,92vw);max-height:82vh;display:flex;flex-direction:column;background:var(--panel);
+  border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+#infomodal .im-head{display:flex;align-items:center;gap:10px;padding:20px 22px 10px}
+#infomodal .im-head b{font-size:1.08rem;flex:1;letter-spacing:-.3px}
+#infomodal .im-x{width:32px;height:32px;border-radius:50%;border:0;background:var(--bg);color:var(--ink-soft);cursor:pointer;font:inherit;flex:none}
+#infomodal .im-body{overflow:auto;padding:4px 22px 24px;-webkit-overflow-scrolling:touch;font-size:.9rem;line-height:1.7;color:var(--ink2)}
+#infomodal .im-body p.desc{font-size:.92rem;color:var(--ink2);margin:0 0 10px}
+#infomodal .im-body .note,#infomodal .im-body .callout{margin:10px 0 0}
+@media (max-width:700px){
+  #infomodal{align-items:flex-end}
+  #infomodal .im-box{width:100%;max-height:86vh;border-radius:24px 24px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+}
+
+/* 탭 안 구역 나누기 */
+.secseg{margin:0 0 12px}
+
+/* ── 버튼 ── */
+.btn{background:var(--accent);color:#fff;border:0;border-radius:var(--r-ctl);padding:13px 16px;font-size:.94rem;font-weight:700;transition:filter .12s}
+.btn:hover{filter:brightness(.95)}
+.btn:disabled{background:#d1d6db;color:#fff;cursor:default;filter:none}
+.btn.ghost,.btn.sm.ghost{background:var(--bg);color:var(--ink2);border:0}
+.btn.ghost:hover{background:var(--line)}
+.btn.ghost:disabled{background:var(--bg);color:var(--miss)}
+.btn.sm{padding:8px 12px;font-size:.8rem;border-radius:10px;font-weight:600}
+.btn.gold{background:var(--accent);color:#fff}
+.btnrow{gap:8px}
+.expbar{gap:6px;margin:4px 0 12px}
+.linky{color:var(--accent)}
+
+/* 세그먼트 */
+.seg{display:flex;width:100%;background:var(--bg);border:0;border-radius:12px;padding:4px;gap:2px;overflow-x:auto}
+.seg button{flex:1 0 auto;background:none;border:0!important;border-radius:9px;color:var(--sub);font-weight:600;padding:8px 10px;font-size:.84rem}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.seg button:disabled{opacity:.45}
+
+/* 입력 */
+.field label{font-size:.8rem;font-weight:600;color:var(--ink-soft)}
+.field input,.field select,.field textarea,#pksearch,#glsheet input{background:var(--bg);border:1.5px solid transparent;border-radius:var(--r-ctl);
+  color:var(--ink);padding:11px 12px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:0;border-color:var(--accent);background:var(--panel)}
+.check input{accent-color:var(--accent)}
+.pkbtn{background:var(--bg);border:1.5px solid transparent;border-radius:var(--r-ctl);padding:11px 12px;color:var(--ink)}
+.pkbtn:hover{border-color:var(--line)}
+.pkcaret{color:var(--sub)}
+.grid,.grid3{gap:12px 12px}
+.hint{color:var(--sub)}
+
+/* 추천받기 선택지 */
+.wizstep{color:var(--accent);font-weight:700;letter-spacing:0;font-size:.8rem}
+.wizq{font-size:1.15rem;font-weight:700;letter-spacing:-.3px;margin:6px 0 12px}
+.pickchips button{background:var(--panel);border:1.5px solid var(--line);color:var(--ink);border-radius:14px;padding:12px 14px;font-weight:600}
+.pickchips button:hover{border-color:#c9d0d7}
+.pickchips button.on{border-color:var(--accent);color:var(--accent);background:var(--accentSoft)}
+.pickchips button .sub{color:var(--sub)}
+.pickchips button.on .sub{color:var(--accent);opacity:.8}
+.wizsel span{background:var(--accentSoft);border:0;color:var(--accent);font-weight:600}
+.sortchips button{background:var(--bg);border:0;color:var(--ink-soft);font-weight:600}
+.sortchips button.on{background:var(--ink);color:#fff;border:0}
+
+/* ── 숫자 상자 ── */
+.status{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+@media (max-width:480px){ .status{grid-template-columns:1fr 1fr} }
+.stat{background:var(--panel2);border-radius:14px;padding:12px 14px}
+.stat .k{color:var(--sub);font-weight:600}
+.stat .v{font-size:1.08rem;font-weight:700;letter-spacing:-.3px;color:var(--ink)}
+.stat .v.up{color:var(--up)} .stat .v.down{color:var(--down)}
+.badge{font-weight:700}
+.badge.ok{background:var(--accentSoft);color:var(--accent)}
+.badge.err{background:var(--warnSoft);color:var(--warn)}
+
+/* ── 안내 상자 ── */
+.note{background:var(--panel2);border-radius:14px;padding:14px 16px;color:var(--ink-soft)}
+.note b{color:var(--ink)}
+.callout{border-left:0;background:var(--accentSoft);border-radius:14px;padding:14px 16px;color:var(--ink2);font-size:.9rem}
+.callout.warn{background:var(--warnSoft)}
+.rowinfo{background:var(--panel2);border-radius:10px;color:var(--ink-soft)}
+details.fold{background:var(--panel2);border-radius:14px;margin:0 0 12px;overflow:hidden}
+details.fold>summary{cursor:pointer;list-style:none;padding:14px 16px;font-weight:700;font-size:.9rem;display:flex;align-items:center}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"›";margin-left:auto;color:var(--miss);font-size:1.2rem;transition:transform .15s}
+details.fold[open]>summary::after{transform:rotate(90deg)}
+details.fold>.tblwrap,details.fold>div{padding:0 16px 14px}
+
+/* ── 표 ── */
+th{color:var(--sub);font-weight:600;font-size:.76rem;padding:10px 10px;border-bottom:1px solid var(--line)}
+td{padding:11px 10px;border-bottom:1px solid var(--bg)}
+td.up{color:var(--up)} td.down{color:var(--down)} td.flat{color:var(--sub)}
+tr.hit td{background:#f5f9ff}
+tr.hit td:first-child{border-left:3px solid var(--accent)}
+tr.mine td{background:#fff8ec!important;box-shadow:inset 3px 0 0 var(--warn)}
+.srctbl th{color:var(--ink-soft)}
+@keyframes rowflash{0%{background:rgba(49,130,246,.22)}100%{background:transparent}}
+@media (max-width:720px){
+  table.carded tbody tr{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:none;padding:14px 16px}
+  table.carded tbody tr.hit{border-color:var(--accent)}
+  table.carded tbody td:first-child{border-bottom:1px solid var(--bg)}
+  table.carded tbody td::before{color:var(--sub);letter-spacing:0;font-weight:600}
+  .cellhelp{color:var(--ink-soft)}
+}
+
+/* ── 작은 꼬리표 ── */
+.tagmini{border-radius:6px;font-weight:700}
+.tagmini.ok{background:var(--goodSoft);color:var(--good)}
+.tagmini.no{background:var(--bg);color:var(--sub)}
+.tagmini.gold{background:var(--accentSoft);color:var(--accent)}
+.tagmini.reg,.tagmini.warn{background:var(--warnSoft);color:var(--warn);border:0}
+.tagmini.me{background:var(--accent);color:#fff}
+.chip{background:var(--bg);color:var(--ink-soft);border-radius:6px}
+.chosen .tag{background:var(--accentSoft);color:var(--accent)}
+.rgn.mine{color:var(--warn)}
+.grade{border-radius:12px}
+.grade.A{background:var(--accentSoft);color:var(--accent)} .grade.B{background:var(--goodSoft);color:var(--good)}
+.grade.C{background:var(--warnSoft);color:var(--warn)} .grade.D{background:var(--bg);color:var(--sub)}
+.tier{border:0;background:var(--bg);color:var(--sub)}
+.tier.t1{background:var(--accent);color:#fff} .tier.t2{background:var(--accentSoft);color:var(--accent)} .tier.t3{color:var(--accent);background:#f5f9ff}
+.gl{border-bottom-color:var(--accent)}
+.bbtick{background:var(--ink)}
+.axis .axtrack{background:var(--bg)} .axis .axfill{background:var(--accent)}
+
+/* ── 추천 카드 ── */
+.wcard{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:none}
+.wcard.best{border-color:var(--accent);box-shadow:0 4px 16px rgba(49,130,246,.10)}
+.wcard.best::before{background:var(--accent);color:#fff}
+.wrank{border:0;background:var(--bg);color:var(--ink-soft)}
+.wcard.best .wrank{background:var(--accent);color:#fff}
+.wscore b{color:var(--accent)}
+.whybox,.atgrp{background:var(--panel2);border:0;border-radius:14px}
+.whyk{color:var(--accent)}
+.atk{border:0;background:var(--panel);color:var(--ink-soft)}
+.atk.gold{background:var(--accent);color:#fff}
+.pxt thead th{border-bottom:1px solid var(--line);color:var(--sub)}
+.reco{background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.reco.best{border-color:var(--accent);background:#f7fbff}
+.reco .no,.reco .money .score{color:var(--accent)}
+tr.detrow>td{background:var(--panel2)}
+.gstep{border:0;background:var(--panel2);border-radius:14px}
+.gstep:hover{background:var(--accentSoft)}
+.gstep .no{color:var(--accent)}
+.gstep.done .no{color:var(--good)}
+.stepbar{background:var(--accentSoft);border:0;border-radius:14px}
+.stepbar .lbl{color:var(--accent)}
+.dict .di{background:var(--panel2);border-radius:12px}
+details.faq{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+details.faq summary::marker{color:var(--accent)}
+details.faq .fq{background:var(--accentSoft);color:var(--accent)}
+details.faq[open] summary{border-bottom-color:var(--bg)}
+
+/* ── 시트·진행창·지역 선택 ── */
+#mapsheet .ms-dim,#glsheet .gs-dim{background:rgba(0,0,0,.4)}
+#mapsheet .ms-body,#glsheet .gs-body{background:var(--panel);border:0;border-radius:24px 24px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.08)}
+#mapsheet .ms-x,#glsheet .gs-x{background:var(--bg);border:0;border-radius:50%}
+#mapsheet .msapp{color:var(--ink-soft)}
+#mapsheet .mico{box-shadow:0 1px 4px rgba(0,0,0,.12)}
+#glsheet .gs-it{border-bottom:1px solid var(--bg)}
+#glsheet .gs-it b{color:var(--accent)}
+#glsheet .gs-it.hit{background:var(--accentSoft)}
+#progbox .pg-dim{background:rgba(0,0,0,.35)}
+#progbox .pg-card{background:var(--panel);border:0;border-radius:20px;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+#progbox .pg-pct{color:var(--accent)}
+#progbox .pg-bar{background:var(--bg);border:0}
+#progbox .pg-fill{background:var(--accent)}
+.pkov{background:rgba(0,0,0,.4)}
+.pkbox{background:var(--panel);border:0;border-radius:24px 24px 0 0;padding:18px}
+.pkgh:before{color:var(--accent)}
+.pkgrp{border-bottom:1px solid var(--bg)}
+.pkitem{background:var(--bg);border:0;border-radius:10px;color:var(--ink)}
+.pkitem:hover{background:var(--line)}
+.pkitem.on{background:var(--accent);color:#fff}
+.pkitem.pkall{background:none;border:1px dashed var(--line);color:var(--accent)}
+.pkitem.home{box-shadow:0 0 0 1.5px var(--warn) inset}
+
+/* ── 홈 ── */
+.hero{padding:22px 4px 20px}
+.hero .emo{font-size:44px;line-height:1}
+.hero h2{font-size:1.72rem;font-weight:800;letter-spacing:-.8px;line-height:1.32;margin-top:14px}
+.hero p{color:var(--sub);margin-top:8px;font-size:.92rem}
+.startCards{display:grid;gap:12px}
+@media (min-width:640px){ .startCards{grid-template-columns:1fr 1fr} }
+.startCard{display:flex;align-items:center;gap:16px;width:100%;background:var(--panel);border:0;border-radius:var(--r-card);
+  padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.03);cursor:pointer;text-align:left;font:inherit;color:var(--ink);transition:transform .12s}
+.startCard:active{transform:scale(.98)}
+.startCard .ico{width:52px;height:52px;flex:none;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;background:var(--accentSoft)}
+.startCard.alt .ico{background:#f3f0ff}
+.startCard b{display:block;font-size:1.1rem;font-weight:700;letter-spacing:-.3px}
+.startCard small{display:block;color:var(--sub);font-size:.84rem;margin-top:3px;line-height:1.45}
+.startCard .arr{margin-left:auto;color:var(--miss);font-size:1.5rem;flex:none}
+.homeSec{margin-top:26px}
+.homeSec h3{font-size:.95rem;font-weight:700;margin:0 4px 10px;color:var(--ink)}
+.homeChips{display:flex;flex-wrap:wrap;gap:8px}
+.homeChips button{background:var(--panel);border:0;border-radius:999px;padding:9px 15px;font:inherit;font-size:.86rem;font-weight:600;
+  color:var(--ink2);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.homeChips button:hover{background:var(--accentSoft);color:var(--accent)}
+.homeData{margin:26px 4px 0;font-size:.76rem;color:var(--sub);line-height:1.6}
+
+/* 둘러보기·더보기 목록 */
+.hubHead{font-size:.82rem;font-weight:700;color:var(--sub);margin:18px 6px 8px}
+.hubHead:first-child{margin-top:4px}
+.hubList{background:var(--panel);border-radius:var(--r-card);padding:6px 8px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.hubRow{display:flex;align-items:center;gap:14px;width:100%;background:none;border:0;border-radius:14px;padding:12px 10px;
+  font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.hubRow:hover{background:var(--panel2)}
+.hubRow .ico{width:40px;height:40px;flex:none;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:20px}
+.hubRow b{display:block;font-size:.98rem;font-weight:600;letter-spacing:-.2px}
+.hubRow small{display:block;color:var(--sub);font-size:.8rem;margin-top:1px}
+.hubRow .arr{margin-left:auto;color:var(--miss);font-size:1.3rem}
+#infomodal .popSrc{display:block!important}
+#infomodal .im-body details>summary{display:none}
+#infomodal .im-body .dict{margin-top:6px}
+#glbtn{margin-left:8px}
+@media (max-width:700px){ #glbtn{margin-left:auto} }
+.field{min-width:0}
+.grid>.field:has(>.seg){grid-column:1/-1}
+#tr-helpchips{display:none!important}
+.wizsel span[style]{background:var(--bg);color:var(--sub)}
+.wizsel span[style]::after{content:none}
+.field input,.field select,.pkbtn{font-size:16px}
+.field select{-webkit-appearance:none;appearance:none;padding-right:34px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238b95a1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center}
+.grid>.field,.grid3>.field{justify-content:flex-end}
+.btnrow .btn.sm{width:auto}
+.atitem.hit2 .atrow b,.pxt.att td.hit2 b{color:var(--good)}
+.pickchips.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pickchips.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pickchips.grid4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pickchips button{min-width:0;padding:12px 8px}
+.pickchips button .sub{white-space:normal;word-break:keep-all;line-height:1.35}
+#wiz-body .btnrow{flex-wrap:nowrap}
+#wiz-body .btnrow .btn{width:auto;flex:1}
+#wiz-body .btnrow #wiz-prev{flex:0 0 32%}
 </style>
 </head>
 <body>
 
 <header>
   <div class="brand">
-    <h1>Track<span class="accent">Apt</span></h1>
-    <span class="ver">v5.50</span>
+    <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
+    <span class="ver">v6.0</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -489,6 +811,7 @@ tr.flash td{animation:rowflash 2.4s ease-out}
   덜 모여 과소 집계됩니다. 대출·세금 규정도 수시로 바뀝니다.
   실행 전 반드시 은행·세무 전문가와 확인하세요. 모든 판단의 책임은 이용자 본인에게 있습니다.
 </footer>
+<nav id="botnav" aria-label="아래 메뉴"></nav>
 
 <script>
 "use strict";
@@ -541,40 +864,46 @@ var DEFAULT_RULES = {
 };
 var RULES = JSON.parse(JSON.stringify(DEFAULT_RULES));
 
+/* v6.0 메뉴 — 아래 탭 5개(홈·추천·둘러보기·내 후보·더보기).
+   cat이 같은 화면끼리 위쪽 알약으로 묶이고, 묶음 첫 화면(둘러보기·더보기)은 목록 허브다.
+   화면 id는 예전 그대로라 #tiers 같은 옛 주소도 그대로 열린다. */
 var GROUPS = [
-  { id: "g1", name: "시작하기", tabs: [
+  { id: "home", name: "홈", ic: "🏠", tabs: [
+    { id: "home",    name: "홈",          build: buildHome } ] },
+  { id: "recs", name: "추천", ic: "✨", tabs: [
     { id: "wiz",     name: "추천받기",    build: buildWiz },
     { id: "start",   name: "내 조건",     build: buildStart },
-    { id: "faq",     name: "FAQ · 데이터 검증", build: buildFaq },
-    { id: "guide",   name: "투자 로드맵", build: buildGuide } ] },
-  { id: "g2", name: "시장 공부", tabs: [
-    { id: "market",  name: "시장 흐름",   build: buildMarket },
-    { id: "vol",     name: "거래량",      build: buildVol },
-    { id: "quad",    name: "매매·전세 흐름", build: buildQuad },
-    { id: "supply",  name: "입주 물량",   build: buildSupply },
-    { id: "btest",   name: "과거 검증",   build: buildBtest },
-    { id: "fun",     name: "재미로 보기", build: buildFun } ] },
-  { id: "g3", name: "어디를 살까", tabs: [
     { id: "reco",    name: "지역 채점표", build: buildReco },
-    { id: "rank",    name: "지역 순위",   build: buildRank },
-    { id: "tiers",   name: "전국 등급표", build: buildTiers },
-    { id: "mapx",    name: "지도로 보기", build: buildMapx },
-    { id: "gap",     name: "전세 끼고 사기", build: buildGap },
-    { id: "move",    name: "갈아타기",    build: buildMove },
-    { id: "rota",    name: "다음 오를 곳", build: buildRota } ] },
-  { id: "g4", name: "어떤 아파트", tabs: [
-    { id: "flag",    name: "지역 1등 아파트", build: buildFlag },
-    { id: "danji",   name: "아파트 찾기", build: buildDanji },
-    { id: "cmpx",    name: "아파트 비교", build: buildCmpx } ] },
-  { id: "g5", name: "돈·설정", tabs: [
-    { id: "calc",    name: "돈 계산",     build: buildCalc },
-    { id: "setting", name: "설정",        build: buildSetting } ] },
-  { id: "g6", name: "내 후보", cart: true, tabs: [
-    { id: "cart",    name: "최종 검토",   build: buildCartTab } ] }
+    { id: "calc",    name: "돈 계산",     build: buildCalc } ] },
+  { id: "browse", name: "둘러보기", ic: "🔍", tabs: [
+    { id: "browse",  name: "둘러보기",    build: buildBrowse },
+    { id: "market",  name: "시장 흐름",   cat: "price",  ic: "📈", d: "연도별 상승률과 지수 흐름", build: buildMarket },
+    { id: "vol",     name: "거래량",      cat: "price",  ic: "📊", d: "손바뀜으로 보는 지금 국면", build: buildVol },
+    { id: "quad",    name: "매매·전세 흐름", cat: "price", ic: "🧭", d: "지역별 매매·전세 4분면", build: buildQuad },
+    { id: "supply",  name: "입주 물량",   cat: "price",  ic: "🏗️", d: "새 아파트 공급과 미분양", build: buildSupply },
+    { id: "tiers",   name: "전국 등급표", cat: "region", ic: "🏅", d: "시·군·구 10분위 급지표", build: buildTiers },
+    { id: "rank",    name: "지역 순위",   cat: "region", ic: "🪜", d: "내 현금이 닿는 가장 위쪽", build: buildRank },
+    { id: "mapx",    name: "지도로 보기", cat: "region", ic: "🗺️", d: "급지를 지도 위에서", build: buildMapx },
+    { id: "gap",     name: "전세 끼고 사기", cat: "region", ic: "🔑", d: "갭과 전세가율 위치", build: buildGap },
+    { id: "move",    name: "갈아타기",    cat: "region", ic: "↗️", d: "내 동네와의 가격 격차", build: buildMove },
+    { id: "rota",    name: "다음 오를 곳", cat: "region", ic: "🔁", d: "같이 가던 동네 중 뒤처진 곳", build: buildRota },
+    { id: "danji",   name: "아파트 찾기", cat: "apt",    ic: "🏢", d: "지역 안 단지 실거래 정렬", build: buildDanji },
+    { id: "flag",    name: "지역 1등 아파트", cat: "apt", ic: "👑", d: "지역별 평당가 상위 단지", build: buildFlag },
+    { id: "cmpx",    name: "아파트 비교", cat: "apt",    ic: "⚖️", d: "두세 단지 추이 나란히", build: buildCmpx } ] },
+  { id: "cart", name: "내 후보", ic: "⭐", cart: true, tabs: [
+    { id: "cart",    name: "최종 검토",   build: buildCartTab } ] },
+  { id: "more", name: "더보기", ic: "☰", tabs: [
+    { id: "more",    name: "더보기",      build: buildMore },
+    { id: "faq",     name: "FAQ",         cat: "more", ic: "❓", d: "데이터로 확인한 17가지", build: buildFaq },
+    { id: "guide",   name: "투자 로드맵", cat: "more", ic: "🧭", d: "무주택·갈아타기 단계별 순서", build: buildGuide },
+    { id: "btest",   name: "과거 검증",   cat: "more", ic: "🧪", d: "두 선택지를 실거래로 비교", build: buildBtest },
+    { id: "fun",     name: "재미로 보기", cat: "more", ic: "🎲", d: "정권·시급·자산 레이스", build: buildFun },
+    { id: "setting", name: "설정",        cat: "more", ic: "⚙️", d: "대출·세금 기준과 가중치", build: buildSetting } ] }
 ];
+var CAT_NAME = { price: "시세 보기", region: "지역 고르기", apt: "아파트 고르기", more: "더보기" };
 var TABS = [];
 GROUPS.forEach(function (g) { g.tabs.forEach(function (t) { t.group = g.id; TABS.push(t); }); });
-var CURGROUP = "g1";
+var CURGROUP = "home";
 
 document.addEventListener("DOMContentLoaded", function () {
   loadRules();
@@ -583,19 +912,26 @@ document.addEventListener("DOMContentLoaded", function () {
   var sub = document.getElementById("subnav");
   var main = document.getElementById("main");
 
+  var bot = document.getElementById("botnav");
   GROUPS.forEach(function (g) {
-    var b = document.createElement("button");
-    b.innerHTML = g.name + (g.cart ? '<span class="dot"></span>' : "");
-    b.dataset.group = g.id;
-    if (g.cart) b.className = "cart";
-    b.addEventListener("click", function () { showGroup(g.id); });
-    nav.appendChild(b);
+    [nav, bot].forEach(function (host) {
+      if (!host) return;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.innerHTML = '<span class="ic">' + g.ic + "</span><span>" + g.name + "</span>" +
+        (g.cart ? '<span class="navcnt"></span>' : "");
+      b.dataset.group = g.id;
+      b.addEventListener("click", function () { showGroup(g.id); window.scrollTo(0, 0); });
+      host.appendChild(b);
+    });
   });
+  var bh = document.getElementById("brandhome");
+  if (bh) bh.addEventListener("click", function () { showTab("home"); window.scrollTo(0, 0); });
   TABS.forEach(function (t) {
     var b = document.createElement("button");
     b.textContent = t.name;
     b.dataset.tab = t.id;
-    b.addEventListener("click", function () { showTab(t.id); });
+    b.addEventListener("click", function () { showTab(t.id); window.scrollTo(0, 0); });
     sub.appendChild(b);
     var s = document.createElement("section");
     s.className = "tab"; s.id = "tab-" + t.id;
@@ -604,6 +940,8 @@ document.addEventListener("DOMContentLoaded", function () {
     else s.innerHTML = '<div class="placeholder">「' + t.name + '」 화면은 다음 버전에서 구현됩니다.</div>';
   });
 
+  buildInfoPopups();                /* 설명은 ? 팝업으로 (v6.0) */
+  splitSections();                  /* 긴 화면은 구역 버튼으로 나눈다 (v6.0) */
   showTab(initialTab());
   watchTables();
   mountGloss();                     /* 어느 화면에서나 ? 버튼으로 용어 풀이 (v5.48) */
@@ -618,9 +956,9 @@ function initialTab() {
   try { h = decodeURIComponent(String(location.hash || "").replace(/^#!?\/?/, "")).trim(); }
   catch (e) { h = ""; }
   h = h.split(/[?&/]/)[0].toLowerCase();
-  if (!h) return "wiz";
+  if (!h) return "home";
   for (var i = 0; i < TABS.length; i++) if (TABS[i].id.toLowerCase() === h) return TABS[i].id;
-  return "wiz";
+  return "home";
 }
      
 function showGroup(gid) {
@@ -649,19 +987,15 @@ function showTab(id) {
     } catch (e2) {}
   }
   CURGROUP = tab.group;
-  document.querySelectorAll("#nav button").forEach(function (b) {
+  document.querySelectorAll("#nav button, #botnav button").forEach(function (b) {
     b.classList.toggle("on", b.dataset.group === CURGROUP);
   });
-  /* 현재 그룹의 하위 탭만 노출 */
-  document.querySelectorAll("#subnav button").forEach(function (b) {
-    var t = TABS.filter(function (x) { return x.id === b.dataset.tab; })[0];
-    b.style.display = (t && t.group === CURGROUP) ? "" : "none";
-    b.classList.toggle("on", b.dataset.tab === id);
-  });
+  paintSubnav(tab);
   document.querySelectorAll("section.tab").forEach(function (s) {
     s.classList.toggle("on", s.id === "tab-" + id);
   });
   if (id === "guide") refreshSourceTable();
+  if (id === "home") renderHomeData();
   if (!DB) return;
   if (id === "market") renderMarket();
   if (id === "rank") renderRank();
@@ -685,6 +1019,253 @@ function showTab(id) {
   if (id === "faq") faqRefresh(false);
   if (id === "cart") renderCart();
   renderStepBar();
+}
+/* 알약 줄 — 같은 묶음(cat)의 화면만. 허브가 있는 묶음은 '‹ 전체'로 돌아간다 */
+function paintSubnav(tab) {
+  var sub = document.getElementById("subnav");
+  if (!sub) return;
+  var g = GROUPS.filter(function (x) { return x.id === tab.group; })[0];
+  var hub = (g && g.tabs[0] && !g.tabs[0].cat && g.tabs.length > 1 && g.tabs[1].cat) ? g.tabs[0] : null;
+  var show = [];
+  if (g && g.tabs.length > 1) {
+    if (hub) { if (tab.cat) show = g.tabs.filter(function (t) { return t.cat === tab.cat; }); }
+    else show = g.tabs;
+  }
+  var any = false;
+  sub.querySelectorAll("button").forEach(function (b) {
+    if (b.classList.contains("back")) { b.parentNode.removeChild(b); return; }
+    var vis = show.some(function (t) { return t.id === b.dataset.tab; });
+    b.style.display = vis ? "" : "none";
+    b.classList.toggle("on", b.dataset.tab === tab.id);
+    if (vis) any = true;
+  });
+  if (any && hub) {
+    var bk = document.createElement("button");
+    bk.type = "button"; bk.className = "back"; bk.textContent = "‹ " + (CAT_NAME[tab.cat] || hub.name);
+    bk.addEventListener("click", function () { showTab(hub.id); window.scrollTo(0, 0); });
+    sub.insertBefore(bk, sub.firstChild);
+  }
+  sub.classList.toggle("empty", !any);
+  var cb = document.getElementById("condbar");
+  if (cb) cb.style.display = COND_TABS.indexOf(tab.id) >= 0 ? "" : "none";
+}
+/* 내 조건이 계산에 들어가는 화면에서만 조건 배너를 보인다 */
+var COND_TABS = ["wiz", "reco", "calc", "rank", "gap", "move", "danji", "cart", "mapx"];
+
+/* ══ v6.0 홈 · 둘러보기 · 더보기 ════════════════════════════
+   첫 화면은 버튼 두 개만. 나머지 화면은 목록(허브)에서 고른다. */
+function buildHome(root) {
+  var chips = [["tiers", "🏅 전국 등급표"], ["danji", "🏢 아파트 찾기"], ["market", "📈 시장 흐름"],
+               ["mapx", "🗺️ 지도로 보기"], ["calc", "💰 돈 계산"], ["faq", "❓ FAQ"]];
+  root.innerHTML =
+    '<div class="hero"><div class="emo">🏡</div>' +
+      "<h2>어디에 살지,<br>실거래로 쉽게 봐요</h2>" +
+      "<p>국토부 실거래가를 계산해서 보여 드려요.</p></div>" +
+    '<div class="startCards">' +
+      '<button type="button" class="startCard" data-go="wiz"><span class="ico">✨</span>' +
+        "<span><b>아파트 추천받기</b><small>네 가지만 답하면 조건에 맞는 단지를 계산해 보여줘요</small></span>" +
+        '<span class="arr">›</span></button>' +
+      '<button type="button" class="startCard alt" data-go="browse"><span class="ico">🔍</span>' +
+        "<span><b>시세 둘러보기</b><small>동네 순위·시세 흐름·아파트를 직접 찾아봐요</small></span>" +
+        '<span class="arr">›</span></button>' +
+    "</div>" +
+    '<div class="homeSec"><h3>많이 보는 화면</h3><div class="homeChips">' +
+      chips.map(function (c) { return '<button type="button" data-go="' + c[0] + '">' + c[1] + "</button>"; }).join("") +
+    "</div></div>" +
+    '<div class="homeData" id="home-data"></div>';
+  renderHomeData();
+}
+function renderHomeData() {
+  var el = document.getElementById("home-data");
+  if (!el) return;
+  var di = document.getElementById("datainfo");
+  var t = di && di.textContent ? di.textContent : "";
+  el.innerHTML = (t ? "데이터 — " + escHtml(t) + "<br>" : "") +
+    "공개 통계를 계산해 보여주는 정보 도구예요. 투자 자문이 아니며, 수익을 보장하지 않습니다.";
+}
+function hubRowsHtml(list) {
+  return '<div class="hubList">' + list.map(function (t) {
+    return '<button type="button" class="hubRow" data-go="' + t.id + '"><span class="ico">' + (t.ic || "•") + "</span>" +
+      "<span><b>" + escHtml(t.name) + "</b>" + (t.d ? "<small>" + escHtml(t.d) + "</small>" : "") + "</span>" +
+      '<span class="arr">›</span></button>';
+  }).join("") + "</div>";
+}
+function buildBrowse(root) {
+  var h = "";
+  ["price", "region", "apt"].forEach(function (c) {
+    h += '<div class="hubHead">' + CAT_NAME[c] + "</div>" +
+      hubRowsHtml(TABS.filter(function (t) { return t.cat === c; }));
+  });
+  root.innerHTML = h;
+}
+function buildMore(root) {
+  root.innerHTML = '<div class="hubHead">도움말·설정</div>' +
+    hubRowsHtml(TABS.filter(function (t) { return t.cat === "more"; }).concat([
+      { id: "__gloss", name: "용어 도움", ic: "📖", d: "처음 보는 말을 한 줄로 풀이" },
+      { id: "start", name: "내 조건", ic: "🙋", d: "현금·거주지·보유 상태" }]));
+}
+/* 홈·허브의 [data-go] — 위임 처리 한 번 */
+document.addEventListener("click", function (e) {
+  var b = e.target.closest ? e.target.closest("[data-go]") : null;
+  if (!b || !b.closest("#tab-home, #tab-browse, #tab-more")) return;
+  if (b.dataset.go === "__gloss") { openGloss(""); return; }
+  showTab(b.dataset.go);
+  window.scrollTo(0, 0);
+});
+
+/* ══ 설명은 ? 팝업으로 (v6.0) ══════════════════════════════
+   카드마다 붙어 있던 설명문(p.desc)·안내(.note·.callout·접는 설명)를 숨은 상자로 옮기고,
+   제목 옆 ? 를 누르면 팝업으로 연다. 데이터가 들어가는 칸(id가 있는 칸과 그 안쪽)은
+   건드리지 않는다 — 계산 결과까지 숨기면 안 된다. 노드를 '옮겼다가' 닫을 때 제자리로
+   돌려놓으므로 복제본이 생기지 않는다. */
+var POPS = [], INFO_HTML = {}, INFO_OPEN = null;
+function firstSentence(t) {
+  t = String(t || "").replace(/\s+/g, " ").trim();
+  if (t.length <= 60) return t;
+  var m = t.match(/^(.{8,60}?[다요]\.)(\s|$)/);
+  return m ? m[1] : "";
+}
+function popifyCards(root) {
+  var cards = (root.classList && root.classList.contains("card")) ? [root] : root.querySelectorAll(".card");
+  Array.prototype.forEach.call(cards, function (card) {
+    if (card.getAttribute("data-pop")) return;
+    card.setAttribute("data-pop", "1");
+    var take = [];
+    Array.prototype.forEach.call(card.querySelectorAll("p.desc, .note, .callout, details, .dict"), function (el) {
+      if (el.classList.contains("faq") || el.classList.contains("fold") || el.closest("details.faq")) return;
+      if (el.id || el.querySelector("[id]") || el.querySelector("button, input, select, textarea")) return;
+      for (var p = el.parentNode; p && p !== card; p = p.parentNode) if (p.id) return;
+      for (var i = 0; i < take.length; i++) if (take[i].contains(el)) return;
+      take.push(el);
+    });
+    if (!take.length) return;
+    var h2 = card.querySelector("h2");
+    var title = h2 ? h2.textContent.replace(/\s+/g, " ").trim() : "설명";
+    var firstDesc = take.filter(function (el) { return el.matches("p.desc"); })[0];
+    var subTxt = firstDesc ? firstSentence(firstDesc.textContent) : "";
+    var src = document.createElement("div");
+    src.className = "popSrc";
+    take.forEach(function (el) { if (el.tagName === "DETAILS") el.open = true; src.appendChild(el); });
+    card.appendChild(src);
+    var idx = POPS.push({ src: src, title: title }) - 1;
+    if (subTxt && h2) {
+      var sp = document.createElement("p");
+      sp.className = "sub"; sp.textContent = subTxt;
+      h2.parentNode.insertBefore(sp, h2.nextSibling);
+    }
+    var btn = document.createElement("button");
+    btn.type = "button"; btn.className = "infoBtn"; btn.textContent = "?";
+    btn.setAttribute("aria-label", title + " 설명 보기"); btn.setAttribute("data-pop", String(idx));
+    if (h2) h2.appendChild(btn);
+    else { btn.className = "infoIn"; btn.textContent = "ⓘ 설명 보기"; card.insertBefore(btn, card.firstChild); }
+    /* 설명을 걷어내고 남은 게 제목뿐이면, 카드 전체를 한 줄 버튼으로 */
+    var rest = Array.prototype.filter.call(card.children, function (c) {
+      return !(c.classList.contains("eyebrow") || c.tagName === "H2" || c.classList.contains("sub") ||
+               c.classList.contains("popSrc") || c === btn);
+    });
+    if (!rest.length) { card.classList.add("infoOnly"); card.setAttribute("data-popcard", String(idx)); }
+  });
+}
+function buildInfoPopups() {
+  document.querySelectorAll("section.tab").forEach(function (sec) {
+    if (/^tab-(home|browse|more)$/.test(sec.id)) return;
+    popifyCards(sec);
+  });
+}
+/* 동적으로 그리는 안내는 이 단추로 — 누르면 같은 팝업에 html이 뜬다 */
+function infoLink(title, html) {
+  INFO_HTML[title] = html;
+  return '<button type="button" class="infoIn" data-popk="' + escHtml(title) + '">ⓘ ' + escHtml(title) + "</button>";
+}
+function ensureInfoModal() {
+  var m = document.getElementById("infomodal");
+  if (m) return m;
+  m = document.createElement("div");
+  m.id = "infomodal";
+  m.innerHTML = '<div class="im-dim"></div><div class="im-box" role="dialog" aria-modal="true">' +
+    '<div class="im-head"><b id="im-title"></b><button type="button" class="im-x" aria-label="닫기">✕</button></div>' +
+    '<div class="im-body" id="im-body"></div></div>';
+  document.body.appendChild(m);
+  m.querySelector(".im-dim").addEventListener("click", closeInfo);
+  m.querySelector(".im-x").addEventListener("click", closeInfo);
+  return m;
+}
+function openInfo(title, pop, html) {
+  closeInfo();
+  var m = ensureInfoModal(), body = document.getElementById("im-body");
+  document.getElementById("im-title").textContent = title;
+  body.innerHTML = "";
+  if (pop) {
+    INFO_OPEN = { src: pop.src, parent: pop.src.parentNode, next: pop.src.nextSibling };
+    body.appendChild(pop.src);
+  } else body.innerHTML = html || "";
+  m.classList.add("on");
+  body.scrollTop = 0;
+}
+function closeInfo() {
+  var m = document.getElementById("infomodal");
+  if (INFO_OPEN) {
+    INFO_OPEN.parent.insertBefore(INFO_OPEN.src, INFO_OPEN.next);
+    INFO_OPEN = null;
+  }
+  if (m) m.classList.remove("on");
+}
+document.addEventListener("click", function (e) {
+  if (!e.target.closest) return;
+  var b = e.target.closest(".infoBtn[data-pop], .infoIn[data-pop]");
+  if (b) { e.preventDefault(); e.stopPropagation(); var p = POPS[Number(b.getAttribute("data-pop"))]; if (p) openInfo(p.title, p); return; }
+  var k = e.target.closest(".infoIn[data-popk]");
+  if (k) { e.preventDefault(); var key = k.getAttribute("data-popk"); openInfo(key, null, INFO_HTML[key]); return; }
+  var c = e.target.closest(".card.infoOnly[data-popcard]");
+  if (c && !e.target.closest("#infomodal")) { var p2 = POPS[Number(c.getAttribute("data-popcard"))]; if (p2) openInfo(p2.title, p2); }
+});
+document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeInfo(); });
+
+/* ══ 긴 화면은 구역 버튼으로 (v6.0) ═════════════════════════
+   카드를 지우지 않고 보이기만 바꾼다(segHide). 각 화면의 코드가 카드를 켜고 끄는 것
+   (style.display)과 겹치지 않도록 별도 클래스를 쓴다. after = 늘 보일 맨 윗 카드 번호(-1이면 없음). */
+var SPLITS = {
+  market: [0, [["연도별 상승률", [1]], ["지수 추이", [2]], ["연도별 표", [3]], ["2년 수익률", [4]]]],
+  supply: [0, [["입주 물량", [4, 5]], ["착공", [1]], ["미분양", [2]], ["연도별", [3]]]],
+  reco:   [-1, [["추천 5곳", [0]], ["전체 채점표", [2]], ["근거", [1]]]],
+  cart:   [-1, [["채점 보고서", [0]], ["추이 차트", [1, 2, 3]]]],
+  fun:    [0, [["정권·정책", [1, 2]], ["시급·자산", [3, 4]], ["자산 레이스", [5]], ["강남 격차", [6]]]],
+  rank:   [0, [["사다리", [1]], ["전체 표", [2]]]],
+  gap:    [0, [["추이", [1]], ["전국 표", [2]]]],
+  move:   [0, [["추이", [1]], ["상급지 표", [2]]]]
+};
+function splitSections() {
+  Object.keys(SPLITS).forEach(function (id) {
+    var sec = document.getElementById("tab-" + id);
+    if (!sec) return;
+    var cards = Array.prototype.filter.call(sec.children, function (c) { return c.classList.contains("card"); });
+    var after = SPLITS[id][0], parts = SPLITS[id][1];
+    var seg = document.createElement("div");
+    seg.className = "seg secseg";
+    var empty = document.createElement("p");
+    empty.className = "hint"; empty.style.cssText = "text-align:center;padding:28px 0";
+    empty.textContent = "아직 보여줄 내용이 없어요. 먼저 위에서 조회하거나 보고서를 만들어 주세요.";
+    function show(pi) {
+      parts.forEach(function (p, j) {
+        p[1].forEach(function (ci) { if (cards[ci]) cards[ci].classList.toggle("segHide", j !== pi); });
+      });
+      Array.prototype.forEach.call(seg.children, function (b, j) { b.classList.toggle("on", j === pi); });
+      var anyVis = parts[pi][1].some(function (ci) { return cards[ci] && cards[ci].style.display !== "none"; });
+      empty.style.display = anyVis ? "none" : "";
+      try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+    }
+    parts.forEach(function (p, pi) {
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = p[0];
+      b.addEventListener("click", function () { show(pi); });
+      seg.appendChild(b);
+    });
+    var anchor = after >= 0 && cards[after] ? cards[after].nextSibling : sec.firstChild;
+    sec.insertBefore(seg, anchor);
+    sec.insertBefore(empty, seg.nextSibling);
+    show(0);
+    seg._show = show;
+  });
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */
@@ -983,8 +1564,9 @@ function cls(v) { return v == null ? "flat" : (v > 0.05 ? "up" : (v < -0.05 ? "d
 
 function onDataReady() {
   if (window.Chart && Chart.defaults) {
-    Chart.defaults.color = "#8b96a5";
-    Chart.defaults.borderColor = "#1e2836";
+    Chart.defaults.color = "#8b95a1";
+    Chart.defaults.font.family = "Pretendard Variable, Pretendard, -apple-system, sans-serif";
+    Chart.defaults.borderColor = "#eef0f3";
   }
   var e0 = latestYM("sale");
   var di = document.getElementById("datainfo");
@@ -1155,7 +1737,7 @@ function buildRank(root) {
       '<div class="status" id="rk-kpi"></div>' +
     '</div>' +
     '<div class="card"><div class="eyebrow">Ladder</div><h2>필요현금 사다리</h2>' +
-      '<p class="desc">막대가 필요현금, 주황 점선이 내 현금입니다. 점선보다 짧은 청록 막대가 살 수 있는 곳이고, ' +
+      '<p class="desc">막대가 필요현금, 주황 점선이 내 현금입니다. 점선보다 짧은 파란 막대가 살 수 있는 곳이고, ' +
         '그중 가장 위가 1순위입니다.</p>' +
       '<div style="position:relative"><canvas id="rk-chart"></canvas></div></div>' +
     '<div class="card"><div class="eyebrow">Table</div><h2>급지표 전체</h2><div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="급지표">이미지 저장</button><button class="btn sm ghost" data-exp="xlsx" data-table="rk-table" data-name="급지표">엑셀 저장</button></div>' +
@@ -1210,7 +1792,7 @@ function renderRank() {
 
   /* 사다리 차트: 지역 수만큼 높이 확보 */
   var css = getComputedStyle(document.documentElement);
-  var cUp = css.getPropertyValue("--up").trim(), cMiss = "#3a4656",
+  var cUp = css.getPropertyValue("--accent").trim(), cMiss = "#d1d6db",
       cCash = css.getPropertyValue("--cash").trim();
   var canvas = document.getElementById("rk-chart");
   canvas.parentElement.style.height = (rows.length * 21 + 60) + "px";
@@ -1239,7 +1821,7 @@ function renderRank() {
         label: "필요현금",
         data: rows.map(function (r) { return r.need; }),
         backgroundColor: rows.map(function (r) {
-          if (isMine(r.key)) return getComputedStyle(document.documentElement).getPropertyValue("--brand").trim();
+          if (isMine(r.key)) return getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
           return (cash > 0 && r.need <= cash) ? cUp : cMiss;
         }),
         borderRadius: 2, barThickness: 12
@@ -1255,7 +1837,7 @@ function renderRank() {
         } } }
       },
       scales: {
-        x: { position: "top", ticks: { font: { size: 10 }, callback: function (v) { return eok(v); } }, grid: { color: "#1e2836" } },
+        x: { position: "top", ticks: { font: { size: 10 }, callback: function (v) { return eok(v); } }, grid: { color: "#f0f2f4" } },
         y: { ticks: { font: { size: 10 }, autoSkip: false }, grid: { display: false } }
       }
     },
@@ -1354,12 +1936,12 @@ function radarSvg(axes, size, color) {
   }
   var grid = "";
   [0.25, 0.5, 0.75, 1].forEach(function (f) {
-    grid += '<polygon points="' + poly(R * f) + '" fill="none" stroke="#2a3546" stroke-width="1"/>';
+    grid += '<polygon points="' + poly(R * f) + '" fill="none" stroke="#e5e8eb" stroke-width="1"/>';
   });
   for (var i = 0; i < N; i++) {
     var p = pt(i, R);
     grid += '<line x1="' + cx + '" y1="' + cy + '" x2="' + p[0].toFixed(1) + '" y2="' + p[1].toFixed(1) +
-      '" stroke="#2a3546" stroke-width="1"/>';
+      '" stroke="#e5e8eb" stroke-width="1"/>';
   }
   var vals = [], dots = "";
   for (var j = 0; j < N; j++) {
@@ -1376,7 +1958,7 @@ function radarSvg(axes, size, color) {
     var anchor = Math.abs(dx) < R * 0.25 ? "middle" : (dx > 0 ? "start" : "end");
     var ty = lp[1] + (dy < -R * 0.5 ? -2 : (dy > R * 0.5 ? 10 : 2));
     labels += '<text x="' + lp[0].toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="' + anchor +
-      '" font-size="11" font-weight="700" fill="#8b96a5">' + axes[k].n + "</text>" +
+      '" font-size="11" font-weight="700" fill="#8b95a1">' + axes[k].n + "</text>" +
       '<text x="' + lp[0].toFixed(1) + '" y="' + (ty + 13).toFixed(1) + '" text-anchor="' + anchor +
       '" font-size="12" font-weight="800" fill="' + color + '">' + Math.round(axes[k].v) + "</text>";
   }
@@ -1396,8 +1978,8 @@ function radarNote(pairs) {
 function bandBar(p, lowGood) {
   if (p == null) return "—";
   var g = lowGood
-    ? "linear-gradient(90deg,#0e7c66,#e3e7ee 50%,#c47f17)"
-    : "linear-gradient(90deg,#c47f17,#e3e7ee 50%,#0e7c66)";
+    ? "linear-gradient(90deg,#3182f6,#e5e8eb 50%,#f08c00)"
+    : "linear-gradient(90deg,#f08c00,#e5e8eb 50%,#3182f6)";
   return '<span class="bb"><span class="bbtrack" style="background:' + g + '"></span>' +
     '<span class="bbtick" style="left:' + Math.max(0, Math.min(100, p)).toFixed(0) + '%"></span></span>' +
     '<span class="bbv">' + p.toFixed(0) + "%</span>";
@@ -1546,7 +2128,7 @@ function renderGap() {
       { label: "전세가율", data: gpTrim.data, borderColor: cBrand, borderWidth: 2, pointRadius: 0, tension: .1 }
     ]},
     options: chartOpts("%"),
-    plugins: [bandPlugin(function () { return band; }, "rgba(15,76,92,.07)")]
+    plugins: [bandPlugin(function () { return band; }, "rgba(49,130,246,.07)")]
   });
 
   /* 전국 표 */
@@ -1721,7 +2303,7 @@ function renderMove() {
         borderColor: cUp, borderWidth: 2, pointRadius: 0, tension: .1 }
     ]},
     options: chartOpts("x"),
-    plugins: [bandPlugin(function () { return band; }, "rgba(14,124,102,.08)")]
+    plugins: [bandPlugin(function () { return band; }, "rgba(49,130,246,.07)")]
   });
 
   /* 상급지 표 (서열순 = 비싼 순) */
@@ -2346,7 +2928,7 @@ function buildWiz(root) {
 function renderWizShell() { if (document.getElementById("wiz-body")) renderWizStep(); }
 function wizNavHtml(canNext, nextLabel) {
   return '<div class="btnrow" style="margin-top:14px">' +
-    (WIZ.step > 1 ? '<button class="btn" id="wiz-prev">이전</button>' : "") +
+    (WIZ.step > 1 ? '<button class="btn ghost" id="wiz-prev">이전</button>' : "") +
     '<button class="btn gold" id="wiz-next"' + (canNext ? "" : " disabled") + ">" +
     (nextLabel || "다음") + "</button></div>";
 }
@@ -2376,7 +2958,7 @@ function renderWizStep() {
   if (WIZ.step === 1) {
     h += '<div class="wizq">어느 지역을 살펴볼까요?</div>' +
       chipsHtml("wiz-mode", [["pick", "관심지역이 있어요", "시·군·구 직접 선택 (여러 곳)"],
-                             ["macro", "잘 모르겠어요", "직장·집이 있는 지역권으로"]], WIZ.mode) +
+                             ["macro", "잘 모르겠어요", "직장·집이 있는 지역권으로"]], WIZ.mode, "grid2") +
       '<div id="wiz-mode-body" style="margin-top:10px"></div>' +
       wizNavHtml(false);
   } else if (WIZ.step === 2) {
@@ -2387,14 +2969,15 @@ function renderWizStep() {
   } else if (WIZ.step === 3) {
     h += '<div class="wizq">연식은 어느 쪽이 좋으세요?</div>' +
       chipsHtml("wiz-age", [["new", "신축", "10년 이하"], ["semi", "준신축", "11~20년"],
-                            ["old", "구축", "21년 이상"], ["any", "상관없음", ""]], WIZ.age) +
+                            ["old", "구축", "21년 이상"], ["any", "상관없음", ""]], WIZ.age, "grid4") +
       '<div class="wizq" style="margin-top:14px">평형은요?</div>' +
       chipsHtml("wiz-band", [["small", "소형", "46㎡ 이하"], ["59", "59㎡대", "약 24평"],
                              ["84", "84㎡대", "약 34평"], ["big", "대형", "101㎡ 이상"]], WIZ.band, "grid4") +
-      '<div class="note" style="margin-top:10px">자체 검증에서 나온 것 — ' +
+      '<div style="margin-top:8px">' + infoLink("연식·평형 고르는 법",
+        '자체 검증에서 나온 것 — ' +
         '<b>평형</b>은 기본이 중형(59·84㎡)이고 대형은 지역이 갈립니다(FAQ Q5). ' +
         '<b>연식</b>은 좋은 동네일수록 구축이 오히려 나았습니다(FAQ Q14). ' +
-        '<b>규모</b>는 300세대를 최소 조건으로 보세요 — 같은 값이면 대단지가 앞섰고 16곳 중 예외가 없었습니다(FAQ Q3).</div>' +
+        '<b>규모</b>는 300세대를 최소 조건으로 보세요 — 같은 값이면 대단지가 앞섰고 16곳 중 예외가 없었습니다(FAQ Q3).') + "</div>" +
       wizNavHtml(true);
   } else {
     h += '<div class="wizq">예산은 어느 정도인가요? <span style="font-weight:400;font-size:.8rem;color:var(--ink-soft)">(매매가 기준)</span></div>' +
@@ -2403,8 +2986,7 @@ function renderWizStep() {
                 WIZ.budget, "grid3") +
       '<div class="grid" style="margin-top:6px"><div class="field"><label>직접 입력 (억)</label>' +
         '<input id="wiz-bud-c" type="number" min="0" step="0.5" placeholder="예: 6.5"></div></div>' +
-      '<div class="note">대출·세금까지 반영한 <b>필요현금</b> 계산은 추천 결과의 ' +
-        "<b>지역 채점표</b>에서 이어집니다. 여기서는 매매가로만 거릅니다.</div>" +
+      '<p class="hint">매매가로만 거릅니다. 대출·세금까지 넣은 필요현금은 <b>지역 채점표</b>에서 봐요.</p>' +
       wizNavHtml(true, "추천 받기");
   }
   el.innerHTML = h;
@@ -2453,8 +3035,7 @@ function renderWizModeBody() {
     el.innerHTML =
       '<button type="button" class="pkbtn" id="wiz-pick"><span>지역 선택하기</span><span class="pkcaret">\u25be</span></button>' +
       '<div class="wizsel" id="wiz-picks"></div>' +
-      '<div class="note">[지역 선택하기]를 누르면 시·도별 목록이 열립니다 — <b>여러 곳을 한 번에</b> 담고 뺄 수 있습니다. ' +
-        '직장·거주지·생활권 때문에 살 수 있는 지역이 정해져 있다면 그 지역들만 담으세요.</div>';
+      '<p class="hint">여러 곳을 한 번에 담을 수 있어요.</p>';
     document.getElementById("wiz-pick").addEventListener("click", function () {
       openRegionPickerMulti({
         isOn: function (code) { return WIZ.picks.indexOf(code) >= 0; },
@@ -2468,7 +3049,7 @@ function renderWizModeBody() {
     renderWizPicks();
   } else {
     el.innerHTML =
-      '<div class="note" style="margin-bottom:6px">직장이나 집이 있는 <b>지역권</b>을 고르세요 — 그 안에서 급지 높은 순으로 알아서 찾습니다.</div>' +
+      '<p class="hint" style="margin:0 0 6px">직장·집이 있는 지역권 안에서 급지 높은 순으로 찾아요.</p>' +
       chipsHtml("wiz-macro", MACROS.map(function (m) { return [m[0], m[0], m[2]]; }), WIZ.macro, "grid3");
     bindChips("wiz-macro", function (v) { WIZ.macro = v; wizNextGate(); });
   }
@@ -2574,13 +3155,14 @@ function renderWizResult() {
       '<div id="wiz-why-' + i + '" class="whybox" style="display:none"></div>' +
     "</div>";
   }).join("");
-  h += '<div class="note" style="margin-top:10px"><b>다음 단계</b> — ' +
-    '<button class="btn sm ghost" id="wiz-toguide">다음 단계로 →</button><br>' +
-    '점수는 <b>급지 45% + 성과 25% + 거래 꾸준함 15% + 타이밍 15%</b>로 매깁니다 — ' +
-    '과거에 많이 오른 곳에 가점을 주면 거꾸로 작동한다는 자체 검증(FAQ Q17)에 맞춰 성과는 ' +
-    '<b>통과선(10년 두 배)</b> 확인용으로만 씁니다. 자세한 근거와 검증 자료는 각 카드의 ' +
-    '<b>왜 추천했나요?</b>에 있습니다. 다른 화면을 다녀와도 이 결과는 남아 있습니다.' +
-    (o.noStore ? "<br>저장본이 없는 지역 " + o.noStore + "곳은 검토에서 빠졌습니다." : "") + "</div>";
+  h += '<div class="btnrow" style="margin-top:10px;align-items:center">' +
+    '<button class="btn sm ghost" id="wiz-toguide">다음 단계로 →</button>' +
+    infoLink("점수는 이렇게 매겨요",
+      '점수는 <b>급지 45% + 성과 25% + 거래 꾸준함 15% + 타이밍 15%</b>로 매깁니다 — ' +
+      '과거에 많이 오른 곳에 가점을 주면 거꾸로 작동한다는 자체 검증(FAQ Q17)에 맞춰 성과는 ' +
+      '<b>통과선(10년 두 배)</b> 확인용으로만 씁니다. 자세한 근거와 검증 자료는 각 카드의 ' +
+      '<b>왜 추천했나요?</b>에 있습니다. 다른 화면을 다녀와도 이 결과는 남아 있습니다.') + "</div>" +
+    (o.noStore ? '<p class="hint">저장본이 없는 지역 ' + o.noStore + "곳은 검토에서 빠졌습니다.</p>" : "");
   box.innerHTML = h;
 
   box.querySelectorAll("button[data-wzwhy]").forEach(function (b) {
@@ -2784,11 +3366,11 @@ function wizOverviewHtml(o) {
     "각 카드의 <b>왜 추천했나요?</b>를 누르면 항목별 <b>검증 버튼</b>이 나옵니다 — 누르면 그 단지·지역이 " +
     "조건에 들어간 채로 해당 화면이 열려 <b>숫자를 직접 확인</b>할 수 있습니다. " +
     "마음에 드는 곳은 <b>이 지역 단지 더 보기</b>에서 담아 최종 검토로 보내세요."]);
-  return '<div class="note" style="margin-bottom:10px"><b>총평 — 왜 이 다섯 곳인가</b>' +
-    '<div class="tblwrap" style="margin-top:6px"><table class="srctbl">' +
+  return '<details class="fold"><summary>총평 — 왜 이 다섯 곳인가</summary>' +
+    '<div class="tblwrap"><table class="srctbl">' +
     '<colgroup><col style="width:24%"><col style="width:76%"></colgroup><tbody>' +
     rows.map(function (x) { return "<tr><th>" + x[0] + "</th><td>" + x[1] + "</td></tr>"; }).join("") +
-    "</tbody></table></div></div>";
+    "</tbody></table></div></details>";
 }
 function wizPxStoreHtml(t) {
   var sMed = eok(t.price) + " <small>(" + String(t.lastYear).slice(2) + "년)</small>";
@@ -3279,11 +3861,11 @@ function recoOverviewHtml(list, rows, cond) {
     "점수 자체보다 <b>어느 축이 낮은지</b>를 보세요. 타이밍은 <b>같은 급지 안에서 순서를 정할 때만</b> 씁니다 — " +
     "급지를 낮추면서 전세가율 좋은 곳을 좇으면 안 된다는 검증 결과가 있습니다(FAQ Q17). " +
     "단지까지 좁혔으면 <b>단지 보기</b> → 담기 → <b>최종 검토</b>에서 6축 보고서를 받으세요."]);
-  return '<div class="note" style="margin-bottom:10px"><b>총평 — 왜 이 다섯 곳인가</b>' +
-    '<div class="tblwrap" style="margin-top:6px"><table class="srctbl">' +
+  return '<details class="fold"><summary>총평 — 왜 이 다섯 곳인가</summary>' +
+    '<div class="tblwrap"><table class="srctbl">' +
     '<colgroup><col style="width:24%"><col style="width:76%"></colgroup><tbody>' +
     out.map(function (x) { return "<tr><th>" + x[0] + "</th><td>" + x[1] + "</td></tr>"; }).join("") +
-    "</tbody></table></div></div>";
+    "</tbody></table></div></details>";
 }
 function renderReco() {
   if (!DB || !RANKED.length) return;
@@ -3332,7 +3914,7 @@ function renderReco() {
     var maxP = maxPriceForCash(cond, { reg: false, metro: !!METRO[h.key] });
     var heroHtml =
       '<div class="status" style="margin-bottom:10px">' +
-      '<div class="stat" style="background:var(--panel);border:2px solid var(--up);grid-column:1/-1">' +
+      '<div class="stat" style="background:var(--panel);border:2px solid var(--accent);grid-column:1/-1">' +
         '<div class="k">예산으로 되는 최상단</div>' +
         '<div class="v" style="font-size:1.5rem">' + disp(h.key) + "</div>" +
         '<div class="k" style="margin-top:4px">' + hGrade + "등급 " + h.total.toFixed(0) + "점 · 전국 " + h.rank +
@@ -3412,7 +3994,7 @@ function renderReco() {
       var radar = '<div style="width:100%;max-width:320px;margin:8px auto 0">' +
         radarSvg([{ n: "급지", v: r.s.rank }, { n: "성과", v: r.s.perf }, { n: "수급", v: r.s.supply },
                   { n: "타이밍", v: r.s.timing }, { n: "자금", v: r.s.cash }],
-                 320, i === 0 ? "#0e7c66" : "#0f4c5c") + "</div>" +
+                 320, i === 0 ? "#3182f6" : "#6b7684") + "</div>" +
         radarNote([["전국", r.rank + "위"], ["연복리", r.cagr != null ? r.cagr.toFixed(1) + "%" : ""],
                    ["타이밍", r.timingNote], ["필요현금", eok(r.fin.need)]]);
       return '<div class="reco' + (i === 0 ? " best" : "") + '" style="flex-wrap:wrap">' +
@@ -4290,7 +4872,7 @@ function openRegionPickerMulti(opts) {
       var on = grp.querySelectorAll(".pkitem[data-code].on").length;
       var n = grp.querySelector(".pkn");
       n.textContent = on ? on + " / " + all : String(all);
-      n.style.color = on ? "var(--up)" : "";
+      n.style.color = on ? "var(--accent)" : "";
       var allBtn = grp.querySelector(".pkall");
       if (allBtn) allBtn.textContent = (all && on === all) ? "전체 해제" : "전체 선택";
     });
@@ -4730,7 +5312,8 @@ function mountGloss() {
   var b = document.createElement("button");
   b.id = "glbtn"; b.type = "button"; b.title = "용어 도움"; b.textContent = "?";
   b.addEventListener("click", function () { openGloss(""); });
-  document.body.appendChild(b);
+  var host = document.querySelector("header .brand");
+  (host || document.body).appendChild(b);
   document.addEventListener("click", function (e) {
     var t = e.target && e.target.closest ? e.target.closest(".gl") : null;
     if (t) { e.preventDefault(); openGloss(t.getAttribute("data-g")); }
@@ -5603,10 +6186,9 @@ function addToCart(r, btn) {
 }
 /* 상단 "내 후보" 버튼에 담은 개수 표시 */
 function updateCartDot() {
-  var b = document.querySelector('#nav button[data-group="g6"]');
-  if (!b) return;
   var nCart = getCart().length;
-  b.innerHTML = "내 후보" + (nCart ? ' <span class="dot"></span>' + nCart : '<span class="dot"></span>');
+  document.querySelectorAll('#nav button[data-group="cart"] .navcnt, #botnav button[data-group="cart"] .navcnt')
+    .forEach(function (el) { el.textContent = nCart ? String(nCart) : ""; });
 }
 
 function renderCart() {
@@ -5650,7 +6232,7 @@ document.addEventListener("click", function (ev) {
     var card = b.closest(".card");
     if (!card) return;
     card.classList.add("capturing");
-    html2canvas(card, { backgroundColor: "#0b1017", scale: 2, useCORS: true }).then(function (canvas) {
+    html2canvas(card, { backgroundColor: "#ffffff", scale: 2, useCORS: true }).then(function (canvas) {
       card.classList.remove("capturing");
       var a = document.createElement("a");
       a.download = name + ".png";
@@ -5898,7 +6480,7 @@ function renderCartReport() {
           '<div style="width:100%;max-width:320px;margin:8px auto 0">' +
             radarSvg([{ n: "급지", v: s.axes.rank }, { n: "성과", v: s.axes.perf }, { n: "타이밍", v: s.axes.timing },
                       { n: "수급", v: s.axes.supply }, { n: "단지", v: s.axes.danji }, { n: "자금", v: s.axes.cash }],
-                     320, i === 0 ? "#0e7c66" : "#0f4c5c") + "</div>" +
+                     320, i === 0 ? "#3182f6" : "#6b7684") + "</div>" +
           radarNote([["급지", s.notes.rank], ["성과", s.notes.perf], ["타이밍", s.notes.timing],
                      ["자금", s.notes.cash]]) +
           env.join("") +
@@ -5982,7 +6564,7 @@ function renderCartReport() {
 
 /* ══ 담은 단지 비교 (해석 + 차트 3종) ══════════ */
 var chartC2Price = null, chartC2Mult = null, chartC2Gap = null;
-var C2_COLORS = ["#0f4c5c", "#4a90a4", "#c47f17", "#0e7c66", "#8a6d3b", "#7a5ea8"];
+var C2_COLORS = ["#3182f6", "#f04452", "#f08c00", "#03a15b", "#8b5cf6", "#6b7684"];
 
 function renderCartCompare(scored, cond) {
   var box = document.getElementById("cart-compare");
@@ -6127,7 +6709,7 @@ function drawCartCharts(series, labels) {
         beforeDatasetsDraw: function (ch) {
           var y = ch.scales.y.getPixelForValue(mean), ar = ch.chartArea, ctx = ch.ctx;
           if (y < ar.top || y > ar.bottom) return;
-          ctx.save(); ctx.strokeStyle = "#c47f17"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
+          ctx.save(); ctx.strokeStyle = "#f08c00"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
           ctx.beginPath(); ctx.moveTo(ar.left, y); ctx.lineTo(ar.right, y); ctx.stroke(); ctx.restore();
         }
       }]
@@ -6162,7 +6744,7 @@ function renderCondBar() {
   parts.push({ none: "무주택", switch: "갈아타기", add: "추가매수", multi: "다주택" }[c.own]);
   if (c.first) parts.push("생애최초");
   parts.push(rangeLabel(c));
-  el.innerHTML = "내 조건 — <b style='color:var(--ink)'>" + parts.join(" · ") + "</b> (누르면 수정)";
+  el.innerHTML = '<span class="cb">내 조건 <b>' + parts.join(" · ") + '</b><span class="ed">수정</span></span>';
   el.onclick = function () { showTab("start"); window.scrollTo(0, 0); };
 }
 
@@ -6190,7 +6772,7 @@ function buildQuad(root) {
       '<div class="eyebrow">Quadrant</div><h2>매매 · 전세 4분면</h2>' +
       '<p class="desc">가로가 매매, 세로가 전세 변화율입니다. 두 축의 조합이 그 지역의 국면을 말해줍니다 — ' +
         '<b>전세가 함께 오르는 상승</b>은 실수요가 받치는 국면이고, 매매만 오르면 기대가 앞서 갭이 벌어지는 국면입니다. ' +
-        '원 색은 국면입니다 — 청록은 동반 상승, 주황은 매매 주도, 회색은 그 밖입니다. ' +
+        '원 색은 국면입니다 — 빨강은 동반 상승, 파랑은 매매 주도, 회색은 그 밖입니다. ' +
         '원을 누르면 상세 수치가 나옵니다.</p>' +
       '<div class="grid">' +
         '<div class="field"><label>기간</label><div class="seg" id="qd-months">' +
@@ -6345,10 +6927,10 @@ function renderQuad() {
     data: { datasets: [{
       data: rows.map(function (r) { return { x: r.s, y: r.j, r: r.rad }; }),
       backgroundColor: rows.map(function (r) {
-        return r.ph.t === "동반 상승" ? cUp + "26" : (r.ph.t === "매매 주도" ? cDown + "26" : "#8a94a326");
+        return r.ph.t === "동반 상승" ? cUp + "26" : (r.ph.t === "매매 주도" ? cDown + "26" : "#b0b8c140");
       }),
       borderColor: rows.map(function (r) {
-        return r.ph.t === "동반 상승" ? cUp + "99" : (r.ph.t === "매매 주도" ? cDown + "99" : "#8a94a399");
+        return r.ph.t === "동반 상승" ? cUp + "99" : (r.ph.t === "매매 주도" ? cDown + "99" : "#b0b8c1cc");
       }),
       borderWidth: 1
     }]},
@@ -6361,9 +6943,9 @@ function renderQuad() {
       layout: { padding: { top: 14, right: 16, left: 4, bottom: 4 } },
       scales: {
         x: { min: xMin, max: xMax, title: { display: true, text: "매매 변화 (%)", font: { size: 10 } },
-             grid: { color: "#1e2836" }, ticks: { font: { size: 10 } } },
+             grid: { color: "#f0f2f4" }, ticks: { font: { size: 10 } } },
         y: { min: yMin, max: yMax, title: { display: true, text: "전세 변화 (%)", font: { size: 10 } },
-             grid: { color: "#1e2836" }, ticks: { font: { size: 10 } } }
+             grid: { color: "#f0f2f4" }, ticks: { font: { size: 10 } } }
       }
     },
     plugins: [{
@@ -6371,12 +6953,12 @@ function renderQuad() {
       beforeDatasetsDraw: function (ch) {
         var a = ch.chartArea, x0 = ch.scales.x.getPixelForValue(0), y0 = ch.scales.y.getPixelForValue(0);
         var ctx = ch.ctx;
-        ctx.save(); ctx.strokeStyle = "#33405280"; ctx.lineWidth = 1;
+        ctx.save(); ctx.strokeStyle = "#d1d6db"; ctx.lineWidth = 1;
         if (x0 >= a.left && x0 <= a.right) { ctx.beginPath(); ctx.moveTo(x0, a.top); ctx.lineTo(x0, a.bottom); ctx.stroke(); }
         if (y0 >= a.top && y0 <= a.bottom) { ctx.beginPath(); ctx.moveTo(a.left, y0); ctx.lineTo(a.right, y0); ctx.stroke(); }
         /* 사분면 이름 */
         ctx.font = "700 10px Pretendard Variable, sans-serif";
-        ctx.fillStyle = "#4a5768";
+        ctx.fillStyle = "#b0b8c1";
         ctx.textAlign = "right"; ctx.fillText("동반 상승", a.right - 6, a.top + 14);
         ctx.textAlign = "left";  ctx.fillText("전세 주도", a.left + 6, a.top + 14);
         ctx.textAlign = "right"; ctx.fillText("매매 주도", a.right - 6, a.bottom - 6);
@@ -6391,7 +6973,7 @@ function renderQuad() {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         rows.forEach(function (r, i) {
-          ctx.fillStyle = r.ph.t === "동반 상승" ? cUp : (r.ph.t === "매매 주도" ? cDown : "#aab4c2");
+          ctx.fillStyle = r.ph.t === "동반 상승" ? cUp : (r.ph.t === "매매 주도" ? cDown : "#6b7684");
           var el = meta.data[i];
           if (!el) return;
           if (el.x < a2.left - r.rad || el.x > a2.right + r.rad ||
@@ -6820,7 +7402,7 @@ function cxYearVal(s, stY0, year) {
   return (i >= 0 && i < s.p.length) ? s.p[i] : null;
 }
 var chartCmpPrice = null, chartCmpMult = null, chartCmpGap = null;
-var CMP_COLORS = ["#0f4c5c", "#0e7c66", "#c47f17"];
+var CMP_COLORS = ["#3182f6", "#f04452", "#f08c00"];
 
 function buildCmpx(root) {
   function slotHtml(i, name) {
@@ -7124,7 +7706,7 @@ function renderCmpxNow(picked) {
         beforeDatasetsDraw: function (ch) {
           var y = ch.scales.y.getPixelForValue(mean), ar = ch.chartArea, ctx = ch.ctx;
           if (y < ar.top || y > ar.bottom) return;
-          ctx.save(); ctx.strokeStyle = "#c47f17"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
+          ctx.save(); ctx.strokeStyle = "#f08c00"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
           ctx.beginPath(); ctx.moveTo(ar.left, y); ctx.lineTo(ar.right, y); ctx.stroke(); ctx.restore();
         }
       }]
@@ -7259,7 +7841,7 @@ function buildMapx(root) {
         '<div class="field"><label>표시 값</label><div class="seg" id="mx-metric">' +
           '<button data-m="price" class="on">매수가</button><button data-m="jr">전세가율</button></div></div>' +
       '</div>' +
-      '<div id="mx-map" style="width:100%;height:420px;border-radius:10px;margin-top:12px;background:#1a2330"></div>' +
+      '<div id="mx-map" style="width:100%;height:420px;border-radius:10px;margin-top:12px;background:#f2f4f6"></div>' +
       '<p class="hint">키 변경: <a href="#" id="mx-keyreset">키 다시 입력</a></p></div>' +
     '<div class="card" id="mx-detail" style="display:none"></div>';
 
@@ -7364,7 +7946,7 @@ function drawMapPins() {
   rows.forEach(function (r) {
     var el = document.createElement("div");
     var val = MAPX.metric === "price" ? eok(r.price) : (r.jr != null ? r.jr.toFixed(0) + "%" : "—");
-    el.style.cssText = "background:hsl(40,45%," + Math.min(60, r.light) + "%);color:#10131a;font:600 10px Pretendard Variable,sans-serif;" +
+    el.style.cssText = "background:hsl(214,90%," + Math.max(38, Math.min(92, r.light + 30)) + "%);color:" + (r.light < 40 ? "#fff" : "#191f28") + ";font:600 10px Pretendard Variable,sans-serif;" +
       "padding:3px 7px;border-radius:7px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer;text-align:center;line-height:1.3";
     el.innerHTML = "<b>" + val + "</b><br><span style='font-weight:500;opacity:.9'>" + disp(r.key).split(" ").pop() + "</span>";
     el.addEventListener("click", function () { showMapDetail(r.key); });
@@ -7609,15 +8191,15 @@ function renderSupplyExt() {
           { type: "bar", label: "준공 실적(호)", data: comp, backgroundColor: cUp + "88", borderRadius: 2, yAxisID: "y" },
           { type: "bar", label: "입주 예정(세대)", data: expArr, backgroundColor: cBrand + "aa", borderRadius: 2, yAxisID: "y" },
           { type: "line", label: "연간 추정 수요", data: years.map(function () { return dem; }),
-            borderColor: cDown, borderDash: [6, 4], pointRadius: 0, borderWidth: 1.5, yAxisID: "y" },
+            borderColor: "#f08c00", borderDash: [6, 4], pointRadius: 0, borderWidth: 1.5, yAxisID: "y" },
           { type: "line", label: "매매가격지수(우)", data: idxArr,
-            borderColor: "#e8ecf2", pointRadius: 0, tension: .25, borderWidth: 2, yAxisID: "y2" }
+            borderColor: "#191f28", pointRadius: 0, tension: .25, borderWidth: 2, yAxisID: "y2" }
         ] },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
         scales: {
-          y: { grid: { color: "#1e2836" }, ticks: { font: { size: 10 } } },
+          y: { grid: { color: "#f0f2f4" }, ticks: { font: { size: 10 } } },
           y2: { position: "right", grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } },
           x: { grid: { display: false }, ticks: { font: { size: 10 } } }
         }
@@ -7665,7 +8247,7 @@ function buildSupply(root) {
       '<div class="eyebrow">Starts</div><h2>착공 → 입주 예고</h2>' +
       '<p class="desc">아파트는 <b>삽을 뜬 뒤 2~3년</b>이면 입주합니다. 그래서 착공 실적은 ' +
         '분양 공고보다 앞서고, 이미 확정된 물량이라 추정치보다 단단합니다. ' +
-        '골드 막대가 <b>착공</b>, 초록 막대가 <b>준공</b>, 점선은 착공을 <b>3년 뒤로 민 것</b> — ' +
+        '파란 막대가 <b>착공</b>, 빨간 막대가 <b>준공</b>, 점선은 착공을 <b>3년 뒤로 민 것</b> — ' +
         '즉 그 착공이 입주로 나타날 시점입니다.</p>' +
       '<div class="note" style="margin-bottom:10px"><b>위 「입주물량·수급」 카드와 뭐가 다른가</b><br>' +
         '· <b>입주물량·수급</b>은 <b>청약홈 분양 공고</b>를 모은 것입니다. 공고에 적힌 입주예정년월 기준이라 ' +
@@ -7687,8 +8269,8 @@ function buildSupply(root) {
 
     '<div class="card" id="sp-yearcard" style="display:none">' +
       '<div class="eyebrow">Yearly</div><h2>공급 · 수요 · 매매가격</h2>' +
-      '<p class="desc">파란 막대는 <b>준공 실적</b>(국토부·아파트), 호박색 막대는 <b>입주 예정</b>(부동산원), ' +
-        '붉은 점선은 연간 추정 수요, 검은 선은 <b>매매가격지수</b>(우축, 실거래 중위가 기준)입니다. 물량이 쏟아진 시기와 ' +
+      '<p class="desc">빨간 막대는 <b>준공 실적</b>(국토부·아파트), 파란 막대는 <b>입주 예정</b>(부동산원), ' +
+        '주황 점선은 연간 추정 수요, 검은 선은 <b>매매가격지수</b>(우축, 실거래 중위가 기준)입니다. 물량이 쏟아진 시기와 ' +
         '가격이 눌린 시기가 겹치는지 한 화면에서 봅니다.</p>' +
       '<div class="chartbox"><canvas id="sp-year"></canvas></div>' +
       '<div class="note" id="sp-yearread" style="margin-top:10px"></div></div>' +
@@ -8831,8 +9413,8 @@ function renderFun() {
   document.getElementById("fun-th-region").textContent = FUN.region;
   document.querySelector("#fun-termtable tbody").innerHTML = rowsHtml;
   funChart("fun-terms", { type: "bar", data: { labels: labels, datasets: [
-    { label: "전국 연평균", data: barNat, backgroundColor: "rgba(212,175,106,.35)" },
-    { label: FUN.region + " 연평균", data: barReg, backgroundColor: "#d4af6a" }] },
+    { label: "전국 연평균", data: barNat, backgroundColor: "rgba(49,130,246,.3)" },
+    { label: FUN.region + " 연평균", data: barReg, backgroundColor: "#3182f6" }] },
     options: { responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: "bottom" } },
       scales: { y: { title: { display: true, text: "%/년 (연복리)" } } } } });
@@ -8866,7 +9448,7 @@ function renderFun() {
     polPts.push({ x: i, y: (lineData[i] != null ? lineData[i] : null) });
   });
   funChart("fun-policy", { type: "line", data: { labels: lineLabels, datasets: [
-    { label: FUN.region + " 매매지수", data: lineData, borderColor: "#d4af6a", pointRadius: 0, borderWidth: 1.5 },
+    { label: FUN.region + " 매매지수", data: lineData, borderColor: "#3182f6", pointRadius: 0, borderWidth: 1.5 },
     { label: "정책 시점", type: "scatter", showLine: false, pointRadius: 4,
       pointBackgroundColor: "#e08c3a",
       data: (function () { var arr = new Array(lineData.length).fill(null);
@@ -8915,7 +9497,7 @@ function renderFun() {
       "<td>" + (r.usd ? "$" + fmt(Math.round(r.usd / 1000) * 1000) : "—") + "</td></tr>";
   }).join("");
   funChart("fun-wage", { type: "line", data: { labels: wlabels, datasets: [
-    { label: "84㎡ 가격", data: normA, borderColor: "#d4af6a", pointRadius: 2 },
+    { label: "84㎡ 가격", data: normA, borderColor: "#3182f6", pointRadius: 2 },
     { label: "최저시급", data: normW, borderColor: "#2fbf9b", pointRadius: 2 },
     { label: "원/달러", data: normF, borderColor: "#8a93a6", pointRadius: 2, borderDash: [4, 3] }] },
     options: { responsive: true, maintainAspectRatio: false,
@@ -8949,7 +9531,7 @@ function renderFun() {
     var alabels = arows.map(function (r) { return r.y; });
     funChart("fun-asset", { type: "line", data: { labels: alabels, datasets: [
       { label: "84㎡ 가격", data: arows.map(function (r) { return r.price / a0.price * 100; }),
-        borderColor: "#d4af6a", pointRadius: 2 },
+        borderColor: "#3182f6", pointRadius: 2 },
       { label: "금 (원)", data: arows.map(function (r) { return goldKrwG(r.y) / goldKrwG(a0.y) * 100; }),
         borderColor: "#e8b04b", pointRadius: 2, borderDash: [5, 3] },
       { label: "비트코인 (원)", data: arows.map(function (r) { return btcKrw(r.y) / btcKrw(a0.y) * 100; }),
@@ -8979,7 +9561,7 @@ function renderFun() {
     statBox("역대 최저", minMult.toFixed(2) + "배", "", "2013~ 기준") +
     statBox("역대 최고", maxMult.toFixed(2) + "배", "", "") : "";
   funChart("fun-gap", { type: "line", data: { labels: gl, datasets: [
-    { label: "강남구 ÷ 전국 (㎡당가 배율)", data: gd, borderColor: "#d4af6a", pointRadius: 0, borderWidth: 1.5 }] },
+    { label: "강남구 ÷ 전국 (㎡당가 배율)", data: gd, borderColor: "#3182f6", pointRadius: 0, borderWidth: 1.5 }] },
     options: { responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: "bottom" } }, scales: { x: { ticks: { maxTicksLimit: 10 } } } } });
 }
@@ -8995,7 +9577,7 @@ function raceSeries(useFx) {
   function raw(tbl, y) { return tbl[y] != null ? tbl[y] : null; }
   var usd = useFx ? krw : raw;
   var defs = [
-    { name: "강남구 84㎡ (실거래)", color: "#d4af6a", get: null },
+    { name: "강남구 84㎡ (실거래)", color: "#3182f6", get: null },
     { name: "코스피", color: "#5b8def", get: function (y) { return raw(FUN_KOSPI, y); } },
     { name: "코스닥", color: "#5b8def", dash: [4, 3], hide: 1, get: function (y) { return raw(FUN_KOSDAQ, y); } },
     { name: "S&P500", color: "#c46be0", get: function (y) { return usd(FUN_SPX, y); } },
@@ -9019,7 +9601,7 @@ function raceSeries(useFx) {
   if (RACE.rep) {
     Object.keys(RACE.rep).forEach(function (nm) {
       var tbl = RACE.rep[nm];
-      defs.push({ name: nm + " (실거래)", color: nm.indexOf("압구정") >= 0 ? "#f2d9a4" : "#9bb7d4",
+      defs.push({ name: nm + " (실거래)", color: nm.indexOf("압구정") >= 0 ? "#191f28" : "#8b5cf6",
         get: function (y) { return tbl[y] != null ? tbl[y] : null; } });
     });
   }
@@ -9340,7 +9922,7 @@ function renderStepBar() {
 /* 탭 진입 때마다 다시 그린다 — 빌드는 부팅 직후라 supply_data 로드 전이다 */
 function refreshSourceTable() {
   var box = document.getElementById("g-sources");
-  if (box) box.innerHTML = guideSourceTable();
+  if (box) { box.innerHTML = guideSourceTable(); popifyCards(box); }
 }
 function guideSourceTable() {
   var ok = '<span class="tagmini ok">자동 (API 실시간)</span>';
@@ -10168,6 +10750,7 @@ function buildSetting(root) {
     RULES = JSON.parse(JSON.stringify(DEFAULT_RULES));
     saveRules();
     buildSetting(root);
+    popifyCards(root);
     document.getElementById("r-hint").textContent = "기본값으로 복원했습니다.";
   });
 }
@@ -10197,7 +10780,7 @@ function buildMarket(root) {
         '10으로 나누면 실제보다 부풀려지니 반드시 복리 기준으로 보세요.</div>' +
     '</div>' +
     '<div class="card"><div class="eyebrow">Annual</div><h2>연도별 상승률</h2>' +
-      '<p class="desc">막대가 매매, 선이 전세입니다. 청록 막대가 상승, 호박 막대가 하락한 해입니다.</p>' +
+      '<p class="desc">막대가 매매, 선이 전세입니다. 빨간 막대가 상승, 파란 막대가 하락한 해입니다.</p>' +
       '<div class="chartbox"><canvas id="mk-annual"></canvas></div></div>' +
     '<div class="card"><div class="eyebrow">Index</div><h2>지수 추이</h2>' +
       '<p class="desc">누적 지수 자체를 봅니다. 기울기가 곧 그 구간의 속도입니다.</p>' +
@@ -10408,7 +10991,7 @@ function chartOpts(unit) {
     scales: {
       x: { ticks: { maxTicksLimit: 10, font: { size: 10 } }, grid: { display: false } },
       y: { ticks: { font: { size: 10 }, callback: function (v) { return v + unit; } },
-           grid: { color: "#1e2836" } }
+           grid: { color: "#f0f2f4" } }
     }
   };
 }

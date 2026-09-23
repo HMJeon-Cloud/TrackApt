@@ -40,7 +40,7 @@ html{font-size:16px}
 body{font-family:"Pretendard Variable",Pretendard,-apple-system,system-ui,sans-serif;
   background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
 header{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);
-  padding:calc(min(env(safe-area-inset-top, 0px), 34px) + 10px) 16px 0}
+  padding:calc(0px + 10px) 16px 0}
 .brand{display:flex;align-items:baseline;gap:8px;padding-bottom:8px}
 .brand h1{font-size:1.15rem;font-weight:800;letter-spacing:-.02em}
 .brand h1{color:var(--ink)}
@@ -59,7 +59,7 @@ nav#nav button.cart.on{background:var(--cash);border-color:var(--cash);color:var
 nav#nav button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cash);margin-left:5px;vertical-align:1px}
 nav#nav button.on .dot{background:#fff}
 nav button:focus-visible,.seg button:focus-visible{outline:2px solid var(--cash);outline-offset:2px}
-main{max-width:860px;margin:0 auto;padding:16px 16px calc(min(env(safe-area-inset-bottom, 0px), 34px) + 48px)}
+main{max-width:860px;margin:0 auto;padding:16px 16px calc(0px + 48px)}
 section.tab{display:none} section.tab.on{display:block}
 .card{background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);
   border:1px solid var(--line);box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 8px 24px rgba(0,0,0,.35);
@@ -477,7 +477,7 @@ b,strong{font-weight:700}
 
 /* ── 머리글 ── */
 header{background:rgba(255,255,255,.9);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);
-  border-bottom:1px solid rgba(0,0,0,.05);padding:calc(min(env(safe-area-inset-top, 0px), 34px) + 10px) 16px 0}
+  border-bottom:1px solid rgba(0,0,0,.05);padding:calc(0px + 10px) 16px 0}
 .brand{max-width:860px;margin:0 auto;align-items:center;padding-bottom:8px;gap:8px}
 .brand h1{font-size:1.35rem;font-weight:800;letter-spacing:-.6px;color:var(--ink);cursor:pointer}
 .brand h1 .accent{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--accent)}
@@ -512,15 +512,15 @@ header{background:rgba(255,255,255,.9);-webkit-backdrop-filter:saturate(180%) bl
   #datainfo{display:none}
   #botnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(255,255,255,.97);
     -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);
-    padding:6px 4px calc(min(env(safe-area-inset-bottom, 0px), 34px) + 6px)}
+    padding:6px 4px calc(0px + 6px)}
   #botnav button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;
     font-size:.68rem;font-weight:600;color:var(--sub);padding:4px 0;cursor:pointer;position:relative}
   #botnav .ic{font-size:1.3rem;line-height:1;filter:grayscale(1);opacity:.5}
   #botnav button.on{color:var(--ink)}
   #botnav button.on .ic{filter:none;opacity:1}
   #botnav .navcnt{position:absolute;top:0;left:52%;min-width:16px;height:16px;line-height:16px;font-size:.6rem}
-  main{padding-bottom:calc(min(env(safe-area-inset-bottom, 0px), 34px) + 90px)!important}
-  footer{padding-bottom:calc(min(env(safe-area-inset-bottom, 0px), 34px) + 96px)!important}
+  main{padding-bottom:calc(0px + 90px)!important}
+  footer{padding-bottom:calc(0px + 96px)!important}
 }
 
 main{max-width:860px;padding:14px 16px 56px}
@@ -568,7 +568,7 @@ footer{color:var(--sub)!important;font-size:.7rem!important}
 #infomodal .im-body .note,#infomodal .im-body .callout{margin:10px 0 0}
 @media (max-width:700px){
   #infomodal{align-items:flex-end}
-  #infomodal .im-box{width:100%;max-height:86vh;border-radius:24px 24px 0 0;padding-bottom:min(env(safe-area-inset-bottom, 0px), 34px)}
+  #infomodal .im-box{width:100%;max-height:86vh;border-radius:24px 24px 0 0;padding-bottom:0px}
 }
 
 /* 탭 안 구역 나누기 */
@@ -795,7 +795,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v6.01</span>
+    <span class="ver">v6.02</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>

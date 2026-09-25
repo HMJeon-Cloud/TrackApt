@@ -788,6 +788,12 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 #wiz-body .btnrow{flex-wrap:nowrap}
 #wiz-body .btnrow .btn{width:auto;flex:1}
 #wiz-body .btnrow #wiz-prev{flex:0 0 32%}
+/* 이미지 저장용 복제본 — 표를 펼친 폭 그대로 */
+.expclone{max-width:none!important;margin:0!important;box-shadow:none!important}
+.expclone .tblwrap,.expclone .pxbox{overflow:visible!important}
+.expclone .chartbox{overflow:visible}
+.expclone .expcap{font-size:.74rem;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:-.2px}
+.expclone .expval{display:inline-block;background:var(--bg);border-radius:999px;padding:5px 12px;font-size:.84rem;font-weight:700;color:var(--ink);margin:2px 0 8px}
 </style>
 </head>
 <body>
@@ -795,7 +801,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v6.02</span>
+    <span class="ver">v6.03</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1266,6 +1272,95 @@ function splitSections() {
     show(0);
     seg._show = show;
   });
+}
+
+/* ══ 이미지 저장 (v6.03) ══════════════════════════════════
+   화면에 보이는 카드 그대로 찍으면 가로로 밀어야 보이는 표 칸이 잘린다.
+   카드를 복제해 표를 펼친 폭으로 넓히고(휴대폰 카드형 표도 원래 표로 되돌린다),
+   차트는 그림을 그대로 옮겨 그린 뒤 그 복제본을 찍는다. 화면의 원본은 건드리지 않는다. */
+function exportCardImage(card, name) {
+  var host = document.createElement("div");
+  host.style.cssText = "position:absolute;left:0;top:" + (window.pageYOffset || 0) +
+    "px;z-index:-1;pointer-events:none;background:#fff";
+  var clone = card.cloneNode(true);
+  clone.classList.add("capturing", "expclone");
+  clone.classList.remove("segHide", "infoOnly");
+  clone.removeAttribute("id");
+  Array.prototype.forEach.call(clone.querySelectorAll("[id]"), function (e) { e.removeAttribute("id"); });
+  Array.prototype.forEach.call(clone.querySelectorAll("table.carded"), function (t) { t.classList.remove("carded"); });
+  Array.prototype.forEach.call(clone.querySelectorAll(".sortchips, .popSrc, .cellhelp"), function (e) {
+    e.parentNode.removeChild(e);
+  });
+  /* 버튼은 그림에서 빠지므로, 고른 값(지역·기간·구분)은 글자로 바꿔 남긴다 */
+  function val(el) { var d = document.createElement("span"); d.className = "expval"; d.textContent = el; return d; }
+  var os = card.querySelectorAll("select"), cs = clone.querySelectorAll("select");
+  for (var si = 0; si < os.length && si < cs.length; si++) {
+    var o = os[si].options[os[si].selectedIndex];
+    var target = cs[si].closest(".pkwrap") || cs[si];
+    target.parentNode.replaceChild(val(o ? o.textContent.trim() : "—"), target);
+  }
+  var oi = card.querySelectorAll("input"), ci = clone.querySelectorAll("input");
+  for (var ii = 0; ii < oi.length && ii < ci.length; ii++) {
+    if (oi[ii].type === "checkbox" || oi[ii].type === "radio") ci[ii].checked = oi[ii].checked;
+    else ci[ii].setAttribute("value", oi[ii].value);
+  }
+  Array.prototype.forEach.call(clone.querySelectorAll(".seg, .pickchips"), function (sg) {
+    var on = Array.prototype.filter.call(sg.querySelectorAll("button.on"), function (b) { return true; })
+      .map(function (b) { return b.textContent.trim(); });
+    if (on.length) sg.parentNode.replaceChild(val(on.join(" · ")), sg);
+    else sg.parentNode.removeChild(sg);
+  });
+  Array.prototype.forEach.call(clone.querySelectorAll(".expbar, .btnrow, .infoIn, .infoBtn"), function (e) {
+    if (!e.querySelector("table")) e.parentNode.removeChild(e);
+  });
+  /* 맨 위에 출처 한 줄 — 어느 화면·어느 기준의 그림인지 */
+  var sec = card.closest("section.tab"), tabName = "";
+  if (sec) TABS.forEach(function (t) { if ("tab-" + t.id === sec.id) tabName = t.name; });
+  var di = document.getElementById("datainfo");
+  var now = new Date();
+  var cap = document.createElement("div");
+  cap.className = "expcap";
+  cap.textContent = "TrackApt" + (tabName ? " · " + tabName : "") + (di && di.textContent ? " · " + di.textContent : "") +
+    " · " + now.getFullYear() + "." + ("0" + (now.getMonth() + 1)).slice(-2) + "." + ("0" + now.getDate()).slice(-2) + " 저장";
+  clone.insertBefore(cap, clone.firstChild);
+  var baseW = Math.ceil(card.getBoundingClientRect().width) || 360;
+  clone.style.width = baseW + "px";
+  host.appendChild(clone);
+  document.body.appendChild(host);
+  /* 차트 그림 옮기기 — cloneNode는 캔버스의 그림을 복사하지 않는다 */
+  var oc = card.querySelectorAll("canvas"), cc = clone.querySelectorAll("canvas");
+  for (var i = 0; i < oc.length && i < cc.length; i++) {
+    try {
+      var r = oc[i].getBoundingClientRect();
+      cc[i].width = oc[i].width; cc[i].height = oc[i].height;
+      cc[i].style.width = r.width + "px"; cc[i].style.height = r.height + "px";
+      cc[i].getContext("2d").drawImage(oc[i], 0, 0);
+    } catch (e) {}
+  }
+  /* 가장 넓은 표만큼 카드를 넓힌다 */
+  var extra = 0;
+  Array.prototype.forEach.call(clone.querySelectorAll(".tblwrap, .pxbox"), function (w) {
+    var over = w.scrollWidth - w.clientWidth;
+    if (over > extra) extra = over;
+  });
+  var W = baseW + Math.ceil(extra) + 2;
+  clone.style.width = W + "px";
+  var H = Math.ceil(clone.getBoundingClientRect().height);
+  /* 휴대폰 브라우저의 캔버스 한도(아이폰 약 1,670만 화소 · 한 변 32,000px) 안으로 배율을 맞춘다.
+     전국 표처럼 아주 긴 그림은 1배 아래로 내려가지만, 잘리는 것보다 낫다. */
+  var scale = Math.min(2, Math.sqrt(16500000 / (W * H)), 32000 / H, 32000 / W);
+  return html2canvas(clone, { backgroundColor: "#ffffff", scale: scale, useCORS: true,
+                              width: W, height: H, windowWidth: document.documentElement.clientWidth })
+    .then(function (canvas) {
+      host.parentNode.removeChild(host);
+      var a = document.createElement("a");
+      a.download = name + ".png";
+      a.href = canvas.toDataURL("image/png");
+      document.body.appendChild(a); a.click(); a.parentNode.removeChild(a);
+    }, function (e) {
+      if (host.parentNode) host.parentNode.removeChild(host);
+      throw e;
+    });
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */
@@ -6231,14 +6326,8 @@ document.addEventListener("click", function (ev) {
     if (typeof html2canvas === "undefined") { alert("이미지 라이브러리를 아직 불러오지 못했습니다. 잠시 후 다시 시도하세요."); return; }
     var card = b.closest(".card");
     if (!card) return;
-    card.classList.add("capturing");
-    html2canvas(card, { backgroundColor: "#ffffff", scale: 2, useCORS: true }).then(function (canvas) {
-      card.classList.remove("capturing");
-      var a = document.createElement("a");
-      a.download = name + ".png";
-      a.href = canvas.toDataURL("image/png");
-      a.click();
-    }).catch(function () { card.classList.remove("capturing"); alert("이미지 저장에 실패했습니다."); });
+    progOpen("이미지 만드는 중", 0);
+    exportCardImage(card, name).then(progClose, function () { progClose(); alert("이미지 저장에 실패했습니다."); });
   }
 });
 

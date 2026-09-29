@@ -794,6 +794,31 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .expclone .chartbox{overflow:visible}
 .expclone .expcap{font-size:.74rem;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:-.2px}
 .expclone .expval{display:inline-block;background:var(--bg);border-radius:999px;padding:5px 12px;font-size:.84rem;font-weight:700;color:var(--ink);margin:2px 0 8px}
+/* 주간 브리핑 */
+.bflist{display:flex;flex-direction:column;gap:6px}
+.bfrow{display:flex;align-items:center;gap:10px;background:var(--panel2);border-radius:14px;padding:10px 12px}
+.bfno{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:.74rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.bfbody{flex:1;min-width:0}
+.bfname{font-weight:700;font-size:.92rem;line-height:1.35}
+.bfname small{color:var(--sub);font-weight:500;font-size:.76rem}
+.bfwhy{font-size:.74rem;color:var(--sub);margin-top:2px;line-height:1.45}
+.bfval{flex:none;text-align:right;font-weight:800;font-size:1rem;font-variant-numeric:tabular-nums;color:var(--ink)}
+.bfval.up{color:var(--up)} .bfval.down{color:var(--down)}
+.bfval small{display:block;font-size:.62rem;color:var(--sub);font-weight:600}
+.bfrow .btn.sm{padding:6px 9px;flex:none}
+.bfsub{font-size:.8rem;font-weight:700;color:var(--ink-soft);margin:16px 0 6px}
+.bfnote{background:var(--panel2);border-radius:14px;padding:12px 14px;margin-bottom:6px;font-size:.9rem}
+.bfnote .bfwhy{font-size:.82rem;color:var(--ink-soft);margin-top:4px}
+.bfnews{list-style:none;margin:0;padding:0}
+.bfnews li{padding:8px 0;border-bottom:1px solid var(--bg);font-size:.86rem;line-height:1.45}
+.bfnews li a{color:var(--ink);text-decoration:none;font-weight:600}
+.bfnews li small{display:block;color:var(--sub);font-size:.72rem}
+#bf-sido{flex-wrap:nowrap;overflow-x:auto}
+#bf-sido button{flex:none}
+.homeBrief{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;background:var(--ink);color:#fff;border:0;border-radius:var(--r-card);padding:16px 18px;font:inherit;cursor:pointer;text-align:left}
+.homeBrief b{display:block;font-size:1rem}
+.homeBrief small{display:block;color:rgba(255,255,255,.7);font-size:.8rem;margin-top:2px}
+.homeBrief .arr{margin-left:auto;font-size:1.4rem;color:rgba(255,255,255,.6)}
 </style>
 </head>
 <body>
@@ -801,7 +826,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v6.03</span>
+    <span class="ver">v6.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -883,6 +908,7 @@ var GROUPS = [
     { id: "calc",    name: "돈 계산",     build: buildCalc } ] },
   { id: "browse", name: "둘러보기", ic: "🔍", tabs: [
     { id: "browse",  name: "둘러보기",    build: buildBrowse },
+    { id: "brief",   name: "주간 브리핑", cat: "price",  ic: "📰", d: "이번 주 볼 만한 곳과 실거래 속보", build: buildBrief },
     { id: "market",  name: "시장 흐름",   cat: "price",  ic: "📈", d: "연도별 상승률과 지수 흐름", build: buildMarket },
     { id: "vol",     name: "거래량",      cat: "price",  ic: "📊", d: "손바뀜으로 보는 지금 국면", build: buildVol },
     { id: "quad",    name: "매매·전세 흐름", cat: "price", ic: "🧭", d: "지역별 매매·전세 4분면", build: buildQuad },
@@ -1002,6 +1028,7 @@ function showTab(id) {
   });
   if (id === "guide") refreshSourceTable();
   if (id === "home") renderHomeData();
+  if (id === "brief" && DB) renderBrief();
   if (!DB) return;
   if (id === "market") renderMarket();
   if (id === "rank") renderRank();
@@ -1075,6 +1102,9 @@ function buildHome(root) {
         "<span><b>시세 둘러보기</b><small>동네 순위·시세 흐름·아파트를 직접 찾아봐요</small></span>" +
         '<span class="arr">›</span></button>' +
     "</div>" +
+    '<button type="button" class="homeBrief" data-go="brief"><span style="font-size:26px">📰</span>' +
+      "<span><b>이번 주 브리핑</b><small>떠오르는 동네 · 참고 후보 · 실거래 속보</small></span>" +
+      '<span class="arr">›</span></button>' +
     '<div class="homeSec"><h3>많이 보는 화면</h3><div class="homeChips">' +
       chips.map(function (c) { return '<button type="button" data-go="' + c[0] + '">' + c[1] + "</button>"; }).join("") +
     "</div></div>" +
@@ -1361,6 +1391,224 @@ function exportCardImage(card, name) {
       if (host.parentNode) host.parentNode.removeChild(host);
       throw e;
     });
+}
+
+/* ══ 주간 브리핑 (v6.1) ═══════════════════════════════════════
+   매주 한 번 들어와 훑는 화면. 세 층으로 만든다.
+   ① 저장본(market_core)만으로 즉시 나오는 것 — 오늘의 숫자·떠오르는 동네·거래 회복·참고 후보
+   ② 사람이 적는 것 — brief_notes.json (이번 주 이슈 메모)
+   ③ 서버가 하루 한 번 모아 두는 것 — /api/brief (뉴스 제목, 시·도별 실거래 속보)
+   원칙: 추천이 아니라 '참고 후보'. 왜 골랐는지 숫자를 옆에 적고, 표본이 얇으면 뺀다. */
+var BRIEF = { sido: "", news: null, notes: null, regions: {}, busy: false };
+
+function buildBrief(root) {
+  root.innerHTML =
+    '<div class="card"><h2>이번 주 브리핑</h2>' +
+      '<p class="desc">저장된 실거래 시세로 이번 주에 볼 만한 곳을 골라 두었어요. 숫자는 매달 자료를 갱신할 때 함께 바뀝니다. ' +
+        '여기 나오는 지역·단지는 <b>참고 후보</b>이지 매수 권유가 아닙니다. 최근 1~2개월 실거래는 신고가 덜 들어와 값이 작게 잡힐 수 있습니다.</p>' +
+      '<div class="status" id="bf-kpi"></div></div>' +
+    '<div class="card" id="bf-issue"><h2>이번 주 이슈</h2><div id="bf-notes"><p class="hint">메모를 여는 중…</p></div>' +
+      '<div id="bf-news" style="margin-top:12px"></div></div>' +
+    '<div class="card"><h2>떠오르는 동네</h2>' +
+      '<p class="desc">최근 3개월 매매 시세가 가장 많이 오른 시·군·구입니다. 3개월 이동중위로 재서 한 달 튄 값에 덜 흔들립니다. 거래가 월 10건이 안 되는 곳은 뺐습니다.</p>' +
+      '<div id="bf-rising"></div></div>' +
+    '<div class="card"><h2>거래가 살아난 곳</h2>' +
+      '<p class="desc">최근 12개월 거래량이 직전 5년 평균보다 얼마나 늘었는지입니다. 가격보다 손바뀜이 먼저 움직입니다.</p>' +
+      '<div id="bf-vol"></div></div>' +
+    '<div class="card"><h2>이번 주 참고 후보</h2>' +
+      '<p class="desc">지역 채점표(급지 45 · 성과 10 · 수급 10 · 타이밍 20 · 자금 15)에서 <b>타이밍이 밴드 하단</b>에 있으면서 급지가 상위 절반인 곳입니다. ' +
+        '내 조건을 넣어 두면 자금 축이 반영됩니다. 같은 급지 안에서 순서를 볼 때만 쓰세요.</p>' +
+      '<div id="bf-pick"></div></div>' +
+    '<div class="card"><h2>실거래 속보</h2>' +
+      '<p class="desc">이번 달 신고된 매매 실거래를 시·도별로 모았습니다. 최고가 거래, 거래가 많은 단지, 지난달 같은 평형대 최고가를 넘긴 단지입니다. ' +
+        '서버가 하루 한 번 모아 두므로 처음 여는 시·도만 몇 초 걸립니다.</p>' +
+      '<div class="seg" id="bf-sido"></div>' +
+      '<div id="bf-live" style="margin-top:12px"><p class="hint">시·도를 고르면 불러옵니다.</p></div></div>';
+}
+function renderBrief() {
+  if (!DB || !RANKED.length) return;
+  var e = latestYM("sale"), cond = getCond();
+  /* ── 오늘의 숫자 ── */
+  var nat = idxChange("sale", "전국", 1), nat3 = idxChange("sale", "전국", 3);
+  var ups = 0, downs = 0, volUp = 0;
+  RANKED.forEach(function (k) {
+    var c = idxChange("sale", k, 3);
+    if (c != null) { if (c > 0.5) ups++; else if (c < -0.5) downs++; }
+    var v = volTrend(k); if (v != null && v >= 1.2) volUp++;
+  });
+  document.getElementById("bf-kpi").innerHTML =
+    statBox("자료 기준", e[0] + "." + (e[1] < 10 ? "0" : "") + e[1], "", "국토부 실거래 집계") +
+    statBox("전국 3개월", nat3 != null ? pct(nat3, 1) : "—", cls(nat3), "전월 " + (nat != null ? pct(nat, 1) : "—")) +
+    statBox("3개월 오른 지역", ups + "곳", "up", "내린 지역 " + downs + "곳") +
+    statBox("거래 20%+ 늘어난 곳", volUp + "곳", volUp ? "up" : "", "12개월 ÷ 5년 평균");
+
+  /* ── 떠오르는 동네 ── */
+  var rows = RANKED.map(function (k) {
+    var c3 = idxChange("sale", k, 3), c12 = idxChange("sale", k, 12);
+    var vs = lastVals("vol", k, 3), vol = vs.length ? Math.round(vs.reduce(function (a, b) { return a + b; }, 0) / vs.length) : 0;
+    var b = bandStats(ratioSeries(pmSeries("jeonsePm", k), pmSeries("salePm", k), 100), 120);
+    return { k: k, c3: c3, c12: c12, vol: vol, vt: volTrend(k), jr: b && b.count >= 24 ? b.pctile : null, rank: RANKED.indexOf(k) + 1 };
+  }).filter(function (r) { return r.c3 != null && r.vol >= 10; });
+  var rising = rows.slice().sort(function (a, b) { return b.c3 - a.c3; }).slice(0, 5);
+  document.getElementById("bf-rising").innerHTML = briefList(rising.map(function (r, i) {
+    return { no: i + 1, k: r.k, main: pct(r.c3, 1), mainCls: cls(r.c3),
+      why: "3개월 " + pct(r.c3, 1) + " · 12개월 " + (r.c12 != null ? pct(r.c12, 1) : "—") + " · 월 " + fmt(r.vol) + "건" +
+        (r.vt != null ? " · 거래 " + r.vt.toFixed(2) + "배" : "") + " · 급지 " + r.rank + "위" };
+  }), "3개월");
+  /* ── 거래 회복 ── */
+  var vol = rows.filter(function (r) { return r.vt != null; }).sort(function (a, b) { return b.vt - a.vt; }).slice(0, 5);
+  document.getElementById("bf-vol").innerHTML = briefList(vol.map(function (r, i) {
+    return { no: i + 1, k: r.k, main: r.vt.toFixed(2) + "배", mainCls: r.vt >= 1.3 ? "up" : "",
+      why: "월 " + fmt(r.vol) + "건 · 3개월 " + pct(r.c3, 1) + (r.jr != null ? " · 전세가율 밴드 " + r.jr.toFixed(0) + "%" : "") + " · 급지 " + r.rank + "위" };
+  }), "12개월÷5년");
+  /* ── 참고 후보 ── */
+  var homeArr = (cond.own !== "none" && cond.home && DB.salePm.series[cond.home]) ? pmSeries("salePm", cond.home) : null;
+  var half = Math.ceil(RANKED.length / 2), picks = [];
+  RANKED.slice(0, half).forEach(function (k, i) {
+    var s = scoreRegion(k, i, cond, homeArr);
+    if (s.s.timing >= 70 && !isRegulated(k) || (s.s.timing >= 76)) picks.push(s);
+  });
+  picks.sort(function (a, b) { return b.total - a.total; });
+  var AXN = { rank: "급지", perf: "성과", supply: "수급", timing: "타이밍", cash: "자금" };
+  document.getElementById("bf-pick").innerHTML = picks.length ? briefList(picks.slice(0, 5).map(function (s, i) {
+    var best = Object.keys(AXN).sort(function (a, b) { return s.s[b] - s.s[a]; })[0];
+    return { no: i + 1, k: s.key, main: s.total.toFixed(0) + "점", mainCls: "",
+      why: "급지 " + s.rank + "위 · " + s.timingNote + " · 강한 축 " + AXN[best] + " · " + s.fin.modeName + " 필요현금 " + eok(s.fin.need) +
+        (isRegulated(s.key) ? " · 규제지역" : "") };
+  }), "종합") + '<p class="hint">단지 단위는 <b>추천받기</b>에서 조건을 넣고 받으세요. 이 표는 지역 단위이며 개별 단지 가격과 다릅니다.</p>'
+    : '<p class="hint">지금은 밴드 하단에 들어온 상위 급지가 없습니다.</p>';
+  /* ── 시·도 칩 ── */
+  var seg = document.getElementById("bf-sido");
+  if (!seg.children.length) {
+    var sidos = [], seen = {};
+    RANKED.forEach(function (k) { var s = kbSido(k); if (s !== "기타" && !seen[s]) { seen[s] = 1; sidos.push(s); } });
+    var home = cond.home ? kbSido(cond.home) : "";
+    BRIEF.sido = (home && sidos.indexOf(home) >= 0) ? home : sidos[0];
+    seg.innerHTML = sidos.map(function (s) { return '<button type="button" data-s="' + s + '"' + (s === BRIEF.sido ? ' class="on"' : "") + ">" + s + "</button>"; }).join("");
+    seg.addEventListener("click", function (ev) {
+      var b = ev.target.closest("button[data-s]"); if (!b) return;
+      BRIEF.sido = b.dataset.s;
+      Array.prototype.forEach.call(seg.children, function (x) { x.classList.toggle("on", x === b); });
+      loadBriefLive();
+    });
+  }
+  loadBriefNotes(); loadBriefNews();
+  if (!BRIEF.liveOnce) { BRIEF.liveOnce = 1; loadBriefLive(); }
+}
+function briefList(items, unit) {
+  if (!items.length) return '<p class="hint">표본이 충분한 지역이 없습니다.</p>';
+  return '<div class="bflist">' + items.map(function (it) {
+    return '<div class="bfrow"><span class="bfno">' + it.no + '</span><div class="bfbody"><div class="bfname">' + regionCell(it.k) + "</div>" +
+      '<div class="bfwhy">' + it.why + "</div></div>" +
+      '<div class="bfval ' + (it.mainCls || "") + '">' + it.main + "<small>" + unit + "</small></div>" +
+      '<button type="button" class="btn sm ghost" data-bfgo="' + it.k + '">보기</button></div>';
+  }).join("") + "</div>";
+}
+document.addEventListener("click", function (e) {
+  var b = e.target.closest ? e.target.closest("[data-bfgo]") : null;
+  if (!b) return;
+  MK.region = b.dataset.bfgo;
+  showTab("market");
+  var sel = document.getElementById("mk-region");
+  if (sel) { sel.value = MK.region; fireChange(sel); }
+  window.scrollTo(0, 0);
+});
+function loadBriefNotes() {
+  var el = document.getElementById("bf-notes");
+  if (!el || BRIEF.notes) return;
+  fetch("brief_notes.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    BRIEF.notes = j || { items: [] };
+    var items = (j && j.items) || [];
+    el.innerHTML = items.length ? items.map(function (it) {
+      return '<div class="bfnote"><span class="tagmini gold">' + escHtml(it.tag || "메모") + "</span> <b>" + escHtml(it.title || "") + "</b>" +
+        (it.body ? '<div class="bfwhy">' + escHtml(it.body) + "</div>" : "") + "</div>";
+    }).join("") + (j.week ? '<p class="hint">' + escHtml(j.week) + " 주 메모</p>" : "")
+      : '<p class="hint">이번 주 메모가 없습니다.</p>';
+  }).catch(function () { el.innerHTML = '<p class="hint">메모 파일(brief_notes.json)을 읽지 못했습니다.</p>'; });
+}
+function loadBriefNews() {
+  var el = document.getElementById("bf-news");
+  if (!el || BRIEF.news) return;
+  el.innerHTML = '<p class="hint">기사 제목을 모으는 중…</p>';
+  fetchTimeout("/api/brief?kind=news", 15000).then(function (r) { return r.json(); }).then(function (j) {
+    BRIEF.news = j;
+    if (j.error && !(j.items && j.items.length)) { el.innerHTML = '<p class="hint">' + escHtml(j.error) + "</p>"; return; }
+    var kw = (j.keywords || []).slice(0, 10).map(function (k) { return '<span class="chip">' + escHtml(k[0]) + " <b>" + k[1] + "</b></span>"; }).join("");
+    var items = (j.items || []).slice(0, 8).map(function (it) {
+      var d = new Date(it.d), ds = isFinite(d) ? (d.getMonth() + 1) + "." + d.getDate() : "";
+      return '<li><a href="' + escHtml(it.u) + '" target="_blank" rel="noopener">' + escHtml(it.t) + "</a>" +
+        '<small>' + escHtml(it.s || "") + (ds ? " · " + ds : "") + "</small></li>";
+    }).join("");
+    el.innerHTML = '<div class="bfsub">이번 주 기사에 많이 나온 말</div><div class="chips" style="margin:4px 0 10px">' + kw + "</div>" +
+      '<div class="bfsub">최근 기사 제목</div><ul class="bfnews">' + items + "</ul>" +
+      '<p class="hint">구글 뉴스 검색 결과의 제목만 모은 것으로, 기사 내용은 확인하지 않았습니다.</p>';
+  }).catch(function () { el.innerHTML = '<p class="hint">기사 제목을 받지 못했습니다 (서버 함수 /api/brief 확인).</p>'; });
+}
+function loadBriefLive() {
+  var el = document.getElementById("bf-live");
+  if (!el || BRIEF.busy) return;
+  var sido = BRIEF.sido;
+  var codes = RANKED.filter(function (k) { return kbSido(k) === sido; });
+  if (!codes.length) { el.innerHTML = '<p class="hint">지역이 없습니다.</p>'; return; }
+  var cached = codes.every(function (c) { return BRIEF.regions[c]; });
+  BRIEF.busy = true;
+  if (!cached) { el.innerHTML = '<p class="hint">' + sido + " " + codes.length + "곳 실거래를 모으는 중…</p>"; progOpen(sido + " 실거래 속보 모으는 중", codes.length, true); }
+  var chain = Promise.resolve(), i = 0;
+  function one(c) {
+    if (BRIEF.regions[c]) return Promise.resolve();
+    return fetchTimeout("/api/brief?kind=region&lawd=" + c, 30000).then(function (r) { return r.json(); })
+      .then(function (j) { BRIEF.regions[c] = j; })["catch"](function () { BRIEF.regions[c] = { error: "네트워크 오류" }; })
+      .then(function () { progTick(); if (BRIEF.sido === sido && (++i % 4 === 0)) renderBriefLive(sido, codes, true); });
+  }
+  /* 3개씩 나란히 — 서버 함수 하나가 실거래 API를 2번씩 부른다 */
+  var groups = [];
+  for (var g = 0; g < codes.length; g += 3) groups.push(codes.slice(g, g + 3));
+  groups.forEach(function (grp) { chain = chain.then(function () { return Promise.all(grp.map(one)); }); });
+  chain.then(function () { BRIEF.busy = false; progClose(); if (BRIEF.sido === sido) renderBriefLive(sido, codes, false); else loadBriefLive(); })
+    ["catch"](function () { BRIEF.busy = false; progClose(); });
+}
+function renderBriefLive(sido, codes, partial) {
+  var el = document.getElementById("bf-live");
+  if (!el) return;
+  var tops = [], busy = [], highs = [], cnt = 0, prev = 0, ym = null, errs = 0, got = 0;
+  codes.forEach(function (c) {
+    var j = BRIEF.regions[c]; if (!j) return;
+    got++;
+    if (j.error) { errs++; return; }
+    ym = ym || j.ym; cnt += j.count || 0; prev += j.prevCount || 0;
+    (j.top || []).forEach(function (t) { t.k = c; tops.push(t); });
+    (j.busy || []).forEach(function (t) { t.k = c; busy.push(t); });
+    (j.newHigh || []).forEach(function (t) { t.k = c; highs.push(t); });
+  });
+  tops.sort(function (a, b) { return b.amount - a.amount; }); busy.sort(function (a, b) { return b.n - a.n; }); highs.sort(function (a, b) { return b.up - a.up; });
+  function ymTxt(y) { return y ? Math.floor(y / 100) + "." + (y % 100) : ""; }
+  var chg = prev ? (cnt / prev - 1) * 100 : null;
+  var h = '<div class="status">' +
+    statBox(ymTxt(ym) + " 신고 건수", fmt(cnt) + "건", "", "지난달 같은 집계 " + fmt(prev) + "건") +
+    statBox("전월 대비", chg != null ? pct(chg, 0) : "—", cls(chg), "이번 달은 아직 신고 중") +
+    statBox("최고가 거래", tops.length ? eok(tops[0].amount) : "—", "", tops.length ? escHtml(tops[0].apt) : "") +
+    statBox("최고가 경신 단지", highs.length + "곳", highs.length ? "up" : "", "지난달 같은 평형대 대비") + "</div>";
+  if (partial) h += '<p class="hint">' + got + " / " + codes.length + "곳 받는 중…</p>";
+  if (errs) h += '<p class="hint">' + errs + "곳은 실거래를 받지 못해 빠졌습니다.</p>";
+  function aptRow(t, main, mainCls, why) {
+    return '<div class="bfrow"><div class="bfbody"><div class="bfname"><b>' + escHtml(t.apt) + '</b> <small>' + escHtml(kbLabel(t.k)) + " " + escHtml(t.dong) + "</small></div>" +
+      '<div class="bfwhy">' + why + "</div></div>" + '<div class="bfval ' + mainCls + '">' + main + "</div>" +
+      '<button type="button" class="btn sm ghost" data-bfloc="' + escHtml(disp(t.k) + " " + t.dong + " " + t.apt) + '">' + bicon("pin") + "</button></div>";
+  }
+  h += '<div class="bfsub">이번 달 최고가 거래</div><div class="bflist">' + (tops.slice(0, 5).map(function (t) {
+    return aptRow(t, eok(t.amount), "", Math.round(t.area) + "㎡ · " + (t.floor ? t.floor + "층 · " : "") + (t.buildYear ? t.buildYear + "년 · " : "") + ymTxt(ym) + "." + (t.day || ""));
+  }).join("") || '<p class="hint">없음</p>') + "</div>";
+  h += '<div class="bfsub">지난달 최고가를 넘긴 단지 (같은 평형대)</div><div class="bflist">' + (highs.slice(0, 6).map(function (t) {
+    return aptRow(t, pct(t.up, 1), "up", t.band + "㎡대 · 이번 달 최고 " + eok(t.max.amount) + (t.max.floor ? " " + t.max.floor + "층" : "") + " · 지난달 최고 " + eok(t.prevMax) + " · " + t.n + "건");
+  }).join("") || '<p class="hint">지난달 거래가 있는 단지 중 최고가를 넘긴 곳이 없습니다.</p>') + "</div>";
+  h += '<div class="bfsub">거래가 가장 많은 단지</div><div class="bflist">' + (busy.slice(0, 5).map(function (t) {
+    return aptRow(t, t.n + "건", "", t.band + "㎡대 · 중위 " + eok(t.med) + " · 최고 " + eok(t.max.amount));
+  }).join("") || '<p class="hint">없음</p>') + "</div>";
+  h += '<p class="hint">실거래 신고 기한은 계약 후 30일이라 이번 달 숫자는 계속 늘어납니다. 한 건짜리 최고가는 특이 거래일 수 있으니 층·면적을 함께 보세요.</p>';
+  el.innerHTML = h;
+  el.querySelectorAll("[data-bfloc]").forEach(function (b) {
+    b.addEventListener("click", function () { openMapSheet(b.dataset.bfloc); });
+  });
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */

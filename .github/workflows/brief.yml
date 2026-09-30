@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,12 +26,13 @@ jobs:
         env:
           SITE: https://track-apt.vercel.app
           CONC: "3"
+          BACKFILL_MONTHS: "12"   # 역대 최고가 장부를 하룻밤에 과거로 넓히는 개월 수 (호출 한도가 빠듯하면 6으로)
         run: node scripts/brief_build.js
       - name: 바뀐 게 있으면 커밋
         run: |
           git config user.name "trackapt-bot"
           git config user.email "trackapt-bot@users.noreply.github.com"
-          git add brief_data.json
+          git add brief_data.json data/highs
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -m "brief: $(date -u -d '+9 hours' '+%Y-%m-%d %H:%M') KST 자동 갱신"
           # 수집하는 5~15분 사이에 다른 커밋(파일 업로드 등)이 올라왔으면 그 위에 얹어서 올린다

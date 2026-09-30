@@ -835,7 +835,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v6.32</span>
+    <span class="ver">v6.41</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1407,7 +1407,7 @@ function exportCardImage(card, name) {
    지역별 요약은 /api/brief?kind=region 이 만들어 두고(12시간 캐시), 여기서는 그걸 모아 순위를 매긴다.
    범위: 내 시·도 → 수도권 → 전국. 전국은 253곳이라 처음 여는 사람은 1~2분 걸린다(진행 표시).
    원칙: '추천'이 아니라 '참고 후보'. 왜 골랐는지 숫자를 옆에 적고, 표본이 얇으면 뺀다. */
-var BRIEF = { scope: "", band: "all", data: null, notes: null, regions: {}, loading: false };
+var BRIEF = { scope: "", band: "all", hmode: "all", data: null, notes: null, regions: {}, loading: false };
 var BRIEF_MIN = 8;                 /* 지역 순위에 올리는 최소 30일 거래 건수 */
 
 function buildBrief(root) {
@@ -1428,8 +1428,11 @@ function buildBrief(root) {
       '<p class="desc">최근 30일 ㎡당 중위 거래가를 직전 30일과 견줬습니다. 30일 표본이라 대형·소형이 섞이면 튈 수 있어 ±3% 안은 보합으로 봅니다.</p>' +
       '<div id="bf-price"></div></div>' +
     '<div class="card"><h2>신고가 경신 단지</h2>' +
-      '<p class="desc">최근 30일 거래가 <b>직전 90일 같은 평형대 최고가</b>를 넘긴 단지입니다. 직전 90일에 2건 이상 거래가 있어야 올립니다. 한 건짜리는 층·면적을 함께 보세요.</p>' +
-      '<div id="bf-high"></div></div>' +
+      '<p class="desc">최근 30일 거래가 예전 최고가를 넘긴 단지입니다. 기준을 둘 중에 고르세요. ' +
+        '<b>역대 대비</b>는 그 단지·평형대가 2020년 이후 실거래로 기록한 가장 높은 값(이전 신고가)을 넘긴 것이고, ' +
+        '<b>90일 대비</b>는 직전 90일(31~90일 전) 최고가를 넘긴 것 — 요즘 흐름에서 한 단계 올라선 곳입니다. 같은 평형대(59·84 등)끼리만 견줍니다.</p>' +
+      '<div class="seg" id="bf-hmode"><button type="button" data-h="all" class="on">역대 대비</button><button type="button" data-h="90">90일 대비</button></div>' +
+      '<div id="bf-high" style="margin-top:12px"></div></div>' +
     '<div class="card"><h2>이번 주 참고 후보</h2>' +
       '<p class="desc"><b>거래는 20% 이상 늘었는데 값은 아직 보합(±3%)</b>인 지역 — 거래량이 가격보다 먼저 움직인다는 자체 검증(거래량 화면)에 따른 선별입니다. ' +
         '급지 상위 절반만 올리고, 급지 순으로 보여줍니다. 같은 급지 안에서 순서를 볼 때만 쓰세요.</p>' +
@@ -1438,7 +1441,7 @@ function buildBrief(root) {
       '<p class="desc">최근 30일에 매매 2건·전세 2건 이상 거래된 단지 중 <b>갭(매매 중위 − 전세 중위)</b>이 작은 순입니다. 규제지역은 실거주 의무로 승계가 막혀 뺐습니다.</p>' +
       '<div id="bf-gap"></div></div>' +
     '<div class="card"><h2>가장 비싸게 팔린 아파트 · 가장 많이 팔린 단지</h2>' +
-      '<p class="desc">평형대를 고르면 그 평형대 안에서만 봅니다. 소형은 55㎡ 미만, 대형은 95㎡ 이상입니다.</p>' +
+      '<p class="desc">매매 신고 건수만 셉니다(전세·월세 제외). 평형대를 고르면 그 평형대 안에서만 봅니다. 소형은 30~55㎡, 대형은 95㎡ 이상입니다.</p>' +
       '<div class="seg" id="bf-band">' +
         '<button type="button" data-b="all" class="on">전체</button><button type="button" data-b="S">소형</button>' +
         '<button type="button" data-b="59">59㎡대</button><button type="button" data-b="84">84㎡대</button><button type="button" data-b="L">대형</button></div>' +
@@ -1511,6 +1514,12 @@ function renderBrief() {
         BRIEF.scope = b.dataset.s; paintBriefScope(); loadBriefLive();
       });
     });
+    document.getElementById("bf-hmode").addEventListener("click", function (ev) {
+      var b = ev.target.closest("button[data-h]"); if (!b) return;
+      BRIEF.hmode = b.dataset.h;
+      Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); });
+      loadBriefLive();
+    });
     document.getElementById("bf-band").addEventListener("click", function (ev) {
       var b = ev.target.closest("button[data-b]"); if (!b) return;
       BRIEF.band = b.dataset.b;
@@ -1553,7 +1562,7 @@ function briefRow(no, name, sub, why, main, mainCls, unit, btn) {
 }
 function dTxt(d) { return d ? (Math.floor(d / 100) % 100) + "." + (d % 100) : ""; }
 function renderBriefLive(scope, codes, remaining) {
-  var rows = [], tops = [], busy = [], highs = [], gaps = [];
+  var rows = [], tops = [], busy = [], highs = [], highsAll = [], gaps = [], hiFrom = 0, exS = 0, exB = 0, exApts = [], hasEx = false;
   var cnt = 0, prev = 0, week = 0, rentN = 0, errs = 0, got = 0, asOf = null, win = null;
   codes.forEach(function (c) {
     var j = BRIEF.regions[c]; if (!j) return;
@@ -1572,6 +1581,9 @@ function renderBriefLive(scope, codes, remaining) {
       t.k = c; busy.push(t);
     });
     (j.newHigh || []).forEach(function (t) { t.k = c; highs.push(t); });
+    (j.newHighAll || []).forEach(function (t) { t.k = c; highsAll.push(t); });
+    if (j.hiFrom) hiFrom = Math.max(hiFrom, j.hiFrom);
+    if (j.excl) { hasEx = true; exS += j.excl.small; exB += j.excl.bulk; (j.excl.bulkApts || []).forEach(function (a) { a.k = c; exApts.push(a); }); }
     if (!isRegulated(c)) (j.gaps || []).forEach(function (t) { t.k = c; gaps.push(t); });
   });
   var prog = document.getElementById("bf-prog");
@@ -1601,13 +1613,32 @@ function renderBriefLive(scope, codes, remaining) {
   }).join("") + "</div>" + (dn.length ? '<div class="bfsub">내린 곳</div><div class="bflist">' + dn.map(function (r, i) {
     return briefRow(i + 1, regionCell(r.k), "", "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건 · 급지 " + r.rank + "위", pct(r.pc, 1), "down", "㎡당가", goBtn(r.k));
   }).join("") + "</div>" : "") : '<p class="hint">양쪽 30일 모두 ' + BRIEF_MIN + "건 이상인 지역이 아직 없습니다.</p>";
-  /* 신고가 */
+  /* 신고가 — 역대 대비 / 90일 대비 */
   highs.sort(function (a, b) { return b.up - a.up; });
-  document.getElementById("bf-high").innerHTML = highs.length ? '<div class="bflist">' + highs.slice(0, 8).map(function (t) {
-    return briefRow("", "<b>" + escHtml(t.apt) + "</b>", escHtml(kbLabel(t.k)) + " " + escHtml(t.dong),
-      t.band + "㎡대 · 이번 최고 " + eok(t.max.amount) + (t.max.floor ? " " + t.max.floor + "층" : "") + " (" + dTxt(t.max.d) + ") · 직전 90일 최고 " + eok(t.baseMax) + " · 30일 " + t.n + "건",
-      pct(t.up, 1), "up", "", locBtn(t));
-  }).join("") + "</div>" + (highs.length > 8 ? '<p class="hint">외 ' + (highs.length - 8) + "곳</p>" : "") : '<p class="hint">' + (got ? "직전 90일 최고가를 넘긴 단지가 없습니다." : "불러오는 중…") + "</p>";
+  highsAll.sort(function (a, b) { return b.upAll - a.upAll; });
+  var hEl = document.getElementById("bf-high");
+  var hiStart = (BRIEF.data && BRIEF.data.hiStart) || 202001;
+  function ymTxt(y) { return Math.floor(y / 100) + "." + ("0" + (y % 100)).slice(-2); }
+  if (BRIEF.hmode === "90") {
+    hEl.innerHTML = highs.length ? '<div class="bflist">' + highs.slice(0, 8).map(function (t) {
+      return briefRow("", "<b>" + escHtml(t.apt) + "</b>", escHtml(kbLabel(t.k)) + " " + escHtml(t.dong),
+        t.band + "㎡대 · 이번 최고 " + eok(t.max.amount) + (t.max.floor ? " " + t.max.floor + "층" : "") + " (" + dTxt(t.max.d) + ") · 직전 90일 최고 " + eok(t.baseMax) + " · 30일 " + t.n + "건",
+        pct(t.up, 1), "up", "", locBtn(t));
+    }).join("") + "</div>" + (highs.length > 8 ? '<p class="hint">외 ' + (highs.length - 8) + "곳</p>" : "")
+      : '<p class="hint">' + (got ? "직전 90일 최고가를 넘긴 단지가 없습니다." : "불러오는 중…") + "</p>";
+  } else {
+    var cov = !hiFrom ? '<p class="hint">역대 최고가 장부는 다음 새벽 수집부터 쌓입니다.</p>'
+      : hiFrom <= hiStart ? '<p class="hint">' + ymTxt(hiStart) + ' 이후 전체 실거래 기준입니다.</p>'
+      : '<p class="hint"><b>' + ymTxt(hiFrom) + '</b> 이후 실거래 기준입니다 — 매일 밤 12개월씩 과거로 넓혀 ' + ymTxt(hiStart) + '까지 채우는 중이라, 다 채울 때까지는 "그 기간 안 최고가"입니다.</p>';
+    hEl.innerHTML = cov + (highsAll.length ? '<div class="bflist">' + highsAll.slice(0, 8).map(function (t) {
+      var pv = t.allPrev || [];
+      return briefRow("", "<b>" + escHtml(t.apt) + "</b>", escHtml(kbLabel(t.k)) + " " + escHtml(t.dong),
+        t.band + "㎡대 · 이번 최고 " + eok(t.max.amount) + (t.max.floor ? " " + t.max.floor + "층" : "") + " (" + dTxt(t.max.d) + ")" +
+        " · 이전 신고가 " + eok(pv[0]) + (pv[2] ? " " + pv[2] + "층" : "") + (pv[1] ? " (" + String(pv[1]).slice(0, 4) + "." + Number(String(pv[1]).slice(4, 6)) + ")" : "") + " · 30일 " + t.n + "건",
+        pct(t.upAll, 1), "up", "", locBtn(t));
+    }).join("") + "</div>" + (highsAll.length > 8 ? '<p class="hint">외 ' + (highsAll.length - 8) + "곳</p>" : "")
+      : '<p class="hint">' + (got ? (hiFrom ? "이전 신고가를 넘긴 단지가 없습니다." : "") : "불러오는 중…") + "</p>");
+  }
   /* 참고 후보 */
   var half = Math.ceil(RANKED.length / 2);
   var picks = ok.filter(function (r) { return r.vt != null && r.vt >= 1.2 && r.pc != null && Math.abs(r.pc) <= 3 && r.rank <= half; })
@@ -1624,6 +1655,11 @@ function renderBriefLive(scope, codes, remaining) {
       t.band + "㎡대 · 매매 중위 " + eok(t.med) + " (" + t.n + "건) · 전세 중위 " + eok(t.jeMed) + " (" + t.jeN + "건) · 전세가율 " + (t.jeMed / t.med * 100).toFixed(0) + "%",
       eok(t.gap), "", "갭", locBtn(t));
   }).join("") + "</div>" : '<p class="hint">' + (got ? "30일 안에 매매·전세가 함께 2건 이상 거래된 비규제 단지가 없습니다." : "불러오는 중…") + "</p>";
+  /* 아파트만 — 뺀 거래 안내 */
+  exApts.sort(function (a, b) { return b.n - a.n; });
+  var exHint = !got ? "" : !hasEx ? '<p class="hint">다음 새벽 수집부터 도시형생활주택(전용 30㎡ 미만)과 일괄 거래 추정분을 빼고 아파트만 셉니다.</p>'
+    : (exS || exB) ? '<p class="hint">아파트만 집계했습니다 — 이 범위에서 최근 30일 도시형생활주택 추정(전용 30㎡ 미만) ' + fmt(exS) + '건, 일괄 거래 추정(한 단지 같은 날 여러 건·직거래 위주) ' + fmt(exB) + '건을 뺐습니다' +
+        (exApts.length ? " — 많이 뺀 곳: " + exApts.slice(0, 3).map(function (a) { return escHtml(a.apt) + " " + a.n + "건"; }).join(", ") : "") + ".</p>" : "";
   /* 최고가 · 최다 */
   tops.sort(function (a, b) { return b.amount - a.amount; }); busy.sort(function (a, b) { return b.n - a.n; });
   var bandNm = { all: "", S: "소형 ", 59: "59㎡대 ", 84: "84㎡대 ", L: "대형 " }[BRIEF.band] || "";
@@ -1635,8 +1671,8 @@ function renderBriefLive(scope, codes, remaining) {
     }).join("") || '<p class="hint">없음</p>') + "</div>" +
     '<div class="bfsub">' + bandNm + '가장 많이 팔린 단지</div><div class="bflist">' + (busy.slice(0, 5).map(function (t) {
       return briefRow("", "<b>" + escHtml(t.apt) + "</b>", escHtml(kbLabel(t.k)) + " " + escHtml(t.dong),
-        t.band + "㎡대 · 중위 " + eok(t.med) + " · 최고 " + eok(t.max.amount), t.n + "건", "", "30일", locBtn(t));
-    }).join("") || '<p class="hint">없음</p>') + "</div>";
+        t.band + "㎡대 · 중위 " + eok(t.med) + " · 최고 " + eok(t.max.amount), t.n + "건", "", "30일 매매", locBtn(t));
+    }).join("") || '<p class="hint">없음</p>') + "</div>" + exHint;
 }
 function locBtn(t) {
   return '<button type="button" class="btn sm ghost" data-bfloc="' + escHtml(disp(t.k) + " " + t.dong + " " + t.apt) + '">' + bicon("pin") + "</button>";

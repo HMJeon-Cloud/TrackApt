@@ -1,0 +1,18 @@
+{
+  "name": "TrackApt — 실거래로 보는 아파트",
+  "short_name": "TrackApt",
+  "description": "국토부 실거래로 보는 전국 아파트 가격 서열과 지금 시장",
+  "start_url": "/?src=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f4f6",
+  "theme_color": "#ffffff",
+  "lang": "ko",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

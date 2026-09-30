@@ -68,6 +68,11 @@ async function trades(lawd, kind, ym) {
   });
 }
 
+function topDeals(list, n) {
+  return list.slice().sort(function (a, b) { return b.amount - a.amount; }).slice(0, n).map(function (t) {
+    return { apt: t.apt, dong: t.dong, amount: t.amount, area: t.area, floor: t.floor, d: dnum(t), buildYear: t.buildYear };
+  });
+}
 /* ── 한 지역 요약 (최근 30일 창) ── */
 async function summarize(lawd, today) {
   var d0 = dayN(shiftDay(today, -30)), d1 = dayN(shiftDay(today, -60)), d2 = dayN(shiftDay(today, -90)), d7 = dayN(shiftDay(today, -7));
@@ -106,10 +111,23 @@ async function summarize(lawd, today) {
     count: cur.length, prevCount: prv.length, weekCount: week, rentCount: rentCur.length,
     pm: median(cur.map(function (t) { return t.amount / t.area; })),
     prevPm: median(prv.map(function (t) { return t.amount / t.area; })),
-    top: cur.slice().sort(function (a, b) { return b.amount - a.amount; }).slice(0, 5).map(function (t) {
-      return { apt: t.apt, dong: t.dong, amount: t.amount, area: t.area, floor: t.floor, d: dnum(t), buildYear: t.buildYear };
-    }),
-    busy: groups.slice().sort(function (a, b) { return b.n - a.n; }).slice(0, 5),
+    top: topDeals(cur, 5),
+    /* 평형대별 최고가 — S 소형(55㎡ 미만) · 59 · 84 · L 대형(95㎡ 이상) */
+    topB: { S: topDeals(cur.filter(function (t) { return t.area < 55; }), 3),
+            59: topDeals(cur.filter(function (t) { return band(t.area) === 59; }), 3),
+            84: topDeals(cur.filter(function (t) { return band(t.area) === 84; }), 3),
+            L: topDeals(cur.filter(function (t) { return t.area >= 95; }), 3) },
+    /* 평형대별 건수·㎡당 중위 (범위 합산용) */
+    bands: (function () {
+      var o = {};
+      [["S", function (t) { return t.area < 55; }], ["59", function (t) { return band(t.area) === 59; }],
+       ["84", function (t) { return band(t.area) === 84; }], ["L", function (t) { return t.area >= 95; }]].forEach(function (p) {
+        var a = cur.filter(p[1]), b = prv.filter(p[1]);
+        o[p[0]] = { n: a.length, pn: b.length, pm: median(a.map(function (t) { return t.amount / t.area; })), ppm: median(b.map(function (t) { return t.amount / t.area; })) };
+      });
+      return o;
+    })(),
+    busy: groups.slice().sort(function (a, b) { return b.n - a.n; }).slice(0, 12),
     newHigh: groups.filter(function (g) { return g.up != null && g.up > 0; }).sort(function (a, b) { return b.up - a.up; }).slice(0, 8),
     gaps: groups.filter(function (g) { return g.gap != null && g.gap > 0; }).sort(function (a, b) { return a.gap - b.gap; }).slice(0, 5)
   };

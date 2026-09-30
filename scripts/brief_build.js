@@ -110,7 +110,7 @@ async function trades(lawd, kind, ym) {
   }
   all = all.filter(function (t) {
     t._ym = ym;
-    return !t.canceled && t.area > 0 && (kind === "sale" ? t.amount > 0 : (t.jeonse && t.deposit > 0));
+    return !t.canceled && t.area > 0 && (kind === "sale" ? t.amount > 0 : (t.deposit > 0 || t.rent > 0));
   });
   var f = aptOnly(all, kind);
   f.items.dropped = f.dropped;
@@ -176,7 +176,22 @@ async function summarize(lawd, today) {
   var cur = sale.filter(function (t) { return dnum(t) > d0; });
   var prv = sale.filter(function (t) { var d = dnum(t); return d > d1 && d <= d0; });
   var base = sale.filter(function (t) { var d = dnum(t); return d > d2 && d <= d0; });
-  var rentCur = rent.filter(function (t) { return dnum(t) > d0; });
+  var rentAll = rent.filter(function (t) { return dnum(t) > d0; });
+  var rentCur = rentAll.filter(function (t) { return t.jeonse && t.deposit > 0; });   /* 전세 */
+  var wolCur = rentAll.filter(function (t) { return !t.jeonse; });                    /* 월세(반전세 포함) */
+  /* 많이 거래된 단지 — 전세 · 월세 (단지·평형대별) */
+  function busyRent(list, wol) {
+    var m = {};
+    list.forEach(function (t) {
+      var k = key(t), g = m[k] || (m[k] = { apt: t.apt, dong: t.dong, band: band(t.area), n: 0, dep: [], rent: [], max: 0 });
+      g.n++; g.dep.push(t.deposit); if (wol) g.rent.push(t.rent); if (t.deposit > g.max) g.max = t.deposit;
+    });
+    return Object.keys(m).map(function (k) {
+      var g = m[k], o = { apt: g.apt, dong: g.dong, band: g.band, n: g.n, med: median(g.dep) };
+      if (wol) o.rentMed = median(g.rent); else o.max = g.max;
+      return o;
+    }).sort(function (a, b) { return b.n - a.n; }).slice(0, 12);
+  }
   var week = cur.filter(function (t) { return dnum(t) > d7; }).length;
   /* 역대 최고가 장부 — 최근 4개월 바로 앞 달까지 봉인 */
   var hi = await updateHi(lawd, ymPrev(months[3]));
@@ -208,7 +223,8 @@ async function summarize(lawd, today) {
     return g;
   });
   return {
-    count: cur.length, prevCount: prv.length, weekCount: week, rentCount: rentCur.length,
+    count: cur.length, prevCount: prv.length, weekCount: week, rentCount: rentCur.length, wolCount: wolCur.length,
+    busyJ: busyRent(rentCur, false), busyW: busyRent(wolCur, true),
     pm: median(cur.map(function (t) { return t.amount / t.area; })),
     prevPm: median(prv.map(function (t) { return t.amount / t.area; })),
     top: topDeals(cur, 5),

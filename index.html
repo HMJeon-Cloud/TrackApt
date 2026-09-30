@@ -835,7 +835,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v6.41</span>
+    <span class="ver">v6.42</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1407,7 +1407,7 @@ function exportCardImage(card, name) {
    지역별 요약은 /api/brief?kind=region 이 만들어 두고(12시간 캐시), 여기서는 그걸 모아 순위를 매긴다.
    범위: 내 시·도 → 수도권 → 전국. 전국은 253곳이라 처음 여는 사람은 1~2분 걸린다(진행 표시).
    원칙: '추천'이 아니라 '참고 후보'. 왜 골랐는지 숫자를 옆에 적고, 표본이 얇으면 뺀다. */
-var BRIEF = { scope: "", band: "all", hmode: "all", data: null, notes: null, regions: {}, loading: false };
+var BRIEF = { scope: "", band: "all", hmode: "all", bkind: "sale", data: null, notes: null, regions: {}, loading: false };
 var BRIEF_MIN = 8;                 /* 지역 순위에 올리는 최소 30일 거래 건수 */
 
 function buildBrief(root) {
@@ -1440,8 +1440,8 @@ function buildBrief(root) {
     '<div class="card"><h2>전세 끼고 들어가기 쉬운 단지</h2>' +
       '<p class="desc">최근 30일에 매매 2건·전세 2건 이상 거래된 단지 중 <b>갭(매매 중위 − 전세 중위)</b>이 작은 순입니다. 규제지역은 실거주 의무로 승계가 막혀 뺐습니다.</p>' +
       '<div id="bf-gap"></div></div>' +
-    '<div class="card"><h2>가장 비싸게 팔린 아파트 · 가장 많이 팔린 단지</h2>' +
-      '<p class="desc">매매 신고 건수만 셉니다(전세·월세 제외). 평형대를 고르면 그 평형대 안에서만 봅니다. 소형은 30~55㎡, 대형은 95㎡ 이상입니다.</p>' +
+    '<div class="card"><h2>가장 비싸게 팔린 아파트 · 가장 많이 거래된 단지</h2>' +
+      '<p class="desc">많이 거래된 단지는 매매 · 전세 · 월세를 따로 셉니다(월세에는 반전세 포함). 평형대를 고르면 그 평형대 안에서만 봅니다. 소형은 30~55㎡, 대형은 95㎡ 이상입니다.</p>' +
       '<div class="seg" id="bf-band">' +
         '<button type="button" data-b="all" class="on">전체</button><button type="button" data-b="S">소형</button>' +
         '<button type="button" data-b="59">59㎡대</button><button type="button" data-b="84">84㎡대</button><button type="button" data-b="L">대형</button></div>' +
@@ -1520,6 +1520,10 @@ function renderBrief() {
       Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); });
       loadBriefLive();
     });
+    document.getElementById("bf-top").addEventListener("click", function (ev) {
+      var b = ev.target.closest("#bf-bkind button[data-k]"); if (!b) return;
+      BRIEF.bkind = b.dataset.k; loadBriefLive();
+    });
     document.getElementById("bf-band").addEventListener("click", function (ev) {
       var b = ev.target.closest("button[data-b]"); if (!b) return;
       BRIEF.band = b.dataset.b;
@@ -1562,7 +1566,7 @@ function briefRow(no, name, sub, why, main, mainCls, unit, btn) {
 }
 function dTxt(d) { return d ? (Math.floor(d / 100) % 100) + "." + (d % 100) : ""; }
 function renderBriefLive(scope, codes, remaining) {
-  var rows = [], tops = [], busy = [], highs = [], highsAll = [], gaps = [], hiFrom = 0, exS = 0, exB = 0, exApts = [], hasEx = false;
+  var rows = [], tops = [], busy = [], busyJ = [], busyW = [], hasRentBusy = false, highs = [], highsAll = [], gaps = [], hiFrom = 0, exS = 0, exB = 0, exApts = [], hasEx = false;
   var cnt = 0, prev = 0, week = 0, rentN = 0, errs = 0, got = 0, asOf = null, win = null;
   codes.forEach(function (c) {
     var j = BRIEF.regions[c]; if (!j) return;
@@ -1576,10 +1580,11 @@ function renderBriefLive(scope, codes, remaining) {
     var bsel = BRIEF.band;
     var tl = bsel === "all" ? (j.top || []) : ((j.topB && j.topB[bsel]) || []);
     tl.forEach(function (t) { t.k = c; tops.push(t); });
-    (j.busy || []).forEach(function (t) {
-      if (bsel === "S" ? t.band >= 55 : bsel === "L" ? t.band < 101 : bsel === "all" ? false : String(t.band) !== bsel) return;
-      t.k = c; busy.push(t);
-    });
+    function bandOk(t) { return !(bsel === "S" ? t.band >= 55 : bsel === "L" ? t.band < 101 : bsel === "all" ? false : String(t.band) !== bsel); }
+    (j.busy || []).forEach(function (t) { if (bandOk(t)) { t.k = c; busy.push(t); } });
+    if (j.busyJ) hasRentBusy = true;
+    (j.busyJ || []).forEach(function (t) { if (bandOk(t)) { t.k = c; busyJ.push(t); } });
+    (j.busyW || []).forEach(function (t) { if (bandOk(t)) { t.k = c; busyW.push(t); } });
     (j.newHigh || []).forEach(function (t) { t.k = c; highs.push(t); });
     (j.newHighAll || []).forEach(function (t) { t.k = c; highsAll.push(t); });
     if (j.hiFrom) hiFrom = Math.max(hiFrom, j.hiFrom);
@@ -1661,7 +1666,7 @@ function renderBriefLive(scope, codes, remaining) {
     : (exS || exB) ? '<p class="hint">아파트만 집계했습니다 — 이 범위에서 최근 30일 도시형생활주택 추정(전용 30㎡ 미만) ' + fmt(exS) + '건, 일괄 거래 추정(한 단지 같은 날 여러 건·직거래 위주) ' + fmt(exB) + '건을 뺐습니다' +
         (exApts.length ? " — 많이 뺀 곳: " + exApts.slice(0, 3).map(function (a) { return escHtml(a.apt) + " " + a.n + "건"; }).join(", ") : "") + ".</p>" : "";
   /* 최고가 · 최다 */
-  tops.sort(function (a, b) { return b.amount - a.amount; }); busy.sort(function (a, b) { return b.n - a.n; });
+  tops.sort(function (a, b) { return b.amount - a.amount; }); busy.sort(function (a, b) { return b.n - a.n; }); busyJ.sort(function (a, b) { return b.n - a.n; }); busyW.sort(function (a, b) { return b.n - a.n; });
   var bandNm = { all: "", S: "소형 ", 59: "59㎡대 ", 84: "84㎡대 ", L: "대형 " }[BRIEF.band] || "";
   var oldData = BRIEF.band !== "all" && got && !codes.some(function (c) { return BRIEF.regions[c] && BRIEF.regions[c].topB; });
   document.getElementById("bf-top").innerHTML = (oldData ? '<p class="hint">평형대별 자료는 다음 새벽 수집부터 들어옵니다.</p>' : "") +
@@ -1669,9 +1674,16 @@ function renderBriefLive(scope, codes, remaining) {
       return briefRow("", "<b>" + escHtml(t.apt) + "</b>", escHtml(kbLabel(t.k)) + " " + escHtml(t.dong),
         Math.round(t.area) + "㎡ · " + (t.floor ? t.floor + "층 · " : "") + (t.buildYear ? t.buildYear + "년 · " : "") + dTxt(t.d) + " 계약", eok(t.amount), "", "", locBtn(t));
     }).join("") || '<p class="hint">없음</p>') + "</div>" +
-    '<div class="bfsub">' + bandNm + '가장 많이 팔린 단지</div><div class="bflist">' + (busy.slice(0, 5).map(function (t) {
+    '<div class="bfsub">' + bandNm + '가장 많이 거래된 단지</div>' +
+    '<div class="seg" id="bf-bkind" style="margin:4px 0 10px">' + [["sale", "매매"], ["je", "전세"], ["wol", "월세"]].map(function (b) {
+      return '<button type="button" data-k="' + b[0] + '"' + (BRIEF.bkind === b[0] ? ' class="on"' : "") + ">" + b[1] + "</button>"; }).join("") + "</div>" +
+    (BRIEF.bkind !== "sale" && got && !hasRentBusy ? '<p class="hint">전세·월세 거래 순위는 다음 새벽 수집부터 들어옵니다.</p>' : "") +
+    '<div class="bflist">' + ((BRIEF.bkind === "je" ? busyJ : BRIEF.bkind === "wol" ? busyW : busy).slice(0, 5).map(function (t) {
+      var why = BRIEF.bkind === "je" ? t.band + "㎡대 · 보증금 중위 " + eok(t.med) + " · 최고 " + eok(t.max)
+        : BRIEF.bkind === "wol" ? t.band + "㎡대 · 보증금 중위 " + eok(t.med) + " · 월세 중위 " + fmt(t.rentMed) + "만"
+        : t.band + "㎡대 · 중위 " + eok(t.med) + " · 최고 " + eok(t.max.amount);
       return briefRow("", "<b>" + escHtml(t.apt) + "</b>", escHtml(kbLabel(t.k)) + " " + escHtml(t.dong),
-        t.band + "㎡대 · 중위 " + eok(t.med) + " · 최고 " + eok(t.max.amount), t.n + "건", "", "30일 매매", locBtn(t));
+        why, t.n + "건", "", "30일 " + ({ sale: "매매", je: "전세", wol: "월세" })[BRIEF.bkind], locBtn(t));
     }).join("") || '<p class="hint">없음</p>') + "</div>" + exHint;
 }
 function locBtn(t) {

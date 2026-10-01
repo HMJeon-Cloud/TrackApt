@@ -32,7 +32,7 @@ jobs:
         run: |
           git config user.name "trackapt-bot"
           git config user.email "trackapt-bot@users.noreply.github.com"
-          git add brief_data.json data/highs
+          git add brief_data.json data/highs data/brief_hist.json
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -m "brief: $(date -u -d '+9 hours' '+%Y-%m-%d %H:%M') KST 자동 갱신"
           # 수집하는 5~15분 사이에 다른 커밋(파일 업로드 등)이 올라왔으면 그 위에 얹어서 올린다

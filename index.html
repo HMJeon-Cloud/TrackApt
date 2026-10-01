@@ -954,7 +954,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v6.8</span>
+    <span class="ver">v6.9</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1528,7 +1528,7 @@ function exportCardImage(card, name) {
    지역별 요약은 /api/brief?kind=region 이 만들어 두고(12시간 캐시), 여기서는 그걸 모아 순위를 매긴다.
    범위: 내 시·도 → 수도권 → 전국. 전국은 253곳이라 처음 여는 사람은 1~2분 걸린다(진행 표시).
    원칙: '추천'이 아니라 '참고 후보'. 왜 골랐는지 숫자를 옆에 적고, 표본이 얇으면 뺀다. */
-var BRIEF = { scope: "", band: "all", hmode: "all", hband: "all", bkind: "sale", data: null, notes: null, regions: {}, loading: false };
+var BRIEF = { scope: "", band: "all", hmode: "all", hband: "all", cband: "all", bkind: "sale", data: null, notes: null, regions: {}, loading: false };
 var BRIEF_MIN = 8;                 /* 지역 순위에 올리는 최소 30일 거래 건수 */
 
 function buildBrief(root) {
@@ -1540,9 +1540,13 @@ function buildBrief(root) {
       '<div class="seg" id="bf-scope2" style="margin-top:6px;display:none"></div>' +
       '<div class="status" id="bf-kpi" style="margin-top:12px"></div>' +
       '<p class="hint" id="bf-prog"></p></div>' +
-    '<div class="card"><h2>한눈에 보는 카드</h2>' +
-      '<p class="desc">채널 브리핑 카드를 위에서 고른 범위(서울·경기·광역시·구 단위 등)로 자세히 펼쳐 봅니다. 평형별 거래, 어디서 많이 팔렸나, 전세 vs 월세, 고점 대비 위치, 내 집 마련 현금, 갈아타기 조합을 담았습니다. 숫자 읽는 법은 각 카드 맨 아래 회색 글씨에 있습니다.</p>' +
-      '<div class="bfcards" id="bf-cards"><p class="hint">불러오는 중…</p></div></div>' +
+    '<div class="card"><h2>지역·평형별 카드</h2>' +
+      '<p class="desc">채널 브리핑 카드를 위에서 고른 지역(서울 권역·경기 남북부·광역시·도·전국)과 아래에서 고른 평형으로 다시 만듭니다. ' +
+        '평형을 고르면 거래량·가격 변화·거래 급증은 그 평형 집계로, 신고가·최고가 거래·인기 단지는 그 평형 거래만 보여 줍니다. ' +
+        '전월세와 고점 대비(MDD)는 평형 구분 자료가 없어 지역만 따릅니다. 갈아타기·첫 집은 59㎡대를 고르면 59㎡, 그 밖에는 84㎡ 기준입니다. 카드마다 [이미지 저장]으로 1080×1350 그림을 받을 수 있습니다.</p>' +
+      '<div class="seg" id="bf-cband"><button type="button" data-cb="all" class="on">전체 평형</button><button type="button" data-cb="84">84㎡대</button>' +
+        '<button type="button" data-cb="59">59㎡대</button><button type="button" data-cb="S">소형</button><button type="button" data-cb="L">대형</button></div>' +
+      '<div class="chcards" id="bf-cards" style="margin-top:12px"><p class="hint">불러오는 중…</p></div></div>' +
     '<div class="card" id="bf-issue"><h2>이번 주 이슈</h2><div id="bf-notes"><p class="hint">메모를 여는 중…</p></div>' +
       '<div id="bf-news" style="margin-top:12px"></div></div>' +
     '<div class="card"><h2>지금 거래가 몰리는 곳</h2>' +
@@ -1640,6 +1644,18 @@ function renderBrief() {
         var b = ev.target.closest("button[data-s]"); if (!b) return;
         BRIEF.scope = b.dataset.s; paintBriefScope(); loadBriefLive();
       });
+    });
+    document.getElementById("bf-cband").addEventListener("click", function (ev) {
+      var b = ev.target.closest("button[data-cb]"); if (!b) return;
+      BRIEF.cband = b.dataset.cb;
+      Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); });
+      loadBriefLive();
+    });
+    document.getElementById("bf-cards").addEventListener("click", function (ev) {
+      var b = ev.target.closest("[data-chsave]"); if (!b) return;
+      var card = b.parentNode.querySelector(".chcard");
+      progOpen("이미지 만드는 중", 0);
+      chCardImage(card, b.dataset.chsave).then(progClose, function () { progClose(); alert("이미지 저장에 실패했습니다."); });
     });
     document.getElementById("bf-hband").addEventListener("click", function (ev) {
       var b = ev.target.closest("button[data-hb]"); if (!b) return;
@@ -1872,96 +1888,17 @@ function loadBriefNews() {
   var wait = setInterval(function () { if (BRIEF.data) { clearInterval(wait); paint(BRIEF.data.news); } else if (!BRIEF.loading) { clearInterval(wait); paint(null); } }, 400);
 }
 
-/* ══ 한눈에 보는 카드 (v6.8) — 채널 카드의 '지금 시장' 상세판. 고른 범위(codes)로 다시 계산한다 ══ */
-function bfCard(o) {
-  return '<div class="chcard auto"><div class="chc-top"><span class="chc-tag">' + escHtml(o.tag) + "</span></div>" +
-    '<div class="chc-q">' + o.q + "</div>" + (o.a ? '<div class="chc-a">' + o.a + "</div>" : "") +
-    '<div class="chc-body">' + o.body + "</div>" + (o.how ? '<div class="chc-how">' + o.how + "</div>" : "") + "</div>";
-}
+/* ══ 지역·평형별 카드 (v6.9) — 채널 카드를 고른 범위·평형으로 (v6_channel.js 의 chScopeCards) ══ */
 function renderBriefCards(codes) {
-  var el = document.getElementById("bf-cards"); if (!el) return;
-  if (!BRIEF.data) return;
+  var el = document.getElementById("bf-cards"); if (!el || !BRIEF.data) return;
   if (typeof CH !== "undefined" && !CH.data) CH.data = BRIEF.data;
-  var R = BRIEF.regions, live = codes.filter(function (c) { return R[c] && !R[c].error; });
-  if (!live.length) { el.innerHTML = '<p class="hint">이 범위에 자료가 없습니다.</p>'; return; }
   var top1 = (document.querySelector("#bf-scope button.on") || {}).textContent || "", sub1 = (document.querySelector("#bf-scope2 button.on") || {}).textContent || "";
-  var scopeNm = sub1 && sub1 !== "전체" && document.getElementById("bf-scope2").style.display !== "none" ? (top1 === "서울" || top1 === "경기" ? top1 + " " + sub1 : sub1) : (top1 || "이 범위");
-  var C = [];
-  /* 1 평형별 거래 */
-  var B = { S: { n: 0, pn: 0, pw: 0, pp: 0, w: 0 }, 59: { n: 0, pn: 0, pw: 0, pp: 0, w: 0 }, 84: { n: 0, pn: 0, pw: 0, pp: 0, w: 0 }, L: { n: 0, pn: 0, pw: 0, pp: 0, w: 0 } }, hasB = false;
-  live.forEach(function (c) {
-    var b = R[c].bands; if (!b) return; hasB = true;
-    Object.keys(B).forEach(function (k) {
-      var x = b[k]; if (!x) return;
-      B[k].n += x.n; B[k].pn += x.pn;
-      if (x.pm && x.ppm && x.n >= 5 && x.pn >= 5) { var w = Math.min(x.n, x.pn); B[k].pw += x.pm * w; B[k].pp += x.ppm * w; B[k].w += w; }
-    });
-  });
-  if (hasB) {
-    var tot = B.S.n + B[59].n + B[84].n + B.L.n || 1;
-    var nm = { S: "소형 (55㎡ 미만)", 59: "59㎡대", 84: "84㎡대", L: "대형 (95㎡ 이상)" };
-    var big = ["S", "59", "84", "L"].sort(function (a, b) { return B[b].n - B[a].n; })[0];
-    C.push(bfCard({ tag: "평형별", q: scopeNm + ", 어떤 평형이<br>많이 팔렸나?",
-      a: nm[big] + " 비중 <b>" + Math.round(B[big].n / tot * 100) + "%</b> (" + fmt(B[big].n) + "건)",
-      body: '<div class="chc-hbars">' + ["84", "59", "S", "L"].map(function (k) {
-        var x = B[k], ch = x.pn ? (x.n / x.pn - 1) * 100 : null, pc = x.w ? (x.pw / x.pp - 1) * 100 : null;
-        return '<div class="chc-hbar wide"><span>' + nm[k] + '</span><i><u style="width:' + (x.n / tot * 100).toFixed(1) + '%;background:#3182f6"></u></i><b style="color:#191f28">' + Math.round(x.n / tot * 100) + "%</b></div>" +
-          '<div class="chc-sub2">' + fmt(x.n) + "건 · 건수 " + (ch == null ? "—" : '<span class="' + cls(ch) + '">' + pct(ch, 0) + "</span>") + " · ㎡당가 " + (pc == null ? "—" : '<span class="' + cls(pc) + '">' + pct(pc, 1) + "</span>") + "</div>";
-      }).join("") + "</div>",
-      how: "막대 = 최근 30일 매매 중 그 평형 비중 · 건수·㎡당가는 직전 30일 대비(최근분은 신고 지연으로 적게 잡힘) · ㎡당가는 지역별 가운데값을 거래량으로 가중" }));
-  }
-  /* 2 어디서 많이 팔렸나 */
-  var rows = live.map(function (c) { var j = R[c]; return { k: c, n: j.count, pn: j.prevCount }; }).sort(function (a, b) { return b.n - a.n; });
-  if (rows.length > 1) {
-    var mx = rows[0].n || 1;
-    C.push(bfCard({ tag: "지역별 거래량", q: scopeNm + ",<br>어디서 많이 팔렸나?",
-      a: "1위 " + escHtml(chName(rows[0].k)) + " <b>" + fmt(rows[0].n) + "건</b>",
-      body: '<div class="chc-hbars">' + rows.slice(0, 10).map(function (r) {
-        var ch = r.pn ? (r.n / r.pn - 1) * 100 : null;
-        return '<div class="chc-hbar wide"><span>' + escHtml(chName(r.k)) + '</span><i><u style="width:' + (r.n / mx * 100).toFixed(1) + '%;background:#3182f6"></u></i><b style="color:#191f28">' + fmt(r.n) + '</b><em class="' + cls(ch) + '">' + (ch == null ? "" : pct(ch, 0)) + "</em></div>";
-      }).join("") + "</div>",
-      how: "최근 30일 매매 건수 상위 " + Math.min(10, rows.length) + "곳 · 오른쪽 % = 직전 30일 대비" }));
-  }
-  /* 3 전세 vs 월세 */
-  var je = 0, wol = 0, rr = live.map(function (c) { var j = R[c]; je += j.rentCount || 0; wol += j.wolCount || 0; return { k: c, je: j.rentCount || 0, wol: j.wolCount || 0 }; })
-    .filter(function (r) { return r.je + r.wol >= 20; }).sort(function (a, b) { return (b.je + b.wol) - (a.je + a.wol); });
-  if (je + wol) {
-    var wp = Math.round(wol / (je + wol) * 100);
-    var byW = rr.slice().sort(function (a, b) { return b.wol / (b.je + b.wol) - a.wol / (a.je + a.wol); });
-    C.push(bfCard({ tag: "전월세", q: scopeNm + ",<br>전세 vs 월세?",
-      a: "월세 비중 <b>" + wp + "%</b> · 전세 " + fmt(je) + "건 / 월세 " + fmt(wol) + "건",
-      body: '<div class="chc-stacks">' + [{ k: null, je: je, wol: wol }].concat(byW.slice(0, 8)).map(function (r) {
-        var t = r.je + r.wol, w = Math.round(r.wol / t * 100);
-        return '<div class="chc-stack"><span>' + (r.k ? escHtml(chName(r.k)) : "<b>전체</b>") + '</span><i><u class="je" style="width:' + (100 - w) + '%">' + (100 - w) + '%</u><u class="wol" style="width:' + w + '%">' + w + "%</u></i></div>";
-      }).join("") + '</div><div class="chc-legend"><i class="je"></i>전세 <i class="wol"></i>월세(반전세 포함)</div>',
-      how: "최근 30일 전월세 신고 · 아래 막대는 월세 비중이 높은 순(전월세 20건 이상 지역)" }));
-  }
-  /* 4 고점 대비 (MDD) */
-  if (typeof DB !== "undefined" && DB && DB.sale) {
-    var t0 = ymNum(DB.sale.dates[0]), cyc = [2020 * 12 + 1 - t0, 2022 * 12 + 12 - t0];
-    var dd = live.filter(function (k) { return DB.sale.series[k]; }).map(function (k) { return { k: k, dd: chDD(k, cyc[0], cyc[1]) }; }).filter(function (r) { return r.dd; })
-      .sort(function (a, b) { return b.dd.now - a.dd.now; });
-    if (dd.length) {
-      var rec = dd.filter(function (r) { return r.dd.now >= 0; }).length, show = dd.length <= 40 ? dd : dd.slice(0, 20).concat(dd.slice(-20));
-      C.push(bfCard({ tag: "MDD", q: scopeNm + ",<br>고점 대비 지금 어디쯤?",
-        a: dd.length + "곳 중 <b class=\"up\">" + rec + "곳 회복</b> · <b class=\"down\">" + (dd.length - rec) + "곳</b> 아직 아래",
-        body: '<div class="chc-grid wide">' + show.map(function (r) {
-          return '<div style="' + chTile(r.dd.now) + '" title="' + escHtml(chName(r.k)) + " 전고점 " + chYm(r.dd.pi) + '"><small>' + escHtml(chShortGu(r.k)) + "</small><b>" + (r.dd.now > 0 ? "+" : "") + r.dd.now.toFixed(0) + "%</b></div>";
-        }).join("") + "</div>" + (dd.length > 40 ? '<p class="hint" style="margin:6px 0 0">많아서 위 20곳·아래 20곳만 보입니다.</p>' : ""),
-        how: "전고점(2020~22년 최고) 대비 지금 · 빨강 = 위, 파랑 = 아래, 진할수록 차이 큼 · " + (chFreshOn() ? dTxt(CH.data.fresh.to) + "까지 실거래 반영" : DB.sale.dates[1].replace("-", ".") + " 월별 기준") }));
-    }
-    /* 5 내 집 마련 · 6 갈아타기 */
-    var mv = chMove(live, 5, 6);
-    if (mv && mv.cheap.length) C.push(bfCard({ tag: "내 집 마련", q: scopeNm + " 84㎡,<br>현금 얼마 있어야 살까?",
-      a: "가장 적게 드는 " + escHtml(chName(mv.cheap[0].k)) + " 약 <b>" + eok(mv.cheap[0].need) + "</b>" + (mv.med ? " · 가운데값 84㎡ " + eok(mv.med) : ""),
-      body: chList(mv.cheap.map(function (r) { return [escHtml(chName(r.k)), "84㎡ " + eok(r.price) + " − 대출 " + eok(r.loan) + " (" + r.tag + ") + 세금·비용", eok(r.need)]; }), true),
-      how: "무주택 · 84㎡ 가운데값 기준 · 대출은 LTV·한도만(소득·DSR 미반영) · 앱 설정의 대출·세금 규칙" }));
-    if (mv && mv.pairs.length) C.push(bfCard({ tag: "갈아타기", q: scopeNm + " 안에서<br>갈아타기 부담이 적은 조합",
-      a: escHtml(chName(mv.pairs[0].a)) + " → " + escHtml(chName(mv.pairs[0].b)) + " 추가금 약 <b>" + eok(mv.pairs[0].extra) + "</b>",
-      body: chList(mv.pairs.map(function (p) { return [escHtml(chName(p.a)) + " → " + escHtml(chName(p.b)), "격차 " + p.band.cur.toFixed(2) + "배 · 10년 중 하위 " + Math.max(1, Math.round(p.band.pctile)) + "%", eok(p.extra)]; }), true),
-      how: "㎡당 가격 순으로 1~6칸 위 동네와 짝지어, 가격 차이(배율)가 10년 중 가장 좁은 조합 · 오른쪽 = 84㎡ 추가금(세금·수수료 포함, 대출 전)" }));
-  }
-  el.innerHTML = C.join("") || '<p class="hint">이 범위로 만들 카드가 없습니다.</p>';
+  var subOn = sub1 && sub1 !== "전체" && document.getElementById("bf-scope2").style.display !== "none";
+  var scopeNm = subOn ? (top1 === "서울" || top1 === "경기" ? top1 + " " + sub1 : sub1) : (top1 || "이 범위");
+  var C = chScopeCards(codes, BRIEF.cband || "all", scopeNm);
+  el.innerHTML = C.length ? C.map(function (c) {
+    return '<div class="chcardWrap">' + c[1] + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_" + c[0]) + '">이미지 저장</button></div>';
+  }).join("") : '<p class="hint">이 범위·평형으로 만들 카드가 없습니다.</p>';
 }
 
 /* ══ 앱으로 설치 (v6.3) ═══════════════════════════════════════
@@ -2211,7 +2148,7 @@ function chDaily() {
   var up = rows.filter(function (r) { return r.pc != null && r.pc > 3; }), dn = rows.filter(function (r) { return r.pc != null && r.pc < -3; });
   var upM = metroRows.filter(function (r) { return r.pc != null && r.pc > 3; }).sort(function (a, b) { return b.pc - a.pc; }).slice(0, 3);
   var dnM = metroRows.filter(function (r) { return r.pc != null && r.pc < -3; }).sort(function (a, b) { return a.pc - b.pc; }).slice(0, 3);
-  var hot = rows.filter(function (r) { return r.vt != null; }).sort(function (a, b) { return b.vt - a.vt; }).slice(0, 5);
+  var hot = rows.filter(function (r) { return r.vt != null && r.vt > 1; }).sort(function (a, b) { return b.vt - a.vt; }).slice(0, 5);
   /* 신고가 — 역대(장부) 우선, 없으면 90일. 수도권 먼저 */
   var hasAll = S.all.some(function (c) { return R[c] && R[c].newHighAll; });
   function hiOf(codes) {
@@ -2297,8 +2234,8 @@ function chDailyText(d) {
 /* 권역(전국·서울·경기·인천) 지수 — 묶음 전체 거래의 중위값은 비싼 동네 거래 비중이 늘기만 해도 오른다
    (전국이 전고점 대비 +40%처럼 보이는 착시). 그래서 소속 시·군·구 지수의 '달마다 변화율'을
    똑같은 비중으로 평균(기하평균)해 이어 붙인 지수를 쓴다. */
-function chGroupSer(g) {
-  var mem = Object.keys(DB.sale.series).filter(function (k) { return !MC_GROUP[k] && (g === "전국" || MC_SIDO[k] === g); })
+function chGroupSer(g, codes) {
+  var mem = (codes || Object.keys(DB.sale.series)).filter(function (k) { return DB.sale.series[k] && !MC_GROUP[k] && (codes || g === "전국" || MC_SIDO[k] === g); })
     .map(function (k) { return chSer("sale", k); });
   if (!mem.length) return null;
   var len = Math.max.apply(null, mem.map(function (a) { return a.length; })), out = new Array(len).fill(null), p = -1;
@@ -2387,7 +2324,8 @@ function chMddText(m) {
 
 /* ── ③ 내 집 마련·갈아타기 ── */
 /* codes 를 주면 그 지역들 안에서만(지금 시장 범위), 없으면 갈아타기 = 수도권 · 첫 집 = 서울 */
-function chMove(codes, nTop, nCheap) {
+function chMove(codes, nTop, nCheap, area) {
+  var AR = area === 59 ? 59 : 84, AK = AR === 59 ? "a59" : "a84";
   if (typeof DB === "undefined" || !DB || !DB.salePm || !RANKED.length) return null;
   var inScope = codes ? function (k) { return codes.indexOf(k) >= 0; } : null;
   var metro = RANKED.filter(function (k) { return (inScope ? inScope(k) : /^(11|41|28)/.test(k)) && DB.salePm.series[k]; });
@@ -2403,8 +2341,8 @@ function chMove(codes, nTop, nCheap) {
       var pb = chLast(arrB), pa2 = chLast(A2); if (!pb || pb <= pa2) continue;
       var band = bandStats(ratioSeries(arrB, A2, 1), 120);
       if (!band || band.count < 96) continue;
-      var fin = finance(b, pb * 84, cond);
-      pairs.push({ a: a, b: b, band: band, extra: (pb - pa2) * 84 + fin.acq + fin.broker + fin.etc });
+      var fin = finance(b, pb * AR, cond);
+      pairs.push({ a: a, b: b, band: band, extra: (pb - pa2) * AR + fin.acq + fin.broker + fin.etc });
     }
   });
   pairs.sort(function (x, y) { return x.band.pctile - y.band.pctile || x.band.cur / x.band.med - y.band.cur / y.band.med; });
@@ -2412,12 +2350,12 @@ function chMove(codes, nTop, nCheap) {
   pairs.forEach(function (p) { if (top.length < (nTop || 5) && !used[p.a] && !used[p.b]) { used[p.a] = used[p.b] = 1; top.push(p); } });
   /* 내 집 마련 — 서울 84㎡ 중위가가 낮은 구 3곳의 필요 현금 (무주택, 소득 미반영 = LTV·총액상한만) */
   var none = { own: "none", income: 0, rate: 4, first: false, cash: 0 };
-  var seoul = RANKED.filter(function (k) { return (inScope ? inScope(k) : /^11/.test(k)) && lastVal("a84", k); }).map(function (k) {
-    var p = chLast(chSer("a84", k)), f = finance(k, p, none);
+  var seoul = RANKED.filter(function (k) { return (inScope ? inScope(k) : /^11/.test(k)) && lastVal(AK, k); }).map(function (k) {
+    var p = chLast(chSer(AK, k)), f = finance(k, p, none);
     return { k: k, price: p, loan: f.loan, need: f.need, tag: f.tag };
   }).sort(function (x, y) { return x.price - y.price; });
   var med = seoul.length ? seoul.map(function (r) { return r.price; }).sort(function (x, y) { return x - y; })[Math.floor(seoul.length / 2)] : null;
-  return { ym: DB.salePm.dates[1].replace("-", "."), pairs: top, cheap: seoul.slice(0, nCheap || 3), med: med, n: seoul.length };
+  return { ym: DB.salePm.dates[1].replace("-", "."), pairs: top, cheap: seoul.slice(0, nCheap || 3), med: med, n: seoul.length, area: AR };
 }
 function chMoveText(v) {
   if (!v) return "월별 저장본(market_core.json)을 아직 불러오지 못했습니다.";
@@ -2633,6 +2571,162 @@ function paintChannel() {
   meta.innerHTML = parts.join(" · ") || "불러오는 중…";
   document.getElementById("ch-text").value = chText(CH.tab);
   document.getElementById("ch-cards").innerHTML = chCardsHtml(CH.tab) || '<p class="hint">이 코너는 카드로 만들 자료가 아직 없습니다.</p>';
+}
+
+/* ══ 지역·평형별 채널 카드 (v6.9) ═══════════════════════════════════
+   '지금 시장'에서 고른 범위(codes)와 평형(band: all·S·59·84·L)으로 채널 카드 묶음을 다시 만든다.
+   평형을 고르면 건수·㎡당가는 brief_data 의 평형대별 집계(bands), 신고가·최고가·인기 단지는 그 평형만.
+   전월세·고점 대비(MDD)는 평형 구분 자료가 없어 범위만 따른다(카드에 밝힘). 갈아타기·첫 집은 59㎡를 고르면 59㎡, 그 밖엔 84㎡. */
+var CH_BNM = { all: "", S: "소형", 59: "59㎡대", 84: "84㎡대", L: "대형" };
+function chBandOk(band, b) { return band === "all" || (band === "S" ? b <= 46 : band === "L" ? b >= 101 : String(b) === String(band)); }
+function chScopeData(codes, band) {
+  var R = CH.data.regions, live = codes.filter(function (c) { return R[c] && !R[c].error; });
+  var bk = band === "all" ? null : band, MIN = bk ? 15 : CH_MIN, lag = !bk && !!CH.data.snap30;
+  var rows = live.map(function (c) {
+    var j = R[c], x = bk ? (j.bands && j.bands[bk]) : null;
+    if (bk && !x) return null;
+    var n = bk ? x.n : j.count, pn = bk ? x.pn : (lag && j.snap ? j.snap.n : j.prevCount);
+    var pm = bk ? x.pm : j.pm, ppm = bk ? x.ppm : (lag && j.snap ? j.snap.pm : j.prevPm);
+    return { k: c, n: n || 0, pn: pn || 0, vt: n >= MIN && pn >= MIN ? n / pn : null, pc: pm && ppm && n >= MIN && pn >= MIN ? (pm / ppm - 1) * 100 : null };
+  }).filter(Boolean);
+  var o = { live: live, band: band, bk: bk, MIN: MIN, lag: lag, rows: rows, n: 0, pn: 0, wk: 0, je: 0, wol: 0 };
+  rows.forEach(function (r) { o.n += r.n; o.pn += r.pn; });
+  live.forEach(function (c) { var j = R[c]; o.wk += j.weekCount || 0; o.je += j.rentCount || 0; o.wol += j.wolCount || 0; });
+  o.chg = o.pn ? (o.n / o.pn - 1) * 100 : null;
+  o.byN = rows.slice().sort(function (a, b) { return b.n - a.n; });
+  o.up = rows.filter(function (r) { return r.pc != null && r.pc > 3; }).sort(function (a, b) { return b.pc - a.pc; });
+  o.dn = rows.filter(function (r) { return r.pc != null && r.pc < -3; }).sort(function (a, b) { return a.pc - b.pc; });
+  o.hot = rows.filter(function (r) { return r.vt != null && r.vt > 1; }).sort(function (a, b) { return b.vt - a.vt; }).slice(0, 5);
+  o.hasAll = live.some(function (c) { return R[c].newHighAll; });
+  o.hi = chCollect(live, o.hasAll ? "newHighAll" : "newHigh").filter(function (t) { var u = o.hasAll ? t.upAll : t.up; return u != null && u > 0 && chBandOk(band, t.band); })
+    .sort(function (a, b) { return o.hasAll ? b.upAll - a.upAll : b.up - a.up; });
+  o.top = chCollect(live, bk ? null : "top").concat(bk ? live.reduce(function (acc, c) { return acc.concat(((R[c].topB || {})[bk] || []).map(function (t) { return Object.assign({ k: c }, t); })); }, []) : [])
+    .sort(function (a, b) { return b.amount - a.amount; }).slice(0, 5);
+  function busy(f) { return chCollect(live, f).filter(function (t) { return chBandOk(band, t.band) && (f === "busy" || !CH_RENT_SKIP.test(t.apt)); }).sort(function (a, b) { return b.n - a.n; }); }
+  o.bS = busy("busy"); o.bJ = busy("busyJ"); o.bW = busy("busyW");
+  o.bands = null;
+  if (!bk) {
+    var B = { S: 0, 59: 0, 84: 0, L: 0 }, P = { S: 0, 59: 0, 84: 0, L: 0 }, ok = false;
+    live.forEach(function (c) { var b = R[c].bands; if (!b) return; ok = true; Object.keys(B).forEach(function (k) { if (b[k]) { B[k] += b[k].n; P[k] += b[k].pn; } }); });
+    if (ok) o.bands = { n: B, pn: P };
+  }
+  return o;
+}
+function chScopeCards(codes, band, scopeNm) {
+  if (!chOk()) return [];
+  var d = chScopeData(codes, band), C = [], bn = CH_BNM[band] || "", sc = escHtml(scopeNm || "이 범위");
+  var tagS = function (t) { return t + (bn ? " · " + bn : ""); };
+  var cmp = d.lag ? "한 달 전 같은 시점 대비" : "직전 30일 대비" + (d.bk ? "" : "(최근분은 신고 지연으로 감소가 크게 보임)");
+  function add(file, o) { C.push([file + "_" + (scopeNm || "") + (bn ? "_" + bn : ""), chCard(o)]); }
+  /* 1 거래량 */
+  var kp = [[scopeNm || "전체", { n: d.n, chg: d.chg }]].concat(d.byN.slice(0, d.live.length >= 3 ? 2 : 0).map(function (r) { return [chName(r.k), { n: r.n, chg: r.pn ? (r.n / r.pn - 1) * 100 : null }]; }));
+  add("거래량", { tag: tagS("거래량"), q: sc + (bn ? " " + bn : "") + ",<br>지난 30일 얼마나 팔렸나?",
+    a: fmt(d.n) + "건 " + chB(d.chg, null, 0) + (d.byN[0] && d.live.length > 1 ? " · 최다 " + escHtml(chName(d.byN[0].k)) + " " + fmt(d.byN[0].n) + "건" : ""),
+    body: '<div class="chc-kpis">' + kp.map(function (p) {
+        return '<div><small>' + escHtml(p[0]) + "</small><b" + (fmt(p[1].n).length >= 6 ? ' class="sm"' : "") + ">" + fmt(p[1].n) + '<em>건</em></b><span class="' + cls(p[1].chg) + '">' + chPct(p[1].chg, 0) + "</span></div>";
+      }).join("") + "</div>" + (d.bk ? "" : '<div class="chc-line">최근 7일 계약 <b>' + fmt(d.wk) + "건</b> · " + escHtml(chWin()) + "</div>"),
+    how: "최근 30일 매매 · 증감 = " + cmp });
+  /* 2 평형별 (전체일 때) */
+  if (d.bands) {
+    var tot = d.bands.n.S + d.bands.n[59] + d.bands.n[84] + d.bands.n.L || 1, nm = { 84: "84㎡대", 59: "59㎡대", S: "소형", L: "대형" };
+    var big = ["84", "59", "S", "L"].sort(function (a, b) { return d.bands.n[b] - d.bands.n[a]; })[0];
+    add("평형별", { tag: "평형별", q: sc + ",<br>어떤 평형이 많이 팔렸나?",
+      a: nm[big] + " 비중 <b>" + Math.round(d.bands.n[big] / tot * 100) + "%</b> (" + fmt(d.bands.n[big]) + "건)",
+      body: '<div class="chc-hbars">' + ["84", "59", "S", "L"].map(function (k) {
+        var ch = d.bands.pn[k] ? (d.bands.n[k] / d.bands.pn[k] - 1) * 100 : null;
+        return '<div class="chc-hbar"><span>' + nm[k] + '</span><i><u style="width:' + (d.bands.n[k] / tot * 100).toFixed(1) + '%;background:#3182f6"></u></i><b style="color:#191f28">' + Math.round(d.bands.n[k] / tot * 100) + '%</b><em class="' + cls(ch) + '">' + (ch == null ? "" : pct(ch, 0)) + "</em></div>";
+      }).join("") + "</div>",
+      how: "막대 = 최근 30일 매매 중 비중 · 오른쪽 % = 건수 직전 30일 대비 · 소형 55㎡ 미만, 대형 95㎡ 이상" });
+  }
+  /* 3 가격 변화 */
+  if (d.up.length || d.dn.length) add("가격변화", { tag: tagS("가격 변화"), q: sc + (bn ? " " + bn : "") + ",<br>값이 오른 곳 · 내린 곳",
+    a: "3% 넘게 오른 곳 <b class=\"up\">" + d.up.length + "곳</b> · 내린 곳 <b class=\"down\">" + d.dn.length + "곳</b>",
+    body: (d.up.length ? '<div class="chc-h">▲ 오른 곳</div>' + chList(d.up.slice(0, 2).map(function (r) { return [escHtml(chName(r.k)), fmt(r.n) + "건", chPct(r.pc), "up"]; }), 2) : "") +
+      (d.dn.length ? '<div class="chc-h">▼ 내린 곳</div>' + chList(d.dn.slice(0, 2).map(function (r) { return [escHtml(chName(r.k)), fmt(r.n) + "건", chPct(r.pc), "down"]; }), 2) : ""),
+    how: "㎡당 가격 가운데값 · " + cmp.replace(/\(.*\)/, "") + " · 양쪽 " + d.MIN + "건 이상 지역만" });
+  /* 4 거래 급증 */
+  if (d.hot.length) {
+    var hmx = d.hot[0].vt;
+    add("거래급증", { tag: tagS("거래 급증"), q: sc + (bn ? " " + bn : "") + ",<br>거래가 갑자기 는 곳은?",
+      a: "1위 " + escHtml(chName(d.hot[0].k)) + " <b class=\"up\">" + d.hot[0].vt.toFixed(1) + "배</b> (" + fmt(d.hot[0].pn) + "→" + fmt(d.hot[0].n) + "건)",
+      body: '<div class="chc-hbars">' + d.hot.map(function (r) {
+        return '<div class="chc-hbar"><span>' + escHtml(chName(r.k)) + '</span><i><u style="width:' + (r.vt / hmx * 100).toFixed(1) + '%"></u></i><b>' + r.vt.toFixed(1) + "배</b></div>";
+      }).join("") + "</div>",
+      how: "배율 = 이번 30일 ÷ 비교 기간 건수 · 양쪽 " + d.MIN + "건 이상 · " + cmp.replace(/\(.*\)/, "") });
+  }
+  /* 5 신고가 */
+  if (d.hi.length) {
+    var h1 = d.hi[0], secs = band === "all" ? [["84", "84㎡대"], ["59", "59㎡대"], ["L", "대형"], ["S", "소형"]].filter(function (b) { return d.hi.some(function (t) { return chHb(t) === b[0]; }); }).slice(0, 2) : null;
+    add("신고가", { tag: tagS("신고가"), q: sc + (bn ? " " + bn : "") + ",<br>최고가를 새로 쓴 아파트",
+      a: escHtml(h1.apt) + " " + chArea(h1) + " " + eok(h1.max.amount) + " " + chB(d.hasAll ? h1.upAll : h1.up, "up"),
+      body: secs ? secs.map(function (b) {
+          return '<div class="chc-h">' + b[1] + "</div>" + chList(d.hi.filter(function (t) { return chHb(t) === b[0]; }).slice(0, 2).map(function (t) {
+            return [escHtml(t.apt), escHtml(chName(t.k)) + " · " + chArea(t) + " · " + eok(t.max.amount), chPct(d.hasAll ? t.upAll : t.up), "up"]; }), 2);
+        }).join("")
+        : chList(d.hi.slice(0, 4).map(function (t) { return [escHtml(t.apt), escHtml(chName(t.k)) + " · " + chArea(t) + " · " + eok(t.max.amount), chPct(d.hasAll ? t.upAll : t.up), "up"]; }), true),
+      how: "% = 같은 단지·같은 전용면적의 이전 최고가 대비 · 직거래 제외" });
+  }
+  /* 6 최고가 거래 */
+  if (d.top.length) add("최고가거래", { tag: tagS("최고가 거래"), q: sc + (bn ? " " + bn : "") + ",<br>가장 비싸게 팔린 아파트",
+    a: "1위 " + escHtml(d.top[0].apt) + " " + Math.round(d.top[0].area) + "㎡ <b>" + eok(d.top[0].amount) + "</b>",
+    body: chList(d.top.map(function (t, i) { return [(i + 1) + ". " + escHtml(t.apt), escHtml(chName(t.k)) + " · " + Math.round(t.area) + "㎡" + (t.floor ? " · " + t.floor + "층" : ""), eok(t.amount)]; }), 2),
+    how: "최근 30일 계약 · 직거래 제외" });
+  /* 7 인기 단지 */
+  var bRows = d.bS.slice(0, 2).map(function (t) { return ['<i class="chc-pill">매매</i>' + escHtml(t.apt), escHtml(chName(t.k)) + " · " + t.band + "㎡대", t.n + "건"]; })
+    .concat(d.bJ.slice(0, 1).map(function (t) { return ['<i class="chc-pill je">전세</i>' + escHtml(t.apt), escHtml(chName(t.k)) + " · " + t.band + "㎡대", t.n + "건"]; }))
+    .concat(d.bW.slice(0, 1).map(function (t) { return ['<i class="chc-pill wol">월세</i>' + escHtml(t.apt), escHtml(chName(t.k)) + " · " + t.band + "㎡대", t.n + "건"]; }));
+  if (bRows.length) add("인기단지", { tag: tagS("인기 단지"), q: sc + (bn ? " " + bn : "") + ",<br>가장 많이 사고판 단지",
+    a: d.bS[0] ? "매매 1위 " + escHtml(d.bS[0].apt) + " <b>" + d.bS[0].n + "건</b>" : "",
+    body: chList(bRows, 2), how: "최근 30일 · 같은 단지·평형대 계약 건수 · 세대수 10% 넘게 몰린 단지·임대주택 제외" });
+  /* 8 전월세 (평형 구분 없음) */
+  if (d.je + d.wol) {
+    var wp = Math.round(d.wol / (d.je + d.wol) * 100);
+    var rr = d.live.map(function (c) { var j = CH.data.regions[c]; return { k: c, je: j.rentCount || 0, wol: j.wolCount || 0 }; }).filter(function (r) { return r.je + r.wol >= 20; })
+      .sort(function (a, b) { return (b.je + b.wol) - (a.je + a.wol); }).slice(0, d.live.length > 1 ? 3 : 0);
+    add("전월세", { tag: "전월세", q: sc + ",<br>전세 vs 월세?",
+      a: "월세 비중 <b>" + wp + "%</b> · 전세 " + fmt(d.je) + " / 월세 " + fmt(d.wol) + "건",
+      body: '<div class="chc-stacks">' + [{ nm: scopeNm || "전체", je: d.je, wol: d.wol }].concat(rr.map(function (r) { return { nm: chName(r.k), je: r.je, wol: r.wol }; })).map(function (r) {
+        var t = r.je + r.wol, w = Math.round(r.wol / t * 100);
+        return '<div class="chc-stack"><span>' + escHtml(r.nm) + '</span><i><u class="je" style="width:' + (100 - w) + '%">' + (100 - w) + '%</u><u class="wol" style="width:' + w + '%">' + w + "%</u></i></div>";
+      }).join("") + '</div><div class="chc-legend"><i class="je"></i>전세 <i class="wol"></i>월세(반전세 포함)</div>',
+      how: "최근 30일 전월세 신고 · 아래는 계약이 많은 지역 · 평형 구분 없이 집계" + (bn ? " (" + bn + " 선택과 무관)" : "") });
+  }
+  /* 9·10 고점 대비 · 하락과 회복 (월별 자료 — 평형 구분 없음) */
+  if (typeof DB !== "undefined" && DB && DB.sale) {
+    var t0 = ymNum(DB.sale.dates[0]), cyc = [2020 * 12 + 1 - t0, 2022 * 12 + 12 - t0];
+    var basis = chFreshOn() ? dTxt(CH.data.fresh.to) + "까지 실거래" : DB.sale.dates[1].replace("-", ".") + " 월별";
+    var dd = d.live.filter(function (k) { return DB.sale.series[k]; }).map(function (k) { return { k: k, dd: chDD(k, cyc[0], cyc[1]) }; }).filter(function (r) { return r.dd; });
+    var gs = chGroupSer(null, d.live), gd = gs ? chDD("", cyc[0], cyc[1], gs) : null;
+    if (dd.length && gd) {
+      var rec = dd.filter(function (r) { return r.dd.now >= 0; }).length, srt = dd.slice().sort(function (a, b) { return b.dd.now - a.dd.now; });
+      var tiles = srt.length <= 25 ? dd.slice().sort(function (a, b) { return a.k < b.k ? -1 : 1; }) : srt.slice(0, 15).concat(srt.slice(-10));
+      add("고점대비", { tag: "MDD", q: sc + ",<br>고점 대비 지금 어디쯤?",
+        a: "전고점보다 " + chB(gd.now) + " " + (gd.now >= 0 ? "위" : "아래") + (dd.length > 1 ? " · " + dd.length + "곳 중 " + rec + "곳 회복" : ""),
+        body: dd.length > 1 ? '<div class="chc-grid">' + tiles.map(function (r) {
+            return '<div style="' + chTile(r.dd.now) + '"><small>' + escHtml(chShortGu(r.k)) + "</small><b>" + (r.dd.now > 0 ? "+" : "") + r.dd.now.toFixed(0) + "%</b></div>";
+          }).join("") + "</div>"
+          : chList([[escHtml(chName(dd[0].k)), "전고점 " + chYm(dd[0].dd.pi), chPct(dd[0].dd.now), cls(dd[0].dd.now)]]),
+        how: (srt.length > 25 ? "많아서 위 15곳·아래 10곳만 · " : "") + "전고점 = 2020~22년 최고 · 빨강 = 위 · 파랑 = 아래 · " + basis + (bn ? " · 평형 구분 없음" : "") });
+      var worst = dd.slice().sort(function (a, b) { return a.dd.fall - b.dd.fall; }).slice(0, 3);
+      add("하락회복", { tag: "하락·회복", q: sc + ",<br>얼마나 빠졌고 언제 회복했나?",
+        a: chB(gd.fall, "down") + " 빠졌다가 " + (gd.ri >= 0 ? gd.rec + "개월 만에 회복" : "바닥 후 " + gd.since + "개월째"),
+        body: chList([[sc + " 전체", chYm(gd.pi) + " 고점 → " + chYm(gd.ti) + " 바닥 · " + (gd.ri >= 0 ? "회복 " + gd.rec + "개월" : "바닥 후 " + gd.since + "개월"), chPct(gd.fall), "down"]]
+          .concat(d.live.length > 1 ? worst.map(function (r) { return [escHtml(chName(r.k)), chYm(r.dd.pi) + " → " + chYm(r.dd.ti) + " · " + (r.dd.ri >= 0 ? "회복 " + r.dd.rec + "개월" : "바닥 후 " + r.dd.since + "개월"), chPct(r.dd.fall), "down"]; }) : []), true),
+        how: "% = 고점→바닥 낙폭(MDD) · 아래는 가장 크게 빠졌던 곳 · 권역은 소속 지역 변화율 평균 · 과거가 반복된다는 보장은 없음" });
+    }
+    /* 11·12 갈아타기 · 첫 집 */
+    var ar = band === "59" ? 59 : 84, mv = chMove(d.live, 4, 3, ar);
+    if (mv && mv.pairs.length) add("갈아타기", { tag: "갈아타기 · " + ar + "㎡", q: sc + " 안에서<br>갈아타기 부담이 적은 조합",
+      a: escHtml(chName(mv.pairs[0].a)) + " → " + escHtml(chName(mv.pairs[0].b)) + " 약 <b>" + eok(mv.pairs[0].extra) + "</b>",
+      body: chList(mv.pairs.slice(0, 3).map(function (p) { return [escHtml(chName(p.a)) + " → " + escHtml(chName(p.b)), "격차 " + p.band.cur.toFixed(2) + "배 · 10년 중 하위 " + Math.max(1, Math.round(p.band.pctile)) + "%", eok(p.extra)]; }), true),
+      how: "㎡당 가격 차이가 10년 중 가장 좁은 조합 · 오른쪽 = " + ar + "㎡ 추가금(세금·수수료 포함, 대출 전)" });
+    if (mv && mv.cheap.length) add("첫집", { tag: "내 집 마련 · " + ar + "㎡", q: sc + " " + ar + "㎡,<br>현금 얼마 있어야 살까?",
+      a: "가장 적게 드는 " + escHtml(chName(mv.cheap[0].k)) + " 약 <b>" + eok(mv.cheap[0].need) + "</b>",
+      body: chList(mv.cheap.map(function (r) { return [escHtml(chName(r.k)), ar + "㎡ " + eok(r.price) + " − 대출 " + eok(r.loan) + " + 세금·비용", eok(r.need)]; }), true) +
+        (mv.med && mv.n > 3 ? '<div class="chc-line">' + sc + " " + ar + "㎡ 가운데값 <b>" + eok(mv.med) + "</b></div>" : ""),
+      how: "무주택 · LTV·대출 한도만 반영(소득·DSR 미반영) · " + basis });
+  }
+  return C;
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */

@@ -947,6 +947,44 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chcard .chc-stack>span{width:auto;min-width:62px;max-width:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chc-sub2{margin-left:0;margin-top:-4px}
 .chc-foot b.chc-brand{font-size:14px;line-height:1.2}
+/* ═══ v7.0 우상향연구소 카드 디자인 ═══ */
+.chcard{padding:0;background:#f7f4ee;border:0;border-radius:18px;box-shadow:0 1px 0 rgba(0,0,0,.04);color:#18202c}
+.chcard.chfixed{border-radius:0}
+.chc-head{position:relative;overflow:hidden;background:linear-gradient(135deg,#0f1c30 0%,#16294a 100%);padding:16px 20px 15px;color:#fff}
+.chc-deco{position:absolute;right:-6px;bottom:-4px;pointer-events:none}
+.chc-head .chc-top{position:relative;display:flex;align-items:center;gap:8px}
+.chc-logo{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#e9d3a6;letter-spacing:-.01em}
+.chc-head .chc-tag{background:none;border:1px solid rgba(212,175,106,.55);color:#e9d3a6;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+.chc-head .chc-date{margin-left:auto;font-size:12px;font-weight:600;color:rgba(255,255,255,.55)}
+.chc-head .chc-q{position:relative;color:#fff;font-size:21px;font-weight:800;line-height:1.27;letter-spacing:-.035em;margin:11px 0 0}
+.chc-inner{flex:1;display:flex;flex-direction:column;padding:13px 20px 12px;min-height:0}
+.chcard .chc-a{background:#fff;border:0;border-left:3px solid #c9a35c;border-radius:4px 10px 10px 4px;color:#18202c;font-size:14px;padding:8px 11px;margin-bottom:10px;box-shadow:0 1px 2px rgba(15,28,48,.06)}
+.chcard .chc-row{background:#fff;border-radius:10px}
+.chcard .chc-kpis>div{background:#fff}
+.chcard .chc-kpis small{color:#6b7280}
+.chcard .chc-h{color:#8a6d3b;font-size:12px;letter-spacing:.01em}
+.chcard .chc-how{color:#8b8f98;font-size:10.5px;margin-top:auto;padding-top:8px}
+.chcard .chc-foot{margin-top:6px;padding-top:7px;border-top:1px solid #e6e0d4;color:#9a9ca3;font-size:10.5px}
+.chcard .chc-foot b.chc-brand{color:#0f1c30;font-size:13.5px;letter-spacing:-.01em}
+.chcard .up{color:#e5484d}.chcard .down{color:#2f6fe4}
+.chcard .chc-hbar i,.chcard .chc-bar i{background:#ebe6dc}
+.chcard .chc-hbar u{background:#e5484d}
+.chcard .chc-hbar b{color:#e5484d}
+.chcard .chc-bar u.pos{background:#e5484d}.chcard .chc-bar u.neg{background:#2f6fe4}
+.chcard .chc-stack u.je{background:#16294a}.chcard .chc-stack u.wol{background:#c9a35c}
+.chcard .chc-legend i.je{background:#16294a}.chcard .chc-legend i.wol{background:#c9a35c}
+.chcard .chc-pill{background:#16294a}.chcard .chc-pill.je{background:#4a6a9a}.chcard .chc-pill.wol{background:#c9a35c}
+.chcard .chc-line{color:#18202c}
+.chc-budget{display:flex;flex-direction:column;gap:9px}
+.chc-bud{background:#fff;border-radius:10px;padding:8px 11px}
+.chc-bud-h{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}
+.chc-bud-h span{font-size:13px;font-weight:800;color:#8a6d3b}
+.chc-bud i{display:block;height:7px;background:#ebe6dc;border-radius:4px;margin:6px 0 4px;overflow:hidden}
+.chc-bud u{display:block;height:100%;background:linear-gradient(90deg,#16294a,#3d5a8a);border-radius:4px}
+.chc-bud small{display:block;font-size:11px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chc-budget{gap:6px}
+.chc-bud{padding:6px 10px}
+.chc-bud i{margin:4px 0 3px;height:6px}
 </style>
 </head>
 <body>
@@ -954,7 +992,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v6.9</span>
+    <span class="ver">v7.0</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2400,13 +2438,19 @@ function chText(tab) {
 /* ── 카드 (360×450) ── */
 /* ── 카드 (360×450) — v6.7: 한눈에 '무슨 이야기인지' 보이게
    ① 질문형 제목(무엇을 알려 주는 카드인가) ② 한 줄 답(오늘 숫자로 만든 결론) ③ 근거 ④ 읽는 법 한 줄 */
+/* v7.0 우상향연구소 디자인 — 짙은 남색 머리(브랜드·분류·질문) + 아이보리 몸통(한 줄 답·근거) + 금색 포인트.
+   피드에 쌓였을 때 머리 띠가 줄지어 보이도록 모든 카드가 같은 뼈대를 쓴다. */
+var CH_MARK = '<svg class="chc-mark" viewBox="0 0 20 20" width="15" height="15"><path d="M2 15 L7.5 9.5 L11 12.5 L18 4.5" fill="none" stroke="#d4af6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.2 4.3 H18.2 V9.3" fill="none" stroke="#d4af6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var CH_DECO = '<svg class="chc-deco" viewBox="0 0 220 110" width="220" height="110"><path d="M0 104 C40 98 58 80 86 78 S126 60 148 44 S190 18 220 6" fill="none" stroke="rgba(212,175,106,.28)" stroke-width="2"/><path d="M0 110 C46 104 64 90 92 88 S132 72 154 58 S194 34 220 24" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.5"/></svg>';
 function chCard(o) {
-  return '<div class="chcard"><div class="chc-top"><span class="chc-tag">' + escHtml(o.tag) + '</span><span class="chc-date">' + escHtml(chToday()) + "</span></div>" +
-    '<div class="chc-q">' + o.q + "</div>" +
-    (o.a ? '<div class="chc-a">' + o.a + "</div>" : "") +
-    '<div class="chc-body">' + o.body + "</div>" +
-    (o.how ? '<div class="chc-how">' + o.how + "</div>" : "") +
-    '<div class="chc-foot"><span>국토부 아파트 실거래 · 투자 권유 아님</span><b class="chc-brand">@uphill.lab</b></div></div>';
+  return '<div class="chcard"><div class="chc-head">' + CH_DECO +
+      '<div class="chc-top"><span class="chc-logo">' + CH_MARK + "우상향연구소</span><span class=\"chc-tag\">" + escHtml(o.tag) + '</span><span class="chc-date">' + escHtml(chToday()) + "</span></div>" +
+      '<div class="chc-q">' + o.q + "</div></div>" +
+    '<div class="chc-inner">' +
+      (o.a ? '<div class="chc-a">' + o.a + "</div>" : "") +
+      '<div class="chc-body">' + o.body + "</div>" +
+      (o.how ? '<div class="chc-how">' + o.how + "</div>" : "") +
+      '<div class="chc-foot"><span>국토부 아파트 실거래 · 투자 권유 아님</span><b class="chc-brand">@uphill.lab</b></div></div></div>';
 }
 function chList(rows, sm) {
   return '<div class="chc-list' + (sm === 2 ? " sm xs" : sm ? " sm" : "") + '">' + rows.map(function (r) {
@@ -2416,7 +2460,7 @@ function chList(rows, sm) {
 function chB(v, c, dg) { return '<b class="' + (c || cls(v)) + '">' + chPct(v, dg) + "</b>"; }
 function chShortGu(k) { return chName(k).replace(/구$/, "").replace(/^인천 /, ""); }
 function chTile(v) {
-  var a = Math.min(1, Math.abs(v) / 30) * 0.85 + 0.12, c = v >= 0 ? "240,68,82" : "49,130,246";
+  var a = Math.min(1, Math.abs(v) / 30) * 0.85 + 0.12, c = v >= 0 ? "229,72,77" : "47,111,228";
   return "background:rgba(" + c + "," + a.toFixed(2) + ");color:" + (a > 0.5 ? "#fff" : "#191f28");
 }
 function chCardsHtml(tab) {
@@ -2513,8 +2557,12 @@ function chCardsHtml(tab) {
         return [escHtml(g.nm), chYm(g.dd.pi) + " 고점 → " + chYm(g.dd.ti) + " 바닥 · " + (g.dd.ri >= 0 ? "회복 " + g.dd.rec + "개월" : "바닥 후 " + g.dd.since + "개월"), chPct(g.dd.fall), "down"];
       }), true),
       how: "% = 고점에서 바닥까지 떨어진 폭(MDD) · 과거 패턴이 반복된다는 보장은 없음" });
+    var yy = chYoYCard(RANKED.filter(function (k) { return /^(11|41|28)/.test(k); }), "수도권"); if (yy) add("1년 상승률", yy);
   } else if (tab === "move") {
     var v = chMove(); if (!v) return "";
+    var seoulK = RANKED.filter(function (k) { return /^11/.test(k); });
+    var mp = chMapCard(seoulK, "서울", 84); if (mp) add("서울 84 시세", mp);
+    var bd = chBudgetCard(seoulK, "서울", 84); if (bd) add("예산별", bd);
     var mb = chFreshOn() ? dTxt(CH.data.fresh.to) + "까지 실거래 반영" : v.ym + " 월별 기준";
     if (v.pairs.length) add("갈아타기", { tag: "갈아타기", q: "지금 갈아타기<br>부담이 적은 조합은?",
       a: escHtml(chName(v.pairs[0].a)) + " → " + escHtml(chName(v.pairs[0].b)) + " 추가금 약 <b>" + eok(v.pairs[0].extra) + "</b>",
@@ -2571,6 +2619,67 @@ function paintChannel() {
   meta.innerHTML = parts.join(" · ") || "불러오는 중…";
   document.getElementById("ch-text").value = chText(CH.tab);
   document.getElementById("ch-cards").innerHTML = chCardsHtml(CH.tab) || '<p class="hint">이 코너는 카드로 만들 자료가 아직 없습니다.</p>';
+}
+
+
+/* ══ 대중 카드 3종 (v7.0) — 84㎡ 시세 지도 · 1년 새 오른 동네 · 현금 얼마면 어디까지 ══ */
+function chPriceNow(k, ak) { var a = chSer(ak, k); return chLast(a); }
+function chYoY(k) {
+  var a = chSer("sale", k), L = a.length - 1; while (L >= 0 && a[L] == null) L--;
+  if (L < 13) return null;
+  var b = null; for (var o = 0; o <= 2 && b == null; o++) b = a[L - 12 - o] != null ? a[L - 12 - o] : (a[L - 12 + o] != null ? a[L - 12 + o] : null);
+  return b ? (a[L] / b - 1) * 100 : null;
+}
+function chNavyTile(v, lo, hi) {
+  var t = hi > lo ? (v - lo) / (hi - lo) : 0.5, a = 0.14 + t * 0.86;
+  return "background:rgba(22,41,74," + a.toFixed(2) + ");color:" + (a > 0.5 ? "#fff" : "#18202c");
+}
+function chEokS(v) { return v >= 10000 ? (v / 10000).toFixed(v >= 100000 ? 0 : 1) + "억" : fmt(Math.round(v / 1000) * 1000 / 10000 * 10) / 10 + "억"; }
+/* 지도: codes(≤25) 의 84/59㎡ 가운데값(최근 90일 보정) 타일 */
+function chMapCard(codes, scopeNm, area) {
+  if (typeof DB === "undefined" || !DB || !DB.a84) return null;
+  var ak = area === 59 ? "a59" : "a84", rows = codes.filter(function (k) { return DB[ak].series[k]; }).map(function (k) { return { k: k, p: chPriceNow(k, ak) }; }).filter(function (r) { return r.p; });
+  if (rows.length < 4 || rows.length > 25) return null;
+  var ps = rows.map(function (r) { return r.p; }), lo = Math.min.apply(null, ps), hi = Math.max.apply(null, ps);
+  var mx = rows.slice().sort(function (a, b) { return b.p - a.p; });
+  return { tag: area + "㎡ 시세", q: escHtml(scopeNm) + " " + area + "㎡,<br>지금 얼마?",
+    a: "가장 비싼 " + escHtml(chShortGu(mx[0].k)) + " <b>" + eok(mx[0].p) + "</b> · 가장 싼 " + escHtml(chShortGu(mx[mx.length - 1].k)) + " <b>" + eok(mx[mx.length - 1].p) + "</b>",
+    body: '<div class="chc-grid">' + rows.sort(function (a, b) { return a.k < b.k ? -1 : 1; }).map(function (r) {
+      return '<div style="' + chNavyTile(r.p, lo, hi) + '"><small>' + escHtml(chShortGu(r.k)) + "</small><b>" + (r.p >= 100000 ? Math.round(r.p / 10000) : (r.p / 10000).toFixed(1)) + "억</b></div>";
+    }).join("") + "</div>",
+    how: "전용 " + area + "㎡ 실거래 가운데값 · 진할수록 비쌈 · " + (chFreshOn() ? dTxt(CH.data.fresh.to) + "까지 실거래 반영" : DB.sale.dates[1].replace("-", ".") + " 월별") };
+}
+function chYoYCard(codes, scopeNm) {
+  if (typeof DB === "undefined" || !DB || !DB.sale) return null;
+  var rows = codes.filter(function (k) { return DB.sale.series[k]; }).map(function (k) { return { k: k, v: chYoY(k) }; }).filter(function (r) { return r.v != null; })
+    .sort(function (a, b) { return b.v - a.v; });
+  if (rows.length < 3) return null;
+  var upN = rows.filter(function (r) { return r.v > 0; }).length, top = rows.slice(0, 4), bot = rows.slice(-2).reverse().filter(function (r) { return top.indexOf(r) < 0; });
+  var mx = Math.max.apply(null, top.concat(bot).map(function (r) { return Math.abs(r.v); }).concat([1]));
+  function bar(r) { return '<div class="chc-hbar"><span>' + escHtml(chName(r.k)) + '</span><i><u style="width:' + (Math.abs(r.v) / mx * 100).toFixed(1) + "%;background:" + (r.v >= 0 ? "#e5484d" : "#2f6fe4") + '"></u></i><b class="' + cls(r.v) + '">' + chPct(r.v) + "</b></div>"; }
+  return { tag: "1년 상승률", q: escHtml(scopeNm) + ",<br>1년 새 가장 많이 오른 곳은?",
+    a: "1위 " + escHtml(chName(rows[0].k)) + " " + chB(rows[0].v) + " · " + rows.length + "곳 중 " + upN + "곳 상승",
+    body: '<div class="chc-hbars">' + top.map(bar).join("") + (bot.length ? '<div class="chc-h" style="margin:2px 0 -2px">가장 약한 곳</div>' + bot.map(bar).join("") : "") + "</div>",
+    how: "㎡당 가격 3개월 이동중위 지수의 1년 전 대비 · " + (chFreshOn() ? dTxt(CH.data.fresh.to) + "까지 실거래 반영" : DB.sale.dates[1].replace("-", ".") + " 월별") };
+}
+function chBudgetCard(codes, scopeNm, area) {
+  if (typeof DB === "undefined" || !DB || !DB.a84) return null;
+  var ak = area === 59 ? "a59" : "a84", none = { own: "none", income: 0, rate: 4, first: false, cash: 0 };
+  var rows = codes.filter(function (k) { return DB[ak].series[k]; }).map(function (k) { var p = chPriceNow(k, ak); return p ? { k: k, need: finance(k, p, none).need } : null; }).filter(Boolean)
+    .sort(function (a, b) { return a.need - b.need; });
+  if (rows.length < 3) return null;
+  var lo = rows[0].need, tiers = [30000, 50000, 80000, 120000].filter(function (t) { return t >= lo * 0.6; }).slice(0, 3);
+  if (tiers.length < 2) tiers = [Math.ceil(lo / 10000) * 10000, Math.ceil(lo / 10000) * 10000 + 30000];
+  var T = tiers.map(function (t) { var ok = rows.filter(function (r) { return r.need <= t; }); return { t: t, ok: ok }; });
+  var mid = T[Math.min(1, T.length - 1)];
+  return { tag: "예산별 · " + area + "㎡", q: "현금 얼마면 " + escHtml(scopeNm) + "<br>" + area + "㎡ 살 수 있을까?",
+    a: "현금 " + eok(mid.t) + "이면 " + rows.length + "곳 중 <b>" + mid.ok.length + "곳</b>",
+    body: '<div class="chc-budget">' + T.map(function (x) {
+      var names = x.ok.slice(-3).reverse().map(function (r) { return chShortGu(r.k); });
+      return '<div class="chc-bud"><div class="chc-bud-h"><b>현금 ' + eok(x.t) + '</b><span>' + x.ok.length + "/" + rows.length + '곳</span></div><i><u style="width:' + (x.ok.length / rows.length * 100).toFixed(1) + '%"></u></i>' +
+        '<small>' + (x.ok.length ? "살 수 있는 가장 비싼 곳: " + escHtml(names.join(" · ")) : "아직 없음") + "</small></div>";
+    }).join("") + "</div>",
+    how: "무주택 · " + area + "㎡ 가운데값 − 대출(LTV·한도, 소득 미반영) + 취득세·중개보수 등 · 앱 설정 규칙" };
 }
 
 /* ══ 지역·평형별 채널 카드 (v6.9) ═══════════════════════════════════
@@ -2634,7 +2743,7 @@ function chScopeCards(codes, band, scopeNm) {
       a: nm[big] + " 비중 <b>" + Math.round(d.bands.n[big] / tot * 100) + "%</b> (" + fmt(d.bands.n[big]) + "건)",
       body: '<div class="chc-hbars">' + ["84", "59", "S", "L"].map(function (k) {
         var ch = d.bands.pn[k] ? (d.bands.n[k] / d.bands.pn[k] - 1) * 100 : null;
-        return '<div class="chc-hbar"><span>' + nm[k] + '</span><i><u style="width:' + (d.bands.n[k] / tot * 100).toFixed(1) + '%;background:#3182f6"></u></i><b style="color:#191f28">' + Math.round(d.bands.n[k] / tot * 100) + '%</b><em class="' + cls(ch) + '">' + (ch == null ? "" : pct(ch, 0)) + "</em></div>";
+        return '<div class="chc-hbar"><span>' + nm[k] + '</span><i><u style="width:' + (d.bands.n[k] / tot * 100).toFixed(1) + '%;background:#16294a"></u></i><b style="color:#18202c">' + Math.round(d.bands.n[k] / tot * 100) + '%</b><em class="' + cls(ch) + '">' + (ch == null ? "" : pct(ch, 0)) + "</em></div>";
       }).join("") + "</div>",
       how: "막대 = 최근 30일 매매 중 비중 · 오른쪽 % = 건수 직전 30일 대비 · 소형 55㎡ 미만, 대형 95㎡ 이상" });
   }
@@ -2714,6 +2823,10 @@ function chScopeCards(codes, band, scopeNm) {
           .concat(d.live.length > 1 ? worst.map(function (r) { return [escHtml(chName(r.k)), chYm(r.dd.pi) + " → " + chYm(r.dd.ti) + " · " + (r.dd.ri >= 0 ? "회복 " + r.dd.rec + "개월" : "바닥 후 " + r.dd.since + "개월"), chPct(r.dd.fall), "down"]; }) : []), true),
         how: "% = 고점→바닥 낙폭(MDD) · 아래는 가장 크게 빠졌던 곳 · 권역은 소속 지역 변화율 평균 · 과거가 반복된다는 보장은 없음" });
     }
+    var ar0 = band === "59" ? 59 : 84;
+    var yy2 = chYoYCard(d.live, scopeNm || "이 범위"); if (yy2) add("1년상승률", yy2);
+    var mp2 = chMapCard(d.live, scopeNm || "이 범위", ar0); if (mp2) add("시세지도", mp2);
+    var bd2 = chBudgetCard(d.live, scopeNm || "이 범위", ar0); if (bd2) add("예산별", bd2);
     /* 11·12 갈아타기 · 첫 집 */
     var ar = band === "59" ? 59 : 84, mv = chMove(d.live, 4, 3, ar);
     if (mv && mv.pairs.length) add("갈아타기", { tag: "갈아타기 · " + ar + "㎡", q: sc + " 안에서<br>갈아타기 부담이 적은 조합",

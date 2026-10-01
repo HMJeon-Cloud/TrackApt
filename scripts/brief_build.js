@@ -115,6 +115,52 @@ function aptOnly(items, kind) {
   };
 }
 
+/* ── 비정상적으로 몰린 단지 걸러내기 (v6.8) ────────────────────────────
+   '많이 거래된 단지'에 입주장(새 아파트 첫 전세 계약)이나 임대 일괄 계약이 오르면 순위가 무의미해진다
+   (예: 다산지금데시앙 30일 전세 528건 / 529세대). 단지 세대수 대비 30일 계약이 10%를 넘으면 뺀다.
+   세대수는 저장소 kapt/{코드}.json 에서 앱의 이름 짝짓기(matchKaptAll)로 찾는다 — 여기서는 '세대수 확인'에만
+   쓰고, 못 찾았다고 거래를 빼지는 않는다. 세대수를 모르면 준공 2년 안 + 30일 30건 이상이면 입주장으로 본다. */
+var KM = null, ODD_SHARE = 0.10;
+(function () {
+  try {
+    var html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+    var a = html.indexOf("var NAME_ALIAS = ["), b = html.indexOf("/* 한 곳만 찾을 때");
+    if (a < 0 || b < a) throw new Error("matchKaptAll 을 찾지 못함");
+    KM = new Function(html.slice(a, b) + "\nNAME_ALIAS.push([/dmc/g, '디엠씨']);\nreturn { matchKaptAll: matchKaptAll };")();
+  } catch (e) { console.warn("세대수 짝짓기 비활성:", e.message); KM = null; }
+})();
+var KLIST = {};
+function kaptList(lawd) {
+  if (KLIST[lawd] !== undefined) return KLIST[lawd];
+  var list = null;
+  try {
+    var k = JSON.parse(fs.readFileSync(path.join(ROOT, "kapt", lawd + ".json"), "utf8"));
+    list = (k.cx || []).map(function (x) { return { kaptCode: x.k, name: x.n, addr: x.a, _st: x }; });
+  } catch (e) { list = null; }
+  return (KLIST[lawd] = list && list.length ? list : null);
+}
+function householdsOf(lawd, groups) {             /* groups: [{apt, dong}] → 세대수 배열 (모르면 null) */
+  var list = KM && kaptList(lawd);
+  if (!list || !groups.length) return groups.map(function () { return null; });
+  var res = KM.matchKaptAll(list, groups.map(function (g) { return { apt: g.apt.replace(/(\d+)\s*,\s*\d+/g, "$1"), dong: g.dong }; }));
+  return res.map(function (r) { return r && r.it && r.it._st && r.it._st.hh ? r.it._st.hh : null; });
+}
+var ODD_LOG = [];
+/* list: 순위 후보(단지·평형대별), all: 같은 종류의 30일 거래 전부 → 정상 단지만 12곳 + 뺀 단지 */
+function dropOdd(lawd, list, all, kindName, thisYear) {
+  var tot = {}, by = {};
+  all.forEach(function (t) { var a = t.dong + "|" + t.apt; tot[a] = (tot[a] || 0) + 1; by[a] = Math.max(by[a] || 0, Number(t.buildYear) || 0); });
+  var cand = list.slice(0, 30), hh = householdsOf(lawd, cand), keep = [], odd = [];
+  cand.forEach(function (g, i) {
+    var a = g.dong + "|" + g.apt, n = tot[a] || g.n, h = hh[i];
+    if (h) g.hh = h;
+    var bad = h ? n / h > ODD_SHARE : (by[a] >= thisYear - 1 && n >= 30);
+    if (bad) { odd.push({ apt: g.apt, dong: g.dong, kind: kindName, n: n, hh: h || null, by: by[a] || null }); ODD_LOG.push(lawd + " " + g.apt + " " + kindName + " " + n + "건/" + (h || "?") + "세대"); }
+    else keep.push(g);
+  });
+  return { keep: keep.slice(0, 12), odd: odd };
+}
+
 /* 직거래는 가족 간 거래처럼 시세와 먼 값이 섞여 가격 계산(중위가·최고가·신고가)에서 뺀다. 건수에는 넣는다. */
 function priced(t) { return !/직거래/.test(t.dealingGbn || ""); }
 
@@ -230,7 +276,7 @@ async function summarize(lawd, today) {
       var g = m[k], o = { apt: g.apt, dong: g.dong, band: g.band, n: g.n, med: median(g.dep) };
       if (wol) o.rentMed = median(g.rent); else o.max = g.max;
       return o;
-    }).sort(function (a, b) { return b.n - a.n; }).slice(0, 12);
+    }).sort(function (a, b) { return b.n - a.n; }).slice(0, 30);
   }
   var week = cur.filter(function (t) { return dnum(t) > d7; }).length;
   /* 역대 최고가 장부 — 최근 4개월 바로 앞 달까지 봉인 */
@@ -278,9 +324,13 @@ async function summarize(lawd, today) {
     return g;
   });
   var curP = cur.filter(priced), prvP = prv.filter(priced);
+  var thisYear = Math.floor(ym / 100);
+  var oddS = dropOdd(lawd, groups.slice().sort(function (a, b) { return b.n - a.n; }), cur, "매매", thisYear);
+  var oddJ = dropOdd(lawd, busyRent(rentCur, false), rentAll, "전세", thisYear);
+  var oddW = dropOdd(lawd, busyRent(wolCur, true), rentAll, "월세", thisYear);
   return {
     count: cur.length, prevCount: prv.length, weekCount: week, rentCount: rentCur.length, wolCount: wolCur.length,
-    busyJ: busyRent(rentCur, false), busyW: busyRent(wolCur, true),
+    busyJ: oddJ.keep, busyW: oddW.keep, busyOdd: oddS.odd.concat(oddJ.odd, oddW.odd),
     pm: median(curP.map(function (t) { return t.amount / t.area; })),
     prevPm: median(prvP.map(function (t) { return t.amount / t.area; })),
     top: topDeals(curP, 5),
@@ -300,7 +350,7 @@ async function summarize(lawd, today) {
       });
       return o;
     })(),
-    busy: groups.slice().sort(function (a, b) { return b.n - a.n; }).slice(0, 12),
+    busy: oddS.keep,
     /* 신고가 — 평형대별로 골라 볼 수 있게 넉넉히 20곳 */
     newHigh: highs.filter(function (g) { return g.up != null && g.up > 0; }).sort(function (a, b) { return b.up - a.up; }).slice(0, 20),
     /* 역대 신고가 — 장부가 덮는 기간(hiFrom~) 안에서 가장 높았던 값을 넘긴 단지 */
@@ -415,6 +465,7 @@ async function news() {
   var froms = Object.keys(out.regions).map(function (c) { return out.regions[c].hiFrom || 999999; });
   out.hiFrom = Math.max.apply(null, froms.length ? froms : [0]);     /* 가장 덜 채운 지역 기준 */
   out.hiStart = HI_START;
+  console.log("몰림 단지 제외 " + ODD_LOG.length + "건" + (ODD_LOG.length ? " — " + ODD_LOG.slice(0, 15).join(" / ") : ""));
   out.hiDone = froms.filter(function (f) { return f <= HI_START; }).length;
   fs.writeFileSync(path.join(ROOT, "brief_data.json"), JSON.stringify(out));
   var size = fs.statSync(path.join(ROOT, "brief_data.json")).size;

@@ -27,6 +27,21 @@ function regionCodes() {
   return out;
 }
 
+/* ── 월별 저장본(market_core.json)의 마지막 달·시도 — '최신 보정'의 기준 (v6.51) ──
+   월별 저장본은 손으로 갈아 끼우는 파일이라 한두 달 늦다. 그 마지막 3개월(M-2~M) ㎡당 중위가와
+   최근 90일 ㎡당 중위가를 같은 실거래(아파트만)로 다시 재서 그 비율을 앱에 넘긴다.
+   앱은 저장본 지수의 마지막 값 × 비율 = '지금' 값으로 MDD·갈아타기를 매일 새로 계산한다. */
+var MC_LAST = null, MC_SD = {};
+(function () {
+  try {
+    var mc = JSON.parse(fs.readFileSync(path.join(ROOT, "market_core.json"), "utf8"));
+    var y = Number(String(mc.m0).slice(0, 4)), m = Number(String(mc.m0).slice(4)), t = y * 12 + m - 1 + mc.months - 1;
+    MC_LAST = Math.floor(t / 12) * 100 + (t % 12) + 1;
+    Object.keys(mc.regions || {}).forEach(function (c) { MC_SD[c] = mc.regions[c].sd; });
+  } catch (e) { MC_LAST = null; }
+})();
+var FRESH_MIN = 20, FRESH_POOL = {};
+
 /* ── 날짜 ── */
 function dayN(d) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
 function shiftDay(d, n) { var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
@@ -172,6 +187,21 @@ async function summarize(lawd, today) {
   sp.forEach(function (a) { sale = sale.concat(a); drop = drop.concat(a.dropped || []); });
   var rp = await Promise.all(months.slice(0, 2).map(function (m) { return trades(lawd, "rent", m).catch(function () { return []; }); }));
   rp.forEach(function (a) { rent = rent.concat(a); });
+  /* 최신 보정 — 저장본 마지막 3개월이 위 4개월 밖이면 그 달만 더 받는다 */
+  var fresh = null;
+  if (MC_LAST && MC_LAST >= ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ym))))))) {
+    var B = [ymPrev(ymPrev(MC_LAST)), ymPrev(MC_LAST), MC_LAST];
+    var extra = B.filter(function (m) { return months.indexOf(m) < 0; });
+    var ep = await Promise.all(extra.map(function (m) { return trades(lawd, "sale", m).catch(function () { return null; }); }));
+    if (ep.every(Boolean)) {
+      var pool = sale; ep.forEach(function (a) { pool = pool.concat(a); });
+      var bp = pool.filter(function (t) { return B.indexOf(t._ym) >= 0; }).map(function (t) { return t.amount / t.area; });
+      var np = sale.filter(function (t) { return dnum(t) > d2; }).map(function (t) { return t.amount / t.area; });
+      FRESH_POOL[lawd] = { b: bp, n: np };
+      fresh = { m: MC_LAST, b: bp.length ? Math.round(median(bp) * 10) / 10 : null, bn: bp.length,
+                n: np.length ? Math.round(median(np) * 10) / 10 : null, nn: np.length };
+    }
+  }
 
   var cur = sale.filter(function (t) { return dnum(t) > d0; });
   var prv = sale.filter(function (t) { var d = dnum(t); return d > d1 && d <= d0; });
@@ -248,6 +278,7 @@ async function summarize(lawd, today) {
     /* 역대 신고가 — 장부가 덮는 기간(hiFrom~) 안에서 가장 높았던 값을 넘긴 단지 */
     newHighAll: groups.filter(function (g) { return g.upAll != null && g.upAll > 0; }).sort(function (a, b) { return b.upAll - a.upAll; }).slice(0, 8),
     hiFrom: hi.from, hiTo: hi.to,
+    fresh: fresh,
     /* 최근 30일 창에서 뺀 거래 — 도시형생활주택 추정(small) · 일괄 거래 추정(bulk) · 많이 뺀 단지 3곳(bulkApts) */
     excl: (function () {
       var w = drop.filter(function (t) { return dnum(t) > d0; }), by = {};
@@ -318,6 +349,21 @@ async function news() {
     if (done % 25 === 0) console.log(done + "/" + codes.length + " · 호출 " + CALLS + " · " + Math.round((Date.now() - t0) / 1000) + "초");
   }));
   out.news = await news();
+  /* 최신 보정 — 시도·전국 묶음은 거래를 모아 다시 중위값 (지역 중위값의 평균이 아니다) */
+  if (MC_LAST) {
+    var G = { "전국": { b: [], n: [] } };
+    Object.keys(FRESH_POOL).forEach(function (c) {
+      var sd = MC_SD[c], f = FRESH_POOL[c];
+      [G["전국"], sd ? (G[sd] = G[sd] || { b: [], n: [] }) : null].forEach(function (g) { if (g) { Array.prototype.push.apply(g.b, f.b); Array.prototype.push.apply(g.n, f.n); } });
+    });
+    var groups = {};
+    Object.keys(G).forEach(function (k) {
+      var g = G[k];
+      groups[k] = { m: MC_LAST, b: g.b.length ? Math.round(median(g.b) * 10) / 10 : null, bn: g.b.length, n: g.n.length ? Math.round(median(g.n) * 10) / 10 : null, nn: g.n.length };
+    });
+    out.fresh = { m: MC_LAST, min: FRESH_MIN, from: dayN(shiftDay(today, -89)), to: dayN(today), groups: groups };
+    console.log("최신 보정 — 저장본 " + MC_LAST + " · 묶음 " + Object.keys(groups).length + "개 · 전국 기준 " + groups["전국"].bn + "건 / 최근 90일 " + groups["전국"].nn + "건");
+  }
   var froms = Object.keys(out.regions).map(function (c) { return out.regions[c].hiFrom || 999999; });
   out.hiFrom = Math.max.apply(null, froms.length ? froms : [0]);     /* 가장 덜 채운 지역 기준 */
   out.hiStart = HI_START;

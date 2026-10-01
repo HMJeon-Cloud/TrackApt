@@ -1,0 +1,4 @@
+# Vercel 배포에서 뺄 것 — GitHub Actions 전용 파일
+scripts
+data/highs
+data/brief_hist.json

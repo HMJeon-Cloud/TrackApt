@@ -68,6 +68,7 @@ function normalize(kind, raw) {
     cancelYmd: cancelDay || "-",
     dealingGbn: s(raw.dealingGbn || raw["거래유형"]) || "-",
     buyerGbn: s(raw.buyerGbn) || "-",
+    landLease: s(raw.landLeaseholdGbn) || "-",
     slerGbn: s(raw.slerGbn) || "-",
   };
 }
@@ -75,6 +76,7 @@ function normalize(kind, raw) {
 /* ── 아파트만 남기기 (v6.41) ────────────────────────────────────────────
    국토부 '아파트' 실거래에는 오피스텔·빌라(연립·다세대)는 없지만 도시형생활주택(원룸형)과
    통째로 넘어간 거래(일괄 매각·임대 분양전환)가 섞여 있다. 둘 다 시세와 무관해 뺀다.
+     ⓞ 토지임대부 아파트(landLeaseholdGbn=Y) → 땅값이 빠진 가격이라 시세와 섞지 않는다 (v6.6)
      ① 전용 30㎡ 미만 → 도시형생활주택(원룸형) 추정 (매매·전월세 공통)
      ② 한 단지에서 같은 날 5건 이상, 그중 60% 이상이 직거래 → 일괄 거래 추정 (매매만)
         (2021.11 이전 신고는 거래유형이 비어 있어 같은 날 8건 이상이면 일괄로 본다)
@@ -84,7 +86,8 @@ var APT_MIN_AREA = 30;
 function aptOnly(items, kind) {
   var keep = [], dropped = [];
   items.forEach(function (t) {
-    if (t.area > 0 && t.area < APT_MIN_AREA) dropped.push(Object.assign({}, t, { why: "small" })); else keep.push(t);
+    if (/^(Y|1|토지)/i.test(t.landLease || "")) dropped.push(Object.assign({}, t, { why: "lease" }));      /* 토지임대부 — 땅값이 빠진 가격 */
+    else if (t.area > 0 && t.area < APT_MIN_AREA) dropped.push(Object.assign({}, t, { why: "small" })); else keep.push(t);
   });
   if (kind !== "sale") return { items: keep, dropped: dropped };
   function isDirect(t) { return /직거래/.test(t.dealingGbn || ""); }
@@ -145,7 +148,7 @@ module.exports = async (req, res) => {
       const f = aptOnly(all.filter((t) => !t.canceled), kind);
       const cxl = all.filter((t) => t.canceled);        // 해제 건은 화면들이 스스로 거른다 — 그대로 둔다
       items = f.items.concat(cxl);
-      excluded = { small: f.dropped.filter((t) => t.why === "small").length, bulk: f.dropped.filter((t) => t.why === "bulk").length };
+      excluded = { small: f.dropped.filter((t) => t.why === "small").length, bulk: f.dropped.filter((t) => t.why === "bulk").length, lease: f.dropped.filter((t) => t.why === "lease").length };
     }
 
     res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");

@@ -349,6 +349,25 @@ async function news() {
     if (done % 25 === 0) console.log(done + "/" + codes.length + " · 호출 " + CALLS + " · " + Math.round((Date.now() - t0) / 1000) + "초");
   }));
   out.news = await news();
+  /* 하루치 요약 기록 data/brief_hist.json (v6.52) — 최근 30일은 신고 기한(30일)이 남아 늘 적게 잡힌다.
+     '직전 30일'과 견주면 거래가 줄어든 것처럼 보이므로, 30일 전에 같은 방식으로 잰 값을 꺼내
+     같은 신고 지연끼리 비교할 수 있게 한다. { "YYYYMMDD": { 코드: [건수, ㎡당 중위] } }, 120일 보관 */
+  (function () {
+    var HP = path.join(ROOT, "data", "brief_hist.json"), hist = {};
+    try { hist = JSON.parse(fs.readFileSync(HP, "utf8")); } catch (e) {}
+    var row = {};
+    Object.keys(out.regions).forEach(function (c) { var r = out.regions[c]; row[c] = [r.count, r.pm == null ? null : Math.round(r.pm * 10) / 10]; });
+    hist[String(out.asOf)] = row;
+    var keep = dayN(shiftDay(today, -120));
+    Object.keys(hist).forEach(function (k) { if (Number(k) < keep) delete hist[k]; });
+    fs.mkdirSync(path.dirname(HP), { recursive: true });
+    fs.writeFileSync(HP, JSON.stringify(hist));
+    var want = shiftDay(today, -30), snap = null;
+    [0, -1, 1, -2, 2, -3, 3].some(function (o) { var k = String(dayN(shiftDay(want, o))); if (hist[k]) { snap = k; return true; } return false; });
+    out.snap30 = snap ? Number(snap) : null;
+    if (snap) Object.keys(out.regions).forEach(function (c) { var v = hist[snap][c]; if (v) out.regions[c].snap = { n: v[0], pm: v[1] }; });
+    console.log("하루 기록 " + Object.keys(hist).length + "일치 · 30일 전 비교 기준 " + (snap || "아직 없음"));
+  })();
   /* 최신 보정 — 시도·전국 묶음은 거래를 모아 다시 중위값 (지역 중위값의 평균이 아니다) */
   if (MC_LAST) {
     var G = { "전국": { b: [], n: [] } };

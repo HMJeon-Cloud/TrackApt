@@ -161,6 +161,55 @@ function dropOdd(lawd, list, all, kindName, thisYear) {
   return { keep: keep.slice(0, 12), odd: odd };
 }
 
+/* ── 대장아파트 (v7.1) ─────────────────────────────────────────────────
+   사람들이 '그 동네 시세'로 보는 건 신축·대단지 대장의 값이다. 지역·평형대마다 3곳을 고른다.
+     후보 순서: ① 500세대↑ & 준공 20년 이내 → ② 300세대↑ → ③ 150세대↑ (앞 단계에서 3곳이 안 차면 다음 단계로 채움)
+     같은 단계 안에서는 최근 12개월 안 가장 최근 거래의 ㎡당 가격이 높은 순.
+   세대수는 kapt/{코드}.json(이름·지번 짝짓기), 준공연도·거래는 실거래. 세대수 자료가 아예 없는 지역은 준공 20년 이내만으로 고른다.
+   값은 '같은 면적의 가장 최근 거래'(직거래 제외), 전고점은 2020년 이후 같은 면적 최고가. */
+function lbOf(area) { return area < 55 ? "S" : area < 70 ? "59" : area < 95 ? "84" : "L"; }
+function leadersOf(lawd, hi, sale, cur, today) {
+  var cut = dayN(shiftDay(today, -365)), Y = today.getFullYear(), L = {}, M = {}, YR = {}, N30 = {};
+  function put(ak, ar, rec, isMax) {
+    var T = isMax ? M : L, row = T[ak] || (T[ak] = {}), c = row[ar];
+    if (isMax ? (!c || rec[0] > c[0]) : (!c || rec[1] > c[1])) row[ar] = rec;
+  }
+  Object.keys(hi.l || {}).forEach(function (ak) { Object.keys(hi.l[ak]).forEach(function (ar) { put(ak, ar, hi.l[ak][ar], false); }); });
+  Object.keys(hi.m || {}).forEach(function (ak) { Object.keys(hi.m[ak]).forEach(function (ar) { put(ak, ar, hi.m[ak][ar], true); }); });
+  Object.keys(hi.y || {}).forEach(function (ak) { YR[ak] = hi.y[ak]; });
+  sale.forEach(function (t) {
+    if (!priced(t)) return;
+    var ak = t.dong + "|" + t.apt, ar = String(Math.round(t.area)), rec = [t.amount, dnum(t), Number(t.floor) || 0];
+    put(ak, ar, rec, false); put(ak, ar, rec, true);
+    if (t.buildYear) YR[ak] = Number(t.buildYear);
+  });
+  cur.forEach(function (t) { var k = t.dong + "|" + t.apt + "|" + lbOf(t.area); N30[k] = (N30[k] || 0) + 1; });
+  var aks = Object.keys(L).filter(function (ak) { return Object.keys(L[ak]).some(function (ar) { return L[ak][ar][1] > cut; }); });
+  if (!aks.length) return null;
+  var groups = aks.map(function (ak) { var i = ak.indexOf("|"); return { dong: ak.slice(0, i), apt: ak.slice(i + 1) }; });
+  var hh = householdsOf(lawd, groups), anyHH = hh.some(function (x) { return x; }), out = { hh: anyHH };
+  ["S", "59", "84", "L"].forEach(function (bk) {
+    var cand = [];
+    aks.forEach(function (ak, i) {
+      var best = null;
+      Object.keys(L[ak]).forEach(function (ar) {
+        if (lbOf(Number(ar)) !== bk) return;
+        var r = L[ak][ar]; if (r[1] <= cut) return;
+        if (!best || r[1] > best.p[1]) best = { ar: Number(ar), p: r, mx: (M[ak] && M[ak][ar]) || r };
+      });
+      if (!best) return;
+      var h = hh[i], by = YR[ak] || null, young = by && by >= Y - 20;
+      var tier = anyHH ? (h >= 500 && young ? 1 : h >= 300 ? 2 : h >= 150 ? 3 : 9) : (young ? 1 : 9);
+      if (tier > 3) return;
+      cand.push({ apt: groups[i].apt, dong: groups[i].dong, hh: h || null, by: by, ar: best.ar, p: best.p, mx: [best.mx[0], best.mx[1]],
+        n30: N30[ak + "|" + bk] || 0, tier: tier, ppm: best.p[0] / best.ar });
+    });
+    cand.sort(function (a, b) { return a.tier - b.tier || b.ppm - a.ppm; });
+    if (cand.length) out[bk] = cand.slice(0, 3).map(function (c) { delete c.ppm; return c; });
+  });
+  return out;
+}
+
 /* 직거래는 가족 간 거래처럼 시세와 먼 값이 섞여 가격 계산(중위가·최고가·신고가)에서 뺀다. 건수에는 넣는다. */
 function priced(t) { return !/직거래/.test(t.dealingGbn || ""); }
 
@@ -212,6 +261,12 @@ function foldHi(h, list) {
     var ak = t.dong + "|" + t.apt, b = String(Math.round(t.area));
     var row = h.m[ak] || (h.m[ak] = {}), cur = row[b];
     if (!cur || t.amount > cur[0]) row[b] = [t.amount, dnum(t), Number(t.floor) || 0];
+    /* v7.1 대장아파트용 — 같은 면적의 가장 최근 거래와 준공연도 */
+    if (h.l) {
+      var lr = h.l[ak] || (h.l[ak] = {}), lc = lr[b];
+      if (!lc || dnum(t) > lc[1]) lr[b] = [t.amount, dnum(t), Number(t.floor) || 0];
+      if (t.buildYear) h.y[ak] = Number(t.buildYear);
+    }
   });
 }
 function hiGet(h, k) {
@@ -220,14 +275,21 @@ function hiGet(h, k) {
   return row ? row[k.slice(i + 1)] || null : null;
 }
 var HI_CALLS = 0;
-async function updateHi(lawd, sealTo) {
-  var h = loadHi(lawd) || { v: 2, from: null, to: null, m: {} };
+async function updateHi(lawd, sealTo, lTarget) {
+  var h = loadHi(lawd) || { v: 2, from: null, to: null, m: {} }, fresh = h.to == null;
+  /* 최근 거래 장부(l)가 없던 v2 장부는 봉인 끝 다음 달부터 거꾸로 13개월을 한 번 더 훑어 채운다 */
+  if (!h.l) { h.l = {}; h.y = {}; h.lb = fresh ? null : ymNext(h.to); }
   try {
-    if (h.to == null) { foldHi(h, await trades(lawd, "sale", sealTo)); HI_CALLS++; h.from = h.to = sealTo; }
+    if (h.to == null) { foldHi(h, await trades(lawd, "sale", sealTo)); HI_CALLS++; h.from = h.to = sealTo; h.lb = sealTo; }
     else while (h.to < sealTo) { var nx = ymNext(h.to); foldHi(h, await trades(lawd, "sale", nx)); HI_CALLS++; h.to = nx; }
     for (var i = 0; i < BACKFILL && h.from > HI_START; i++) {
       var pm = ymPrev(h.from);
       foldHi(h, await trades(lawd, "sale", pm)); HI_CALLS++; h.from = pm;
+      if (fresh) h.lb = pm;
+    }
+    for (var j = 0; j < 13 && h.lb > lTarget; j++) {
+      var lm = ymPrev(h.lb);
+      foldHi(h, await trades(lawd, "sale", lm)); HI_CALLS++; h.lb = lm;
     }
   } catch (e) { /* 실패한 달은 넘기지 않는다 — 다음 밤에 거기서 다시 */ }
   saveHi(lawd, h);
@@ -280,7 +342,7 @@ async function summarize(lawd, today) {
   }
   var week = cur.filter(function (t) { return dnum(t) > d7; }).length;
   /* 역대 최고가 장부 — 최근 4개월 바로 앞 달까지 봉인 */
-  var hi = await updateHi(lawd, ymPrev(months[3]));
+  var hi = await updateHi(lawd, ymPrev(months[3]), ymOf(shiftDay(today, -396)));
   /* 많이 거래된 단지·갭 — 단지·평형대별. 건수는 전부, 가격(중위·최고)은 직거래 뺀 거래로 */
   var byK = {};
   cur.forEach(function (t) {
@@ -356,6 +418,7 @@ async function summarize(lawd, today) {
     /* 역대 신고가 — 장부가 덮는 기간(hiFrom~) 안에서 가장 높았던 값을 넘긴 단지 */
     newHighAll: highs.filter(function (g) { return g.upAll != null && g.upAll > 0; }).sort(function (a, b) { return b.upAll - a.upAll; }).slice(0, 20),
     hiFrom: hi.from, hiTo: hi.to,
+    leaders: leadersOf(lawd, hi, sale, cur, today),
     fresh: fresh,
     /* 최근 30일 창에서 뺀 거래 — 도시형생활주택 추정(small) · 일괄 거래 추정(bulk) · 많이 뺀 단지 3곳(bulkApts) */
     excl: (function () {

@@ -4,3 +4,5 @@ data/highs
 data/brief_hist.json
 data/macro_codes.json
 data/macro_debug.json
+data/monthly
+data/market_core_base.json

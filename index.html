@@ -1086,6 +1086,27 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chcard .chc-loanr small{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .chcard .chc-loanr span{white-space:nowrap}
 .chcard .chc-loanr span:last-child{white-space:normal}
+/* v7.8 머리·꼬리 줄이고 데이터 자리 넓히기 */
+.chc-head{padding:12px 20px 12px}
+.chc-head .chc-q{font-size:19.5px;line-height:1.25;margin:8px 0 0}
+.chc-inner{padding:11px 20px 12px}
+.chcard .chc-a{font-size:13.5px;padding:7px 10px;margin-bottom:8px;line-height:1.35}
+.chcard .chc-how{font-size:10px;line-height:1.35;padding-top:5px}
+.chcard .chc-foot{margin-top:4px;padding-top:5px}
+.chcard .chc-foot b.chc-brand{font-size:12.5px}
+.chcard .chc-more{padding:7px 10px;font-size:11px;margin-top:6px}
+.chcard .chc-h{margin:6px 0 4px}
+.chcard .chc-autom{display:inline-block;font-style:normal;font-size:8.5px;font-weight:800;color:#8a6d3b;background:rgba(201,163,92,.16);border-radius:4px;padding:0 3px;margin-left:3px;vertical-align:1px}
+/* 지금 시장 — 수동 목록 확인 필요 */
+.bf-inbox{flex:1 1 100%;background:#fff8e8;border:1px solid #f1dfb3;border-radius:14px;padding:12px 14px;margin:0 0 2px}
+.bf-inbox>b{display:block;font-size:14px;color:#8a6d3b}
+.bf-inbox>small{display:block;color:#6b7280;font-size:12px;margin:2px 0 8px;line-height:1.4}
+.bf-ibrow{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid #f1e6cc;font-size:13px}
+.bf-ibrow i{flex:none;font-style:normal;font-size:11px;font-weight:800;color:#fff;background:#c9a35c;border-radius:6px;padding:1px 6px;margin-top:2px}
+.bf-ibrow.new i{background:#e5484d}
+.bf-ibrow span{min-width:0}
+.bf-ibrow a{color:#16294a;font-weight:700;text-decoration:none;word-break:keep-all}
+.bf-ibrow small{display:block;color:#8b8f98;font-size:11px}
 </style>
 </head>
 <body>
@@ -1093,7 +1114,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v7.7</span>
+    <span class="ver">v7.8</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2130,10 +2151,13 @@ function renderBriefLead(codes) {
 function renderBriefMacro(codes, scopeNm) {
   var el = document.getElementById("bf-macro"); if (!el) return;
   macroLoad(function () {
-    var C = mcCards(codes, scopeNm);
-    el.innerHTML = C.length ? C.map(function (o, i) {
+    var C = mcCards(codes, scopeNm), ib = (MACRO.data && MACRO.data.inbox) || [];
+    var ibHtml = ib.length ? '<div class="bf-inbox"><b>수동 목록 확인 필요 ' + ib.length + '건</b><small>새벽 자동 점검이 보도자료·기사·기금 안내 페이지에서 찾은 소식입니다. 해당 파일(data/manual)을 고치면 다음 날 사라집니다.</small>' +
+      ib.slice(0, 8).map(function (x) { var k = { policy: "대책", transit: "교통", loan: "대출" }[x.kind] || x.kind; return '<div class="bf-ibrow' + (x.isNew ? " new" : "") + '"><i>' + escHtml(k) + "</i><span>" + (x.url ? '<a href="' + escHtml(x.url) + '" target="_blank" rel="noopener">' + escHtml(x.title) + "</a>" : escHtml(x.title)) + '<small>' + escHtml((x.date || "") + (x.src ? " · " + x.src : "") + (x.line ? " · " + x.line + " " + (x.what || "") : "")) + "</small></span></div>"; }).join("") +
+      (ib.length > 8 ? '<small class="hint">외 ' + (ib.length - 8) + "건 — data/manual/_inbox.json</small>" : "") + "</div>" : "";
+    el.innerHTML = ibHtml + (C.length ? C.map(function (o, i) {
       return '<div class="chcardWrap">' + chCard(o) + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_금리정책_" + o.tag) + '">이미지 저장</button></div>';
-    }).join("") : '<p class="hint">' + ((MACRO.data && MACRO.data.errors && MACRO.data.errors[0]) ? escHtml(MACRO.data.errors[0]) : "금리·정책 자료(macro_data.json)가 아직 없습니다. GitHub Secrets 에 ECOS_KEY·KOSIS_KEY 를 넣고 Run workflow 를 한 번 돌리세요.") + "</p>";
+    }).join("") : '<p class="hint">' + ((MACRO.data && MACRO.data.errors && MACRO.data.errors[0]) ? escHtml(MACRO.data.errors[0]) : "금리·정책 자료(macro_data.json)가 아직 없습니다. GitHub Secrets 에 ECOS_KEY·KOSIS_KEY 를 넣고 Run workflow 를 한 번 돌리세요.") + "</p>");
     chFitLater(el);
   });
 }
@@ -2739,7 +2763,7 @@ function chFitOne(c) {
     var more = fill.querySelector(".chc-more"), art = fill.querySelector(".chc-art");
     Array.prototype.forEach.call(c.querySelectorAll(".chc-opt, [data-cut]"), function (x) { x.style.display = ""; x.removeAttribute("data-cut"); });
     c.classList.remove("chc-tight", "chc-tighter");
-    var how = c.querySelector(".chc-how"); if (how) how.style.display = "";
+    var how = c.querySelector(".chc-how"); if (how) how.style.display = "none";   /* v7.8: '읽는 법'은 데이터가 다 들어가고 자리가 남을 때만 */
     var spk = c.querySelector(".chc-spark"); if (spk) spk.style.display = "";
     more.style.display = ""; art.style.display = "";
     function over() { return foot.getBoundingClientRect().bottom > c.getBoundingClientRect().bottom - 12; }
@@ -2749,10 +2773,10 @@ function chFitOne(c) {
     while (over() && opts.length) opts.pop().style.display = "none";
     if (over()) c.classList.add("chc-tight");
     if (over()) c.classList.add("chc-tighter");
-    if (over() && how) how.style.display = "none";
     var rowsAll = Array.prototype.slice.call(c.querySelectorAll(".chc-row, .chc-loanr, .chc-pol > div, .chc-hbar, .chc-vsr, .chc-newsl > div, .chc-bud")).filter(function (x) { return x.style.display !== "none"; });
     while (over() && rowsAll.length > 1) { var rr = rowsAll.pop(); rr.style.display = "none"; rr.setAttribute("data-cut", "1"); }
     if (over() && spk) spk.style.display = "none";
+    if (how && !over()) { how.style.display = ""; if (over()) how.style.display = "none"; }
     var k = c.getBoundingClientRect().width / 360;
     var sents = Array.prototype.slice.call(more.querySelectorAll("span"));
     sents.forEach(function (x) { x.style.display = ""; });
@@ -3281,10 +3305,11 @@ function macroLoad(cb) {
   if (MACRO.loading) return;
   MACRO.loading = true;
   function j(u) { return fetch(u, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; })["catch"](function () { return null; }); }
-  Promise.all([j("macro_data.json"), j("data/manual/policy.json"), j("data/manual/transit.json"), j("data/manual/loans.json")]).then(function (v) {
+  Promise.all([j("macro_data.json"), j("data/manual/policy.json"), j("data/manual/transit.json"), j("data/manual/loans.json"), j("data/manual/_inbox.json")]).then(function (v) {
     var d = v[0] || { v: 0, rates: {}, wages: null, policy: {}, transit: {}, loans: {}, errors: ["macro_data.json 이 아직 없습니다"] };
     /* 직접 고친 파일이 배포돼 있으면 그쪽이 더 새것 */
     if (v[1]) d.policy.manual = v[1]; if (v[2]) d.transit.manual = v[2]; if (v[3]) d.loans.manual = v[3];
+    d.inbox = (v[4] && v[4].items) || [];
     MACRO.data = d; MACRO.loading = false;
     MACRO.cbs.splice(0).forEach(function (f) { f(d); });
   });
@@ -3429,10 +3454,10 @@ function mcCards(codes, scopeNm) {
     var p0 = pm[0];
     C.push({ tag: "부동산 대책", q: "지금 적용 중인<br>부동산 대책은?",
       a: p0 ? "<b>" + escHtml(p0.title) + "</b> · " + escHtml((p0.effective || p0.date || "").replace(/-/g, ".")) + (p0.effective ? " 시행" : "") : "최근 2주 기사 " + pn.length + "건",
-      body: (p0 ? '<div class="chc-pol">' + (p0.points || []).slice(0, 3).map(function (x, i) { x = String(x); return '<div class="' + (i >= 2 ? "chc-opt" : "") + '">• ' + escHtml(x) + "</div>"; }).join("") + "</div>" : "") +
+      body: (p0 ? '<div class="chc-pol">' + (p0.points || []).slice(0, 5).map(function (x, i) { x = String(x); return '<div class="' + (i >= 3 ? "chc-opt" : "") + '">• ' + escHtml(x) + "</div>"; }).join("") + "</div>" : "") +
         (pm.length > 1 ? '<div class="chc-h">그 전 대책</div>' + chList(pm.slice(1, 4).map(function (it) { return ['<i class="chc-pill">' + escHtml(it.tag || "대책") + "</i>" + escHtml(it.title), escHtml((it.date || "").replace(/-/g, ".")) + (it.points && it.points[0] ? " · " + escHtml(it.points[0]) : ""), ""]; }), 2, 1) : "") +
         (pn.length ? '<div class="chc-h chc-opt">이번 주 기사</div><div class="chc-newsl">' + pn.slice(0, 3).map(function (n) { return '<div class="chc-opt">' + escHtml(n.t) + (n.s ? " <small>" + escHtml(n.s) + "</small>" : "") + "</div>"; }).join("") + "</div>" : ""),
-      how: "확정 내용은 직접 관리하는 목록(data/manual/policy.json), 기사는 구글 뉴스 RSS 최근 14일 · 세부 조건은 앱 설정 탭 규칙과 공식 보도자료로 확인" });
+      how: "확정 내용은 직접 관리 목록, 소식은 국토부·금융위 보도자료·기사 RSS 14일 · 세부 조건은 공식 보도자료로 확인" });
   }
   /* 7 교통 */
   var lines = (D.transit && D.transit.manual && D.transit.manual.lines) || [];
@@ -3444,18 +3469,19 @@ function mcCards(codes, scopeNm) {
     var stc = { "개통": "je", "공사중": "", "착공예정": "wol", "계획": "" };
     C.push({ tag: "교통 호재", q: (inScope.length ? sc + " 지나는 " : "") + "GTX·새 노선,<br>지금 어디까지?",
       a: next ? "다음 개통 <b>" + escHtml(next.name) + "</b> · " + (next.open && next.open !== "0000-00" ? escHtml(next.open.replace("-00", "년").replace("-", "년 ") + (/-\d\d$/.test(next.open) && !/-00$/.test(next.open) ? "월" : "")) : "시기 미정") : "개통 " + show.length + "개 노선",
-      body: chList(show.slice(0, 6).map(function (l) { return ['<i class="chc-pill ' + (stc[l.status] || "") + '">' + escHtml(l.status) + "</i>" + escHtml(l.name), escHtml(l.note || ""), l.open && l.open !== "0000-00" ? escHtml(l.open.replace("-00", "").replace("-", ".")) : "미정"]; }), 2, 4),
-      how: "노선 현황은 직접 관리하는 목록(data/manual/transit.json), 소식은 기사 RSS · 개통 시기는 발표마다 바뀜" + (inScope.length ? " · 이 범위를 지나는 노선만" : "") });
+      body: chList(show.slice(0, 7).map(function (l) { return ['<i class="chc-pill ' + (stc[l.status] || "") + '">' + escHtml(l.status) + "</i>" + escHtml(l.name), escHtml(l.note || ""), l.open && l.open !== "0000-00" ? escHtml(l.open.replace("-00", "").replace("-", ".")) : "미정"]; }), 2, 5),
+      how: "노선 현황은 직접 관리 목록, 소식은 보도자료·기사 RSS · 개통 시기는 발표마다 바뀜" + (inScope.length ? " · 이 범위를 지나는 노선만" : "") });
   }
   /* 8 정책대출 */
   var pr = (D.loans && D.loans.manual && D.loans.manual.programs) || [];
   if (pr.length) {
-    var la = D.loans.manual.asOf || "";
+    var la = D.loans.manual.asOf || "", au = D.loans.auto || {}, anyAuto = false;
+    function rateOf(p) { var a = au[p.name]; if (a && a.rate) { anyAuto = true; return { r: a.rate, auto: true, t: a.t }; } return { r: p.rate, auto: false }; }
     C.push({ tag: "정책대출", q: "디딤돌·보금자리,<br>나는 받을 수 있을까?",
-      a: pr[0] ? "<b>" + escHtml(pr[0].name) + "</b> 연 " + escHtml(pr[0].rate) + "% · 소득 " + eok(pr[0].income) + " 이하 · 집값 " + eok(pr[0].price) + " 이하" : "",
+      a: pr[0] ? "<b>" + escHtml(pr[0].name) + "</b> 연 " + escHtml(rateOf(pr[0]).r) + "% · 소득 " + eok(pr[0].income) + " 이하 · 집값 " + eok(pr[0].price) + " 이하" : "",
       body: '<div class="chc-loantbl"><div class="chc-loanh"><span>상품</span><span>소득</span><span>집값</span><span>한도</span><span>금리</span></div>' +
-        pr.slice(0, 4).map(function (p, i) { return '<div class="chc-loanr' + (i >= 3 ? " chc-opt" : "") + '"><span><b>' + escHtml(p.name) + "</b><small>" + escHtml(p.who || "") + "</small></span><span>" + eok(p.income) + "</span><span>" + eok(p.price) + "</span><span>" + eok(p.limit) + "</span><span>" + escHtml(p.rate) + "%</span></div>"; }).join("") + "</div>",
-      how: "부부합산 연소득·주택가격·대출 한도 상한, 금리는 소득·만기별 범위 · 기준 " + escHtml(la) + " · 조건은 자주 바뀌니 기금e든든·주택금융공사에서 확인" });
+        pr.slice(0, 5).map(function (p, i) { var rt = rateOf(p); return '<div class="chc-loanr' + (i >= 4 ? " chc-opt" : "") + '"><span><b>' + escHtml(p.name) + "</b><small>" + escHtml(p.who || "") + "</small></span><span>" + eok(p.income) + "</span><span>" + eok(p.price) + "</span><span>" + eok(p.limit) + "</span><span>" + escHtml(rt.r) + "%" + (rt.auto ? '<em class="chc-autom">공고</em>' : "") + "</span></div>"; }).join("") + "</div>",
+      how: "부부합산 연소득·주택가격·한도 상한, 금리는 소득·만기별 범위 · " + (anyAuto ? "'공고' = 기금e든든 안내 페이지에서 매일 읽은 금리, 나머지 기준 " : "기준 ") + escHtml(la) + " · 기금e든든·주택금융공사에서 확인" });
   }
   return C;
 }

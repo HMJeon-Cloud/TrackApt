@@ -28,11 +28,18 @@ jobs:
           CONC: "3"
           BACKFILL_MONTHS: "12"   # 역대 최고가 장부를 하룻밤에 과거로 넓히는 개월 수 (호출 한도가 빠듯하면 6으로)
         run: node scripts/brief_build.js
+      - name: 금리·임금·대책·교통·대출 자료 만들기
+        if: always()          # 실거래 수집이 실패해도 이쪽은 따로 돈다
+        env:
+          ECOS_KEY: ${{ secrets.ECOS_KEY }}     # 한국은행 ECOS Open API 키 (GitHub → Settings → Secrets)
+          KOSIS_KEY: ${{ secrets.KOSIS_KEY }}   # 통계청 KOSIS Open API 키
+        run: node scripts/macro_build.js
       - name: 바뀐 게 있으면 커밋
+        if: always()
         run: |
           git config user.name "trackapt-bot"
           git config user.email "trackapt-bot@users.noreply.github.com"
-          git add brief_data.json data/highs data/brief_hist.json
+          for f in brief_data.json macro_data.json data/highs data/brief_hist.json data/macro_codes.json data/macro_debug.json; do [ -e "$f" ] && git add "$f"; done
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -m "brief: $(date -u -d '+9 hours' '+%Y-%m-%d %H:%M') KST 자동 갱신"
           # 수집하는 5~15분 사이에 다른 커밋(파일 업로드 등)이 올라왔으면 그 위에 얹어서 올린다

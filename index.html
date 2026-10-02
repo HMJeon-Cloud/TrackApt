@@ -985,6 +985,15 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chc-budget{gap:6px}
 .chc-bud{padding:6px 10px}
 .chc-bud i{margin:4px 0 3px;height:6px}
+.chc-vs{display:flex;flex-direction:column;gap:8px}
+.chc-vsr{display:flex;align-items:center;gap:8px}
+.chc-vsr>span{width:52px;flex:none;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chc-vsb{flex:1;display:flex;flex-direction:column;gap:3px}
+.chc-vsb i{display:block;height:9px;background:#ebe6dc;border-radius:5px;overflow:hidden}
+.chc-vsb u{display:block;height:100%;border-radius:5px}
+.chc-vsb u.lead{background:#16294a}.chc-vsb u.med{background:#c9a35c}
+.chc-vsr>b{width:62px;flex:none;text-align:right;font-size:13.5px;font-weight:800;line-height:1.15}
+.chc-vsr>b small{display:block;font-size:11px;font-weight:700;color:#8a6d3b}
 </style>
 </head>
 <body>
@@ -992,7 +1001,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v7.0</span>
+    <span class="ver">v7.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1566,7 +1575,7 @@ function exportCardImage(card, name) {
    지역별 요약은 /api/brief?kind=region 이 만들어 두고(12시간 캐시), 여기서는 그걸 모아 순위를 매긴다.
    범위: 내 시·도 → 수도권 → 전국. 전국은 253곳이라 처음 여는 사람은 1~2분 걸린다(진행 표시).
    원칙: '추천'이 아니라 '참고 후보'. 왜 골랐는지 숫자를 옆에 적고, 표본이 얇으면 뺀다. */
-var BRIEF = { scope: "", band: "all", hmode: "all", hband: "all", cband: "all", bkind: "sale", data: null, notes: null, regions: {}, loading: false };
+var BRIEF = { scope: "", band: "all", hmode: "all", hband: "all", cband: "all", lband: "84", bkind: "sale", data: null, notes: null, regions: {}, loading: false };
 var BRIEF_MIN = 8;                 /* 지역 순위에 올리는 최소 30일 거래 건수 */
 
 function buildBrief(root) {
@@ -1578,6 +1587,13 @@ function buildBrief(root) {
       '<div class="seg" id="bf-scope2" style="margin-top:6px;display:none"></div>' +
       '<div class="status" id="bf-kpi" style="margin-top:12px"></div>' +
       '<p class="hint" id="bf-prog"></p></div>' +
+    '<div class="card"><h2>대장아파트</h2>' +
+      '<p class="desc">사람들이 그 동네 시세로 떠올리는 <b>신축·대단지 대장아파트</b>를 지역·평형마다 3곳씩 보여 줍니다. ' +
+        '고르는 법: ① 500세대 이상이면서 준공 20년 이내 단지 중 최근 1년 거래의 ㎡당 가격이 높은 순, 3곳이 안 차면 ② 300세대 이상 → ③ 150세대 이상에서 채웁니다. ' +
+        '값은 같은 면적의 가장 최근 실거래(직거래 제외), 최고가는 2020년 이후 같은 면적 최고 실거래입니다. 세대수는 K-apt 단지 정보입니다. 매수 권유가 아니라 시세 참고용입니다.</p>' +
+      '<div class="seg" id="bf-lband"><button type="button" data-lb="84" class="on">84㎡</button><button type="button" data-lb="59">59㎡</button>' +
+        '<button type="button" data-lb="S">소형</button><button type="button" data-lb="L">대형</button></div>' +
+      '<div id="bf-lead" style="margin-top:12px"><p class="hint">불러오는 중…</p></div></div>' +
     '<div class="card"><h2>지역·평형별 카드</h2>' +
       '<p class="desc">채널 브리핑 카드를 위에서 고른 지역(서울 권역·경기 남북부·광역시·도·전국)과 아래에서 고른 평형으로 다시 만듭니다. ' +
         '평형을 고르면 거래량·가격 변화·거래 급증은 그 평형 집계로, 신고가·최고가 거래·인기 단지는 그 평형 거래만 보여 줍니다. ' +
@@ -1682,6 +1698,12 @@ function renderBrief() {
         var b = ev.target.closest("button[data-s]"); if (!b) return;
         BRIEF.scope = b.dataset.s; paintBriefScope(); loadBriefLive();
       });
+    });
+    document.getElementById("bf-lband").addEventListener("click", function (ev) {
+      var b = ev.target.closest("button[data-lb]"); if (!b) return;
+      BRIEF.lband = b.dataset.lb;
+      Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); });
+      loadBriefLive();
     });
     document.getElementById("bf-cband").addEventListener("click", function (ev) {
       var b = ev.target.closest("button[data-cb]"); if (!b) return;
@@ -1933,10 +1955,28 @@ function renderBriefCards(codes) {
   var top1 = (document.querySelector("#bf-scope button.on") || {}).textContent || "", sub1 = (document.querySelector("#bf-scope2 button.on") || {}).textContent || "";
   var subOn = sub1 && sub1 !== "전체" && document.getElementById("bf-scope2").style.display !== "none";
   var scopeNm = subOn ? (top1 === "서울" || top1 === "경기" ? top1 + " " + sub1 : sub1) : (top1 || "이 범위");
+  renderBriefLead(codes);
   var C = chScopeCards(codes, BRIEF.cband || "all", scopeNm);
   el.innerHTML = C.length ? C.map(function (c) {
     return '<div class="chcardWrap">' + c[1] + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_" + c[0]) + '">이미지 저장</button></div>';
   }).join("") : '<p class="hint">이 범위·평형으로 만들 카드가 없습니다.</p>';
+}
+/* 대장아파트 표 — 지역마다 3곳 (대장 평균 높은 순) */
+function renderBriefLead(codes) {
+  var el = document.getElementById("bf-lead"); if (!el) return;
+  if (!chLeadOn()) { el.innerHTML = '<p class="hint">대장아파트 자료는 다음 새벽 수집(v7.1 스크립트)부터 들어옵니다.</p>'; return; }
+  var bk = BRIEF.lband || "84", rows = chLeadRows(codes, bk).sort(function (a, b) { return b.avg - a.avg; });
+  if (!rows.length) { el.innerHTML = '<p class="hint">이 범위·평형에서 최근 1년 거래가 있는 대장 후보가 없습니다.</p>'; return; }
+  var LIM = 30, more = rows.length > LIM;
+  el.innerHTML = rows.slice(0, LIM).map(function (r, i) {
+    return '<div class="bfsub">' + (i + 1) + ". " + escHtml(chName(r.k)) + " — 대장 평균 <b>" + eok(r.avg) + "</b>" + (r.med ? ' <span class="hint" style="display:inline">· 가운데값 ' + eok(r.med) + " · " + r.x.toFixed(1) + "배</span>" : "") + "</div>" +
+      '<div class="bflist">' + r.L.map(function (t) {
+        var dv = (t.p[0] / t.mx[0] - 1) * 100;
+        return briefRow("", "<b>" + escHtml(t.apt) + "</b>", escHtml(t.dong) + (t.by || t.hh ? " · " + chLeadSub(t) : ""),
+          t.ar + "㎡ · 최근 " + eok(t.p[0]) + (t.p[2] ? " " + t.p[2] + "층" : "") + " (" + chYmd(t.p[1]) + ") · 최고 " + eok(t.mx[0]) + " (" + chYmd(t.mx[1]) + ")" + (t.n30 ? " · 30일 " + t.n30 + "건" : ""),
+          dv >= -0.05 ? "최고가" : pct(dv, 1), dv >= -0.05 ? "up" : "down", "최고가 대비", locBtn(Object.assign({ k: r.k }, t)));
+      }).join("") + "</div>";
+  }).join("") + (more ? '<p class="hint">외 ' + (rows.length - LIM) + "곳 — 범위를 좁혀 보세요.</p>" : "");
 }
 
 /* ══ 앱으로 설치 (v6.3) ═══════════════════════════════════════
@@ -1980,7 +2020,7 @@ if ("serviceWorker" in navigator) {
      · 내 집·갈아타기 — 월별 저장본 ㎡당가·84㎡ 중위(같은 보정) + 앱의 대출·세금 규칙(finance)
    글은 고쳐 쓸 수 있는 칸에 넣고 [복사]로 가져간다. 카드는 360×450 을 3배로 찍어 1080×1350. */
 var CH = { tab: "daily", data: null, loading: false };
-var CH_TABS = [["daily", "데일리"], ["mdd", "MDD·회복"], ["move", "내 집·갈아타기"]];
+var CH_TABS = [["daily", "데일리"], ["lead", "대장아파트"], ["mdd", "MDD·회복"], ["move", "내 집·갈아타기"]];
 var CH_FOOT = "※ 국토부 실거래 신고를 정리한 참고 자료이며 투자 권유가 아닙니다.";
 
 var CH_HELP_TOP =
@@ -2011,6 +2051,12 @@ var CH_HELP_TEXT =
     '<li><b>많이 거래된 단지</b>: 최근 30일에 같은 단지·평형대에서 계약이 가장 많았던 곳입니다. 매매·전세·월세를 따로 셉니다. 행복주택·뉴스테이·LH 등 이름에 임대가 드러난 임대주택은 입주 때 계약이 한꺼번에 몰려 뺍니다. 또 30일 계약이 그 단지 세대수의 10%를 넘으면(예: 다산지금데시앙 전세 528건) 새 아파트 입주장이나 일괄 계약으로 보고 순위에서 뺍니다. 세대수는 K-apt 단지 정보로 확인하고, 모르면 준공 2년 안 + 30건 이상을 입주장으로 봅니다(거래 건수 합계에서는 빼지 않습니다).</li>' +
     '<li><b>월세 비중</b>: 전월세 계약 중 월세(반전세 포함)의 비율입니다. 오르면 전세보다 월세를 택하는 사람이 늘었다는 뜻입니다.</li>' +
     '<li><b>오늘 기사</b>: 구글 뉴스에서 “아파트 실거래”, “부동산 규제·대출·분양”으로 찾은 최신 기사 제목입니다.</li></ul></div>' +
+  '<div class="note"><b>대장아파트 — 숫자 읽는 법</b><ul>' +
+    '<li><b>대장아파트</b>: 사람들이 그 동네 시세로 떠올리는 신축·대단지. 지역·평형마다 3곳을 고릅니다 — ① 500세대 이상이면서 준공 20년 이내 단지 중 최근 1년 거래의 ㎡당 가격이 높은 순, 3곳이 안 차면 ② 300세대 이상 → ③ 150세대 이상에서 채웁니다.</li>' +
+    '<li><b>값</b>: 그 단지 같은 면적의 <b>가장 최근 실거래</b>(직거래 제외). 날짜(’26.9 등)를 함께 적습니다.</li>' +
+    '<li><b>대장 vs 가운데값</b>: 대장 3곳 평균이 그 지역 같은 평형 실거래 가운데값의 몇 배인지. 가운데값은 오래된·작은 단지까지 섞여 “생각보다 싸게” 보이는 착시가 있어 나란히 보여 줍니다.</li>' +
+    '<li><b>최고가 대비</b>: 2020년 이후 같은 단지·같은 면적 최고 실거래와 가장 최근 거래의 차이.</li>' +
+    '<li>세대수는 K-apt 단지 정보, 준공연도는 실거래 신고값입니다. 세대수를 못 찾은 단지는 후보에서 빠질 수 있습니다.</li></ul></div>' +
   '<div class="note"><b>② MDD·회복 — 숫자 읽는 법</b><ul>' +
     '<li><b>MDD(최대낙폭)</b>: 가장 비쌌던 때(고점)에서 가장 쌌던 때(바닥)까지 몇 % 떨어졌는지입니다. 클수록 크게 빠졌던 곳입니다.</li>' +
     '<li><b>지수</b>: 그 지역 ㎡당 가격의 가운데값을 석 달씩 묶어 매끄럽게 만든 값입니다. 한 달만 보면 어떤 아파트가 팔렸는지에 따라 들쭉날쭉해서 묶었습니다.</li>' +
@@ -2037,6 +2083,7 @@ var CH_HELP_CARD =
   '<div class="note"><b>코너별 카드</b><ul>' +
     '<li><b>데일리(7장)</b>: 거래량 · 값이 오른/내린 동네 · 거래가 갑자기 는 동네 · 신고가 · 가장 비싸게 팔린 아파트 · 많이 사고판 단지 · 전세 vs 월세</li>' +
     '<li><b>MDD·회복(3장)</b>: 고점 대비 어디쯤(막대가 오른쪽 빨강이면 전고점 위) · 서울 25개 구 회복 현황(빨강=위, 파랑=아래, 진할수록 차이 큼) · 하락과 회복 기간</li>' +
+    '<li><b>대장아파트</b>: 서울 구별 84㎡ 대장 시세 지도 · 대장 vs 가운데값 · 가장 비싼 대장 TOP · 대장 최고가 대비 · 59㎡ 대장 지도 · 경기 대장 TOP</li>' +
     '<li><b>내 집·갈아타기(2장)</b>: 갈아타기 부담이 적은 조합 · 서울 84㎡ 필요 현금</li>' +
     '<li>숫자의 자세한 뜻은 위 “올릴 글” 카드의 ? 에 코너별로 적어 두었습니다.</li></ul></div>';
 
@@ -2432,6 +2479,7 @@ function chMoveText(v) {
 function chText(tab) {
   if (tab === "daily") return chDailyText(chDaily());
   if (tab === "mdd") return chMddText(chMdd());
+  if (tab === "lead") return chLeadText(RANKED.filter(function (k) { return /^11/.test(k); }), "서울");
   return chMoveText(chMove());
 }
 
@@ -2558,6 +2606,11 @@ function chCardsHtml(tab) {
       }), true),
       how: "% = 고점에서 바닥까지 떨어진 폭(MDD) · 과거 패턴이 반복된다는 보장은 없음" });
     var yy = chYoYCard(RANKED.filter(function (k) { return /^(11|41|28)/.test(k); }), "수도권"); if (yy) add("1년 상승률", yy);
+  } else if (tab === "lead") {
+    var se = RANKED.filter(function (k) { return /^11/.test(k); }), gg = RANKED.filter(function (k) { return /^41/.test(k); });
+    chLeadCards(se, "84", "서울").forEach(function (o, i) { add("대장_서울84_" + i, o); });
+    chLeadCards(se, "59", "서울").slice(0, 1).forEach(function (o) { add("대장_서울59", o); });
+    chLeadCards(gg, "84", "경기").filter(function (o) { return /대장 TOP/.test(o.tag); }).forEach(function (o) { add("대장_경기84", o); });
   } else if (tab === "move") {
     var v = chMove(); if (!v) return "";
     var seoulK = RANKED.filter(function (k) { return /^11/.test(k); });
@@ -2827,6 +2880,7 @@ function chScopeCards(codes, band, scopeNm) {
     var yy2 = chYoYCard(d.live, scopeNm || "이 범위"); if (yy2) add("1년상승률", yy2);
     var mp2 = chMapCard(d.live, scopeNm || "이 범위", ar0); if (mp2) add("시세지도", mp2);
     var bd2 = chBudgetCard(d.live, scopeNm || "이 범위", ar0); if (bd2) add("예산별", bd2);
+    chLeadCards(d.live, band, scopeNm).forEach(function (o, i) { add("대장" + i, o); });
     /* 11·12 갈아타기 · 첫 집 */
     var ar = band === "59" ? 59 : 84, mv = chMove(d.live, 4, 3, ar);
     if (mv && mv.pairs.length) add("갈아타기", { tag: "갈아타기 · " + ar + "㎡", q: sc + " 안에서<br>갈아타기 부담이 적은 조합",
@@ -2840,6 +2894,94 @@ function chScopeCards(codes, band, scopeNm) {
       how: "무주택 · LTV·대출 한도만 반영(소득·DSR 미반영) · " + basis });
   }
   return C;
+}
+
+/* ══ 대장아파트 (v7.1) ═══════════════════════════════════════════════
+   brief_data 의 regions[].leaders[평형] — 지역마다 신축·대단지 대장 3곳(선정 기준은 scripts/brief_build.js leadersOf).
+   가운데값만 보면 '생각보다 싸네'가 되기 쉬워, 대장 3곳 평균과 지역 가운데값을 나란히 보여 준다. */
+var CH_LBN = { S: "소형", 59: "59㎡", 84: "84㎡", L: "대형" };
+function chLbk(band) { return band === "59" || band === "S" || band === "L" ? band : "84"; }
+function chYmd(d) { d = String(d || ""); return d ? "'" + d.slice(2, 4) + "." + Number(d.slice(4, 6)) : ""; }
+function chLeadRows(codes, bk) {
+  var R = CH.data.regions;
+  return codes.map(function (k) {
+    var j = R[k], L = j && j.leaders && j.leaders[bk];
+    if (!L || !L.length) return null;
+    var avg = L.reduce(function (a, t) { return a + t.p[0]; }, 0) / L.length, ar = L.reduce(function (a, t) { return a + t.ar; }, 0) / L.length, med = null;
+    if (typeof DB !== "undefined" && DB && (bk === "84" || bk === "59") && DB["a" + bk] && DB["a" + bk].series[k]) med = chLast(chSer("a" + bk, k));
+    else if (j.bands && j.bands[bk] && j.bands[bk].pm) med = j.bands[bk].pm * ar;
+    return { k: k, L: L, avg: avg, med: med, x: med ? avg / med : null };
+  }).filter(Boolean);
+}
+function chLeadOn() { return chOk() && Object.keys(CH.data.regions).some(function (c) { return CH.data.regions[c].leaders; }); }
+function chLeadSub(t) { return (t.by ? t.by + "년" : "") + (t.hh ? (t.by ? " · " : "") + fmt(t.hh) + "세대" : ""); }
+function chLeadCards(codes, band, scopeNm) {
+  if (!chLeadOn()) return [];
+  var bk = chLbk(band), bn = CH_LBN[bk], rows = chLeadRows(codes, bk), C = [], sc = escHtml(scopeNm || "이 범위");
+  if (!rows.length) return C;
+  var how0 = "대장 = 500세대↑·20년 이내 중 ㎡당가 상위 3곳 · 값 = 같은 면적 최근 실거래";
+  var multi = rows.length > 1, byAvg = rows.slice().sort(function (a, b) { return b.avg - a.avg; });
+  /* 1 대장 시세 지도 */
+  if (multi && rows.length <= 25) {
+    var ps = rows.map(function (r) { return r.avg; }), lo = Math.min.apply(null, ps), hi = Math.max.apply(null, ps);
+    C.push({ tag: "대장 시세 · " + bn, q: sc + " 대장아파트 " + bn + ",<br>지금 얼마?",
+      a: "가장 비싼 " + escHtml(chShortGu(byAvg[0].k)) + " <b>" + eok(byAvg[0].avg) + "</b> · 가장 싼 " + escHtml(chShortGu(byAvg[byAvg.length - 1].k)) + " <b>" + eok(byAvg[byAvg.length - 1].avg) + "</b>",
+      body: '<div class="chc-grid">' + rows.slice().sort(function (a, b) { return a.k < b.k ? -1 : 1; }).map(function (r) {
+        return '<div style="' + chNavyTile(r.avg, lo, hi) + '"><small>' + escHtml(chShortGu(r.k)) + "</small><b>" + (r.avg >= 100000 ? Math.round(r.avg / 10000) : (r.avg / 10000).toFixed(1)) + "억</b></div>";
+      }).join("") + "</div>",
+      how: "대장 3곳 최근 거래가 평균 · 진할수록 비쌈 · " + how0 });
+  }
+  /* 2 대장 vs 가운데값 */
+  var vs = rows.filter(function (r) { return r.x; });
+  if (vs.length) {
+    var avgX = vs.reduce(function (a, r) { return a + r.x; }, 0) / vs.length, show = vs.slice().sort(function (a, b) { return b.avg - a.avg; }).slice(0, multi ? 4 : 1);
+    var mx = Math.max.apply(null, show.map(function (r) { return r.avg; }));
+    C.push({ tag: "대장 vs 가운데값", q: "가운데값은 착시?<br>" + sc + " 대장은 얼마",
+      a: "대장 평균은 가운데값의 <b>" + avgX.toFixed(1) + "배</b>" + (multi ? " (" + vs.length + "곳 평균)" : ""),
+      body: '<div class="chc-vs">' + show.map(function (r) {
+        return '<div class="chc-vsr"><span>' + escHtml(multi ? chShortGu(r.k) : chName(r.k)) + '</span><div class="chc-vsb"><i><u class="lead" style="width:' + (r.avg / mx * 100).toFixed(1) + '%"></u></i><i><u class="med" style="width:' + (r.med / mx * 100).toFixed(1) + '%"></u></i></div>' +
+          '<b>' + eok(r.avg) + '<small>' + eok(r.med) + "</small></b></div>";
+      }).join("") + '</div><div class="chc-legend"><i class="je"></i>대장 3곳 평균 <i class="wol"></i>지역 ' + bn + " 가운데값</div>",
+      how: "가운데값 = " + (bk === "84" || bk === "59" ? "지역 " + bk + "㎡ 실거래 가운데값" : "30일 ㎡당 가운데값 × 면적") + " · " + how0 });
+  }
+  /* 3 대장 TOP */
+  var all = [];
+  rows.forEach(function (r) { r.L.forEach(function (t) { all.push(Object.assign({ k: r.k }, t)); }); });
+  all.sort(function (a, b) { return b.p[0] - a.p[0]; });
+  var top = multi ? all.slice(0, all[0] && all[0].apt.length > 9 ? 3 : 4) : rows[0].L;
+  C.push({ tag: "대장 TOP · " + bn, q: sc + " " + bn + ",<br>" + (multi ? "가장 비싼 대장아파트" : "대장아파트 3곳"),
+    a: "1위 " + escHtml(top[0].apt) + " " + top[0].ar + "㎡ <b>" + eok(top[0].p[0]) + "</b> (" + chYmd(top[0].p[1]) + ")",
+    body: chList(top.map(function (t, i) { return [(i + 1) + ". " + escHtml(t.apt), escHtml(multi ? chName(t.k) + " · " : "") + t.ar + "㎡ · " + chLeadSub(t) + " · " + chYmd(t.p[1]), eok(t.p[0])]; }), true),
+    how: how0 });
+  /* 4 전고점 대비 */
+  var dd = (multi ? all.sort(function (a, b) { return b.p[0] - a.p[0]; }).slice(0, 4) : rows[0].L).map(function (t) { return Object.assign({ dv: (t.p[0] / t.mx[0] - 1) * 100 }, t); });
+  var near = dd.filter(function (t) { return t.dv >= -3; }).length;
+  C.push({ tag: "대장 전고점", q: sc + " 대장아파트,<br>최고가 대비 지금은?",
+    a: dd.length + "곳 중 <b>" + near + "곳</b>이 최고가 3% 이내" + "",
+    body: chList(dd.map(function (t) {
+      return [escHtml(t.apt), escHtml(multi ? chShortGu(t.k) + " · " : "") + t.ar + "㎡ · 최고 " + eok(t.mx[0]) + " " + chYmd(t.mx[1]) + " → 최근 " + eok(t.p[0]), t.dv >= -0.05 ? "최고가" : chPct(t.dv), t.dv >= -0.05 ? "up" : "down"];
+    }), true),
+    how: "최고가 = 2020년 이후 같은 단지·같은 면적 최고 실거래(기록이 쌓이는 중이면 그 기간 안) · 최근 = 가장 최근 거래" });
+  return C;
+}
+function chLeadText(codes, scopeNm) {
+  if (!chLeadOn()) return "대장아파트 자료는 다음 새벽 수집(v7.1 스크립트)부터 들어옵니다.";
+  var rows = chLeadRows(codes, "84").sort(function (a, b) { return b.avg - a.avg; }), L = [];
+  L.push("[대장아파트 시세] " + scopeNm + " 84㎡ | " + chToday());
+  L.push("가운데값만 보면 '생각보다 싸네' 싶지만, 다들 보는 건 신축·대단지 대장의 값입니다.");
+  L.push("");
+  L.push("■ 지역별 대장 3곳 평균 (84㎡, 높은 순)");
+  rows.slice(0, 10).forEach(function (r, i) {
+    L.push((i + 1) + ". " + chName(r.k) + " " + eok(r.avg) + (r.med ? " (가운데값 " + eok(r.med) + ", " + (r.avg / r.med).toFixed(1) + "배)" : "") + " — " + r.L.map(function (t) { return t.apt; }).join(" · "));
+  });
+  var vs = rows.filter(function (r) { return r.x; });
+  if (vs.length) { L.push(""); L.push("■ " + scopeNm + " 대장 평균은 가운데값의 " + (vs.reduce(function (a, r) { return a + r.x; }, 0) / vs.length).toFixed(1) + "배"); }
+  L.push("");
+  L.push("대장 = 지역마다 500세대 이상·준공 20년 이내(모자라면 300·150세대 이상) 단지 중 최근 1년 ㎡당 거래가가 높은 3곳. 값은 같은 면적의 가장 최근 실거래(직거래 제외).");
+  L.push(CH_FOOT + " 특정 단지 매수 권유가 아닙니다.");
+  L.push("@uphill.lab");
+  L.push("#대장아파트 #아파트시세 #부동산");
+  return L.join("\n");
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */

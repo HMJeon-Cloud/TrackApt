@@ -1056,7 +1056,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v7.5</span>
+    <span class="ver">v7.6</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2160,12 +2160,7 @@ var CH_HELP_TOP =
     '<li>2010년부터의 월별 자료는 한 번 만들어 둔 과거분 파일(data/market_core_base.json)이고, 그 뒤 달은 <b>매일 새벽 수집한 실거래로 달마다 집계를 쌓아 자동으로 이어 붙입니다</b>(scripts/core_build.js).</li>' +
     '<li>집계 규칙은 과거분과 똑같습니다 — 해제 거래 제외, 평당가 가운데값, 3개월 이동중위, 84·59㎡ 가운데값, 전세 보증금 가운데값. 과거와 이어지도록 여기서는 원룸형·일괄 거래도 빼지 않습니다.</li>' +
     '<li>최근 두 달은 신고(계약 후 30일)가 덜 끝나 <b>잠정</b>으로 표시하고 매일 다시 계산합니다. 그 전 달은 확정돼 더 바뀌지 않습니다.</li></ul></div>' +
-  '<div class="note"><b>최근 90일 보정이란? (옛 방식 — 자동 봉인본이면 쓰지 않음)</b><ul>' +
-    '<li>MDD·갈아타기는 긴 기록이 필요해 월별 자료를 씁니다. 그대로 두면 월별 자료의 마지막 달(예: 8월)에 멈춰 있습니다.</li>' +
-    '<li>그래서 매일 받는 실거래로 <b>월별 자료 마지막 석 달</b>과 <b>최근 90일</b>의 ㎡당 가격(가운데값)을 똑같은 방식으로 다시 잽니다.</li>' +
-    '<li>둘의 비율만큼 월별 자료의 마지막 값을 올리거나 내려 <b>“지금” 값</b>을 하나 덧붙입니다. 예) 8월 지수 100, 석 달 ㎡당 1,500만 → 최근 90일 1,530만이면 지금 지수 102.</li>' +
-    '<li>같은 자료끼리 견준 비율이라 기준이 섞이지 않습니다. 다만 두 구간 모두 거래가 20건 이상인 곳만 보정하고, 모자라면 월별 자료 값을 그대로 씁니다.</li>' +
-    '<li>최근 90일 묶음이라 하루하루는 조금씩만 움직입니다. 그날 한두 건의 비싼 거래에 흔들리지 않게 하려는 것입니다.</li></ul></div>';
+  '';
 var CH_HELP_TEXT =
   '<p class="desc">코너를 고르면 그 코너 글이 칸에 들어갑니다. 칸에서 고친 뒤 [글 복사]로 가져가세요. 다른 코너를 눌렀다 오면 처음 글로 돌아갑니다.</p>' +
   '<div class="note"><b>① 데일리 — 숫자 읽는 법</b><ul>' +
@@ -2206,7 +2201,7 @@ var CH_HELP_TEXT =
     '<li><b>84㎡ 추가금</b>: 두 동네 84㎡ 값 차이 + 새 집 취득세 + 중개보수 + 등기·이사 비용입니다. 대출은 넣지 않았습니다.</li>' +
     '<li><b>서울 첫 집</b>: 서울 구 가운데 84㎡ 가운데값이 가장 싼 세 곳입니다. <b>대출</b>은 지금 규칙(LTV·대출 총액 한도)으로 가능한 최대치, <b>필요 현금</b>은 집값 − 대출 + 취득세·중개보수 등입니다. 소득(DSR)은 넣지 않았으니 실제 대출은 더 적을 수 있습니다.</li>' +
     '<li><b>대출 규칙</b>: 앱 설정 탭에 있는 현재 규칙을 그대로 옮긴 것입니다. 규칙이 바뀌면 설정 값을 고치면 됩니다.</li>' +
-    '<li>최근 90일 보정은 ㎡당 가격의 변화율을 84㎡ 가격에도 똑같이 곱한 추정치입니다.</li></ul></div>';
+    '</ul></div>';
 var CH_HELP_CARD =
   '<p class="desc">고른 코너의 핵심을 4:5 그림(1080×1350)으로 저장합니다. 인스타그램·스레드에 그대로 올릴 수 있습니다.</p>' +
   '<div class="note"><b>카드 한 장의 구성</b><ul>' +
@@ -2285,7 +2280,7 @@ var CH_FRESH_MIN = 20;
 function chLastYm() { var e = DB.sale.dates[1].split("-"); return Number(e[0]) * 100 + Number(e[1]); }
 function chFreshF(k) {
   var D = CH.data;
-  if (!chOk() || !D.fresh || typeof DB === "undefined" || !DB || !DB.sale) return null;
+  if (true || !chOk() || !D.fresh || typeof DB === "undefined" || !DB || !DB.sale) return null;
   var f = (D.fresh.groups && D.fresh.groups[k]) || (D.regions[k] && D.regions[k].fresh);
   if (!f || f.m !== chLastYm() || !f.b || !f.n || f.bn < CH_FRESH_MIN || f.nn < CH_FRESH_MIN) return null;
   return f.n / f.b;
@@ -2303,7 +2298,7 @@ function chSer(key, k) {
   return out;
 }
 function chLast(arr) { for (var i = arr.length - 1; i >= 0; i--) if (arr[i] != null) return arr[i]; return null; }
-function chFreshOn() { return !!(chOk() && CH.data.fresh && typeof DB !== "undefined" && DB && DB.sale && CH.data.fresh.m === chLastYm()); }
+function chFreshOn() { return false; }   /* v7.6: 최근 90일 보정은 자동 봉인본으로 대체 */
 /* v7.5 자동 봉인본 — market_core.json 에 auto:true 가 있으면 월별 자료가 매일 이어지므로 '최근 90일 보정'은 쓰지 않는다 */
 function mcAuto() { return !!(typeof MC !== "undefined" && MC && MC.auto); }
 function mcProvTxt() { var p = (MC && MC.prov) || []; return p.length ? p.map(function (y) { return Math.floor(y / 100) % 100 + "." + (y % 100); }).join("·") + " 잠정" : ""; }
@@ -2318,7 +2313,7 @@ function chBasis() {
   var ym = DB.sale.dates[1].replace("-", ".");
   if (mcAuto()) return ym + "까지 실거래 월별 집계 (매일 새벽 자동 봉인" + (mcProvTxt() ? " · " + mcProvTxt() + " — 신고가 덜 끝나 숫자가 늘 수 있음" : "") + ")";
   if (chFreshOn()) return dTxt(CH.data.fresh.to) + "까지 실거래 (최근 90일 " + dTxt(CH.data.fresh.from) + "~" + dTxt(CH.data.fresh.to) + " 반영, 그 이전은 " + ym + "까지 월별 자료)";
-  return ym + " 월별 자료 기준 — 최근 90일 보정 자료가 아직 없습니다 (새벽 자동 수집이 v6.51 스크립트로 한 번 돌면 채워집니다)";
+  return ym + "까지 월별 자료 (자동 봉인 전 — Run workflow 를 한 번 돌리면 매일 이어집니다)";
 }
 function chYm(i) { if (i >= DB.sale.dates[2]) return "최근"; var t = ymNum(DB.sale.dates[0]) + i; return Math.floor((t - 1) / 12) + "." + ("0" + (((t - 1) % 12) + 1)).slice(-2); }
 function chPct(v, d) { return v == null ? "—" : pct(v, d == null ? 1 : d); }
@@ -2896,7 +2891,7 @@ function paintChannel() {
   else if (CH.data && CH.data._err) parts.push("오늘 자료 없음 (" + escHtml(CH.data._err) + ")");
   if (typeof DB !== "undefined" && DB && DB.sale) parts.push(mcAuto() ? "MDD·갈아타기 " + DB.sale.dates[1].replace("-", ".") + "까지 (자동 봉인" + (mcProvTxt() ? " · " + mcProvTxt() : "") + ")"
     : chFreshOn() ? "MDD·갈아타기 " + dTxt(CH.data.fresh.to) + "까지 반영 (월별 자료 " + DB.sale.dates[1].replace("-", ".") + " + 최근 90일)"
-    : '<b class="down">MDD·갈아타기는 아직 월별 자료(' + DB.sale.dates[1].replace("-", ".") + ")까지 — 최근 90일 보정 자료 없음</b>");
+    : "MDD·갈아타기 " + DB.sale.dates[1].replace("-", ".") + "까지 (자동 봉인 전)");
   meta.innerHTML = parts.join(" · ") || "불러오는 중…";
   document.getElementById("ch-text").value = chText(CH.tab);
   document.getElementById("ch-cards").innerHTML = chCardsHtml(CH.tab) || '<p class="hint">이 코너는 카드로 만들 자료가 아직 없습니다.</p>';

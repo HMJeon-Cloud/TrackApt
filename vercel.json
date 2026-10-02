@@ -1,0 +1,8 @@
+{
+  "headers": [
+    { "source": "/(brief_data|macro_data|market_core|brief_notes)\\.json", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, s-maxage=600, stale-while-revalidate=86400" }] },
+    { "source": "/data/manual/(.*)\\.json", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, s-maxage=120, stale-while-revalidate=3600" }] },
+    { "source": "/(icon-.*|apple-touch-icon|favicon-48)\\.png", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, immutable" }] },
+    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+  ]
+}

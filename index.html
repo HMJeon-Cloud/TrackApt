@@ -1013,6 +1013,23 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chcard .chc-more{margin-top:8px}
 .chcard .chc-art{padding-top:6px}
 .chcard .chc-how{margin-top:0}
+/* v7.3 홈 '지금 시장' 버튼 — 다른 카드와 같은 흰 바탕 */
+.homeBrief{background:var(--panel);color:var(--ink);box-shadow:none}
+.homeBrief small{color:var(--sub)}
+.homeBrief .arr{color:var(--miss)}
+.homeBriefIc{width:40px;height:40px;flex:none;border-radius:12px;background:var(--accentSoft);display:flex;align-items:center;justify-content:center;font-size:21px}
+.homeBrief:hover{background:var(--accentSoft)}
+/* 나만 보기 잠금 해제 창 */
+.ownerModal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.ownerBox{background:var(--panel);border-radius:20px;padding:22px 20px;width:100%;max-width:360px}
+.ownerBox b{font-size:1.05rem}
+.ownerBox p{font-size:.86rem;color:var(--sub);margin:8px 0 12px}
+.ownerBox input{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:12px;padding:12px;font:inherit;font-size:1rem;background:var(--bg)}
+.ownerBox .ownerMsg{min-height:1.2em;margin:8px 0 0;color:#e5484d}
+.ownerBtns{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.homeBrief{padding:20px 18px;gap:16px}
+.homeBriefIc{width:52px;height:52px;border-radius:16px;font-size:24px}
+.homeBrief b{font-size:1.06rem}
 </style>
 </head>
 <body>
@@ -1020,7 +1037,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v7.2</span>
+    <span class="ver">v7.3</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1298,9 +1315,9 @@ function buildHome(root) {
         "<span><b>시세 둘러보기</b><small>동네 순위·시세 흐름·아파트를 직접 찾아봐요</small></span>" +
         '<span class="arr">›</span></button>' +
     "</div>" +
-    '<button type="button" class="homeBrief" data-go="brief"><span style="font-size:26px">📰</span>' +
-      "<span><b>지금 시장 — 최근 30일</b><small>거래 몰리는 곳 · 신고가 경신 · 참고 후보</small></span>" +
-      '<span class="arr">›</span></button>' +
+    (OWNER ? '<button type="button" class="homeBrief" data-go="brief"><span class="homeBriefIc">📰</span>' +
+      "<span><b>지금 시장 — 최근 30일</b><small>나만 보기 · 거래 몰리는 곳 · 신고가 · 대장아파트</small></span>" +
+      '<span class="arr">›</span></button>' : "") +
     '<div class="homeSec"><h3>많이 보는 화면</h3><div class="homeChips">' +
       chips.map(function (c) { return '<button type="button" data-go="' + c[0] + '">' + c[1] + "</button>"; }).join("") +
     "</div></div>" +
@@ -1334,13 +1351,15 @@ function buildMore(root) {
   root.innerHTML = '<div class="hubHead">도움말·설정</div>' +
     hubRowsHtml(TABS.filter(function (t) { return t.cat === "more"; }).concat([
       { id: "__gloss", name: "용어 도움", ic: "📖", d: "처음 보는 말을 한 줄로 풀이" },
-      { id: "start", name: "내 조건", ic: "🙋", d: "현금·거주지·보유 상태" }])) + installHtml();
+      { id: "start", name: "내 조건", ic: "🙋", d: "현금·거주지·보유 상태" }].concat(typeof OWNER !== "undefined" && OWNER ? [
+      { id: "__lock", name: "나만 보기 잠그기", ic: "🔒", d: "이 기기에서 지금 시장·채널 브리핑 숨기기" }] : []))) + installHtml();
 }
 /* 홈·허브의 [data-go] — 위임 처리 한 번 */
 document.addEventListener("click", function (e) {
   var b = e.target.closest ? e.target.closest("[data-go]") : null;
   if (!b || !b.closest("#tab-home, #tab-browse, #tab-more")) return;
   if (b.dataset.go === "__gloss") { openGloss(""); return; }
+  if (b.dataset.go === "__lock") { ownerLock(); return; }
   showTab(b.dataset.go);
   window.scrollTo(0, 0);
 });
@@ -1589,6 +1608,14 @@ function exportCardImage(card, name) {
     });
 }
 
+/* 한국 시간(KST, UTC+9) — 휴대폰·PC 시간대 설정과 상관없이 늘 한국 시간으로 보여 준다 */
+function kstParts(x) {
+  var t = x instanceof Date ? x.getTime() : new Date(x).getTime();
+  if (!isFinite(t)) return null;
+  var k = new Date(t + 9 * 3600000);
+  return { y: k.getUTCFullYear(), mo: k.getUTCMonth() + 1, d: k.getUTCDate(), h: k.getUTCHours(), mi: k.getUTCMinutes(), w: k.getUTCDay() };
+}
+function kstTxt(x) { var k = kstParts(x); return k ? k.mo + "." + k.d + " " + ("0" + k.h).slice(-2) + ":" + ("0" + k.mi).slice(-2) : ""; }
 /* ══ 지금 시장 (v6.1) ═══════════════════════════════════════════
    최근 30일 실거래만으로 만드는 화면. 저장본(월별 집계)은 쓰지 않는다 — 그건 다른 화면에 있다.
    지역별 요약은 /api/brief?kind=region 이 만들어 두고(12시간 캐시), 여기서는 그걸 모아 순위를 매긴다.
@@ -1818,8 +1845,7 @@ function loadBriefLive() {
 }
 function briefAsOf() {
   var j = BRIEF.data; if (!j || !j.builtAt) return "";
-  var d = new Date(j.builtAt);
-  return (d.getMonth() + 1) + "." + d.getDate() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + " 수집";
+  return kstTxt(j.builtAt) + " 수집(한국 시간)";
 }
 function briefRow(no, name, sub, why, main, mainCls, unit, btn) {
   return '<div class="bfrow">' + (no ? '<span class="bfno">' + no + "</span>" : "") +
@@ -1989,7 +2015,7 @@ function loadBriefNews() {
     if (!j || !(j.items && j.items.length)) { el.innerHTML = '<p class="hint">기사 제목이 아직 없습니다.</p>'; return; }
     var kw = (j.keywords || []).slice(0, 10).map(function (k) { return '<span class="chip">' + escHtml(k[0]) + " <b>" + k[1] + "</b></span>"; }).join("");
     var items = (j.items || []).slice(0, 8).map(function (it) {
-      var d = new Date(it.d), ds = isFinite(d) ? (d.getMonth() + 1) + "." + d.getDate() : "";
+      var k = kstParts(it.d), ds = k ? k.mo + "." + k.d : "";
       return '<li><a href="' + escHtml(it.u) + '" target="_blank" rel="noopener">' + escHtml(it.t) + "</a>" +
         '<small>' + escHtml(it.s || "") + (ds ? " · " + ds : "") + "</small></li>";
     }).join("");
@@ -2190,8 +2216,8 @@ function renderChannel() {
 
 /* ── 공통 ── */
 function chToday() {
-  var d = new Date(), w = "일월화수목금토".charAt(d.getDay());
-  return (d.getMonth() + 1) + "." + d.getDate() + "(" + w + ")";
+  var k = kstParts(new Date());
+  return k.mo + "." + k.d + "(" + "일월화수목금토".charAt(k.w) + ")";
 }
 var CH_METRO_PFX = { 26: "부산", 27: "대구", 28: "인천", 29: "광주", 30: "대전", 31: "울산" };
 function chName(k) { var n = kbLabel(k), p = CH_METRO_PFX[String(k).slice(0, 2)]; return p && n.indexOf(p) !== 0 ? p + " " + n : n; }
@@ -2790,7 +2816,7 @@ function chCopy(text) {
 function paintChannel() {
   var meta = document.getElementById("ch-meta"); if (!meta) return;
   var parts = [];
-  if (chOk() && CH.data.builtAt) { var b = new Date(CH.data.builtAt); parts.push("실거래 " + (b.getMonth() + 1) + "." + b.getDate() + " " + ("0" + b.getHours()).slice(-2) + ":" + ("0" + b.getMinutes()).slice(-2) + " 수집"); }
+  if (chOk() && CH.data.builtAt) { parts.push("실거래 " + kstTxt(CH.data.builtAt) + " 수집(한국 시간)"); }
   else if (CH.data && CH.data._err) parts.push("오늘 자료 없음 (" + escHtml(CH.data._err) + ")");
   if (typeof DB !== "undefined" && DB && DB.sale) parts.push(chFreshOn() ? "MDD·갈아타기 " + dTxt(CH.data.fresh.to) + "까지 반영 (월별 자료 " + DB.sale.dates[1].replace("-", ".") + " + 최근 90일)"
     : '<b class="down">MDD·갈아타기는 아직 월별 자료(' + DB.sale.dates[1].replace("-", ".") + ")까지 — 최근 90일 보정 자료 없음</b>");
@@ -3109,6 +3135,52 @@ function chLeadText(codes, scopeNm) {
   L.push("#대장아파트 #아파트시세 #부동산");
   return L.join("\n");
 }
+
+/* ══ 나만 보기 (v7.3) — 지금 시장 · 채널 브리핑은 주인만 ══════════════════
+   잠금 해제: 주소 끝에 #owner 를 붙여 열고 비밀번호 입력 → /api/owner 가 Vercel 환경변수 OWNER_KEY 와 비교해
+   맞으면 토큰을 준다. 토큰은 이 기기(브라우저)에만 저장되고, 앱이 열릴 때마다 서버에 다시 확인한다.
+   잠겨 있으면 두 화면은 메뉴·홈·둘러보기·주소(#brief, #channel) 어디에서도 열리지 않는다. */
+var OWNER_LS = "trackapt_owner_v1", OWNER_TABS = ["brief", "channel"];
+var OWNER = (function () { try { return !!localStorage.getItem(OWNER_LS); } catch (e) { return false; } })();
+if (!OWNER) {
+  GROUPS.forEach(function (g) { g.tabs = g.tabs.filter(function (t) { return OWNER_TABS.indexOf(t.id) < 0; }); });
+  for (var oi = TABS.length - 1; oi >= 0; oi--) if (OWNER_TABS.indexOf(TABS[oi].id) >= 0) TABS.splice(oi, 1);
+}
+function ownerLock() { try { localStorage.removeItem(OWNER_LS); } catch (e) {} location.replace(location.pathname); }
+(function () {
+  var tok = null; try { tok = localStorage.getItem(OWNER_LS); } catch (e) {}
+  if (tok) fetch("/api/owner?t=" + encodeURIComponent(tok), { cache: "no-store" }).then(function (r) {
+    if (r.status === 401) ownerLock();                     /* 비밀번호를 바꾸면 다른 기기도 잠긴다 */
+  })["catch"](function () {});
+})();
+function ownerPrompt() {
+  var m = document.createElement("div");
+  m.className = "ownerModal";
+  m.innerHTML = '<div class="ownerBox"><b>나만 보기 화면 열기</b><p>지금 시장 · 채널 브리핑은 주인만 볼 수 있습니다. 비밀번호를 입력하세요.</p>' +
+    '<input type="password" id="owner-key" autocomplete="current-password" placeholder="비밀번호">' +
+    '<p class="ownerMsg" id="owner-msg"></p><div class="ownerBtns"><button type="button" class="btn sm ghost" id="owner-no">닫기</button><button type="button" class="btn sm" id="owner-go">열기</button></div></div>';
+  document.body.appendChild(m);
+  var inp = m.querySelector("#owner-key"), msg = m.querySelector("#owner-msg");
+  function close() { m.parentNode.removeChild(m); try { history.replaceState(null, "", location.pathname); } catch (e) {} }
+  function go() {
+    msg.textContent = "확인 중…";
+    fetch("/api/owner", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: inp.value }) })
+      .then(function (r) { return r.json().then(function (j) { return { s: r.status, j: j }; }); })
+      .then(function (x) {
+        if (x.j && x.j.ok && x.j.token) { try { localStorage.setItem(OWNER_LS, x.j.token); } catch (e) {} location.replace(location.pathname + "#brief"); location.reload(); }
+        else msg.textContent = x.s === 500 ? "서버에 OWNER_KEY 가 아직 설정되지 않았습니다 (Vercel 환경변수)." : "비밀번호가 맞지 않습니다.";
+      })["catch"](function () { msg.textContent = "서버에 연결하지 못했습니다."; });
+  }
+  m.querySelector("#owner-go").addEventListener("click", go);
+  m.querySelector("#owner-no").addEventListener("click", close);
+  inp.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+  setTimeout(function () { inp.focus(); }, 50);
+}
+/* 처음 주소의 #owner 는 시작 탭이 주소를 #home 으로 바꾸기 전에 읽어 둔다 */
+var OWNER_ASK = /^#!?\/?owner\b/i.test(location.hash || "");
+function ownerAsk() { if (OWNER) showTab("brief"); else if (!document.querySelector(".ownerModal")) ownerPrompt(); }
+document.addEventListener("DOMContentLoaded", function () { if (OWNER_ASK) setTimeout(ownerAsk, 0); });
+window.addEventListener("hashchange", function () { if (/^#!?\/?owner\b/i.test(location.hash || "")) ownerAsk(); });
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

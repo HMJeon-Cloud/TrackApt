@@ -167,28 +167,42 @@ async function kosisWages() {
     c = { orgId: pick.ORG_ID, tblId: pick.TBL_ID, nm: pick.TBL_NM };
     log("KOSIS 표 선택: " + c.orgId + "/" + c.tblId + " " + c.nm);
   }
-  /* 항목·분류 메타 → 임금총액 항목 id 와 분류 단계 수 */
-  var itm = await getJson(kosisUrl("Param/statisticsParameterData.do", { method: "getMeta", type: "ITM", orgId: c.orgId, tblId: c.tblId }));
-  var obj = await getJson(kosisUrl("Param/statisticsParameterData.do", { method: "getMeta", type: "OBJ", orgId: c.orgId, tblId: c.tblId }));
-  var itms = kosisArr(itm) || [], objs = kosisArr(obj) || [];
-  DBG.kosisMeta = { itm: itms.slice(0, 12), obj: objs.slice(0, 12), itmErr: itms.length ? null : kosisErr(itm), objErr: objs.length ? null : kosisErr(obj) };
-  var wageItms = itms.filter(function (r) { return /임금총액|월평균임금|월급여/.test(r.ITM_NM || "") && !/실질/.test(r.ITM_NM || ""); }).map(function (r) { return r.ITM_ID; });
-  var levels = {}; objs.forEach(function (r) { if (r.OBJ_ID) levels[r.OBJ_ID] = 1; });
-  var nLev = Math.max(1, Math.min(8, Object.keys(levels).length || 2));
-  function q(itmId, n) {
-    var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: itmId, prdSe: "M", newEstPrdCnt: "36" };
+  /* 1차: 최근 1개월만 전체(ALL)로 받아 분류 단계·코드를 알아낸다 (40,000셀 제한 때문에 전체 기간은 못 받음) */
+  function q(n, over) {
+    var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: "ALL", prdSe: "M", newEstPrdCnt: "1" };
     for (var k = 1; k <= n; k++) o["objL" + k] = "ALL";
+    Object.keys(over || {}).forEach(function (k) { o[k] = over[k]; });
     return o;
   }
-  var tries = [[wageItms.length ? wageItms.join("+") : "ALL", nLev], ["ALL", nLev], ["ALL", 2], ["ALL", 1]], j = null, rows = null;
-  for (var t = 0; t < tries.length; t++) {
-    j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(tries[t][0], tries[t][1])));
-    rows = kosisArr(j);
-    if (rows && rows.length) { log("KOSIS 자료 " + rows.length + "행 (itmId=" + tries[t][0].slice(0, 30) + ", 분류 " + tries[t][1] + "단계)"); break; }
-    log("KOSIS 시도 " + (t + 1) + " 실패: " + kosisErr(j));
-    rows = null;
+  var probe = null, nLev = 0, j = null;
+  for (var n = 1; n <= 4 && !probe; n++) {
+    j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n)));
+    var arr = kosisArr(j);
+    if (arr && arr.length) { probe = arr; nLev = n; }
+    else log("KOSIS 탐색 " + n + "단계: " + kosisErr(j));
   }
-  if (!rows) { DBG.kosisRaw = j && j._raw ? String(j._raw).slice(0, 600) : j; return null; }
+  if (!probe) { DBG.kosisRaw = j; return null; }
+  DBG.kosisProbe = probe.slice(0, 6);
+  /* 전산업 · 전규모(또는 전체) · 상용근로자 · 임금총액 행을 고른다 */
+  function pickRow(rows) {
+    var cand = rows.filter(function (r) { return /임금총액|월평균임금|월급여/.test(r.ITM_NM || "") && !/실질/.test(r.ITM_NM || ""); });
+    var names = function (r) { return [r.C1_NM, r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).join(" "); };
+    var best = cand.filter(function (r) { return /상용/.test(names(r)) && /전산업|전체|계\b/.test(r.C1_NM || "") && !/임시|일용/.test(names(r)); });
+    if (!best.length) best = cand.filter(function (r) { return /전산업|전체/.test(r.C1_NM || "") && !/임시|일용/.test(names(r)); });
+    if (!best.length) best = cand;
+    /* 규모는 '전규모·전체·1인 이상' 우선 */
+    best.sort(function (a, b) { return (/전규모|전체|1인 이상|계$/.test(names(b)) ? 1 : 0) - (/전규모|전체|1인 이상|계$/.test(names(a)) ? 1 : 0); });
+    return best[0] || null;
+  }
+  var pr = pickRow(probe);
+  if (!pr) { log("KOSIS 임금 행을 고르지 못함 — 항목 이름: " + probe.slice(0, 5).map(function (r) { return r.ITM_NM + "/" + r.C1_NM + "/" + (r.C2_NM || ""); }).join(", ")); return null; }
+  /* 2차: 그 조합만 36개월 */
+  var over = { itmId: pr.ITM_ID || "ALL", newEstPrdCnt: "36" };
+  for (var k2 = 1; k2 <= nLev; k2++) { var code = pr["C" + k2]; if (code) over["objL" + k2] = code; }
+  j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(nLev, over)));
+  var rows = kosisArr(j);
+  if (!rows || !rows.length) { log("KOSIS 2차 실패: " + kosisErr(j)); DBG.kosisRaw = j; return null; }
+  log("KOSIS 자료 " + rows.length + "행 — " + [pr.ITM_NM, pr.C1_NM, pr.C2_NM, pr.C3_NM].filter(Boolean).join(" · "));
   DBG.kosisSample = rows.slice(0, 5);
   var cand = rows.filter(function (r) { return /임금총액|월평균임금|월급여/.test(r.ITM_NM || "") && !/실질|임시|일용/.test([r.ITM_NM, r.C1_NM, r.C2_NM, r.C3_NM].join(" ")); });
   var pref = cand.filter(function (r) { return /전산업|전체|계$/.test(r.C1_NM || "") && /전규모|전체|계$|1인 이상|5인 이상/.test((r.C2_NM || "전체")); });

@@ -2,3 +2,5 @@
 scripts
 data/highs
 data/brief_hist.json
+data/macro_codes.json
+data/macro_debug.json

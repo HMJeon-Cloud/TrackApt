@@ -1056,7 +1056,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v7.4</span>
+    <span class="ver">v7.5</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2156,7 +2156,11 @@ var CH_HELP_TOP =
     '<li><b>오피스텔·빌라(연립·다세대)·단독주택</b>은 처음부터 다른 자료라 들어오지 않습니다. 쓰는 자료는 국토부 “아파트” 매매·전월세 신고뿐입니다.</li>' +
     '<li>아파트 신고 안에서 추가로 빼는 것: 전용 30㎡ 미만(도시형생활주택 원룸형으로 추정), 한 단지가 통째로 넘어간 <b>일괄 거래</b>(같은 날 여러 건·직거래 위주), 땅값이 빠진 <b>토지임대부</b> 아파트. 이 셋은 시세와 거리가 먼 거래라 뺍니다. 그 밖의 아파트 거래는 단지 규모와 상관없이 모두 셉니다.</li>' +
     '<li><b>직거래</b>는 가족 간 거래처럼 시세와 먼 값이 섞여 <b>가격 계산(가운데값·최고가·신고가)</b>에서는 빼고, <b>거래 건수</b>에는 넣습니다.</li></ul></div>' +
-  '<div class="note"><b>최근 90일 보정이란?</b><ul>' +
+  '<div class="note"><b>월별 자료는 어떻게 이어지나요? (자동 봉인)</b><ul>' +
+    '<li>2010년부터의 월별 자료는 한 번 만들어 둔 과거분 파일(data/market_core_base.json)이고, 그 뒤 달은 <b>매일 새벽 수집한 실거래로 달마다 집계를 쌓아 자동으로 이어 붙입니다</b>(scripts/core_build.js).</li>' +
+    '<li>집계 규칙은 과거분과 똑같습니다 — 해제 거래 제외, 평당가 가운데값, 3개월 이동중위, 84·59㎡ 가운데값, 전세 보증금 가운데값. 과거와 이어지도록 여기서는 원룸형·일괄 거래도 빼지 않습니다.</li>' +
+    '<li>최근 두 달은 신고(계약 후 30일)가 덜 끝나 <b>잠정</b>으로 표시하고 매일 다시 계산합니다. 그 전 달은 확정돼 더 바뀌지 않습니다.</li></ul></div>' +
+  '<div class="note"><b>최근 90일 보정이란? (옛 방식 — 자동 봉인본이면 쓰지 않음)</b><ul>' +
     '<li>MDD·갈아타기는 긴 기록이 필요해 월별 자료를 씁니다. 그대로 두면 월별 자료의 마지막 달(예: 8월)에 멈춰 있습니다.</li>' +
     '<li>그래서 매일 받는 실거래로 <b>월별 자료 마지막 석 달</b>과 <b>최근 90일</b>의 ㎡당 가격(가운데값)을 똑같은 방식으로 다시 잽니다.</li>' +
     '<li>둘의 비율만큼 월별 자료의 마지막 값을 올리거나 내려 <b>“지금” 값</b>을 하나 덧붙입니다. 예) 8월 지수 100, 석 달 ㎡당 1,500만 → 최근 90일 1,530만이면 지금 지수 102.</li>' +
@@ -2300,9 +2304,19 @@ function chSer(key, k) {
 }
 function chLast(arr) { for (var i = arr.length - 1; i >= 0; i--) if (arr[i] != null) return arr[i]; return null; }
 function chFreshOn() { return !!(chOk() && CH.data.fresh && typeof DB !== "undefined" && DB && DB.sale && CH.data.fresh.m === chLastYm()); }
+/* v7.5 자동 봉인본 — market_core.json 에 auto:true 가 있으면 월별 자료가 매일 이어지므로 '최근 90일 보정'은 쓰지 않는다 */
+function mcAuto() { return !!(typeof MC !== "undefined" && MC && MC.auto); }
+function mcProvTxt() { var p = (MC && MC.prov) || []; return p.length ? p.map(function (y) { return Math.floor(y / 100) % 100 + "." + (y % 100); }).join("·") + " 잠정" : ""; }
+function chBasisShort() {
+  if (typeof DB === "undefined" || !DB || !DB.sale) return "";
+  var ym = DB.sale.dates[1].replace("-", ".");
+  if (mcAuto()) return ym + "까지 실거래" + ((MC.prov || []).length ? " (최근 " + MC.prov.length + "개월 잠정)" : "");
+  return chFreshOn() ? dTxt(CH.data.fresh.to) + "까지 실거래 반영" : ym + " 월별 기준";
+}
 function chBasis() {
   if (typeof DB === "undefined" || !DB || !DB.sale) return "";
   var ym = DB.sale.dates[1].replace("-", ".");
+  if (mcAuto()) return ym + "까지 실거래 월별 집계 (매일 새벽 자동 봉인" + (mcProvTxt() ? " · " + mcProvTxt() + " — 신고가 덜 끝나 숫자가 늘 수 있음" : "") + ")";
   if (chFreshOn()) return dTxt(CH.data.fresh.to) + "까지 실거래 (최근 90일 " + dTxt(CH.data.fresh.from) + "~" + dTxt(CH.data.fresh.to) + " 반영, 그 이전은 " + ym + "까지 월별 자료)";
   return ym + " 월별 자료 기준 — 최근 90일 보정 자료가 아직 없습니다 (새벽 자동 수집이 v6.51 스크립트로 한 번 돌면 채워집니다)";
 }
@@ -2792,7 +2806,7 @@ function chCardsHtml(tab) {
     }
   } else if (tab === "mdd") {
     var m = chMdd(); if (!m) return "";
-    var basis = chFreshOn() ? dTxt(CH.data.fresh.to) + "까지 실거래" : m.ym + " 월별";
+    var basis = chBasisShort();
     var mx = Math.max.apply(null, m.groups.map(function (g) { return Math.abs(g.dd.now); }).concat([5]));
     var se = m.groups.filter(function (g) { return g.k === "서울"; })[0] || m.groups[0];
     add("고점 대비", { tag: "MDD", q: "집값, 고점 대비<br>지금 어디쯤?",
@@ -2829,7 +2843,7 @@ function chCardsHtml(tab) {
     var seoulK = RANKED.filter(function (k) { return /^11/.test(k); });
     var mp = chMapCard(seoulK, "서울", 84); if (mp) add("서울 84 시세", mp);
     var bd = chBudgetCard(seoulK, "서울", 84); if (bd) add("예산별", bd);
-    var mb = chFreshOn() ? dTxt(CH.data.fresh.to) + "까지 실거래 반영" : v.ym + " 월별 기준";
+    var mb = chBasisShort();
     if (v.pairs.length) add("갈아타기", { tag: "갈아타기", q: "지금 갈아타기<br>부담이 적은 조합은?",
       a: escHtml(chName(v.pairs[0].a)) + " → " + escHtml(chName(v.pairs[0].b)) + " 추가금 약 <b>" + eok(v.pairs[0].extra) + "</b>",
       body: chList(v.pairs.slice(0, 3).map(function (p) {
@@ -2880,7 +2894,8 @@ function paintChannel() {
   var parts = [];
   if (chOk() && CH.data.builtAt) { parts.push("실거래 " + kstTxt(CH.data.builtAt) + " 수집(한국 시간)"); }
   else if (CH.data && CH.data._err) parts.push("오늘 자료 없음 (" + escHtml(CH.data._err) + ")");
-  if (typeof DB !== "undefined" && DB && DB.sale) parts.push(chFreshOn() ? "MDD·갈아타기 " + dTxt(CH.data.fresh.to) + "까지 반영 (월별 자료 " + DB.sale.dates[1].replace("-", ".") + " + 최근 90일)"
+  if (typeof DB !== "undefined" && DB && DB.sale) parts.push(mcAuto() ? "MDD·갈아타기 " + DB.sale.dates[1].replace("-", ".") + "까지 (자동 봉인" + (mcProvTxt() ? " · " + mcProvTxt() : "") + ")"
+    : chFreshOn() ? "MDD·갈아타기 " + dTxt(CH.data.fresh.to) + "까지 반영 (월별 자료 " + DB.sale.dates[1].replace("-", ".") + " + 최근 90일)"
     : '<b class="down">MDD·갈아타기는 아직 월별 자료(' + DB.sale.dates[1].replace("-", ".") + ")까지 — 최근 90일 보정 자료 없음</b>");
   meta.innerHTML = parts.join(" · ") || "불러오는 중…";
   document.getElementById("ch-text").value = chText(CH.tab);
@@ -3070,7 +3085,7 @@ function chScopeCards(codes, band, scopeNm) {
   /* 9·10 고점 대비 · 하락과 회복 (월별 자료 — 평형 구분 없음) */
   if (typeof DB !== "undefined" && DB && DB.sale) {
     var t0 = ymNum(DB.sale.dates[0]), cyc = [2020 * 12 + 1 - t0, 2022 * 12 + 12 - t0];
-    var basis = chFreshOn() ? dTxt(CH.data.fresh.to) + "까지 실거래" : DB.sale.dates[1].replace("-", ".") + " 월별";
+    var basis = chBasisShort();
     var dd = d.live.filter(function (k) { return DB.sale.series[k]; }).map(function (k) { return { k: k, dd: chDD(k, cyc[0], cyc[1]) }; }).filter(function (r) { return r.dd; });
     var gs = chGroupSer(null, d.live), gd = gs ? chDD("", cyc[0], cyc[1], gs) : null;
     if (dd.length && gd) {
@@ -3082,7 +3097,7 @@ function chScopeCards(codes, band, scopeNm) {
             return '<div style="' + chTile(r.dd.now) + '"><small>' + escHtml(chShortGu(r.k)) + "</small><b>" + (r.dd.now > 0 ? "+" : "") + r.dd.now.toFixed(0) + "%</b></div>";
           }).join("") + "</div>"
           : chList([[escHtml(chName(dd[0].k)), "전고점 " + chYm(dd[0].dd.pi), chPct(dd[0].dd.now), cls(dd[0].dd.now)]]),
-        how: (srt.length > 25 ? "많아서 위 15곳·아래 10곳만 · " : "") + "전고점 = 2020~22년 최고 · 빨강 = 위 · 파랑 = 아래 · " + basis + (bn ? " · 평형 구분 없음" : "") });
+        how: (srt.length > 25 ? "위 15곳·아래 10곳만 · " : "") + "전고점 = 2020~22년 최고 · 빨강 위 · 파랑 아래 · " + basis + (bn ? " · 평형 구분 없음" : "") });
       var worst = dd.slice().sort(function (a, b) { return a.dd.fall - b.dd.fall; }).slice(0, 5);
       add("하락회복", { tag: "하락·회복", q: sc + ",<br>얼마나 빠졌고 언제 회복했나?",
         a: chB(gd.fall, "down") + " 빠졌다가 " + (gd.ri >= 0 ? gd.rec + "개월 만에 회복" : "바닥 후 " + gd.since + "개월째"),

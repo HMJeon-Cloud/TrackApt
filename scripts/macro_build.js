@@ -147,8 +147,8 @@ async function kosisWages() {
     log("KOSIS 표 선택: " + c.orgId + "/" + c.tblId + " " + c.nm);
   }
   /* 항목·분류 메타 → 임금총액 항목 id 와 분류 단계 수 */
-  var itm = await getJson(kosisUrl("statisticsParameterData.do", { method: "getMeta", type: "ITM", orgId: c.orgId, tblId: c.tblId }));
-  var obj = await getJson(kosisUrl("statisticsParameterData.do", { method: "getMeta", type: "OBJ", orgId: c.orgId, tblId: c.tblId }));
+  var itm = await getJson(kosisUrl("Param/statisticsParameterData.do", { method: "getMeta", type: "ITM", orgId: c.orgId, tblId: c.tblId }));
+  var obj = await getJson(kosisUrl("Param/statisticsParameterData.do", { method: "getMeta", type: "OBJ", orgId: c.orgId, tblId: c.tblId }));
   var itms = kosisArr(itm) || [], objs = kosisArr(obj) || [];
   DBG.kosisMeta = { itm: itms.slice(0, 12), obj: objs.slice(0, 12), itmErr: itms.length ? null : kosisErr(itm), objErr: objs.length ? null : kosisErr(obj) };
   var wageItms = itms.filter(function (r) { return /임금총액|월평균임금|월급여/.test(r.ITM_NM || "") && !/실질/.test(r.ITM_NM || ""); }).map(function (r) { return r.ITM_ID; });
@@ -161,7 +161,7 @@ async function kosisWages() {
   }
   var tries = [[wageItms.length ? wageItms.join("+") : "ALL", nLev], ["ALL", nLev], ["ALL", 2], ["ALL", 1]], j = null, rows = null;
   for (var t = 0; t < tries.length; t++) {
-    j = await getJson(kosisUrl("statisticsParameterData.do", q(tries[t][0], tries[t][1])));
+    j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(tries[t][0], tries[t][1])));
     rows = kosisArr(j);
     if (rows && rows.length) { log("KOSIS 자료 " + rows.length + "행 (itmId=" + tries[t][0].slice(0, 30) + ", 분류 " + tries[t][1] + "단계)"); break; }
     log("KOSIS 시도 " + (t + 1) + " 실패: " + kosisErr(j));
@@ -219,7 +219,7 @@ async function rss(feeds, days, max, mustRe) {
   if (!ECOS) { out.errors.push("ECOS_KEY 없음 — 금리를 받지 못했습니다"); log("ECOS_KEY 없음"); }
   else {
     var specs = [
-      ["base", { stat: "722Y001", item: "0101000", cycle: "D" }, { table: [["기준금리"]], item: [["기준금리"]], cycle: "D" }, 60],
+      ["base", { stat: "722Y001", item: "0101000", cycle: "M" }, { table: [["기준금리"]], item: [["기준금리"]], cycle: "M" }, 60],
       ["kb3y", { stat: "817Y002", item: "010200000", cycle: "D" }, { table: [["시장금리"], ["일별"]], item: [["국고채"], ["3년"]], cycle: "D" }, 36],
       ["mortgage", { stat: "121Y006", item: "BECBLA0302", cycle: "M" }, { table: [["대출금리"], ["신규취급액"], ["잔액"]], item: [["주택담보대출"]], cycle: "M" }, 36],
       ["loanAvg", { stat: "121Y006", item: "BECBLA01", cycle: "M" }, { table: [["대출금리"], ["신규취급액"], ["잔액"]], item: [["대출평균"]], cycle: "M" }, 36]
@@ -228,6 +228,22 @@ async function rss(feeds, days, max, mustRe) {
       try { out.rates[specs[i][0]] = await ecosSeries(specs[i][0], specs[i][1], specs[i][2], specs[i][3]); if (out.rates[specs[i][0]]) log(specs[i][0] + " ✓ " + out.rates[specs[i][0]].name + " = " + out.rates[specs[i][0]].v); }
       catch (e) { out.errors.push(specs[i][0] + ": " + e.message); log(specs[i][0] + " 실패: " + e.message); }
     }
+  }
+  /* 기준금리 — 월별이 기본(일별 통계는 중간에 끊겨 있음). 변경일은 월별 값이 바뀐 달로 잡고, 일별 자료가 그 달까지 있으면 정확한 날짜로 바꾼다 */
+  if (out.rates.base) {
+    var B = out.rates.base, ch = [], prev = null;
+    B.hist.forEach(function (p) { if (prev == null || Math.abs(p[1] - prev) > 1e-9) ch.push([p[0] * 100 + 1, p[1]]); prev = p[1]; });
+    B.changes = ch.slice(-8); B.t = B.hist[B.hist.length - 1][0];
+    try {
+      var dRows = await ecosSearch("722Y001", "D", String(ymShift(ymOf(kst()), -60)) + "01", String(kst()), "0101000");
+      if (dRows.length) {
+        var dch = [], last = null;
+        dRows.forEach(function (r) { if (last == null || Math.abs(r.v - last) > 1e-9) dch.push([tDay(r.t), r.v]); last = r.v; });
+        var dLast = tMonth(dRows[dRows.length - 1].t);
+        B.changes = B.changes.map(function (c) { var m = Math.floor(c[0] / 100); if (m > dLast) return c; var hit2 = dch.filter(function (d) { return Math.floor(d[0] / 100) === m; })[0]; return hit2 || c; });
+        log("기준금리 변경일: 일별 자료 " + dLast + "까지로 보정");
+      }
+    } catch (e) { log("기준금리 일별 보정 생략: " + e.message); }
   }
   /* ② 임금 — ECOS → KOSIS → 수동 */
   try {

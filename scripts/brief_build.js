@@ -27,17 +27,13 @@ function regionCodes() {
   return out;
 }
 
-/* ── 월별 저장본(market_core.json)의 마지막 달·시도 — '최신 보정'의 기준 (v6.51) ──
-   월별 저장본은 손으로 갈아 끼우는 파일이라 한두 달 늦다. 그 마지막 3개월(M-2~M) ㎡당 중위가와
-   최근 90일 ㎡당 중위가를 같은 실거래(아파트만)로 다시 재서 그 비율을 앱에 넘긴다.
-   앱은 저장본 지수의 마지막 값 × 비율 = '지금' 값으로 MDD·갈아타기를 매일 새로 계산한다. */
-var MC_LAST = null, MC_SD = {}, MC_AUTO = false;
+/* ── 월별 저장본(market_core.json)의 시·도 — 묶음 집계용 ── (v7.6: '최근 90일 보정'은 자동 봉인본으로 대체돼 없앴다) */
+var MC_LAST = null, MC_SD = {};
 (function () {
   try {
     var mc = JSON.parse(fs.readFileSync(path.join(ROOT, "market_core.json"), "utf8"));
     var y = Number(String(mc.m0).slice(0, 4)), m = Number(String(mc.m0).slice(4)), t = y * 12 + m - 1 + mc.months - 1;
     MC_LAST = Math.floor(t / 12) * 100 + (t % 12) + 1;
-    MC_AUTO = !!mc.auto;                        /* v7.5: 월별 저장본이 자동 봉인본이면 '최근 90일 보정'은 필요 없다 */
     Object.keys(mc.regions || {}).forEach(function (c) { MC_SD[c] = mc.regions[c].sd; });
   } catch (e) { MC_LAST = null; }
 })();
@@ -81,7 +77,6 @@ function saveMonthly(lawd, cells, finalBefore, keepFrom) {
   fs.mkdirSync(MO_DIR, { recursive: true });
   fs.writeFileSync(p, JSON.stringify(L));
 }
-var FRESH_MIN = 20, FRESH_POOL = {};
 
 /* ── 날짜 ── */
 function dayN(d) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
@@ -352,22 +347,6 @@ async function summarize(lawd, today) {
     var dom = today.getDate(), finalBefore = dom >= 5 ? ymPrev(ymPrev(ym)) : ymPrev(ymPrev(ymPrev(ym)));
     saveMonthly(lawd, monthlyCells(sale.concat(drop), rent.concat(rdrop), months, months.slice(0, 3)), finalBefore, ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ym))))));
   } catch (e) { console.warn(lawd, "월별 장부 실패:", e.message); }
-  /* 최신 보정 — 저장본 마지막 3개월이 위 4개월 밖이면 그 달만 더 받는다 */
-  var fresh = null;
-  if (!MC_AUTO && MC_LAST && MC_LAST >= ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ym))))))) {
-    var B = [ymPrev(ymPrev(MC_LAST)), ymPrev(MC_LAST), MC_LAST];
-    var extra = B.filter(function (m) { return months.indexOf(m) < 0; });
-    var ep = await Promise.all(extra.map(function (m) { return trades(lawd, "sale", m).catch(function () { return null; }); }));
-    if (ep.every(Boolean)) {
-      var pool = sale; ep.forEach(function (a) { pool = pool.concat(a); });
-      var bp = pool.filter(function (t) { return B.indexOf(t._ym) >= 0 && priced(t); }).map(function (t) { return t.amount / t.area; });
-      var np = sale.filter(function (t) { return dnum(t) > d2 && priced(t); }).map(function (t) { return t.amount / t.area; });
-      FRESH_POOL[lawd] = { b: bp, n: np };
-      fresh = { m: MC_LAST, b: bp.length ? Math.round(median(bp) * 10) / 10 : null, bn: bp.length,
-                n: np.length ? Math.round(median(np) * 10) / 10 : null, nn: np.length };
-    }
-  }
-
   var cur = sale.filter(function (t) { return dnum(t) > d0; });
   var prv = sale.filter(function (t) { var d = dnum(t); return d > d1 && d <= d0; });
   var base = sale.filter(function (t) { var d = dnum(t); return d > d2 && d <= d0; });
@@ -466,7 +445,6 @@ async function summarize(lawd, today) {
     newHighAll: highs.filter(function (g) { return g.upAll != null && g.upAll > 0; }).sort(function (a, b) { return b.upAll - a.upAll; }).slice(0, 20),
     hiFrom: hi.from, hiTo: hi.to,
     leaders: leadersOf(lawd, hi, sale, cur, today),
-    fresh: fresh,
     /* 최근 30일 창에서 뺀 거래 — 도시형생활주택 추정(small) · 일괄 거래 추정(bulk) · 많이 뺀 단지 3곳(bulkApts) */
     excl: (function () {
       var w = drop.filter(function (t) { return dnum(t) > d0; }), by = {};
@@ -557,21 +535,25 @@ async function news() {
     if (snap) Object.keys(out.regions).forEach(function (c) { var v = hist[snap][c]; if (v) out.regions[c].snap = { n: v[0], pm: v[1] }; });
     console.log("하루 기록 " + Object.keys(hist).length + "일치 · 30일 전 비교 기준 " + (snap || "아직 없음"));
   })();
-  /* 최신 보정 — 시도·전국 묶음은 거래를 모아 다시 중위값 (지역 중위값의 평균이 아니다) */
-  if (MC_LAST && !MC_AUTO) {
-    var G = { "전국": { b: [], n: [] } };
-    Object.keys(FRESH_POOL).forEach(function (c) {
-      var sd = MC_SD[c], f = FRESH_POOL[c];
-      [G["전국"], sd ? (G[sd] = G[sd] || { b: [], n: [] }) : null].forEach(function (g) { if (g) { Array.prototype.push.apply(g.b, f.b); Array.prototype.push.apply(g.n, f.n); } });
-    });
-    var groups = {};
-    Object.keys(G).forEach(function (k) {
-      var g = G[k];
-      groups[k] = { m: MC_LAST, b: g.b.length ? Math.round(median(g.b) * 10) / 10 : null, bn: g.b.length, n: g.n.length ? Math.round(median(g.n) * 10) / 10 : null, nn: g.n.length };
-    });
-    out.fresh = { m: MC_LAST, min: FRESH_MIN, from: dayN(shiftDay(today, -89)), to: dayN(today), groups: groups };
-    console.log("최신 보정 — 저장본 " + MC_LAST + " · 묶음 " + Object.keys(groups).length + "개 · 전국 기준 " + groups["전국"].bn + "건 / 최근 90일 " + groups["전국"].nn + "건");
-  }
+  /* 하루치 요약 기록 data/brief_hist.json (v6.52) — 최근 30일은 신고 기한(30일)이 남아 늘 적게 잡힌다.
+     '직전 30일'과 견주면 거래가 줄어든 것처럼 보이므로, 30일 전에 같은 방식으로 잰 값을 꺼내
+     같은 신고 지연끼리 비교할 수 있게 한다. { "YYYYMMDD": { 코드: [건수, ㎡당 중위] } }, 120일 보관 */
+  (function () {
+    var HP = path.join(ROOT, "data", "brief_hist.json"), hist = {};
+    try { hist = JSON.parse(fs.readFileSync(HP, "utf8")); } catch (e) {}
+    var row = {};
+    Object.keys(out.regions).forEach(function (c) { var r = out.regions[c]; row[c] = [r.count, r.pm == null ? null : Math.round(r.pm * 10) / 10]; });
+    hist[String(out.asOf)] = row;
+    var keep = dayN(shiftDay(today, -120));
+    Object.keys(hist).forEach(function (k) { if (Number(k) < keep) delete hist[k]; });
+    fs.mkdirSync(path.dirname(HP), { recursive: true });
+    fs.writeFileSync(HP, JSON.stringify(hist));
+    var want = shiftDay(today, -30), snap = null;
+    [0, -1, 1, -2, 2, -3, 3].some(function (o) { var k = String(dayN(shiftDay(want, o))); if (hist[k]) { snap = k; return true; } return false; });
+    out.snap30 = snap ? Number(snap) : null;
+    if (snap) Object.keys(out.regions).forEach(function (c) { var v = hist[snap][c]; if (v) out.regions[c].snap = { n: v[0], pm: v[1] }; });
+    console.log("하루 기록 " + Object.keys(hist).length + "일치 · 30일 전 비교 기준 " + (snap || "아직 없음"));
+  })();
   var froms = Object.keys(out.regions).map(function (c) { return out.regions[c].hiFrom || 999999; });
   out.hiFrom = Math.max.apply(null, froms.length ? froms : [0]);     /* 가장 덜 채운 지역 기준 */
   out.hiStart = HI_START;

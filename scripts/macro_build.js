@@ -21,6 +21,7 @@ function ymOf(n) { return Math.floor(n / 100); }
 function ymShift(ym, k) { var y = Math.floor(ym / 100), m = ym % 100 - 1 + k; return (y + Math.floor(m / 12)) * 100 + ((m % 12) + 12) % 12 + 1; }
 function num(v) { var n = Number(String(v == null ? "" : v).replace(/,/g, "")); return isFinite(n) ? n : null; }
 var CODES = readJson(CODES_P, {});
+Object.keys(CODES).forEach(function (k) { if (CODES[k] && (CODES[k].cycle === "A" || CODES[k].cycle === "Q")) delete CODES[k]; });   /* v7.41: 연간으로 잘못 잡힌 캐시 버림 */
 /* 시험용 — 가짜 서버로 돌릴 때만 바꾼다 */
 var ECOS_BASE = process.env.ECOS_BASE || "https://ecos.bok.or.kr/api/", KOSIS_BASE = process.env.KOSIS_BASE || "https://kosis.kr/openapi/", GNEWS_BASE = process.env.GNEWS_BASE || "https://news.google.com/rss/search";
 
@@ -77,9 +78,9 @@ async function ecosResolve(key, def, want) {
     try {
       items = await ecosItems(tries[i].stat);
       var it = items.filter(function (r) { return r.ITEM_CODE === tries[i].item; })[0];
-      if (it) { CODES[key] = { stat: tries[i].stat, item: it.ITEM_CODE, cycle: it.CYCLE || tries[i].cycle, nm: it.STAT_NAME + " · " + it.ITEM_NAME, how: "기본 코드" }; return CODES[key]; }
+      if (it) { CODES[key] = { stat: tries[i].stat, item: it.ITEM_CODE, cycle: tries[i].cycle || it.CYCLE, nm: it.STAT_NAME + " · " + it.ITEM_NAME, how: "기본 코드" }; return CODES[key]; }
       var byName = items.filter(function (r) { return hit(r.ITEM_NAME, want.item[0], want.item[1], want.item[2]) && (!want.cycle || r.CYCLE === want.cycle); })[0];
-      if (byName) { CODES[key] = { stat: tries[i].stat, item: byName.ITEM_CODE, cycle: byName.CYCLE, nm: byName.STAT_NAME + " · " + byName.ITEM_NAME, how: "기본 표 안에서 이름으로" }; return CODES[key]; }
+      if (byName) { CODES[key] = { stat: tries[i].stat, item: byName.ITEM_CODE, cycle: want.cycle || byName.CYCLE, nm: byName.STAT_NAME + " · " + byName.ITEM_NAME, how: "기본 표 안에서 이름으로" }; return CODES[key]; }
     } catch (e) { log(key + " 기본 코드 확인 실패: " + e.message); }
   }
   var tabs = (await ecosTables()).filter(function (r) { return hit(r.STAT_NAME, want.table[0], want.table[1], want.table[2]) && (!want.cycle || r.CYCLE === want.cycle); });
@@ -88,7 +89,7 @@ async function ecosResolve(key, def, want) {
     try {
       items = await ecosItems(tabs[k].STAT_CODE);
       var cand = items.filter(function (r) { return hit(r.ITEM_NAME, want.item[0], want.item[1], want.item[2]) && (!want.cycle || r.CYCLE === want.cycle) && Number(r.DATA_CNT || 1) > 0; });
-      if (cand.length) { CODES[key] = { stat: tabs[k].STAT_CODE, item: cand[0].ITEM_CODE, cycle: cand[0].CYCLE, nm: tabs[k].STAT_NAME + " · " + cand[0].ITEM_NAME, how: "통계표 목록에서 이름으로" }; return CODES[key]; }
+      if (cand.length) { CODES[key] = { stat: tabs[k].STAT_CODE, item: cand[0].ITEM_CODE, cycle: want.cycle || cand[0].CYCLE, nm: tabs[k].STAT_NAME + " · " + cand[0].ITEM_NAME, how: "통계표 목록에서 이름으로" }; return CODES[key]; }
     } catch (e) { log(key + " 항목 확인 실패(" + tabs[k].STAT_CODE + "): " + e.message); }
   }
   return null;
@@ -104,6 +105,10 @@ async function ecosSeries(key, def, want, months) {
   else if (c.cycle === "Q") { from = Math.floor(ymShift(ym, -months) / 100) + "Q1"; to = Math.floor(ym / 100) + "Q4"; }
   else { from = String(Math.floor(ymShift(ym, -months) / 100)); to = String(Math.floor(ym / 100)); }
   var rows = await ecosSearch(c.stat, c.cycle, from, to, c.item);
+  if (!rows.length && c.cycle !== "M") {            /* 일별이 없으면 월별로 */
+    c.cycle = "M"; from = String(ymShift(ym, -months)); to = String(ym);
+    rows = await ecosSearch(c.stat, c.cycle, from, to, c.item);
+  }
   if (!rows.length) { log(key + ": 자료 0건 (" + c.stat + "/" + c.item + ")"); delete CODES[key]; return null; }
   /* 일별은 달마다 마지막 값 하나로 줄인다(기준금리는 바뀐 날짜도 따로 남긴다) */
   var byM = {}, changes = [], last = null;
@@ -123,35 +128,62 @@ function kosisUrl(svc, q) {
   Object.keys(q).forEach(function (k) { if (k !== "method") s += "&" + k + "=" + encodeURIComponent(q[k]); });
   return s;
 }
+function kosisArr(j) { return Array.isArray(j) ? j : (j && Array.isArray(j.list) ? j.list : null); }
+function kosisErr(j) {
+  if (j && j._raw) { var m = String(j._raw).match(/<title>([\s\S]*?)<\/title>/i); return "HTML 응답" + (m ? " (" + m[1].trim().slice(0, 60) + ")" : ""); }
+  return j && (j.errMsg || j.err) ? (j.errMsg || j.err) : JSON.stringify(j).slice(0, 160);
+}
 async function kosisWages() {
   if (!KOSIS) return null;
   var c = CODES.kosisWage;
   if (!c) {
-    var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: "상용근로자 임금총액" }));
-    var list = Array.isArray(found) ? found : (found && found.list) || [];
+    var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: "산업/규모별 임금 및 근로시간" }));
+    var list = kosisArr(found) || [];
     DBG.kosisSearch = list.slice(0, 10);
-    var pick = list.filter(function (r) { return /임금/.test(r.TBL_NM || "") && /사업체노동력/.test((r.STAT_NM || "") + (r.TBL_NM || "")); })[0] || list[0];
-    if (!pick) { log("KOSIS 검색 결과 없음: " + JSON.stringify(found).slice(0, 200)); return null; }
+    var pick = list.filter(function (r) { return r.TBL_ID === "DT_118N_MON051"; })[0] ||
+      list.filter(function (r) { return /임금/.test(r.TBL_NM || "") && !/누계|계절/.test(r.TBL_NM || "") && String(r.ORG_ID) === "118"; })[0] || list[0];
+    if (!pick) { log("KOSIS 검색 결과 없음: " + kosisErr(found)); return null; }
     c = { orgId: pick.ORG_ID, tblId: pick.TBL_ID, nm: pick.TBL_NM };
     log("KOSIS 표 선택: " + c.orgId + "/" + c.tblId + " " + c.nm);
   }
-  var q = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: "ALL", objL1: "ALL", objL2: "ALL", objL3: "ALL", objL4: "ALL", prdSe: "M", newEstPrdCnt: "30" };
-  var j = await getJson(kosisUrl("statisticsParameterData.do", q));
-  if (!Array.isArray(j)) { log("KOSIS 자료 응답 이상: " + JSON.stringify(j).slice(0, 200)); DBG.kosisRaw = j; return null; }
-  DBG.kosisSample = j.slice(0, 5);
-  var rows = j.filter(function (r) { return /임금총액|월평균임금|월급여/.test(r.ITM_NM || "") && /전산업|전체|계$/.test(r.C1_NM || "전체") && !/임시|일용/.test([r.C2_NM, r.C3_NM, r.ITM_NM].join(" ")); });
-  if (!rows.length) rows = j.filter(function (r) { return /임금/.test(r.ITM_NM || ""); });
-  if (!rows.length) { log("KOSIS 임금 행을 고르지 못함 (항목 이름 확인 필요)"); return null; }
-  /* 같은 (C1,C2,...) 조합 중 가장 많은 달을 가진 것 */
+  /* 항목·분류 메타 → 임금총액 항목 id 와 분류 단계 수 */
+  var itm = await getJson(kosisUrl("statisticsParameterData.do", { method: "getMeta", type: "ITM", orgId: c.orgId, tblId: c.tblId }));
+  var obj = await getJson(kosisUrl("statisticsParameterData.do", { method: "getMeta", type: "OBJ", orgId: c.orgId, tblId: c.tblId }));
+  var itms = kosisArr(itm) || [], objs = kosisArr(obj) || [];
+  DBG.kosisMeta = { itm: itms.slice(0, 12), obj: objs.slice(0, 12), itmErr: itms.length ? null : kosisErr(itm), objErr: objs.length ? null : kosisErr(obj) };
+  var wageItms = itms.filter(function (r) { return /임금총액|월평균임금|월급여/.test(r.ITM_NM || "") && !/실질/.test(r.ITM_NM || ""); }).map(function (r) { return r.ITM_ID; });
+  var levels = {}; objs.forEach(function (r) { if (r.OBJ_ID) levels[r.OBJ_ID] = 1; });
+  var nLev = Math.max(1, Math.min(8, Object.keys(levels).length || 2));
+  function q(itmId, n) {
+    var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: itmId, prdSe: "M", newEstPrdCnt: "36" };
+    for (var k = 1; k <= n; k++) o["objL" + k] = "ALL";
+    return o;
+  }
+  var tries = [[wageItms.length ? wageItms.join("+") : "ALL", nLev], ["ALL", nLev], ["ALL", 2], ["ALL", 1]], j = null, rows = null;
+  for (var t = 0; t < tries.length; t++) {
+    j = await getJson(kosisUrl("statisticsParameterData.do", q(tries[t][0], tries[t][1])));
+    rows = kosisArr(j);
+    if (rows && rows.length) { log("KOSIS 자료 " + rows.length + "행 (itmId=" + tries[t][0].slice(0, 30) + ", 분류 " + tries[t][1] + "단계)"); break; }
+    log("KOSIS 시도 " + (t + 1) + " 실패: " + kosisErr(j));
+    rows = null;
+  }
+  if (!rows) { DBG.kosisRaw = j && j._raw ? String(j._raw).slice(0, 600) : j; return null; }
+  DBG.kosisSample = rows.slice(0, 5);
+  var cand = rows.filter(function (r) { return /임금총액|월평균임금|월급여/.test(r.ITM_NM || "") && !/실질|임시|일용/.test([r.ITM_NM, r.C1_NM, r.C2_NM, r.C3_NM].join(" ")); });
+  var pref = cand.filter(function (r) { return /전산업|전체|계$/.test(r.C1_NM || "") && /전규모|전체|계$|1인 이상|5인 이상/.test((r.C2_NM || "전체")); });
+  if (pref.length) cand = pref;
+  if (!cand.length) cand = rows.filter(function (r) { return /임금/.test(r.ITM_NM || ""); });
+  if (!cand.length) { log("KOSIS 임금 행을 고르지 못함 (항목 이름 확인 필요)"); return null; }
   var g = {};
-  rows.forEach(function (r) { var k = [r.ITM_NM, r.C1_NM, r.C2_NM, r.C3_NM].join("|"); (g[k] = g[k] || []).push(r); });
-  var best = Object.keys(g).sort(function (a, b) { return g[b].length - g[a].length; })[0], arr = g[best];
-  var hist = arr.map(function (r) { return [Number(r.PRD_DE), num(r.DT)]; }).filter(function (x) { return x[1] != null; }).sort(function (a, b) { return a[0] - b[0]; });
+  cand.forEach(function (r) { var k = [r.ITM_NM, r.C1_NM, r.C2_NM, r.C3_NM].join("|"); (g[k] = g[k] || []).push(r); });
+  var keys = Object.keys(g).sort(function (a, b) { return g[b].length - g[a].length || (/상용/.test(b) ? 1 : 0) - (/상용/.test(a) ? 1 : 0); });
+  var best = keys.filter(function (k) { return /상용/.test(k); })[0] || keys[0], arr = g[best];
+  var hist = arr.map(function (r) { return [Number(r.PRD_DE), num(r.DT)]; }).filter(function (x) { return x[1] != null && x[0] > 190000; }).sort(function (a, b) { return a[0] - b[0]; });
   if (!hist.length) return null;
   CODES.kosisWage = c;
   var unit = arr[0].UNIT_NM || "원", scale = /천원/.test(unit) ? 1000 : /만원/.test(unit) ? 10000 : 1;
   hist = hist.map(function (x) { return [x[0], x[1] * scale]; });
-  return { v: hist[hist.length - 1][1], t: hist[hist.length - 1][0], unit: "원", name: "KOSIS " + c.nm + " · " + best.replace(/\|/g, " "), how: "KOSIS", hist: hist };
+  return { v: hist[hist.length - 1][1], t: hist[hist.length - 1][0], unit: "원", name: "KOSIS " + c.nm + " · " + best.replace(/\|/g, " ").replace(/\s+/g, " "), how: "KOSIS", hist: hist };
 }
 
 /* ── RSS ─────────────────────────────────────────────────────────────── */
@@ -189,8 +221,8 @@ async function rss(feeds, days, max, mustRe) {
     var specs = [
       ["base", { stat: "722Y001", item: "0101000", cycle: "D" }, { table: [["기준금리"]], item: [["기준금리"]], cycle: "D" }, 60],
       ["kb3y", { stat: "817Y002", item: "010200000", cycle: "D" }, { table: [["시장금리"], ["일별"]], item: [["국고채"], ["3년"]], cycle: "D" }, 36],
-      ["mortgage", { stat: "121Y006", item: "BECBLA0302", cycle: "M" }, { table: [["가중평균금리"], ["신규취급액"], ["잔액"]], item: [["주택담보대출"]], cycle: "M" }, 36],
-      ["cofix", { stat: "121Y006", item: "BECBLA01", cycle: "M" }, { table: [["가중평균금리"], ["신규취급액"], ["잔액"]], item: [["저축성수신"]], cycle: "M" }, 36]
+      ["mortgage", { stat: "121Y006", item: "BECBLA0302", cycle: "M" }, { table: [["대출금리"], ["신규취급액"], ["잔액"]], item: [["주택담보대출"]], cycle: "M" }, 36],
+      ["loanAvg", { stat: "121Y006", item: "BECBLA01", cycle: "M" }, { table: [["대출금리"], ["신규취급액"], ["잔액"]], item: [["대출평균"]], cycle: "M" }, 36]
     ];
     for (var i = 0; i < specs.length; i++) {
       try { out.rates[specs[i][0]] = await ecosSeries(specs[i][0], specs[i][1], specs[i][2], specs[i][3]); if (out.rates[specs[i][0]]) log(specs[i][0] + " ✓ " + out.rates[specs[i][0]].name + " = " + out.rates[specs[i][0]].v); }

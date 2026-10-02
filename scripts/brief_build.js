@@ -31,15 +31,56 @@ function regionCodes() {
    월별 저장본은 손으로 갈아 끼우는 파일이라 한두 달 늦다. 그 마지막 3개월(M-2~M) ㎡당 중위가와
    최근 90일 ㎡당 중위가를 같은 실거래(아파트만)로 다시 재서 그 비율을 앱에 넘긴다.
    앱은 저장본 지수의 마지막 값 × 비율 = '지금' 값으로 MDD·갈아타기를 매일 새로 계산한다. */
-var MC_LAST = null, MC_SD = {};
+var MC_LAST = null, MC_SD = {}, MC_AUTO = false;
 (function () {
   try {
     var mc = JSON.parse(fs.readFileSync(path.join(ROOT, "market_core.json"), "utf8"));
     var y = Number(String(mc.m0).slice(0, 4)), m = Number(String(mc.m0).slice(4)), t = y * 12 + m - 1 + mc.months - 1;
     MC_LAST = Math.floor(t / 12) * 100 + (t % 12) + 1;
+    MC_AUTO = !!mc.auto;                        /* v7.5: 월별 저장본이 자동 봉인본이면 '최근 90일 보정'은 필요 없다 */
     Object.keys(mc.regions || {}).forEach(function (c) { MC_SD[c] = mc.regions[c].sd; });
   } catch (e) { MC_LAST = null; }
 })();
+
+/* ── 월별 집계 장부 data/monthly/{lawd}.json (v7.5) ────────────────────────
+   월별 저장본(market_core.json)을 손으로 갈아 끼우지 않도록, 매일 받는 실거래로 달마다 집계를 쌓는다.
+   규칙은 collect.html(수집기 v2.5)과 같다: 해제 제외 · 평당가 = 금액 ÷ (전용 ÷ 3.3058) 반올림 · 중위는 3건 이상, 짝수면 가운데 둘 평균 반올림
+   · a84 [80,88) a59 [55,63) · 전세 = 월세 0 · d84/d59 = 전세 보증금 중위. 원룸형·일괄 거래 필터는 **쓰지 않는다**(옛 저장본과 이어지도록).
+   모양: { v:1, m:{ YYYYMM:{ n,p,a84,a59, rn,j,d84,d59, final } }, raw:{ YYYYMM:{ p:[],a84:[],a59:[],d84:[],d59:[] } } } — raw 는 최근 6개월만(3개월 이동중위·시도 묶음용) */
+var MO_DIR = path.join(ROOT, "data", "monthly"), PYEONG = 3.3058, B84 = [80, 88], B59 = [55, 63];
+function med3(a) { if (!a || a.length < 3) return null; var s = a.slice().sort(function (x, y) { return x - y; }), n = s.length, h = n >> 1; return n % 2 ? s[h] : Math.round((s[h - 1] + s[h]) / 2); }
+function monthlyCells(saleAll, rentAll, saleMonths, rentMonths) {
+  var out = {};
+  saleMonths.forEach(function (m) { out[m] = { n: 0, p: [], a84: [], a59: [], rn: null, j: null, d84: [], d59: [] }; });
+  rentMonths.forEach(function (m) { if (!out[m]) out[m] = { n: null, p: [], a84: [], a59: [], rn: 0, j: 0, d84: [], d59: [] }; else { out[m].rn = 0; out[m].j = 0; } });
+  saleAll.forEach(function (t) {
+    var c = out[t._ym]; if (!c || c.n == null || !(t.area > 0) || !(t.amount > 0)) return;
+    c.n++; c.p.push(Math.round(t.amount / (t.area / PYEONG)));
+    if (t.area >= B84[0] && t.area < B84[1]) c.a84.push(t.amount); else if (t.area >= B59[0] && t.area < B59[1]) c.a59.push(t.amount);
+  });
+  rentAll.forEach(function (t) {
+    var c = out[t._ym]; if (!c || c.rn == null || !(t.area > 0)) return;
+    c.rn++;
+    if (Number(t.rent || 0) === 0) { c.j++; if (t.deposit > 0) { if (t.area >= B84[0] && t.area < B84[1]) c.d84.push(t.deposit); else if (t.area >= B59[0] && t.area < B59[1]) c.d59.push(t.deposit); } }
+  });
+  return out;
+}
+function saveMonthly(lawd, cells, finalBefore, keepFrom) {
+  var p = path.join(MO_DIR, lawd + ".json"), L; try { L = JSON.parse(fs.readFileSync(p, "utf8")); } catch (e) { L = { v: 1, m: {}, raw: {} }; }
+  Object.keys(cells).forEach(function (ym) {
+    var c = cells[ym], old = L.m[ym] || {};
+    var rec = { n: c.n != null ? c.n : old.n, p: c.n != null ? med3(c.p) : old.p, a84: c.n != null ? med3(c.a84) : old.a84, a59: c.n != null ? med3(c.a59) : old.a59,
+      rn: c.rn != null ? c.rn : old.rn, j: c.rn != null ? c.j : old.j, d84: c.rn != null ? med3(c.d84) : old.d84, d59: c.rn != null ? med3(c.d59) : old.d59, final: Number(ym) <= finalBefore };
+    L.m[ym] = rec;
+    var r = L.raw[ym] || {};
+    if (c.n != null) { r.p = c.p; r.a84 = c.a84; r.a59 = c.a59; }
+    if (c.rn != null) { r.d84 = c.d84; r.d59 = c.d59; }
+    L.raw[ym] = r;
+  });
+  Object.keys(L.raw).forEach(function (ym) { if (Number(ym) < keepFrom) delete L.raw[ym]; });
+  fs.mkdirSync(MO_DIR, { recursive: true });
+  fs.writeFileSync(p, JSON.stringify(L));
+}
 var FRESH_MIN = 20, FRESH_POOL = {};
 
 /* ── 날짜 ── */
@@ -303,11 +344,17 @@ async function summarize(lawd, today) {
   var sp = await Promise.all(months.map(function (m) { return trades(lawd, "sale", m); }));
   var drop = [];
   sp.forEach(function (a) { sale = sale.concat(a); drop = drop.concat(a.dropped || []); });
-  var rp = await Promise.all(months.slice(0, 2).map(function (m) { return trades(lawd, "rent", m).catch(function () { return []; }); }));
-  rp.forEach(function (a) { rent = rent.concat(a); });
+  var rp = await Promise.all(months.slice(0, 3).map(function (m) { return trades(lawd, "rent", m).catch(function () { return []; }); }));
+  var rdrop = [];
+  rp.forEach(function (a) { rent = rent.concat(a); rdrop = rdrop.concat(a.dropped || []); });
+  /* 월별 집계 장부 — 옛 저장본 규칙 그대로(필터 없음: 뺀 거래도 합쳐서) */
+  try {
+    var dom = today.getDate(), finalBefore = dom >= 5 ? ymPrev(ymPrev(ym)) : ymPrev(ymPrev(ymPrev(ym)));
+    saveMonthly(lawd, monthlyCells(sale.concat(drop), rent.concat(rdrop), months, months.slice(0, 3)), finalBefore, ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ym))))));
+  } catch (e) { console.warn(lawd, "월별 장부 실패:", e.message); }
   /* 최신 보정 — 저장본 마지막 3개월이 위 4개월 밖이면 그 달만 더 받는다 */
   var fresh = null;
-  if (MC_LAST && MC_LAST >= ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ym))))))) {
+  if (!MC_AUTO && MC_LAST && MC_LAST >= ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ym))))))) {
     var B = [ymPrev(ymPrev(MC_LAST)), ymPrev(MC_LAST), MC_LAST];
     var extra = B.filter(function (m) { return months.indexOf(m) < 0; });
     var ep = await Promise.all(extra.map(function (m) { return trades(lawd, "sale", m).catch(function () { return null; }); }));
@@ -511,7 +558,7 @@ async function news() {
     console.log("하루 기록 " + Object.keys(hist).length + "일치 · 30일 전 비교 기준 " + (snap || "아직 없음"));
   })();
   /* 최신 보정 — 시도·전국 묶음은 거래를 모아 다시 중위값 (지역 중위값의 평균이 아니다) */
-  if (MC_LAST) {
+  if (MC_LAST && !MC_AUTO) {
     var G = { "전국": { b: [], n: [] } };
     Object.keys(FRESH_POOL).forEach(function (c) {
       var sd = MC_SD[c], f = FRESH_POOL[c];

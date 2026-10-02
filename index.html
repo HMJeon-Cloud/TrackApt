@@ -1049,6 +1049,43 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chc-loanr b{display:block;font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chc-loanr small{display:block;font-size:10px;color:#8b8f98;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chc-loanr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* v7.7 카드 글자 안 자르기 — 줄바꿈(최대 2줄) + 자리 모자라면 글자·여백 축소 */
+.chcard .chc-row b,.chcard .chc-row small{white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3}
+.chcard .chc-list.xs .chc-row>div{display:block}
+.chcard .chc-list.xs .chc-row b{max-width:none}
+.chcard .chc-list.xs .chc-row small{display:-webkit-box;margin-top:1px}
+.chcard .chc-newsl>div{white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.chcard .chc-loanr b,.chcard .chc-loanr small,.chcard .chc-loanr span{white-space:normal;overflow:visible;text-overflow:clip}
+.chcard .chc-hbar>span,.chcard .chc-vsr>span{white-space:normal;line-height:1.15;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.chcard .chc-memo small{max-height:none}
+.chcard .chc-bud small{white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.chcard.chc-tight .chc-list{gap:4px}
+.chcard.chc-tight .chc-row{padding:5px 10px}
+.chcard.chc-tight .chc-row b{font-size:13px}
+.chcard.chc-tight .chc-row small{font-size:11px}
+.chcard.chc-tight .chc-row>span{font-size:14px}
+.chcard.chc-tight .chc-a{font-size:13px;padding:6px 10px;margin-bottom:7px}
+.chcard.chc-tight .chc-pol{font-size:11.5px;padding:6px 10px}
+.chcard.chc-tight .chc-h{margin:5px 0 3px}
+.chcard.chc-tight .chc-kpis>div{padding:7px 8px}
+.chcard.chc-tight .chc-kpis b{font-size:19px}
+.chcard.chc-tight .chc-grid>div{padding:2px 2px}
+.chcard.chc-tight .chc-how{font-size:10px}
+.chcard.chc-tighter .chc-row{padding:4px 9px}
+.chcard.chc-tighter .chc-row b{font-size:12.5px}
+.chcard.chc-tighter .chc-row small{font-size:10.5px}
+.chcard.chc-tighter .chc-list{gap:3px}
+.chcard.chc-tighter .chc-head{padding:13px 20px 12px}
+.chcard.chc-tighter .chc-q{font-size:19px;margin-top:8px}
+.chcard.chc-tighter .chc-inner{padding:10px 20px 12px}
+.chcard.chc-tighter .chc-pol{font-size:11px;line-height:1.35}
+.chcard .chc-list.xs .chc-row>div{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3}
+.chcard .chc-list.xs .chc-row b,.chcard .chc-list.xs .chc-row small{display:inline;white-space:normal;overflow:visible;-webkit-line-clamp:none}
+.chcard .chc-list.xs .chc-row small{margin-left:5px}
+.chcard .chc-loanr b{-webkit-line-clamp:3;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.chcard .chc-loanr small{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.chcard .chc-loanr span{white-space:nowrap}
+.chcard .chc-loanr span:last-child{white-space:normal}
 </style>
 </head>
 <body>
@@ -1056,7 +1093,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v7.6</span>
+    <span class="ver">v7.7</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2680,16 +2717,42 @@ function chMoreOf(tag) {
 /* 넘치면 여분 행 → 해설 → 그림 순으로 걷어 내고, 남는 자리가 작으면 해설·그림을 숨긴다 */
 function chFitCards(root) {
   if (!root) return;
-  Array.prototype.forEach.call(root.querySelectorAll(".chcard"), function (c) {
-    var fill = c.querySelector(".chc-fill"), foot = c.querySelector(".chc-foot"); if (!fill || !foot) return;
-    if (!c.getBoundingClientRect().height) return;
+  Array.prototype.forEach.call(root.querySelectorAll(".chcard"), function (c0) {
+    if (!c0.querySelector(".chc-fill") || !c0.querySelector(".chc-foot")) return;
+    if (!c0.getBoundingClientRect().height) return;
+    /* 맞춤은 저장 이미지와 같은 크기(360×450, .chfixed)의 복제본에서 계산하고 결과만 원본에 옮긴다 — 화면 배율과 상관없이 같은 결과 */
+    var c = c0.cloneNode(true); c.classList.add("chfixed"); c.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden";
+    document.body.appendChild(c);
+    try { chFitOne(c); } catch (e) {}
+    var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*");
+    c0.className = c.className.replace(/\bchfixed\b/, "").trim();
+    for (var i = 0; i < src.length && i < dst.length; i++) {
+      dst[i].style.display = src[i].style.display;
+      if (src[i].hasAttribute("data-cut")) dst[i].setAttribute("data-cut", "1"); else dst[i].removeAttribute("data-cut");
+    }
+    c.remove();
+  });
+}
+function chFitOne(c) {
+  {
+    var fill = c.querySelector(".chc-fill"), foot = c.querySelector(".chc-foot");
     var more = fill.querySelector(".chc-more"), art = fill.querySelector(".chc-art");
-    Array.prototype.forEach.call(c.querySelectorAll(".chc-opt"), function (x) { x.style.display = ""; });
+    Array.prototype.forEach.call(c.querySelectorAll(".chc-opt, [data-cut]"), function (x) { x.style.display = ""; x.removeAttribute("data-cut"); });
+    c.classList.remove("chc-tight", "chc-tighter");
+    var how = c.querySelector(".chc-how"); if (how) how.style.display = "";
+    var spk = c.querySelector(".chc-spark"); if (spk) spk.style.display = "";
     more.style.display = ""; art.style.display = "";
-    function over() { return foot.getBoundingClientRect().bottom > c.getBoundingClientRect().bottom - 2; }
+    function over() { return foot.getBoundingClientRect().bottom > c.getBoundingClientRect().bottom - 12; }
     var opts = Array.prototype.slice.call(c.querySelectorAll(".chc-opt"));
     more.style.display = "none"; art.style.display = "none";
+    /* 1) 여분 행 → 2) 글자 조금 줄임 → 3) 더 줄임 → 4) 읽는 법 숨김 → 5) 맨 아래 행부터 접기(글자를 중간에 자르지 않는다) */
     while (over() && opts.length) opts.pop().style.display = "none";
+    if (over()) c.classList.add("chc-tight");
+    if (over()) c.classList.add("chc-tighter");
+    if (over() && how) how.style.display = "none";
+    var rowsAll = Array.prototype.slice.call(c.querySelectorAll(".chc-row, .chc-loanr, .chc-pol > div, .chc-hbar, .chc-vsr, .chc-newsl > div, .chc-bud")).filter(function (x) { return x.style.display !== "none"; });
+    while (over() && rowsAll.length > 1) { var rr = rowsAll.pop(); rr.style.display = "none"; rr.setAttribute("data-cut", "1"); }
+    if (over() && spk) spk.style.display = "none";
     var k = c.getBoundingClientRect().width / 360;
     var sents = Array.prototype.slice.call(more.querySelectorAll("span"));
     sents.forEach(function (x) { x.style.display = ""; });
@@ -2701,7 +2764,7 @@ function chFitCards(root) {
     art.style.display = "";
     var top = more.style.display === "none" ? fill.getBoundingClientRect().top : more.getBoundingClientRect().bottom;
     if (fill.getBoundingClientRect().bottom - top < 34 * k) art.style.display = "none";
-  });
+  }
 }
 function chFitLater(root) {
   chFitCards(root);
@@ -3366,7 +3429,7 @@ function mcCards(codes, scopeNm) {
     var p0 = pm[0];
     C.push({ tag: "부동산 대책", q: "지금 적용 중인<br>부동산 대책은?",
       a: p0 ? "<b>" + escHtml(p0.title) + "</b> · " + escHtml((p0.effective || p0.date || "").replace(/-/g, ".")) + (p0.effective ? " 시행" : "") : "최근 2주 기사 " + pn.length + "건",
-      body: (p0 ? '<div class="chc-pol">' + (p0.points || []).slice(0, 3).map(function (x, i) { x = String(x); return '<div class="' + (i >= 2 ? "chc-opt" : "") + '">• ' + escHtml(x.length > 62 ? x.slice(0, 60) + "…" : x) + "</div>"; }).join("") + "</div>" : "") +
+      body: (p0 ? '<div class="chc-pol">' + (p0.points || []).slice(0, 3).map(function (x, i) { x = String(x); return '<div class="' + (i >= 2 ? "chc-opt" : "") + '">• ' + escHtml(x) + "</div>"; }).join("") + "</div>" : "") +
         (pm.length > 1 ? '<div class="chc-h">그 전 대책</div>' + chList(pm.slice(1, 4).map(function (it) { return ['<i class="chc-pill">' + escHtml(it.tag || "대책") + "</i>" + escHtml(it.title), escHtml((it.date || "").replace(/-/g, ".")) + (it.points && it.points[0] ? " · " + escHtml(it.points[0]) : ""), ""]; }), 2, 1) : "") +
         (pn.length ? '<div class="chc-h chc-opt">이번 주 기사</div><div class="chc-newsl">' + pn.slice(0, 3).map(function (n) { return '<div class="chc-opt">' + escHtml(n.t) + (n.s ? " <small>" + escHtml(n.s) + "</small>" : "") + "</div>"; }).join("") + "</div>" : ""),
       how: "확정 내용은 직접 관리하는 목록(data/manual/policy.json), 기사는 구글 뉴스 RSS 최근 14일 · 세부 조건은 앱 설정 탭 규칙과 공식 보도자료로 확인" });

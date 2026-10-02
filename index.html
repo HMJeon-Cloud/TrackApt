@@ -1030,6 +1030,25 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .homeBrief{padding:20px 18px;gap:16px}
 .homeBriefIc{width:52px;height:52px;border-radius:16px;font-size:24px}
 .homeBrief b{font-size:1.06rem}
+/* v7.4 금리·정책 카드 */
+.chc-spark{display:block;width:100%;height:auto;margin:2px 0 4px}
+.chc-paytbl{background:#fff;border-radius:10px;padding:6px 10px;margin-bottom:4px}
+.chc-payh,.chc-payr{display:grid;grid-template-columns:52px 1fr 1fr;gap:6px;align-items:baseline;font-size:12.5px;padding:3px 0}
+.chc-payh{color:#8b8f98;font-size:11px;font-weight:700;border-bottom:1px solid #f0ece3}
+.chc-payr b{font-size:15px;font-weight:800}
+.chc-payr i{font-style:normal;font-size:11px;font-weight:800}
+.chc-pol{background:#fff;border-radius:10px;padding:8px 11px;font-size:12.5px;line-height:1.45}
+.chc-pol>div{margin:2px 0}
+.chc-newsl{font-size:12px;line-height:1.4;color:#4b5263}
+.chc-newsl>div{padding:3px 0;border-bottom:1px solid #ece7dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chc-newsl small{color:#8b8f98;font-size:10.5px}
+.chc-loantbl{background:#fff;border-radius:10px;padding:6px 10px}
+.chc-loanh,.chc-loanr{display:grid;grid-template-columns:1.5fr .9fr .8fr .8fr 1.3fr;gap:4px;align-items:center;font-size:12px;padding:5px 0}
+.chc-loanh{color:#8b8f98;font-size:10.5px;font-weight:700;border-bottom:1px solid #f0ece3}
+.chc-loanr+.chc-loanr{border-top:1px solid #f5f1e8}
+.chc-loanr b{display:block;font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chc-loanr small{display:block;font-size:10px;color:#8b8f98;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chc-loanr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -1037,7 +1056,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v7.3</span>
+    <span class="ver">v7.4</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1634,6 +1653,10 @@ function buildBrief(root) {
       '<div class="status" id="bf-kpi" style="margin-top:12px"></div>' +
       '<p class="hint" id="bf-prog"></p>' +
       '<div class="bffoldall"><button type="button" class="btn sm ghost" data-foldall="0">모두 펼치기</button><button type="button" class="btn sm ghost" data-foldall="1">모두 접기</button></div></div>' +
+    '<div class="card"><h2>금리·정책</h2>' +
+      '<p class="desc">한국은행 기준금리·주담대 금리·국고채, 임금 대비 집값(PIR), 부동산 대책·교통 노선·정책대출을 카드로 봅니다. ' +
+        '금리·임금은 매일 새벽 자동 수집(ECOS·KOSIS), 대책·교통·대출 조건은 GitHub 의 data/manual 파일을 직접 고치면 바로 반영됩니다. 거래량·PIR·교통은 위에서 고른 지역 범위를 따릅니다.</p>' +
+      '<div class="chcards" id="bf-macro"><p class="hint">불러오는 중…</p></div></div>' +
     '<div class="card"><h2>대장아파트</h2>' +
       '<p class="desc">사람들이 그 동네 시세로 떠올리는 <b>신축·대단지 대장아파트</b>를 지역·평형마다 3곳씩 보여 줍니다. ' +
         '고르는 법: ① 500세대 이상이면서 준공 20년 이내 단지 중 최근 1년 거래의 ㎡당 가격이 높은 순, 3곳이 안 차면 ② 300세대 이상 → ③ 150세대 이상에서 채웁니다. ' +
@@ -1736,7 +1759,7 @@ function paintBriefScope() {
   sub.style.display = f.g.subs.length ? "" : "none";
 }
 /* ── 항목별 펼치기·접기 (v7.2) — 제목을 누르면 접히고, 고른 상태는 이 브라우저에 기억한다 ── */
-var BF_FOLD_KEY = "trackapt_brief_fold_v1", BF_FOLD_DEFAULT = { "대장아파트": 1, "지역·평형별 카드": 1 };
+var BF_FOLD_KEY = "trackapt_brief_fold_v1", BF_FOLD_DEFAULT = { "대장아파트": 1, "지역·평형별 카드": 1, "금리·정책": 1 };
 function bfFoldState() { try { return JSON.parse(localStorage.getItem(BF_FOLD_KEY) || "null") || {}; } catch (e) { return {}; } }
 function bfFoldSave(st) { try { localStorage.setItem(BF_FOLD_KEY, JSON.stringify(st)); } catch (e) {} }
 function bfCardKey(card) { var h = card.querySelector("h2"); return h ? (h.firstChild && h.firstChild.nodeType === 3 ? h.firstChild.nodeValue : h.textContent).replace(/[?▾▸]/g, "").trim() : ""; }
@@ -1791,6 +1814,12 @@ function renderBrief() {
       BRIEF.cband = b.dataset.cb;
       Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); });
       loadBriefLive();
+    });
+    document.getElementById("bf-macro").addEventListener("click", function (ev) {
+      var b = ev.target.closest("[data-chsave]"); if (!b) return;
+      var card = b.parentNode.querySelector(".chcard");
+      progOpen("이미지 만드는 중", 0);
+      chCardImage(card, b.dataset.chsave).then(progClose, function () { progClose(); alert("이미지 저장에 실패했습니다."); });
     });
     document.getElementById("bf-cards").addEventListener("click", function (ev) {
       var b = ev.target.closest("[data-chsave]"); if (!b) return;
@@ -2036,6 +2065,7 @@ function renderBriefCards(codes) {
   var subOn = sub1 && sub1 !== "전체" && document.getElementById("bf-scope2").style.display !== "none";
   var scopeNm = subOn ? (top1 === "서울" || top1 === "경기" ? top1 + " " + sub1 : sub1) : (top1 || "이 범위");
   renderBriefLead(codes);
+  renderBriefMacro(codes, scopeNm);
   var C = chScopeCards(codes, BRIEF.cband || "all", scopeNm);
   el.innerHTML = C.length ? C.map(function (c) {
     return '<div class="chcardWrap">' + c[1] + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_" + c[0]) + '">이미지 저장</button></div>';
@@ -2058,6 +2088,17 @@ function renderBriefLead(codes) {
           dv >= -0.05 ? "최고가" : pct(dv, 1), dv >= -0.05 ? "up" : "down", "최고가 대비", locBtn(Object.assign({ k: r.k }, t)));
       }).join("") + "</div>";
   }).join("") + (more ? '<p class="hint">외 ' + (rows.length - LIM) + "곳 — 범위를 좁혀 보세요.</p>" : "");
+}
+/* 금리·정책 카드 — 범위(codes)에 따라 거래량·PIR·교통만 달라진다 */
+function renderBriefMacro(codes, scopeNm) {
+  var el = document.getElementById("bf-macro"); if (!el) return;
+  macroLoad(function () {
+    var C = mcCards(codes, scopeNm);
+    el.innerHTML = C.length ? C.map(function (o, i) {
+      return '<div class="chcardWrap">' + chCard(o) + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_금리정책_" + o.tag) + '">이미지 저장</button></div>';
+    }).join("") : '<p class="hint">' + ((MACRO.data && MACRO.data.errors && MACRO.data.errors[0]) ? escHtml(MACRO.data.errors[0]) : "금리·정책 자료(macro_data.json)가 아직 없습니다. GitHub Secrets 에 ECOS_KEY·KOSIS_KEY 를 넣고 Run workflow 를 한 번 돌리세요.") + "</p>";
+    chFitLater(el);
+  });
 }
 
 /* ══ 앱으로 설치 (v6.3) ═══════════════════════════════════════
@@ -2101,7 +2142,7 @@ if ("serviceWorker" in navigator) {
      · 내 집·갈아타기 — 월별 저장본 ㎡당가·84㎡ 중위(같은 보정) + 앱의 대출·세금 규칙(finance)
    글은 고쳐 쓸 수 있는 칸에 넣고 [복사]로 가져간다. 카드는 360×450 을 3배로 찍어 1080×1350. */
 var CH = { tab: "daily", data: null, loading: false };
-var CH_TABS = [["daily", "데일리"], ["lead", "대장아파트"], ["mdd", "MDD·회복"], ["move", "내 집·갈아타기"]];
+var CH_TABS = [["daily", "데일리"], ["lead", "대장아파트"], ["macro", "금리·정책"], ["mdd", "MDD·회복"], ["move", "내 집·갈아타기"]];
 var CH_FOOT = "※ 국토부 실거래 신고를 정리한 참고 자료이며 투자 권유가 아닙니다.";
 
 var CH_HELP_TOP =
@@ -2138,6 +2179,13 @@ var CH_HELP_TEXT =
     '<li><b>대장 vs 가운데값</b>: 대장 3곳 평균이 그 지역 같은 평형 실거래 가운데값의 몇 배인지. 가운데값은 오래된·작은 단지까지 섞여 “생각보다 싸게” 보이는 착시가 있어 나란히 보여 줍니다.</li>' +
     '<li><b>최고가 대비</b>: 2020년 이후 같은 단지·같은 면적 최고 실거래와 가장 최근 거래의 차이.</li>' +
     '<li>세대수는 K-apt 단지 정보, 준공연도는 실거래 신고값입니다. 세대수를 못 찾은 단지는 후보에서 빠질 수 있습니다.</li></ul></div>' +
+  '<div class="note"><b>금리·정책 — 숫자 읽는 법</b><ul>' +
+    '<li><b>기준금리</b>: 한국은행이 정하는 금리의 출발점. 매일 새벽 한국은행 ECOS 에서 받아 월말 값으로 3년 추이를 그립니다.</li>' +
+    '<li><b>주담대 금리</b>: 은행들이 그달 새로 내준 주택담보대출의 평균 금리(ECOS, 한 달 늦게 발표). 월 상환액은 30년 원리금균등 기준이라 실제와 다를 수 있습니다.</li>' +
+    '<li><b>시장금리</b>: 국고채 3년 금리는 앞으로의 기준금리 기대를 먼저 움직입니다. 기준금리보다 낮으면 시장이 인하를, 높으면 인상을 보고 있다는 뜻입니다.</li>' +
+    '<li><b>금리 vs 거래량</b>: 월별 저장본 거래량 위에 기준금리를 겹쳐 보여 줍니다. 금리는 변수 중 하나이고, 최근 1~2개월 거래량은 신고가 덜 모여 적게 보입니다.</li>' +
+    '<li><b>월급 몇 년(PIR)</b>: 집값 ÷ 1인 연소득(세전). 임금은 고용노동부 사업체노동력조사 상용근로자 월 임금총액(ECOS 또는 KOSIS, 12개월 평균). 맞벌이면 절반으로 보세요.</li>' +
+    '<li><b>대책 · 교통 · 정책대출</b>: 확정 내용은 GitHub 의 data/manual 폴더 파일(policy·transit·loans.json)을 직접 고치면 바로 반영되고, 새 소식은 기사 RSS 로 매일 모읍니다. 조건·일정은 발표마다 바뀌니 공식 자료로 확인하세요.</li></ul></div>' +
   '<div class="note"><b>② MDD·회복 — 숫자 읽는 법</b><ul>' +
     '<li><b>MDD(최대낙폭)</b>: 가장 비쌌던 때(고점)에서 가장 쌌던 때(바닥)까지 몇 % 떨어졌는지입니다. 클수록 크게 빠졌던 곳입니다.</li>' +
     '<li><b>지수</b>: 그 지역 ㎡당 가격의 가운데값을 석 달씩 묶어 매끄럽게 만든 값입니다. 한 달만 보면 어떤 아파트가 팔렸는지에 따라 들쭉날쭉해서 묶었습니다.</li>' +
@@ -2165,6 +2213,7 @@ var CH_HELP_CARD =
     '<li><b>데일리(7장)</b>: 거래량 · 값이 오른/내린 동네 · 거래가 갑자기 는 동네 · 신고가 · 가장 비싸게 팔린 아파트 · 많이 사고판 단지 · 전세 vs 월세</li>' +
     '<li><b>MDD·회복(3장)</b>: 고점 대비 어디쯤(막대가 오른쪽 빨강이면 전고점 위) · 서울 25개 구 회복 현황(빨강=위, 파랑=아래, 진할수록 차이 큼) · 하락과 회복 기간</li>' +
     '<li><b>대장아파트</b>: 서울 구별 84㎡ 대장 시세 지도 · 대장 vs 가운데값 · 가장 비싼 대장 TOP · 대장 최고가 대비 · 59㎡ 대장 지도 · 경기 대장 TOP</li>' +
+    '<li><b>금리·정책(최대 8장)</b>: 기준금리 · 주담대 금리와 월 상환액 · 시장금리 방향 · 금리 vs 거래량 · 월급 몇 년 · 부동산 대책 · 교통 호재 · 정책대출</li>' +
     '<li><b>내 집·갈아타기(2장)</b>: 갈아타기 부담이 적은 조합 · 서울 84㎡ 필요 현금</li>' +
     '<li>숫자의 자세한 뜻은 위 “올릴 글” 카드의 ? 에 코너별로 적어 두었습니다.</li></ul></div>';
 
@@ -2206,7 +2255,9 @@ function renderChannel() {
   CH.loading = true;
   var a = (typeof BRIEF !== "undefined" && BRIEF.data) ? Promise.resolve(BRIEF.data)
     : fetch("brief_data.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
-  a["catch"](function (e) { return { _err: String(e.message || e) }; }).then(function (v) {
+  var pm = new Promise(function (res) { macroLoad(res); });
+  Promise.all([a["catch"](function (e) { return { _err: String(e.message || e) }; }), pm]).then(function (vv) {
+    var v = vv[0];
     CH.loading = false;
     CH.data = v;
     if (typeof BRIEF !== "undefined" && !BRIEF.data && CH.data && !CH.data._err) { BRIEF.data = CH.data; BRIEF.regions = CH.data.regions || {}; }
@@ -2560,6 +2611,7 @@ function chMoveText(v) {
 function chText(tab) {
   if (tab === "daily") return chDailyText(chDaily());
   if (tab === "mdd") return chMddText(chMdd());
+  if (tab === "macro") return mcText();
   if (tab === "lead") return chLeadText(RANKED.filter(function (k) { return /^11/.test(k); }), "서울");
   return chMoveText(chMove());
 }
@@ -2601,6 +2653,14 @@ var CH_MORE = [
   [/^대장 시세/, "대장아파트는 그 동네 시세의 '천장'입니다. 가운데값과 차이가 클수록 신축·대단지 선호가 강한 동네입니다."],
   [/^대장 vs/, "가운데값에는 오래된 소규모 단지까지 섞여 있어 '생각보다 싸네'로 보이기 쉽습니다. 사람들이 체감하는 시세는 대장 쪽에 가깝습니다."],
   [/^대장 TOP/, "대장은 세대수·준공연도 기준으로 고른 '시세 기준점'입니다. 매수 추천이 아니며, 같은 단지라도 동·층·향에 따라 값 차이가 큽니다."],
+  [/^기준금리/, "기준금리가 내려가도 대출금리는 몇 달 늦게 따라 내려옵니다. 은행 금리는 국고채·은행채 금리를 먼저 보세요."],
+  [/^주담대 금리/, "같은 집이라도 금리 1%p 차이는 3억 대출에서 월 17만 원 안팎 차이입니다. 정책대출(디딤돌·보금자리) 자격이 되는지 먼저 확인하세요."],
+  [/^시장금리/, "시장금리가 기준금리보다 먼저 움직입니다. 둘의 차이가 벌어질 때 다음 금통위 방향을 가늠할 수 있습니다."],
+  [/^금리 vs 거래량/, "과거에는 금리 인하 뒤 거래가 늘어나는 경우가 많았지만, 대출 규제가 세면 금리가 내려도 거래가 늘지 않기도 합니다."],
+  [/^월급 몇 년/, "PIR 이 높을수록 소득만으로 사기 어려운 시장입니다. 대장아파트 PIR 은 가운데값보다 훨씬 높게 나옵니다."],
+  [/^부동산 대책/, "대책은 발표일보다 시행일과 적용 대상(규제지역·가격 구간)이 중요합니다. 내 조건이 어디에 걸리는지 설정 탭에서 확인하세요."],
+  [/^교통 호재/, "노선 발표 → 착공 → 개통 단계마다 가격이 한 번씩 움직입니다. 개통 시기는 자주 미뤄지니 날짜보다 단계를 보세요."],
+  [/^정책대출/, "정책대출은 소득·집값 상한에 걸리면 못 받습니다. 상한을 넘기면 일반 주담대(LTV·DSR)로 계산해야 합니다."],
   [/^대장 전고점/, "대장이 최고가 근처면 그 지역 상승세가 살아 있다는 신호로, 최고가보다 많이 아래면 아직 회복 중인 지역으로 봅니다."]
 ];
 function chMoreOf(tag) {
@@ -2757,6 +2817,8 @@ function chCardsHtml(tab) {
       }), true),
       how: "% = 고점에서 바닥까지 떨어진 폭(MDD) · 과거 패턴이 반복된다는 보장은 없음" });
     var yy = chYoYCard(RANKED.filter(function (k) { return /^(11|41|28)/.test(k); }), "수도권"); if (yy) add("1년 상승률", yy);
+  } else if (tab === "macro") {
+    mcCards(null, "전국").forEach(function (o, i) { add("금리정책" + i, o); });
   } else if (tab === "lead") {
     var se = RANKED.filter(function (k) { return /^11/.test(k); }), gg = RANKED.filter(function (k) { return /^41/.test(k); });
     chLeadCards(se, "84", "서울").forEach(function (o, i) { add("대장_서울84_" + i, o); });
@@ -3136,6 +3198,223 @@ function chLeadText(codes, scopeNm) {
   return L.join("\n");
 }
 
+/* ══ 금리·임금·정책 카드 (v7.4) ═══════════════════════════════════════
+   macro_data.json(scripts/macro_build.js 가 매일 새벽 만듦) + data/manual/{policy,transit,loans}.json(직접 고치는 파일, 바로 반영).
+   카드: 기준금리 · 주담대 금리와 월 상환액 · 시장금리 방향 · 금리 vs 거래량 · 월급 몇 년(소득 대비 집값) · 부동산 대책 · 교통 노선 · 정책대출 */
+var MACRO = { data: null, loading: false, cbs: [] };
+function macroLoad(cb) {
+  if (MACRO.data) { if (cb) cb(MACRO.data); return; }
+  if (cb) MACRO.cbs.push(cb);
+  if (MACRO.loading) return;
+  MACRO.loading = true;
+  function j(u) { return fetch(u, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; })["catch"](function () { return null; }); }
+  Promise.all([j("macro_data.json"), j("data/manual/policy.json"), j("data/manual/transit.json"), j("data/manual/loans.json")]).then(function (v) {
+    var d = v[0] || { v: 0, rates: {}, wages: null, policy: {}, transit: {}, loans: {}, errors: ["macro_data.json 이 아직 없습니다"] };
+    /* 직접 고친 파일이 배포돼 있으면 그쪽이 더 새것 */
+    if (v[1]) d.policy.manual = v[1]; if (v[2]) d.transit.manual = v[2]; if (v[3]) d.loans.manual = v[3];
+    MACRO.data = d; MACRO.loading = false;
+    MACRO.cbs.splice(0).forEach(function (f) { f(d); });
+  });
+}
+function mcOk() { return MACRO.data && MACRO.data.v; }
+function mcYm(ym) { ym = Number(ym); return ym > 999999 ? Math.floor(ym / 10000) % 100 + "." + Math.floor(ym / 100) % 100 : Math.floor(ym / 100) % 100 + "." + (ym % 100); }
+function mcYmd(d) { d = String(d); return d.length >= 8 ? "'" + d.slice(2, 4) + "." + Number(d.slice(4, 6)) + "." + Number(d.slice(6, 8)) : "'" + d.slice(2, 4) + "." + Number(d.slice(4, 6)); }
+function mcPay(P, rate, years) { var r = rate / 100 / 12, n = (years || 30) * 12; return r > 0 ? P * r / (1 - Math.pow(1 + r, -n)) : P / n; }
+function mcMan(v) { return fmt(Math.round(v / 10000)) + "만"; }
+/* 작은 선그래프 — pts [[x,y]...], step=true 면 계단 */
+function mcSpark(series, opt) {
+  opt = opt || {};
+  var W = 320, H = opt.h || 86, padL = 34, padR = 8, padT = 8, padB = 18, all = [];
+  /* x 는 YYYYMM — 달 번호(연×12+월)로 바꿔 간격을 고르게 */
+  function mx(ym) { ym = Number(ym); if (ym > 999999) ym = Math.floor(ym / 100); return Math.floor(ym / 100) * 12 + (ym % 100); }
+  series = series.map(function (s) { return Object.assign({}, s, { pts: s.pts.map(function (p) { return [mx(p[0]), p[1], p[0]]; }) }); });
+  series.forEach(function (s) { s.pts.forEach(function (p) { all.push(p); }); });
+  if (!all.length) return "";
+  var xs = all.map(function (p) { return p[0]; }), ys = all.map(function (p) { return p[1]; });
+  var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+  if (opt.zero) y0 = Math.min(0, y0);
+  var span = (y1 - y0) || 1; y0 -= span * 0.08; y1 += span * 0.08;
+  function X(x) { return padL + (x1 > x0 ? (x - x0) / (x1 - x0) : 0.5) * (W - padL - padR); }
+  function Y(y) { return padT + (1 - (y - y0) / (y1 - y0)) * (H - padT - padB); }
+  var g = '<svg class="chc-spark" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none">';
+  [y0 + (y1 - y0) * 0.15, (y0 + y1) / 2, y1 - (y1 - y0) * 0.15].forEach(function (v) {
+    g += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="#e6e0d4" stroke-width="1"/>' +
+      '<text x="' + (padL - 4) + '" y="' + (Y(v) + 3.5).toFixed(1) + '" font-size="9" fill="#8b8f98" text-anchor="end">' + (opt.fmt ? opt.fmt(v) : v.toFixed(opt.dec == null ? 1 : opt.dec)) + "</text>";
+  });
+  series.forEach(function (s) {
+    if (s.bars) {
+      var bw = Math.max(2, (W - padL - padR) / s.pts.length * 0.6);
+      s.pts.forEach(function (p) { g += '<rect x="' + (X(p[0]) - bw / 2).toFixed(1) + '" y="' + Y(p[1]).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (Y(y0) - Y(p[1])).toFixed(1) + '" fill="' + s.color + '" opacity=".85"/>'; });
+      return;
+    }
+    var d = "", prev = null;
+    s.pts.forEach(function (p, i) {
+      var x = X(p[0]).toFixed(1), y = Y(p[1]).toFixed(1);
+      if (!i) d += "M" + x + " " + y; else if (s.step) d += " H" + x + " V" + y; else d += " L" + x + " " + y;
+      prev = p;
+    });
+    g += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="' + (s.w || 2) + '" stroke-linejoin="round" stroke-linecap="round"' + (s.dash ? ' stroke-dasharray="4 3"' : "") + "/>";
+    var lp = s.pts[s.pts.length - 1];
+    if (lp) g += '<circle cx="' + X(lp[0]).toFixed(1) + '" cy="' + Y(lp[1]).toFixed(1) + '" r="3" fill="' + s.color + '"/>';
+  });
+  var lab = opt.xlab || [];
+  lab.forEach(function (l) { g += '<text x="' + X(mx(l[0])).toFixed(1) + '" y="' + (H - 5) + '" font-size="9" fill="#8b8f98" text-anchor="middle">' + l[1] + "</text>"; });
+  return g + "</svg>";
+}
+function mcXlab(pts) { if (!pts.length) return []; var n = pts.length, idx = [0, Math.floor(n / 2), n - 1]; return idx.map(function (i) { return [pts[i][0], mcYm(pts[i][0])]; }); }
+/* 월별 거래량(전국 또는 범위) — 월별 저장본 vol 시리즈 합 */
+function mcVolSeries(codes, months) {
+  if (typeof DB === "undefined" || !DB || !DB.vol) return [];
+  var t0 = ymNum(DB.vol.dates[0]), n = DB.vol.dates[2], keys = codes || Object.keys(DB.vol.series).filter(function (k) { return !MC_GROUP[k]; }), sum = new Array(n).fill(0), has = new Array(n).fill(false);
+  keys.forEach(function (k) { var s = DB.vol.series[k]; if (!s) return; s.v.forEach(function (v, i) { if (v != null) { sum[s.o + i] += v; has[s.o + i] = true; } }); });
+  var out = [];
+  for (var i = Math.max(0, n - months); i < n; i++) if (has[i]) { var t = t0 + i; out.push([Math.floor((t - 1) / 12) * 100 + ((t - 1) % 12) + 1, sum[i]]); }
+  return out;
+}
+function mcMedian84(codes) {
+  if (typeof DB === "undefined" || !DB || !DB.a84 || !codes) return null;
+  var vals = codes.map(function (k) { return DB.a84.series[k] ? (typeof chLast === "function" ? chLast(chSer("a84", k)) : lastVal("a84", k)) : null; }).filter(Boolean).sort(function (a, b) { return a - b; });
+  return vals.length ? vals[Math.floor(vals.length / 2)] : null;
+}
+function mcLeadAvg(codes) {
+  if (typeof chLeadOn !== "function" || !chLeadOn()) return null;
+  var rows = chLeadRows(codes, "84"); if (!rows.length) return null;
+  return rows.reduce(function (a, r) { return a + r.avg; }, 0) / rows.length;
+}
+/* ── 카드 묶음 ── */
+function mcCards(codes, scopeNm) {
+  if (!mcOk()) return [];
+  var D = MACRO.data, R = D.rates || {}, C = [], sc = escHtml(scopeNm || "전국");
+  var asOf = D.asOf ? mcYmd(D.asOf) : "";
+  /* 1 기준금리 */
+  if (R.base) {
+    var b = R.base, ch = b.changes || [], last = ch[ch.length - 1], prev = ch[ch.length - 2];
+    var dir = prev ? (last[1] > prev[1] ? "인상" : last[1] < prev[1] ? "인하" : "동결") : "";
+    C.push({ tag: "기준금리", q: "한국은행 기준금리,<br>지금 몇 %?",
+      a: "연 <b>" + b.v.toFixed(2) + "%</b>" + (last ? " · " + mcYmd(last[0]) + " " + dir + (prev ? " (" + prev[1].toFixed(2) + " → " + last[1].toFixed(2) + ")" : "") : ""),
+      body: mcSpark([{ pts: b.hist, color: "#16294a", step: true, w: 2.5 }], { xlab: mcXlab(b.hist), dec: 2, h: 84 }) +
+        (ch.length ? '<div class="chc-h">최근 결정</div>' + chList(ch.slice(-5).reverse().map(function (c, i, arr) { var p = arr[i + 1]; return [mcYmd(c[0]), p ? (c[1] > p[1] ? "인상" : c[1] < p[1] ? "인하" : "동결") + " · " + p[1].toFixed(2) + "% →" : "", c[1].toFixed(2) + "%", p ? (c[1] > p[1] ? "up" : "down") : ""]; }), 2, 2) : ""),
+      how: "한국은행 ECOS · " + escHtml(b.name) + " · 자료 " + mcYmd(b.t) + " · 선 = 월말 기준 3년 추이" });
+  }
+  /* 2 주담대 금리 & 월 상환액 */
+  if (R.mortgage) {
+    var m = R.mortgage, h = m.hist || [], yago = null;
+    for (var i = h.length - 1; i >= 0; i--) if (h[i][0] <= ymShiftC(m.t, -12)) { yago = h[i]; break; }
+    var P = [20000, 30000, 50000];
+    C.push({ tag: "주담대 금리", q: "3억 빌리면<br>한 달에 얼마 갚나?",
+      a: "주담대 평균 연 <b>" + m.v.toFixed(2) + "%</b> → 3억 · 30년 월 <b>" + mcMan(mcPay(30000, m.v) * 10000) + "원</b>",
+      body: '<div class="chc-paytbl"><div class="chc-payh"><span>대출</span><span>지금 ' + m.v.toFixed(2) + "%</span><span>" + (yago ? "1년 전 " + yago[1].toFixed(2) + "%" : "") + "</span></div>" +
+        P.map(function (p) { var now = mcPay(p, m.v) * 10000, old = yago ? mcPay(p, yago[1]) * 10000 : null;
+          return '<div class="chc-payr"><span>' + eok(p) + "</span><b>" + mcMan(now) + "</b><span>" + (old ? mcMan(old) + ' <i class="' + (now < old ? "down" : "up") + '">' + (now < old ? "−" : "+") + mcMan(Math.abs(now - old)) + "</i>" : "") + "</span></div>"; }).join("") + "</div>" +
+        mcSpark([{ pts: h, color: "#c9a35c", w: 2.5 }], { xlab: mcXlab(h), dec: 1, h: 70 }),
+      how: "예금은행 신규취급 주택담보대출 가중평균금리(ECOS) " + mcYm(m.t) + " · 월 상환액 = 30년 원리금균등 · 실제 금리는 신용·우대에 따라 다름" });
+  }
+  /* 3 시장금리 방향 */
+  if (R.kb3y && R.base) {
+    var k = R.kb3y, spread = k.v - R.base.v;
+    C.push({ tag: "시장금리", q: "금리, 다음은<br>오를까 내릴까?",
+      a: "국고채 3년 <b>" + k.v.toFixed(2) + "%</b> vs 기준금리 " + R.base.v.toFixed(2) + "% → " + (spread < -0.15 ? "시장은 <b class=\"down\">인하</b>를 미리 반영" : spread > 0.25 ? "시장은 <b class=\"up\">인상</b> 쪽을 봄" : "시장은 <b>동결</b> 근처로 봄"),
+      body: mcSpark([{ pts: R.base.hist, color: "#16294a", step: true, w: 2 }, { pts: k.hist, color: "#e5484d", w: 2 }], { xlab: mcXlab(k.hist), dec: 2, h: 100 }) +
+        '<div class="chc-legend"><i style="background:#16294a"></i>기준금리 <i style="background:#e5484d;margin-left:8px"></i>국고채 3년</div>',
+      how: "국고채 3년 금리는 앞으로의 기준금리 기대를 먼저 움직입니다. 국고채가 기준금리보다 낮으면 시장이 인하를, 높으면 인상을 보고 있다는 뜻 · ECOS " + mcYmd(k.t) });
+  }
+  /* 4 금리 vs 거래량 */
+  var vol = mcVolSeries(codes && codes.length ? codes : null, 36);
+  if (R.base && vol.length >= 12) {
+    var bh = R.base.hist, map = {}; bh.forEach(function (p) { map[p[0]] = p[1]; });
+    var lastB = bh[bh.length - 1], firstB = bh[0], v12 = vol.slice(-12), v12p = vol.slice(-24, -12);
+    var avg = function (a) { return a.length ? a.reduce(function (s, x) { return s + x[1]; }, 0) / a.length : 0; };
+    var chg = v12p.length ? (avg(v12) / avg(v12p) - 1) * 100 : null;
+    C.push({ tag: "금리 vs 거래량", q: "금리가 내리면<br>" + sc + " 거래가 늘었나?",
+      a: "기준금리 " + firstB[1].toFixed(2) + "% → " + lastB[1].toFixed(2) + "% · 최근 1년 월평균 거래 " + (chg == null ? "" : chB(chg, null, 0) + " (전년 대비)"),
+      body: mcSpark([{ pts: vol, color: "#c9a35c", bars: true }], { xlab: mcXlab(vol), fmt: function (v) { return v >= 10000 ? (v / 10000).toFixed(1) + "만" : fmt(v); }, zero: true, h: 80 }) +
+        '<div class="chc-legend"><i style="background:#c9a35c"></i>월 매매 거래량(' + sc + ')</div>' +
+        chList((R.base.changes || []).slice(-3).reverse().map(function (c, i, arr) { var mm = vol.filter(function (v) { return v[0] >= Math.floor(c[0] / 100) && v[0] < ymShiftC(Math.floor(c[0] / 100), 3); }), pm2 = vol.filter(function (v) { return v[0] < Math.floor(c[0] / 100) && v[0] >= ymShiftC(Math.floor(c[0] / 100), -3); });
+          var a1 = mm.length ? mm.reduce(function (s2, x) { return s2 + x[1]; }, 0) / mm.length : null, a0 = pm2.length ? pm2.reduce(function (s2, x) { return s2 + x[1]; }, 0) / pm2.length : null, d = a1 && a0 ? (a1 / a0 - 1) * 100 : null;
+          return ["기준금리 " + c[1].toFixed(2) + "% (" + mcYmd(c[0]) + ")", "결정 뒤 3개월 월평균 거래 vs 그 전 3개월", d == null ? "—" : chPct(d, 0), cls(d)]; }), 2, 2),
+      how: "거래량 = 월별 저장본(국토부 실거래) · 최근 1~2개월은 신고가 덜 모여 적게 보임 · 금리는 거래를 움직이는 여러 변수 중 하나" });
+  }
+  /* 5 월급 몇 년 */
+  if (D.wages && D.wages.v) {
+    var pc = codes && codes.length ? codes : RANKED.filter(function (k) { return /^11/.test(k); }), pn2 = codes && codes.length ? sc : "서울";
+    var w = D.wages, annual = (w.avg12 || w.v) * 12, med = mcMedian84(pc), lead = mcLeadAvg(pc);
+    if (med) {
+      var pir = med * 10000 / annual, pirL = lead ? lead * 10000 / annual : null;
+      C.push({ tag: "월급 몇 년", q: "월급 한 푼 안 쓰고<br>" + pn2 + " 84㎡ 사려면?",
+        a: "<b>" + pir.toFixed(1) + "년</b> (가운데값 " + eok(med) + ")" + (pirL ? " · 대장이면 <b>" + pirL.toFixed(1) + "년</b>" : ""),
+        body: '<div class="chc-kpis"><div><small>월 임금(상용)</small><b class="sm">' + mcMan(w.avg12 || w.v) + "</b><span>" + (w.yoy != null ? '1년 전 <i class="' + cls(w.yoy) + '">' + chPct(w.yoy) + "</i>" : "12개월 평균") + "</span></div>" +
+          "<div><small>연소득</small><b class=\"sm\">" + eok(annual / 10000) + "</b><span>세전 · 1인</span></div>" +
+          "<div><small>84㎡ 가운데값</small><b class=\"sm\">" + eok(med) + "</b><span>" + pn2 + "</span></div></div>" +
+          '<div class="chc-hbars">' + [["가운데값 84㎡", pir], lead ? ["대장 84㎡", pirL] : null].filter(Boolean).map(function (r) {
+            return '<div class="chc-hbar"><span>' + r[0] + '</span><i><u style="width:' + Math.min(100, r[1] / Math.max(pir, pirL || 0) * 100).toFixed(1) + '%;background:#16294a"></u></i><b style="color:#18202c">' + r[1].toFixed(1) + "년</b></div>"; }).join("") + "</div>",
+        how: "PIR = 집값 ÷ 연소득 · 임금 = " + escHtml(w.name || "") + "(" + (w.t ? mcYm(w.t) : "") + ", 1인 세전) · 맞벌이면 절반 · 집값 = 범위 안 전용 84㎡ 실거래 가운데값" });
+    }
+  }
+  /* 6 부동산 대책 */
+  var pm = (D.policy && D.policy.manual && D.policy.manual.items) || [], pn = (D.policy && D.policy.news) || [];
+  if (pm.length || pn.length) {
+    var p0 = pm[0];
+    C.push({ tag: "부동산 대책", q: "지금 적용 중인<br>부동산 대책은?",
+      a: p0 ? "<b>" + escHtml(p0.title) + "</b> · " + escHtml((p0.effective || p0.date || "").replace(/-/g, ".")) + (p0.effective ? " 시행" : "") : "최근 2주 기사 " + pn.length + "건",
+      body: (p0 ? '<div class="chc-pol">' + (p0.points || []).slice(0, 3).map(function (x, i) { x = String(x); return '<div class="' + (i >= 2 ? "chc-opt" : "") + '">• ' + escHtml(x.length > 62 ? x.slice(0, 60) + "…" : x) + "</div>"; }).join("") + "</div>" : "") +
+        (pm.length > 1 ? '<div class="chc-h">그 전 대책</div>' + chList(pm.slice(1, 4).map(function (it) { return ['<i class="chc-pill">' + escHtml(it.tag || "대책") + "</i>" + escHtml(it.title), escHtml((it.date || "").replace(/-/g, ".")) + (it.points && it.points[0] ? " · " + escHtml(it.points[0]) : ""), ""]; }), 2, 1) : "") +
+        (pn.length ? '<div class="chc-h chc-opt">이번 주 기사</div><div class="chc-newsl">' + pn.slice(0, 3).map(function (n) { return '<div class="chc-opt">' + escHtml(n.t) + (n.s ? " <small>" + escHtml(n.s) + "</small>" : "") + "</div>"; }).join("") + "</div>" : ""),
+      how: "확정 내용은 직접 관리하는 목록(data/manual/policy.json), 기사는 구글 뉴스 RSS 최근 14일 · 세부 조건은 앱 설정 탭 규칙과 공식 보도자료로 확인" });
+  }
+  /* 7 교통 */
+  var lines = (D.transit && D.transit.manual && D.transit.manual.lines) || [];
+  if (lines.length) {
+    var inScope = codes && codes.length ? lines.filter(function (l) { return (l.regions || []).some(function (c) { return codes.indexOf(c) >= 0; }); }) : [];
+    function ok(o) { return o && o !== "0000-00" ? o : "9999-99"; }
+    var show = (inScope.length ? inScope : lines).slice().sort(function (a, b) { var oa = a.status === "개통" ? 1 : 0, ob = b.status === "개통" ? 1 : 0; return oa - ob || ok(a.open).localeCompare(ok(b.open)); });
+    var next = show.filter(function (l) { return l.status !== "개통" && ok(l.open) !== "9999-99"; })[0];
+    var stc = { "개통": "je", "공사중": "", "착공예정": "wol", "계획": "" };
+    C.push({ tag: "교통 호재", q: (inScope.length ? sc + " 지나는 " : "") + "GTX·새 노선,<br>지금 어디까지?",
+      a: next ? "다음 개통 <b>" + escHtml(next.name) + "</b> · " + (next.open && next.open !== "0000-00" ? escHtml(next.open.replace("-00", "년").replace("-", "년 ") + (/-\d\d$/.test(next.open) && !/-00$/.test(next.open) ? "월" : "")) : "시기 미정") : "개통 " + show.length + "개 노선",
+      body: chList(show.slice(0, 6).map(function (l) { return ['<i class="chc-pill ' + (stc[l.status] || "") + '">' + escHtml(l.status) + "</i>" + escHtml(l.name), escHtml(l.note || ""), l.open && l.open !== "0000-00" ? escHtml(l.open.replace("-00", "").replace("-", ".")) : "미정"]; }), 2, 4),
+      how: "노선 현황은 직접 관리하는 목록(data/manual/transit.json), 소식은 기사 RSS · 개통 시기는 발표마다 바뀜" + (inScope.length ? " · 이 범위를 지나는 노선만" : "") });
+  }
+  /* 8 정책대출 */
+  var pr = (D.loans && D.loans.manual && D.loans.manual.programs) || [];
+  if (pr.length) {
+    var la = D.loans.manual.asOf || "";
+    C.push({ tag: "정책대출", q: "디딤돌·보금자리,<br>나는 받을 수 있을까?",
+      a: pr[0] ? "<b>" + escHtml(pr[0].name) + "</b> 연 " + escHtml(pr[0].rate) + "% · 소득 " + eok(pr[0].income) + " 이하 · 집값 " + eok(pr[0].price) + " 이하" : "",
+      body: '<div class="chc-loantbl"><div class="chc-loanh"><span>상품</span><span>소득</span><span>집값</span><span>한도</span><span>금리</span></div>' +
+        pr.slice(0, 4).map(function (p, i) { return '<div class="chc-loanr' + (i >= 3 ? " chc-opt" : "") + '"><span><b>' + escHtml(p.name) + "</b><small>" + escHtml(p.who || "") + "</small></span><span>" + eok(p.income) + "</span><span>" + eok(p.price) + "</span><span>" + eok(p.limit) + "</span><span>" + escHtml(p.rate) + "%</span></div>"; }).join("") + "</div>",
+      how: "부부합산 연소득·주택가격·대출 한도 상한, 금리는 소득·만기별 범위 · 기준 " + escHtml(la) + " · 조건은 자주 바뀌니 기금e든든·주택금융공사에서 확인" });
+  }
+  return C;
+}
+function ymShiftC(ym, k) { var y = Math.floor(ym / 100), m = ym % 100 - 1 + k; return (y + Math.floor(m / 12)) * 100 + ((m % 12) + 12) % 12 + 1; }
+/* 올릴 글 */
+function mcText() {
+  if (!mcOk()) return "금리·정책 자료(macro_data.json)가 아직 없습니다. GitHub Secrets 에 ECOS_KEY·KOSIS_KEY 를 넣고 Run workflow 를 한 번 돌리세요.";
+  var D = MACRO.data, R = D.rates || {}, L = [];
+  L.push("[금리·정책 한눈에] " + chToday());
+  if (R.base) { var ch = R.base.changes || [], l = ch[ch.length - 1], p = ch[ch.length - 2]; L.push("■ 기준금리 연 " + R.base.v.toFixed(2) + "%" + (l ? " (" + mcYmd(l[0]) + (p ? (l[1] > p[1] ? " 인상" : l[1] < p[1] ? " 인하" : " 동결") : "") + ")" : "")); }
+  if (R.kb3y) L.push("· 국고채 3년 " + R.kb3y.v.toFixed(2) + "% — " + (R.base ? (R.kb3y.v - R.base.v < -0.15 ? "시장은 인하를 미리 반영" : R.kb3y.v - R.base.v > 0.25 ? "시장은 인상 쪽" : "동결 근처") : ""));
+  if (R.mortgage) L.push("· 주담대 평균 " + R.mortgage.v.toFixed(2) + "% (" + mcYm(R.mortgage.t) + ") → 3억·30년 월 " + mcMan(mcPay(30000, R.mortgage.v) * 10000) + "원");
+  if (D.wages && D.wages.v) {
+    var med = mcMedian84(RANKED.filter(function (k) { return /^11/.test(k); })), annual = (D.wages.avg12 || D.wages.v) * 12;
+    L.push(""); L.push("■ 월급 " + mcMan(D.wages.avg12 || D.wages.v) + "원(상용근로자 1인, " + (D.wages.yoy != null ? "1년 전 대비 " + chPct(D.wages.yoy) : "12개월 평균") + ")");
+    if (med) L.push("· 서울 84㎡ 가운데값 " + eok(med) + " = 연소득의 " + (med * 10000 / annual).toFixed(1) + "배 (PIR)");
+  }
+  var pm = (D.policy && D.policy.manual && D.policy.manual.items) || [];
+  if (pm.length) { L.push(""); L.push("■ 적용 중인 대책"); pm.slice(0, 3).forEach(function (it) { L.push("· " + it.date + " " + it.title + (it.points && it.points[0] ? " — " + it.points[0] : "")); }); }
+  var lines = (D.transit && D.transit.manual && D.transit.manual.lines) || [];
+  if (lines.length) { L.push(""); L.push("■ 교통"); lines.filter(function (l) { return l.status !== "개통"; }).slice(0, 4).forEach(function (l) { L.push("· " + l.name + " — " + l.status + (l.open && l.open !== "0000-00" ? " · " + l.open.replace("-00", "년").replace("-", ".") : "")); }); }
+  var pr = (D.loans && D.loans.manual && D.loans.manual.programs) || [];
+  if (pr.length) { L.push(""); L.push("■ 정책대출 (" + (D.loans.manual.asOf || "") + " 기준)"); pr.slice(0, 3).forEach(function (p) { L.push("· " + p.name + ": 소득 " + eok(p.income) + "↓ · 집값 " + eok(p.price) + "↓ · 한도 " + eok(p.limit) + " · 연 " + p.rate + "%"); }); }
+  var pn = (D.policy && D.policy.news) || [];
+  if (pn.length) { L.push(""); L.push("■ 이번 주 기사"); pn.slice(0, 3).forEach(function (n) { L.push("· " + n.t + (n.s ? " (" + n.s + ")" : "")); }); }
+  L.push("");
+  L.push("출처: 한국은행 ECOS · 고용노동부/통계청 · 국토부·금융위 발표 · 국토부 실거래. 참고 자료이며 투자 권유가 아닙니다.");
+  L.push("@uphill.lab");
+  L.push("#기준금리 #주담대 #부동산대책 #GTX #디딤돌");
+  return L.join("\n");
+}
+
 /* ══ 나만 보기 (v7.3) — 지금 시장 · 채널 브리핑은 주인만 ══════════════════
    잠금 해제: 주소 끝에 #owner 를 붙여 열고 비밀번호 입력 → /api/owner 가 Vercel 환경변수 OWNER_KEY 와 비교해
    맞으면 토큰을 준다. 토큰은 이 기기(브라우저)에만 저장되고, 앱이 열릴 때마다 서버에 다시 확인한다.
@@ -3165,10 +3444,13 @@ function ownerPrompt() {
   function go() {
     msg.textContent = "확인 중…";
     fetch("/api/owner", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: inp.value }) })
-      .then(function (r) { return r.json().then(function (j) { return { s: r.status, j: j }; }); })
+      .then(function (r) { return r.json().then(function (j) { return { s: r.status, j: j }; }, function () { return { s: r.status, j: null }; }); })
       .then(function (x) {
         if (x.j && x.j.ok && x.j.token) { try { localStorage.setItem(OWNER_LS, x.j.token); } catch (e) {} location.replace(location.pathname + "#brief"); location.reload(); }
-        else msg.textContent = x.s === 500 ? "서버에 OWNER_KEY 가 아직 설정되지 않았습니다 (Vercel 환경변수)." : "비밀번호가 맞지 않습니다.";
+        else if (x.s === 404) msg.textContent = "잠금 해제 서버 파일(api/owner.js)을 찾지 못했습니다. 저장소의 api 폴더에 있는지 확인하세요.";
+        else if (x.s === 500) msg.textContent = (x.j && x.j.error) === "OWNER_KEY not set" ? "Vercel 환경변수 OWNER_KEY 가 없습니다. 넣은 뒤 Redeploy 하세요." : "서버 오류(500)입니다.";
+        else if (x.s === 401) msg.textContent = "비밀번호가 맞지 않습니다.";
+        else msg.textContent = "서버 응답 " + x.s + " — 잠시 뒤 다시 시도하세요.";
       })["catch"](function () { msg.textContent = "서버에 연결하지 못했습니다."; });
   }
   m.querySelector("#owner-go").addEventListener("click", go);

@@ -22,15 +22,25 @@ function ymShift(ym, k) { var y = Math.floor(ym / 100), m = ym % 100 - 1 + k; re
 function num(v) { var n = Number(String(v == null ? "" : v).replace(/,/g, "")); return isFinite(n) ? n : null; }
 var CODES = readJson(CODES_P, {});
 Object.keys(CODES).forEach(function (k) { if (CODES[k] && (CODES[k].cycle === "A" || CODES[k].cycle === "Q")) delete CODES[k]; });   /* v7.41: 연간으로 잘못 잡힌 캐시 버림 */
+if (CODES.base && CODES.base.cycle !== "M") delete CODES.base;                                                                    /* v7.61: 기준금리는 월별로 */
 /* 시험용 — 가짜 서버로 돌릴 때만 바꾼다 */
 var ECOS_BASE = process.env.ECOS_BASE || "https://ecos.bok.or.kr/api/", KOSIS_BASE = process.env.KOSIS_BASE || "https://kosis.kr/openapi/", GNEWS_BASE = process.env.GNEWS_BASE || "https://news.google.com/rss/search";
 
+var execFileSync = require("child_process").execFileSync;
 async function getText(url) {
   CALLS++;
   var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, 25000);
   try {
-    var r = await fetch(url, { signal: ac.signal, headers: { "user-agent": "TrackApt-macro-build/1.0" } });
+    var r = await fetch(url, { signal: ac.signal, headers: { "user-agent": "Mozilla/5.0 (TrackApt-macro-build)" } });
     return await r.text();
+  } catch (e) {
+    /* node fetch 가 막히는 서버(오래된 TLS 등)는 curl 로 한 번 더 */
+    var why = (e && e.cause && (e.cause.code || e.cause.message)) || e.message;
+    try {
+      var out = execFileSync("curl", ["-sS", "-L", "--max-time", "25", "-A", "Mozilla/5.0 (TrackApt-macro-build)", url], { encoding: "utf8", maxBuffer: 50 * 1024 * 1024 });
+      log("fetch 실패(" + why + ") → curl 로 받음: " + url.replace(/apiKey=[^&]+/, "apiKey=***").slice(0, 90));
+      return out;
+    } catch (e2) { throw new Error("fetch 실패(" + why + "), curl 도 실패(" + String(e2.message).slice(0, 80) + ")"); }
   } finally { clearTimeout(t); }
 }
 async function getJson(url) { var t = await getText(url); try { return JSON.parse(t); } catch (e) { return { _raw: t.slice(0, 300) }; } }
@@ -110,6 +120,17 @@ async function ecosSeries(key, def, want, months) {
     rows = await ecosSearch(c.stat, c.cycle, from, to, c.item);
   }
   if (!rows.length) { log(key + ": 자료 0건 (" + c.stat + "/" + c.item + ")"); delete CODES[key]; return null; }
+  /* 끝이 두 달 넘게 오래됐으면(통계가 끊긴 표) 월별·연간으로 다시 */
+  var lastM = tMonth(rows[rows.length - 1].t);
+  if (c.cycle !== "A" && lastM < ymShift(ym, -2)) {
+    log(key + ": " + c.cycle + " 자료가 " + lastM + "에서 끊김 → 다른 주기로 재시도");
+    var alt = c.cycle === "D" ? ["M", "A"] : ["A"];
+    for (var ai = 0; ai < alt.length; ai++) {
+      var f2 = alt[ai] === "M" ? String(ymShift(ym, -months)) : String(Math.floor(ymShift(ym, -months) / 100)), t2 = alt[ai] === "M" ? String(ym) : String(Math.floor(ym / 100));
+      var r2 = await ecosSearch(c.stat, alt[ai], f2, t2, c.item);
+      if (r2.length && tMonth(r2[r2.length - 1].t) > lastM) { rows = r2; c.cycle = alt[ai]; break; }
+    }
+  }
   /* 일별은 달마다 마지막 값 하나로 줄인다(기준금리는 바뀐 날짜도 따로 남긴다) */
   var byM = {}, changes = [], last = null;
   rows.forEach(function (r) {
@@ -229,11 +250,28 @@ async function rss(feeds, days, max, mustRe) {
       catch (e) { out.errors.push(specs[i][0] + ": " + e.message); log(specs[i][0] + " 실패: " + e.message); }
     }
   }
+  /* 기준금리 현재값 — ECOS '100대 통계지표'에서 한 번 더 확인해, 월별 통계가 뒤처져 있으면 이번 달 값으로 덧붙인다 */
+  if (ECOS) try {
+    var ks = ecosRows(await getJson(ecosUrl("KeyStatisticList", "1/100/")), "KeyStatisticList");
+    var kb = ks.filter(function (r) { return /기준금리/.test(r.KEYSTAT_NAME || ""); })[0];
+    DBG.keyStat = ks.slice(0, 5).map(function (r) { return r.KEYSTAT_NAME + "=" + r.DATA_VALUE + " " + r.CYCLE; });
+    if (kb && num(kb.DATA_VALUE) != null) {
+      var kv = num(kb.DATA_VALUE), kt = String(kb.CYCLE || ""), kym = kt.length >= 6 ? Number(kt.slice(0, 6)) : ymOf(kst());
+      out.keyBase = { v: kv, t: kt };
+      if (!out.rates.base) out.rates.base = { v: kv, t: kym, unit: "연%", name: "100대 통계지표 · 한국은행 기준금리", how: "KeyStatisticList", hist: [[kym, kv]], changes: [] };
+      else {
+        var B0 = out.rates.base, lastH = B0.hist[B0.hist.length - 1];
+        if (lastH[0] < kym) { for (var mm = ymShift(lastH[0], 1); mm < kym; mm = ymShift(mm, 1)) B0.hist.push([mm, lastH[1]]); B0.hist.push([kym, kv]); B0.v = kv; B0.t = kym; B0.name += " (+100대 지표 현재값)"; }
+        else if (Math.abs(B0.v - kv) > 1e-9) { B0.v = kv; B0.hist[B0.hist.length - 1][1] = kv; }
+      }
+      log("기준금리 현재값(100대 지표) " + kv + "% · " + kt);
+    }
+  } catch (e) { log("100대 지표 확인 생략: " + e.message); }
   /* 기준금리 — 월별이 기본(일별 통계는 중간에 끊겨 있음). 변경일은 월별 값이 바뀐 달로 잡고, 일별 자료가 그 달까지 있으면 정확한 날짜로 바꾼다 */
   if (out.rates.base) {
     var B = out.rates.base, ch = [], prev = null;
     B.hist.forEach(function (p) { if (prev == null || Math.abs(p[1] - prev) > 1e-9) ch.push([p[0] * 100 + 1, p[1]]); prev = p[1]; });
-    B.changes = ch.slice(-8); B.t = B.hist[B.hist.length - 1][0];
+    B.changes = ch.slice(-8); B.t = B.hist[B.hist.length - 1][0]; B.v = B.hist[B.hist.length - 1][1];
     try {
       var dRows = await ecosSearch("722Y001", "D", String(ymShift(ymOf(kst()), -60)) + "01", String(kst()), "0101000");
       if (dRows.length) {

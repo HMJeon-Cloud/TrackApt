@@ -234,6 +234,7 @@ function unesc(s) {
     .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/<[^>]+>/g, "").trim();
 }
 function gnews(q) { return GNEWS_BASE + "?q=" + encodeURIComponent(q) + "&hl=ko&gl=KR&ceid=KR:ko"; }
+function ymd(d) { var t = new Date(d); if (!isFinite(t)) return ""; t = new Date(t.getTime() + 9 * 3600000); return t.toISOString().slice(0, 10); }
 function koreakr(dept) { return KOREAKR_BASE + "dept_" + dept + ".xml"; }
 var OFFICIAL = { molit: "국토교통부", fsc: "금융위원회" };
 async function rss(feeds, days, max, mustRe) {
@@ -339,9 +340,26 @@ async function rss(feeds, days, max, mustRe) {
     news: merge(pressPick(/디딤돌|보금자리|버팀목|신생아|주택담보|DSR|전세대출/, 14, 6), await rss([gnews("디딤돌대출 OR 보금자리론 OR 신생아특례대출"), gnews("주택담보대출 한도 OR DSR 규제 OR 전세대출 규제")], 14, 12, L_RE), 12) };
   log("대책 기사 " + out.policy.news.length + " · 교통 " + out.transit.news.length + " · 대출 " + out.loans.news.length);
 
+  /* ⑤-2 (v8.2) 예정 소식 — 보도자료·기사 제목에서 '앞으로 일어날 일'을 골라 둔다 (한주·한달 예상 코너의 "기사에서 본 예정" 칸, 확인 필요) */
+  (function () {
+    var pool = merge(press, [].concat(out.policy.news, out.transit.news, out.loans.news), 300);
+    var kstNow = new Date(Date.now() + 9 * 3600000), Y = kstNow.getUTCFullYear(), M = kstNow.getUTCMonth() + 1;
+    function hintDate(t) {
+      var m = t.match(/(\d{1,2})월\s*(\d{1,2})일/); if (m) { var mo = Number(m[1]), dd = Number(m[2]), yy = mo < M - 1 ? Y + 1 : Y; return yy * 10000 + mo * 100 + dd; }
+      m = t.match(/(?:오는|이달)\s*(\d{1,2})일/); if (m) return Y * 10000 + M * 100 + Number(m[1]);
+      m = t.match(/(?:내달|다음\s*달)\s*(\d{1,2})일/); if (m) { var nm = M === 12 ? 1 : M + 1; return (M === 12 ? Y + 1 : Y) * 10000 + nm * 100 + Number(m[1]); }
+      m = t.match(/(\d{1,2})월(?:부터|까지|중|말|초)/); if (m) { var mo2 = Number(m[1]); return (mo2 < M - 1 ? Y + 1 : Y) * 10000 + mo2 * 100 + 1; }
+      if (/내달|다음\s*달/.test(t)) return (M === 12 ? Y + 1 : Y) * 10000 + (M === 12 ? 1 : M + 1) * 100 + 1;
+      if (/다음\s*주|내주/.test(t)) { var d = new Date(kstNow.getTime() + 7 * 86400000); return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate(); }
+      return null;
+    }
+    out.upcoming = pool.filter(function (x) { return /(예정|앞두|앞둔|내달|다음\s*주|내주|오는\s*\d|부터\s*시행|시행된다|시행한다|개통|착공|접수|청약|분양|입주|발표한다|공개한다|열린다|개최|시작)/.test(x.t) && !/(했다|됐다|마쳤|지난)/.test(x.t); })
+      .map(function (x) { return { t: x.t, u: x.u, d: ymd(x.d), s: x.s, o: !!x.o, when: hintDate(x.t) }; }).slice(0, 25);
+    out.calendar = readJson(path.join(ROOT, "data", "manual", "calendar.json"), null);
+    log("예정 소식 후보 " + out.upcoming.length + "건" + (out.calendar ? " · 일정 파일 " + ((out.calendar.events || []).length) + "건 + 반복 " + ((out.calendar.recurring || []).length) + "건" : " · 일정 파일 없음"));
+  })();
   /* ⑥ 수동 목록 자동 점검 → data/manual/_inbox.json */
   var prevInbox = readJson(INBOX_P, { items: [] }), inbox = { v: 1, builtAt: out.builtAt, asOf: out.asOf, items: [] };
-  function ymd(d) { var t = new Date(d); if (!isFinite(t)) return ""; t = new Date(t.getTime() + 9 * 3600000); return t.toISOString().slice(0, 10); }
   function normT(x) { return String(x || "").toLowerCase().replace(/[\s·ㆍ,.()\[\]「」『』'"‘’“”\-~]/g, ""); }
   function similar(a, b) {
     a = normT(a); b = normT(b); if (!a || !b) return false;

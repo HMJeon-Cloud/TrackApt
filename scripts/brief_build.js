@@ -418,6 +418,7 @@ async function summarize(lawd, today) {
   var oddW = dropOdd(lawd, busyRent(wolCur, true), rentAll, "월세", thisYear);
   return {
     count: cur.length, prevCount: prv.length, weekCount: week, rentCount: rentCur.length, wolCount: wolCur.length,
+    dayOut: sale.filter(function (t) { return dnum(t) === d0; }).length,      /* v8.2: 어제 창에는 있었는데 오늘 창에서 빠진 날(30일 전)의 거래 수 — 하루 새 신고 추정용 */
     busyJ: oddJ.keep, busyW: oddW.keep, busyOdd: oddS.odd.concat(oddJ.odd, oddW.odd),
     pm: median(curP.map(function (t) { return t.amount / t.area; })),
     prevPm: median(prvP.map(function (t) { return t.amount / t.area; })),
@@ -523,7 +524,7 @@ async function news() {
     var HP = path.join(ROOT, "data", "brief_hist.json"), hist = {};
     try { hist = JSON.parse(fs.readFileSync(HP, "utf8")); } catch (e) {}
     var row = {};
-    Object.keys(out.regions).forEach(function (c) { var r = out.regions[c]; row[c] = [r.count, r.pm == null ? null : Math.round(r.pm * 10) / 10]; });
+    Object.keys(out.regions).forEach(function (c) { var r = out.regions[c]; row[c] = [r.count, r.pm == null ? null : Math.round(r.pm * 10) / 10, r.weekCount || 0]; });
     hist[String(out.asOf)] = row;
     var keep = dayN(shiftDay(today, -120));
     Object.keys(hist).forEach(function (k) { if (Number(k) < keep) delete hist[k]; });
@@ -533,32 +534,38 @@ async function news() {
     [0, -1, 1, -2, 2, -3, 3].some(function (o) { var k = String(dayN(shiftDay(want, o))); if (hist[k]) { snap = k; return true; } return false; });
     out.snap30 = snap ? Number(snap) : null;
     if (snap) Object.keys(out.regions).forEach(function (c) { var v = hist[snap][c]; if (v) out.regions[c].snap = { n: v[0], pm: v[1] }; });
-    console.log("하루 기록 " + Object.keys(hist).length + "일치 · 30일 전 비교 기준 " + (snap || "아직 없음"));
-  })();
-  /* 하루치 요약 기록 data/brief_hist.json (v6.52) — 최근 30일은 신고 기한(30일)이 남아 늘 적게 잡힌다.
-     '직전 30일'과 견주면 거래가 줄어든 것처럼 보이므로, 30일 전에 같은 방식으로 잰 값을 꺼내
-     같은 신고 지연끼리 비교할 수 있게 한다. { "YYYYMMDD": { 코드: [건수, ㎡당 중위] } }, 120일 보관 */
-  (function () {
-    var HP = path.join(ROOT, "data", "brief_hist.json"), hist = {};
-    try { hist = JSON.parse(fs.readFileSync(HP, "utf8")); } catch (e) {}
-    var row = {};
-    Object.keys(out.regions).forEach(function (c) { var r = out.regions[c]; row[c] = [r.count, r.pm == null ? null : Math.round(r.pm * 10) / 10]; });
-    hist[String(out.asOf)] = row;
-    var keep = dayN(shiftDay(today, -120));
-    Object.keys(hist).forEach(function (k) { if (Number(k) < keep) delete hist[k]; });
-    fs.mkdirSync(path.dirname(HP), { recursive: true });
-    fs.writeFileSync(HP, JSON.stringify(hist));
-    var want = shiftDay(today, -30), snap = null;
-    [0, -1, 1, -2, 2, -3, 3].some(function (o) { var k = String(dayN(shiftDay(want, o))); if (hist[k]) { snap = k; return true; } return false; });
-    out.snap30 = snap ? Number(snap) : null;
-    if (snap) Object.keys(out.regions).forEach(function (c) { var v = hist[snap][c]; if (v) out.regions[c].snap = { n: v[0], pm: v[1] }; });
-    console.log("하루 기록 " + Object.keys(hist).length + "일치 · 30일 전 비교 기준 " + (snap || "아직 없음"));
+    /* v8.2: 일주일 전 같은 시점의 7일 건수(한주 정리용) */
+    var want7 = shiftDay(today, -7), snap7 = null;
+    [0, -1, 1].some(function (o) { var k = String(dayN(shiftDay(want7, o))); if (hist[k]) { snap7 = k; return true; } return false; });
+    out.snap7 = snap7 ? Number(snap7) : null;
+    if (snap7) Object.keys(out.regions).forEach(function (c) { var v = hist[snap7][c]; if (v && v[2] != null) out.regions[c].week7 = v[2]; });
+    console.log("하루 기록 " + Object.keys(hist).length + "일치 · 30일 전 비교 기준 " + (snap || "아직 없음") + " · 7일 전 " + (snap7 || "아직 없음"));
   })();
   var froms = Object.keys(out.regions).map(function (c) { return out.regions[c].hiFrom || 999999; });
   out.hiFrom = Math.max.apply(null, froms.length ? froms : [0]);     /* 가장 덜 채운 지역 기준 */
   out.hiStart = HI_START;
   console.log("몰림 단지 제외 " + ODD_LOG.length + "건" + (ODD_LOG.length ? " — " + ODD_LOG.slice(0, 15).join(" / ") : ""));
   out.hiDone = froms.filter(function (f) { return f <= HI_START; }).length;
+  /* v8.2 어제 파일과의 차이(전일 이슈 정리용): 하루 새 신고 추정 = 오늘 30일 건수 − 어제 30일 건수 + 창에서 빠진 날 건수, 새로 들어온 신고가·최고가 거래 */
+  (function () {
+    var prevOut = null; try { prevOut = JSON.parse(fs.readFileSync(path.join(ROOT, "brief_data.json"), "utf8")); } catch (e) {}
+    if (!prevOut || !prevOut.regions || prevOut.asOf === out.asOf) { if (prevOut && prevOut.delta && prevOut.asOf === out.asOf) out.delta = prevOut.delta; return; }
+    function hk(t) { return t.apt + "|" + (t.area || t.band) + "|" + (t.max ? t.max.amount + "|" + t.max.d : ""); }
+    function tk(t) { return t.apt + "|" + Math.round(t.area) + "|" + t.amount + "|" + t.d; }
+    var D = { prevAsOf: prevOut.asOf, regions: {} }, nSum = 0, hiN = 0;
+    Object.keys(out.regions).forEach(function (c) {
+      var r = out.regions[c], p = prevOut.regions[c]; if (!r || r.error || !p || p.error) return;
+      var newN = Math.max(0, r.count - p.count + (r.dayOut || 0));
+      var seenH = {}; (p.newHighAll || []).forEach(function (t) { seenH[hk(t)] = 1; }); (p.newHigh || []).forEach(function (t) { seenH[hk(t)] = 1; });
+      var hi = (r.newHighAll || []).filter(function (t) { return !seenH[hk(t)]; }).slice(0, 6).map(function (t) { return { apt: t.apt, dong: t.dong, area: t.area, band: t.band, amount: t.max.amount, floor: t.max.floor, d: t.max.d, up: t.upAll, prev: t.allPrev ? t.allPrev[0] : null }; });
+      var seenT = {}; (p.top || []).forEach(function (t) { seenT[tk(t)] = 1; });
+      var top = (r.top || []).filter(function (t) { return !seenT[tk(t)]; }).slice(0, 3).map(function (t) { return { apt: t.apt, dong: t.dong, area: t.area, amount: t.amount, floor: t.floor, d: t.d }; });
+      nSum += newN; hiN += hi.length;
+      if (newN || hi.length || top.length) D.regions[c] = { n: newN, hi: hi, top: top };
+    });
+    out.delta = D;
+    console.log("어제 대비 — 새 신고 약 " + nSum + "건 · 새 신고가 " + hiN + "곳 (어제 " + prevOut.asOf + ")");
+  })();
   fs.writeFileSync(path.join(ROOT, "brief_data.json"), JSON.stringify(out));
   var size = fs.statSync(path.join(ROOT, "brief_data.json")).size;
   console.log("역대 장부 — 2020.01까지 채운 지역 " + out.hiDone + "/" + froms.length + "곳 · 가장 덜 채운 곳 " + out.hiFrom + "부터 · 장부 호출 " + HI_CALLS);

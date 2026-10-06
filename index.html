@@ -1247,7 +1247,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.0</span>
+    <span class="ver">v9.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -4406,7 +4406,7 @@ function buildSchool(root) {
       '<p class="desc">학교알리미(schoolinfo.go.kr) 공시자료로 <b>학군지가 어디인지, 지역별로 어느 학교가 성취가 높은지</b> 봅니다. ' +
         '지표는 세 가지입니다. <b>특목고 진학률</b>(중학교 졸업생 중 과학고·외고·국제고·영재학교 진학 비율 — 학군 비교에 가장 많이 쓰는 숫자), <b>A 비율</b>(국·영·수 성취도 A 를 받은 학생 비율), <b>국영수 평균</b>(학교 내신 평균). ' +
         '국가수준 학업성취도평가의 학교별 점수는 2017년 이후 공개되지 않아, 공시된 이 세 지표를 나란히 둡니다. 내신 평균은 학교마다 시험 난이도가 달라 절대 비교가 어렵고, 특목고 진학률도 자사고·일반고 선호가 지역마다 달라 하나만 보면 틀립니다. ' +
-        '자료 올리는 법: 학교알리미 → 공시자료 다운로드 → "교과별(학년별) 학업성취 사항"·"졸업생의 진로 현황"(중학교) 을 엑셀로 받아 CSV 로 저장 → GitHub 의 data/school/ 에 올리고(파일 이름에 "성취"·"진로" 포함) Actions 를 한 번 돌리면 school_data.json 이 만들어집니다.</p>' +
+        '자료: 학교 기본정보(주소·좌표)와 학생수·학급수는 <b>학교알리미 OpenAPI</b>(GitHub Secrets 의 SCHOOLINFO_API_KEY)로 매일 자동으로 받습니다. 성취·진로 두 항목은 OpenAPI 미제공(화면도 캡차 보호)이라 연 1회 손으로 올립니다: 학교알리미 → 공시자료 다운로드 → "교과별(학년별) 학업성취 사항"·"졸업생의 진로 현황"(중학교) 을 엑셀로 받아 CSV 로 저장 → data/school/ 에 올리면(파일 이름에 "성취"·"진로" 포함) 다음 새벽 school_data.json 에 합쳐집니다.</p>' +
       '<div class="seg" id="sc-scope"></div><div class="seg" id="sc-scope2" style="margin-top:6px;display:none"></div>' +
       '<div class="seg" id="sc-kind" style="margin-top:6px"><button type="button" data-k="중" class="on">중학교</button><button type="button" data-k="고">고등학교</button></div>' +
       '<div class="seg" id="sc-metric" style="margin-top:6px">' + SC_METRICS.map(function (m) { return '<button type="button" data-m="' + m[0] + '"' + (m[0] === SC.metric ? ' class="on"' : "") + ">" + m[1] + "</button>"; }).join("") + "</div>" +
@@ -4462,7 +4462,7 @@ function scGus(pool, m) {
   pool.forEach(function (s) { (g[s.l] = g[s.l] || { l: s.l, L: [] }).L.push(s); });
   return Object.keys(g).map(function (l) { var o = g[l]; o.n = o.L.length; o.v = o.L.reduce(function (s, x) { return s + scVal(x, m); }, 0) / o.n; o.p84 = scPrice(l); o.top = o.L.slice().sort(function (a, b) { return scVal(b, m) - scVal(a, m); })[0]; return o; }).filter(function (o) { return o.n >= 2; });
 }
-function scSub(s) { return [s.d, s.k === "중" && s.s ? "특목 " + (s.s.sci + s.s.fl + s.s.gift) + "명 / 졸업 " + s.s.grad + "명" + (s.s.ar ? " · 자사고 " + s.s.ar : "") : "", s.a ? "국 " + s.a.ko + " · 영 " + s.a.en + " · 수 " + s.a.ma : ""].filter(Boolean).join(" · "); }
+function scSub(s) { return [s.d, s.k === "중" && s.s ? "특목 " + (s.s.sci + s.s.fl + s.s.gift) + "명 / 졸업 " + s.s.grad + "명" + (s.s.ar ? " · 자사고 " + s.s.ar : "") : "", s.a ? "국 " + s.a.ko + " · 영 " + s.a.en + " · 수 " + s.a.ma : "", s.st ? "학생 " + fmt(s.st) + "명" + (s.per ? " · 학급당 " + s.per + "명" : "") : ""].filter(Boolean).join(" · "); }
 function renderSchool() {
   var st = document.getElementById("sc-status"); if (!st) return;
   scLoad(function () { scRender(); });
@@ -4471,7 +4471,7 @@ function scRender() {
   var st = document.getElementById("sc-status"); if (!st) return;
   if (!scOk()) { st.innerHTML = SC.data && SC.data._err && !/404/.test(SC.data._err) ? "학군 자료를 읽지 못했습니다 (" + escHtml(SC.data._err) + ")" : "아직 학군 자료(school_data.json)가 없습니다. 위 설명대로 학교알리미 CSV 를 data/school/ 에 올리고 Actions 를 돌리면 여기 나옵니다."; ["sc-dong", "sc-school", "sc-vs"].forEach(function (id) { document.getElementById(id).innerHTML = '<p class="hint">자료 없음</p>'; }); return; }
   var D = SC.data, codes = briefCodes(SC.scope), nm = briefScopeName(SC.scope), m = SC.metric, kind = SC.kind, pool = scPool(codes, kind, m);
-  st.innerHTML = "학교알리미 공시 · 만든 날 " + escHtml(D.built || "") + " · 중 " + (D.n ? D.n.mid : "?") + "곳 · 고 " + (D.n ? D.n.high : "?") + "곳" + (D.n && D.n.noRegion ? " · 지역 못 맞춘 학교 " + D.n.noRegion + "곳" : "") + " · 지금 범위: <b>" + escHtml(nm) + " " + kind + "학교 " + pool.length + "곳</b> · 지표 " + scMetricNm(m);
+  st.innerHTML = "학교알리미 공시 · 만든 날 " + escHtml(D.built || "") + " · 중 " + (D.n ? D.n.mid : "?") + "곳 · 고 " + (D.n ? D.n.high : "?") + "곳" + (D.n && D.n.withAch != null ? " · 성취 자료 " + D.n.withAch + "곳 · 진로 자료 " + D.n.withCareer + "곳 · 학생수 " + D.n.withStu + "곳" : "") + (D.n && D.n.noRegion ? " · 지역 못 맞춘 학교 " + D.n.noRegion + "곳" : "") + " · 지금 범위: <b>" + escHtml(nm) + " " + kind + "학교 " + pool.length + "곳</b> · 지표 " + scMetricNm(m);
   /* 동네 */
   var dongs = scDongs(pool, m, 2), dEl = document.getElementById("sc-dong");
   dEl.innerHTML = dongs.length ? '<div class="bflist">' + dongs.slice(0, 20).map(function (o, i) {

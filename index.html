@@ -1154,6 +1154,59 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chplan-d{flex-direction:row;gap:6px;padding:6px 10px}
 .chplan-d b{font-size:.8rem}
 .chplan-d i.todo{background:#c9a35c}
+/* v8.3 카드 아이덴티티 — 금색 머리선 · 숫자 고정폭 · 쪽수 · 촘촘판(dense) · 지금 시장판(live) */
+.chc-head:after{content:"";position:absolute;left:20px;right:20px;bottom:0;height:2px;background:linear-gradient(90deg,#c9a35c 0,rgba(201,163,92,.15) 70%,rgba(201,163,92,0))}
+.chcard,.chcard b,.chcard span{font-variant-numeric:tabular-nums}
+.chcard .chc-foot{display:flex;align-items:center;gap:8px}
+.chcard .chc-foot>span{flex:1;min-width:0}
+.chcard .chc-idx{font-style:normal;font-size:10px;font-weight:700;color:#b9ad98;letter-spacing:.08em}
+.chcard .chc-tbl{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(15,28,48,.05)}
+.chcard .chc-tr{display:flex;align-items:center;padding:6px 10px;border-top:1px solid #efe9dc;font-size:12px;color:#18202c;gap:4px}
+.chcard .chc-tr>span{flex:1;text-align:center;min-width:0;white-space:normal;line-height:1.25}
+.chcard .chc-tr>span:first-child{flex:1.45;text-align:left}
+.chcard .chc-tr>span b{font-weight:700}
+.chcard .chc-tr.h{border-top:0;background:#16294a;color:#e9d3a6;font-size:10.5px;font-weight:800;letter-spacing:.02em;padding:6px 10px}
+.chcard .chc-tr.hl{background:#fff8e8}
+.chcard .chc-tr.hl>span{font-weight:800;color:#8a6d3b}
+.chcard .chc-tbl.wide .chc-tr>span:first-child{flex:1.9}
+.chcard .chc-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.chcard .chc-chip{background:#fff;border:1px solid #e6dcc6;border-radius:999px;padding:2px 8px;font-size:10.5px;color:#4b5263;white-space:nowrap}
+.chcard .chc-chip b{color:#8a6d3b;margin-left:3px}
+.chcard .chc-verify{display:inline-block;font-size:9.5px;font-weight:800;color:#b42318;background:#fff1f0;border-radius:4px;padding:0 4px;margin-left:4px;vertical-align:1px}
+/* dense — 머리 작게, 설명 없이, 표·목록 자리 최대 */
+.chcard.chc-dense .chc-head{padding:10px 18px 9px}
+.chcard.chc-dense .chc-head .chc-q{font-size:17px;line-height:1.22;margin-top:6px}
+.chcard.chc-dense .chc-head .chc-top{gap:6px}
+.chcard.chc-dense .chc-inner{padding:9px 18px 12px}
+.chcard.chc-dense .chc-a{font-size:12.5px;padding:6px 9px;margin-bottom:6px}
+.chcard.chc-dense .chc-list{gap:4px}
+.chcard.chc-dense .chc-row{padding:5px 9px}
+.chcard.chc-dense .chc-row b{font-size:12.5px}
+.chcard.chc-dense .chc-row small{font-size:10.5px}
+.chcard.chc-dense .chc-row>span{font-size:13px}
+.chcard.chc-dense .chc-h{margin:4px 0 3px;font-size:11px}
+.chcard.chc-dense .chc-art{max-height:48px}
+/* live — 지금 시장(이벤트성): 아이보리 머리 + 남색 글자, 흰 몸통, 금색 세로 띠 */
+.chcard.chc-live .chc-head{background:linear-gradient(135deg,#f4ecda 0%,#e9dcc0 100%);color:#16294a}
+.chcard.chc-live .chc-head .chc-q{color:#16294a}
+.chcard.chc-live .chc-logo{color:#16294a}
+.chcard.chc-live .chc-head .chc-tag{border-color:rgba(22,41,74,.45);color:#16294a}
+.chcard.chc-live .chc-head .chc-date{color:rgba(22,41,74,.6)}
+.chcard.chc-live .chc-deco path{stroke:rgba(22,41,74,.14)}
+.chcard.chc-live .chc-head:after{background:linear-gradient(90deg,#16294a 0,rgba(22,41,74,.15) 70%,rgba(22,41,74,0))}
+.chcard.chc-live{background:#fff}
+.chcard.chc-live .chc-inner{border-left:4px solid #c9a35c;padding-left:16px}
+.chcard.chc-live .chc-a{background:#f7f4ee;border-left-color:#16294a}
+.chcard.chc-live .chc-row,.chcard.chc-live .chc-tbl{background:#f9f7f2;box-shadow:none;border:1px solid #efe9dc}
+.chcard.chc-live .chc-foot{border-top-color:#e6e8ec}
+.chc-livepill{display:inline-block;background:#16294a;color:#e9d3a6;font-size:9.5px;font-weight:800;letter-spacing:.06em;border-radius:4px;padding:2px 6px}
+.chc-livepill:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#e5484d;margin-right:4px;vertical-align:1px}
+.chc-head .chc-top>*{white-space:nowrap}
+.chcard.chc-live .chc-logo{font-size:11px}
+.chcard.chc-live .chc-head .chc-tag{font-size:10px;padding:1px 6px;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.chcard.chc-live .chc-livepill{font-size:9px;padding:1px 5px}
+.chcard.chc-live .chc-head .chc-date{font-size:10.5px}
+.chcard.chc-dense .chc-head .chc-tag{max-width:170px;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -1161,7 +1214,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v8.2</span>
+    <span class="ver">v8.3</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1757,7 +1810,9 @@ function buildBrief(root) {
       '<div class="seg" id="bf-scope"></div>' +
       '<div class="seg" id="bf-scope2" style="margin-top:6px;display:none"></div>' +
       '<div class="status" id="bf-kpi" style="margin-top:12px"></div>' +
-      '<p class="hint" id="bf-prog"></p></div>' +
+      '<p class="hint" id="bf-prog"></p>' +
+      '<div class="chbtns"><button type="button" class="btn sm" id="bf-mkcards">이 범위를 카드로</button><button type="button" class="btn sm ghost" id="bf-zip" style="display:none">카드 전부 ZIP 저장</button><span class="hint">이벤트성 카드 — 채널 정기 카드와 구분되는 \'지금 시장\' 판</span></div>' +
+      '<div class="chcards" id="bf-live" style="display:none;margin-top:12px"></div></div>' +
     '<div class="card" id="bf-issue"><h2>이번 주 이슈</h2>' +
       '<p class="desc">직접 적어 둔 메모(brief_notes.json)와 구글 뉴스 검색 결과의 기사 제목입니다. 기사 내용은 확인하지 않았습니다.</p>' +
       '<div id="bf-notes"><p class="hint">메모를 여는 중…</p></div>' +
@@ -1905,6 +1960,18 @@ function renderBrief() {
       BRIEF.lband = b.dataset.lb;
       Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); });
       loadBriefLive();
+    });
+    document.getElementById("bf-mkcards").addEventListener("click", function () {
+      var el = document.getElementById("bf-live"); el.style.display = ""; document.getElementById("bf-zip").style.display = ""; renderBriefLiveCards();
+    });
+    document.getElementById("bf-zip").addEventListener("click", function () {
+      chSaveAllZip(document.getElementById("bf-live"), "지금시장_" + (BRIEF.last ? BRIEF.last.scopeNm : "")).then(function () { progClose(); }, function (e) { progClose(); alert("ZIP 저장에 실패했습니다: " + (e && e.message || e)); });
+    });
+    document.getElementById("bf-live").addEventListener("click", function (ev) {
+      var b = ev.target.closest("[data-chsave]"); if (!b) return;
+      var card = b.parentNode.querySelector(".chcard");
+      progOpen("이미지 만드는 중", 0);
+      chCardImage(card, b.dataset.chsave).then(progClose, function () { progClose(); alert("이미지 저장에 실패했습니다."); });
     });
     document.getElementById("bf-lead").addEventListener("click", function (ev) {
       var h = ev.target.closest(".bflg-h"); if (!h || ev.target.closest("[data-bfloc]")) return;
@@ -2075,6 +2142,9 @@ function renderBriefLive(scope, codes, remaining) {
   /* 최고가 · 최다 */
   tops.sort(function (a, b) { return b.amount - a.amount; }); busy.sort(function (a, b) { return b.n - a.n; }); busyJ.sort(function (a, b) { return b.n - a.n; }); busyW.sort(function (a, b) { return b.n - a.n; });
   var bandNm = { all: "", S: "소형 ", 59: "59㎡대 ", 84: "84㎡대 ", L: "대형 " }[BRIEF.band] || "";
+  BRIEF.last = { scopeNm: briefScopeName(scope), codes: codes, kpi: { cnt: cnt, prev: prev, chg: chg, week: week, pmUp: pmUp, pmDn: pmDn, highN: highN, rentN: rentN, win: win },
+    hot: hot, up: up, dn: dn, highs: BRIEF.hmode === "90" ? highs : highsAll, hmode: BRIEF.hmode, hband: BRIEF.hband, tops: tops, busy: BRIEF.bkind === "je" ? busyJ : BRIEF.bkind === "wol" ? busyW : busy, bkind: BRIEF.bkind, bandNm: bandNm, picks: picks, gaps: gaps, got: got };
+  if (document.getElementById("bf-live") && document.getElementById("bf-live").style.display !== "none") setTimeout(renderBriefLiveCards, 0);
   var oldData = BRIEF.band !== "all" && got && !codes.some(function (c) { return BRIEF.regions[c] && BRIEF.regions[c].topB; });
   if (typeof CH !== "undefined" && !CH.data) CH.data = BRIEF.data;
   try { renderBriefLead(codes); } catch (e) { var bl = document.getElementById("bf-lead"); if (bl) bl.innerHTML = '<p class="hint">대장아파트를 그리지 못했습니다 (' + escHtml(String(e.message || e)) + ")</p>"; }
@@ -2189,6 +2259,54 @@ function renderBriefMacro(codes, scopeNm) {
       (D.asOf ? '<p class="hint">자료 ' + mcYmd(D.asOf) + " 기준 · 카드 8장은 <b>채널 브리핑 → 금리·정책</b>에서</p>" : "") +
       '<div class="chbtns"><button type="button" class="btn sm ghost" data-chtab="macro">금리·정책 카드 보기</button></div>' + ibHtml;
   });
+}
+
+/* ══ 지금 시장 카드 (v8.3, 이벤트성 'live' 판) — 화면에 보이는 표를 그대로 카드로 ══ */
+function renderBriefLiveCards() {
+  var el = document.getElementById("bf-live"), L = BRIEF.last; if (!el || !L) return;
+  if (typeof CH !== "undefined" && !CH.data) CH.data = BRIEF.data;
+  var sc = escHtml(L.scopeNm), K = L.kpi, C = [], when = kstTxt(BRIEF.data && BRIEF.data.builtAt);
+  function add(file, o) { o.variant = "live"; o.dense = true; o.date = when; o.src = "국토부 실거래 · " + L.scopeNm + " · 투자 권유 아님"; C.push([file, o]); }
+  add("요약", { tag: sc + " 요약", q: sc + " 아파트,<br>지금 시장은?",
+    a: "30일 매매 <b>" + fmt(K.cnt) + "건</b>" + (K.chg != null ? " (직전 30일 대비 " + chB(K.chg, null, 0) + ")" : "") + " · 신고가 <b>" + fmt(K.highN) + "곳</b>",
+    body: '<div class="chc-kpis">' + [["30일 매매 신고", fmt(K.cnt) + "<em>건</em>", K.win ? dTxt(K.win[0]) + "~" + dTxt(K.win[1]) : ""], ["최근 7일 계약", fmt(K.week) + "<em>건</em>", "신고 진행 중"], ["값 오른 / 내린 지역", K.pmUp + " / " + K.pmDn, "㎡당 중위 ±3%"]].map(function (p) { return '<div><small>' + p[0] + "</small><b>" + p[1] + "</b><span>" + p[2] + "</span></div>"; }).join("") + "</div>" +
+      '<div class="chc-line">전세 신고 ' + fmt(K.rentN) + "건 · 직전 30일 매매 " + fmt(K.prev) + "건 · 최근 2주 숫자는 신고 기한(30일) 때문에 계속 늘어남</div>",
+    how: "최근 30일 신고된 아파트 실거래만 · 매일 새벽 3시 수집" });
+  if (L.hot.length) add("거래 몰리는 곳", { tag: "거래 몰리는 곳", q: sc + ",<br>지금 거래가 몰리는 곳은?",
+    a: "<b>" + escHtml(chName(L.hot[0].k)) + "</b> 직전 30일의 " + L.hot[0].vt.toFixed(2) + "배 (" + fmt(L.hot[0].n) + "건)",
+    body: '<div class="chc-hbars">' + L.hot.map(function (r) { return '<div class="chc-hbar"><span>' + escHtml(chName(r.k)) + '</span><i><u style="width:' + (r.vt / L.hot[0].vt * 100).toFixed(1) + '%;background:#16294a"></u></i><b style="color:#18202c">' + r.vt.toFixed(2) + "배</b></div>"; }).join("") + "</div>" +
+      chList(L.hot.map(function (r) { return [escHtml(chName(r.k)), "30일 " + fmt(r.n) + "건 · 직전 " + fmt(r.pn) + "건" + (r.pc != null ? " · ㎡당가 " + pct(r.pc, 1) : ""), "급지 " + r.rank + "위"]; }), 2, 3),
+    how: "30일 건수 ÷ 직전 30일 건수 · " + BRIEF_MIN + "건 미만 제외 · 가격보다 손바뀜이 먼저 움직입니다" });
+  if (L.up.length || L.dn.length) add("값 움직이는 곳", { tag: "값 움직이는 곳", q: sc + ",<br>지금 값이 움직이는 곳은?",
+    a: "오른 곳 <b class=\"up\">" + L.up.length + "곳</b> · 내린 곳 <b class=\"down\">" + L.dn.length + "곳</b> (±3% 밖)",
+    body: (L.up.length ? '<div class="chc-h">▲ 오른 곳</div>' + chList(L.up.slice(0, 5).map(function (r) { return [escHtml(chName(r.k)), "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건", pct(r.pc, 1), "up"]; }), 2, 3) : "") +
+      (L.dn.length ? '<div class="chc-h">▼ 내린 곳</div>' + chList(L.dn.slice(0, 4).map(function (r) { return [escHtml(chName(r.k)), "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건", pct(r.pc, 1), "down"]; }), 2, 2) : ""),
+    how: "30일 ㎡당 중위 vs 직전 30일 · 표본이 섞이면 튈 수 있어 ±3% 안은 보합" });
+  if (L.highs.length) { var hb = { all: "", 84: " 84㎡대", 59: " 59㎡대", L: " 대형", S: " 소형" }[L.hband] || "";
+    add("신고가", { tag: "신고가" + hb, q: sc + hb + ",<br>최고가를 새로 쓴 아파트는?",
+      a: "<b>" + escHtml(L.highs[0].apt) + "</b> " + eok(L.highs[0].max.amount) + " · " + chB(L.hmode === "90" ? L.highs[0].up : L.highs[0].upAll) + " · 총 " + L.highs.length + "곳",
+      body: chList(L.highs.slice(0, 10).map(function (t) { var u = L.hmode === "90" ? t.up : t.upAll, pv = t.allPrev || []; return ["<b>" + escHtml(t.apt) + "</b>", escHtml(kbLabel(t.k)) + " · " + (t.area ? t.area + "㎡" : t.band + "㎡대") + " · " + eok(t.max.amount) + (t.max.floor ? " " + t.max.floor + "층" : "") + " · " + dTxt(t.max.d) + (L.hmode === "90" ? " · 직전 90일 최고 " + eok(t.baseMax) : (pv[0] ? " · 이전 " + eok(pv[0]) : "")), pct(u, 1), "up"]; }), true, 6),
+      how: (L.hmode === "90" ? "직전 90일(31~90일 전) 최고가 대비" : "2020년 이후 같은 단지·같은 면적 최고가 대비") + " · 직거래 제외" }); }
+  if (L.tops.length) add("최고가 거래", { tag: L.bandNm + "최고가 거래", q: sc + " " + L.bandNm + "30일,<br>가장 비싸게 팔린 아파트",
+    a: "<b>" + escHtml(L.tops[0].apt) + "</b> " + Math.round(L.tops[0].area) + "㎡ <b>" + eok(L.tops[0].amount) + "</b>",
+    body: chList(L.tops.slice(0, 8).map(function (t, i) { return [(i + 1) + ". " + escHtml(t.apt), escHtml(kbLabel(t.k)) + " " + escHtml(t.dong) + " · " + Math.round(t.area) + "㎡" + (t.floor ? " · " + t.floor + "층" : "") + (t.buildYear ? " · " + t.buildYear + "년" : "") + " · " + dTxt(t.d), eok(t.amount)]; }), true, 5),
+    how: "최근 30일 계약 · 직거래 제외" });
+  if (L.busy.length) { var kn = { sale: "매매", je: "전세", wol: "월세" }[L.bkind];
+    add("인기 단지", { tag: L.bandNm + kn + " 인기 단지", q: sc + ",<br>30일 " + kn + " 계약이 가장 많은 단지",
+      a: "<b>" + escHtml(L.busy[0].apt) + "</b> " + L.busy[0].n + "건",
+      body: chList(L.busy.slice(0, 8).map(function (t) { var why = L.bkind === "je" ? t.band + "㎡대 · 보증금 중위 " + eok(t.med) : L.bkind === "wol" ? t.band + "㎡대 · 보증금 중위 " + eok(t.med) + " · 월세 " + fmt(t.rentMed) + "만" : t.band + "㎡대 · 중위 " + eok(t.med) + " · 최고 " + eok(t.max.amount); return ["<b>" + escHtml(t.apt) + "</b>", escHtml(kbLabel(t.k)) + " " + escHtml(t.dong) + " · " + why, t.n + "건"]; }), true, 5),
+      how: "세대수 10% 넘게 몰린 단지(입주장·일괄 계약) 제외 · 임대 단지 제외" }); }
+  if (typeof chLeadOn === "function" && chLeadOn()) { var lr = chLeadRows(L.codes, BRIEF.lband || "84").sort(function (a, b) { return b.avg - a.avg; });
+    if (lr.length) add("대장", { tag: "대장 " + (CH_LBN[BRIEF.lband] || "84㎡"), q: sc + " 대장아파트,<br>지역별 시세는?",
+      a: "<b>" + escHtml(chName(lr[0].k)) + "</b> 대장 평균 " + eok(lr[0].avg) + (lr[0].med ? " · 가운데값의 " + lr[0].x.toFixed(1) + "배" : ""),
+      body: chList(lr.slice(0, 10).map(function (r, i) { return [(i + 1) + ". " + escHtml(chName(r.k)), escHtml(r.L[0].apt) + (r.L.length > 1 ? " 외 " + (r.L.length - 1) + "곳" : "") + (r.med ? " · 가운데값 " + eok(r.med) : ""), eok(r.avg)]; }), true, 6),
+      how: "대장 = 500세대↑·20년 이내 중 ㎡당가 상위 3곳(없으면 300→150세대) · 값 = 같은 면적 최근 실거래" }); }
+  if (L.picks.length) add("참고 후보", { tag: "참고 후보", q: sc + ",<br>거래는 늘고 값은 아직인 곳",
+    a: "<b>" + L.picks.length + "곳</b> — 거래 +20%↑ · 값 보합(±3%) · 상위 급지",
+    body: chList(L.picks.map(function (r) { return [escHtml(chName(r.k)), "거래 " + r.vt.toFixed(2) + "배 · ㎡당가 " + pct(r.pc, 1) + " · 30일 " + fmt(r.n) + "건", "급지 " + r.rank + "위"]; }), 2),
+    how: "거래량이 가격보다 먼저 움직인다는 자체 검증에 따른 선별 · 같은 급지 안에서 순서를 볼 때만 · 매수 권유 아님" });
+  el.innerHTML = C.length ? C.map(function (c) { return '<div class="chcardWrap">' + chCard(c[1]) + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("지금시장_" + L.scopeNm + "_" + c[0]) + '">이미지 저장</button></div>'; }).join("") : '<p class="hint">카드로 만들 자료가 없습니다.</p>';
+  chNumberCards(el); chFitLater(el);
 }
 
 /* ══ 앱으로 설치 (v6.3) ═══════════════════════════════════════
@@ -2881,6 +2999,7 @@ function chFitOne(c) {
   {
     var fill = c.querySelector(".chc-fill"), foot = c.querySelector(".chc-foot");
     var more = fill.querySelector(".chc-more"), art = fill.querySelector(".chc-art");
+    if (!more) { more = document.createElement("div"); more.style.display = "none"; }   /* dense 카드는 해설이 없다 */
     Array.prototype.forEach.call(c.querySelectorAll(".chc-opt, [data-cut]"), function (x) { x.style.display = ""; x.removeAttribute("data-cut"); });
     c.classList.remove("chc-tight", "chc-tighter");
     var how = c.querySelector(".chc-how"); if (how) how.style.display = "none";   /* v7.8: '읽는 법'은 데이터가 다 들어가고 자리가 남을 때만 */
@@ -2893,9 +3012,12 @@ function chFitOne(c) {
     while (over() && opts.length) opts.pop().style.display = "none";
     if (over()) c.classList.add("chc-tight");
     if (over()) c.classList.add("chc-tighter");
-    var rowsAll = Array.prototype.slice.call(c.querySelectorAll(".chc-row, .chc-loanr, .chc-pol > div, .chc-hbar, .chc-vsr, .chc-newsl > div, .chc-bud")).filter(function (x) { return x.style.display !== "none"; });
-    while (over() && rowsAll.length > 1) { var rr = rowsAll.pop(); rr.style.display = "none"; rr.setAttribute("data-cut", "1"); }
+    var rowsAll = Array.prototype.slice.call(c.querySelectorAll(".chc-row, .chc-loanr, .chc-pol > div, .chc-hbar, .chc-vsr, .chc-newsl > div, .chc-bud, .chc-tr:not(.h), .chc-chip")).filter(function (x) { return x.style.display !== "none"; });
+    var cut = [];
+    while (over() && rowsAll.length > 1) { var rr = rowsAll.pop(); rr.style.display = "none"; rr.setAttribute("data-cut", "1"); cut.push(rr); }
     if (over() && spk) spk.style.display = "none";
+    /* 자리가 남으면 위쪽부터(마지막에 접은 것부터) 되살려 본다 */
+    for (var ci = cut.length - 1; ci >= 0; ci--) { cut[ci].style.display = ""; if (over()) cut[ci].style.display = "none"; else cut[ci].removeAttribute("data-cut"); }
     if (how && !over()) { how.style.display = ""; if (over()) how.style.display = "none"; }
     var k = c.getBoundingClientRect().width / 360;
     var sents = Array.prototype.slice.call(more.querySelectorAll("span"));
@@ -2916,15 +3038,28 @@ function chFitLater(root) {
   setTimeout(function () { chFitCards(root); }, 400);
 }
 function chCard(o) {
-  return '<div class="chcard"><div class="chc-head">' + CH_DECO +
-      '<div class="chc-top"><span class="chc-logo">' + CH_MARK + "우상향연구소</span><span class=\"chc-tag\">" + escHtml(o.tag) + '</span><span class="chc-date">' + escHtml(chToday()) + "</span></div>" +
+  var live = o.variant === "live", cls = "chcard" + (o.dense ? " chc-dense" : "") + (live ? " chc-live" : "");
+  var more = o.dense ? "" : '<div class="chc-more"><b>알아두면 좋은 점</b>' + String(o.more || chMoreOf(o.tag)).split(/(?<=[.다요])\s+/).map(function (x) { return "<span>" + x + " </span>"; }).join("") + "</div>";
+  return '<div class="' + cls + '"><div class="chc-head">' + CH_DECO +
+      '<div class="chc-top"><span class="chc-logo">' + CH_MARK + "우상향연구소</span><span class=\"chc-tag\">" + escHtml(o.tag) + "</span>" + (live ? '<span class="chc-livepill">지금 시장</span>' : "") + '<span class="chc-date">' + escHtml(o.date || chToday()) + "</span></div>" +
       '<div class="chc-q">' + o.q + "</div></div>" +
     '<div class="chc-inner">' +
       (o.a ? '<div class="chc-a">' + o.a + "</div>" : "") +
       '<div class="chc-body">' + o.body + "</div>" +
-      '<div class="chc-fill">' + '<div class="chc-more"><b>알아두면 좋은 점</b>' + String(o.more || chMoreOf(o.tag)).split(/(?<=[.다요])\s+/).map(function (x) { return "<span>" + x + " </span>"; }).join("") + "</div>" + CH_ART + "</div>" +
+      '<div class="chc-fill">' + more + CH_ART + "</div>" +
       (o.how ? '<div class="chc-how">' + o.how + "</div>" : "") +
-      '<div class="chc-foot"><span>국토부 아파트 실거래 · 투자 권유 아님</span><b class="chc-brand">@uphill.lab</b></div></div></div>';
+      '<div class="chc-foot"><span>' + (o.src || "국토부 아파트 실거래 · 투자 권유 아님") + '</span><em class="chc-idx"></em><b class="chc-brand">@uphill.lab</b></div></div></div>';
+}
+/* 표 — cols 첫 칸은 행 이름. hl 은 강조할 행 번호 */
+function chTable(cols, rows, opt) {
+  opt = opt || {};
+  return '<div class="chc-tbl' + (opt.cls ? " " + opt.cls : "") + '"><div class="chc-tr h">' + cols.map(function (c) { return "<span>" + escHtml(String(c)) + "</span>"; }).join("") + "</div>" +
+    rows.map(function (r, i) { return '<div class="chc-tr' + (opt.hl === i ? " hl" : "") + (opt.base != null && i >= opt.base ? " chc-opt" : "") + '">' + r.map(function (c, j) { return "<span>" + (j === 0 ? "<b>" + escHtml(String(c)) + "</b>" : escHtml(String(c))) + "</span>"; }).join("") + "</div>"; }).join("") + "</div>";
+}
+/* 캐러셀 쪽수 — 카드 꼬리 가운데 01/10 */
+function chNumberCards(root) {
+  var cards = root.querySelectorAll(".chcardWrap .chcard"), n = cards.length;
+  Array.prototype.forEach.call(cards, function (c, i) { var e = c.querySelector(".chc-idx"); if (e) e.textContent = n > 1 ? ("0" + (i + 1)).slice(-2) + " / " + ("0" + n).slice(-2) : ""; });
 }
 /* base 를 주면 그 뒤 행은 '남는 자리가 있을 때만' 보이는 여분(chc-opt) — chFitCards 가 넘치면 뒤에서부터 지운다 */
 function chList(rows, sm, base) {
@@ -3122,6 +3257,7 @@ function paintChannel() {
     cc.html = wrapC("표지_" + CH.tab, chCoverCard(CH.tab, tags)) + cc.html + wrapC("마무리", chOutroCard(CH.tab));
   }
   document.getElementById("ch-cards").innerHTML = cc.html || '<p class="hint">이 코너는 ' + (custom ? "이 범위·평형으로 만들 카드가 없습니다. 범위를 넓히거나 전체 평형을 골라 보세요." : "카드로 만들 자료가 아직 없습니다.") + "</p>";
+  chNumberCards(document.getElementById("ch-cards"));
   chFitLater(document.getElementById("ch-cards"));
 }
 
@@ -3624,6 +3760,28 @@ function mcCards(codes, scopeNm) {
         pr.slice(0, 5).map(function (p, i) { var rt = rateOf(p); return '<div class="chc-loanr' + (i >= 4 ? " chc-opt" : "") + '"><span><b>' + escHtml(p.name) + "</b><small>" + escHtml(p.who || "") + "</small></span><span>" + eok(p.income) + "</span><span>" + eok(p.price) + "</span><span>" + eok(p.limit) + "</span><span>" + escHtml(rt.r) + "%" + (rt.auto ? '<em class="chc-autom">공고</em>' : "") + "</span></div>"; }).join("") + "</div>",
       how: "부부합산 연소득·주택가격·한도 상한, 금리는 소득·만기별 범위 · " + (anyAuto ? "'공고' = 기금e든든 안내 페이지에서 매일 읽은 금리, 나머지 기준 " : "기준 ") + escHtml(la) + " · 기금e든든·주택금융공사에서 확인" });
   }
+  /* 9 (v8.3) 대책 변경 전·후 표 — policy.json 의 table/who */
+  if (pm.length && pm[0].table && pm[0].table.rows) {
+    var pt = pm[0].table;
+    C.push({ tag: "대책 한눈에", dense: true, q: escHtml(pm[0].title) + ",<br>무엇이 어떻게 바뀌었나?",
+      a: "<b>" + escHtml((pm[0].effective || pm[0].date || "").replace(/-/g, ".")) + (pm[0].effective ? " 시행" : " 발표") + "</b> · 항목 " + pt.rows.length + "개" + (pt.verify ? '<i class="chc-verify">확인 전</i>' : ""),
+      body: chTable(pt.cols, pt.rows, { cls: pt.cols.length <= 2 ? "wide" : "" }) +
+        (pm[0].who && pm[0].who.length ? '<div class="chc-h">나한테 무슨 뜻?</div><div class="chc-pol">' + pm[0].who.map(function (w, i) { return '<div class="' + (i >= 2 ? "chc-opt" : "") + '">• ' + escHtml(w) + "</div>"; }).join("") + "</div>" : ""),
+      how: "표는 직접 관리 목록(data/manual/policy.json) · 세부 조건·예외는 공식 보도자료로 확인" + (pt.verify ? " · '확인 전' = 아직 공식 자료와 대조하지 않은 표" : "") });
+  }
+  /* 10 (v8.3) 정책대출 금리표 — 소득구간 × 만기 + 우대 조건 */
+  pr.filter(function (p) { return p.rateTable && p.rateTable.rows; }).slice(0, 4).forEach(function (p) {
+    var rt = p.rateTable, auto2 = (D.loans.auto || {})[p.name];
+    var lo = Math.min.apply(null, rt.rows.map(function (r) { return Math.min.apply(null, r.slice(1).map(function (x) { return parseFloat(x) || 99; })); }));
+    var hi = Math.max.apply(null, rt.rows.map(function (r) { return Math.max.apply(null, r.slice(1).map(function (x) { var m = String(x).match(/[\d.]+(?!.*[\d.])/); return m ? parseFloat(m[0]) : 0; })); }));
+    var dc = p.discounts || [];
+    C.push({ tag: p.name + " 금리표", dense: true, q: escHtml(p.name) + ",<br>내 소득이면 연 몇 %?",
+      a: "연 <b>" + lo.toFixed(2) + "~" + hi.toFixed(2) + "%</b>" + (p.discountNote ? " · " + escHtml(p.discountNote.split(" · ")[0]) : "") + (rt.verify ? '<i class="chc-verify">확인 전</i>' : "") + (auto2 && auto2.rate ? ' <small>공고 ' + escHtml(auto2.rate) + "%</small>" : ""),
+      body: chTable([rt.cols.length >= 4 ? "소득(만기→)" : "구분"].concat(rt.cols), rt.rows) +
+        (dc.length ? '<div class="chc-h">우대 금리</div><div class="chc-chips">' + dc.map(function (x, i) { return '<span class="chc-chip' + (i >= 6 ? " chc-opt" : "") + '">' + escHtml(x[0]) + "<b>" + escHtml(x[1]) + "</b></span>"; }).join("") + "</div>" : "") +
+        (p.detail && p.detail.length ? '<div class="chc-pol">' + p.detail.map(function (w, i) { return '<div class="' + (i >= 2 ? "chc-opt" : "") + '">• ' + escHtml(w) + "</div>"; }).join("") + "</div>" : ""),
+      how: escHtml(rt.note || "") + " · " + escHtml(p.discountNote || "") + " · 기금e든든·주택금융공사에서 신청 전 확인" });
+  });
   return C;
 }
 function ymShiftC(ym, k) { var y = Math.floor(ym / 100), m = ym % 100 - 1 + k; return (y + Math.floor(m / 12)) * 100 + ((m % 12) + 12) % 12 + 1; }
@@ -3963,6 +4121,18 @@ function chRateEvents(days) {
   ib.filter(function (x) { return x.official && Number(String(x.date || "").replace(/-/g, "")) >= lim; }).slice(0, 3).forEach(function (x) { L.push({ d: Number(String(x.date).replace(/-/g, "")), t: x.title + " (확인 필요)" }); });
   return L.sort(function (a, b) { return b.d - a.d; });
 }
+/* 날짜별 신고 반영 건수 합계 (brief_data.dailyNew, 수집일 기준 — 전날 신고분) */
+function chNewSum(fromN, toN) {
+  var DN = (CH.data && CH.data.dailyNew) || {}, o = { all: 0, se: 0, gi: 0, days: [], ok: false };
+  Object.keys(DN).sort().forEach(function (k) { var n = Number(k); if (n < fromN || n > toN) return; var v = DN[k]; o.ok = true; o.all += v[0]; o.se += v[1]; o.gi += v[2]; o.days.push([n, v[0], v[1], v[2]]); });
+  return o;
+}
+function chWeekStart(d) { var w = d.getUTCDay(); return chShift(d, -((w + 6) % 7)); }   /* 이번 주 월요일 */
+function chHighsBetween(fromN, toN) {
+  var S = chScopes(), hasAll = S.all.some(function (c) { return CH.data.regions[c] && CH.data.regions[c].newHighAll; });
+  return chCollect(S.all, hasAll ? "newHighAll" : "newHigh").filter(function (t) { return t.max && t.max.d >= fromN && t.max.d <= toN && (hasAll ? t.upAll : t.up) > 0; })
+    .sort(function (a, b) { return (hasAll ? b.upAll : b.up) - (hasAll ? a.upAll : a.up); }).map(function (t) { t.u = hasAll ? t.upAll : t.up; return t; });
+}
 function chKeywords(n) { return ((CH.data.news && CH.data.news.keywords) || []).slice(0, n); }
 function chHiRow(t, dateTxt) { return ["<b>" + escHtml(t.apt) + "</b>", escHtml(chName(t.k)) + " · " + (t.area ? t.area + "㎡" : t.band + "㎡대") + " · " + eok(t.max ? t.max.amount : t.amount) + (dateTxt ? " · " + dateTxt : ""), chPct(t.u != null ? t.u : t.up, 1), "up"]; }
 /* ── 카드 ── */
@@ -3973,19 +4143,20 @@ function chOpsCards(tab) {
   if (tab === "recap") {
     var dl = chDeltaSum();
     if (!dl) return [{ tag: "전일 정리", q: "어제 새로 신고된<br>거래는?", a: "어제 파일과 견줄 자료가 아직 없습니다", body: '<div class="chc-line">내일 새벽 수집부터 "어제 대비 새 신고·새 신고가" 가 들어옵니다.</div>', how: "brief_build v8.2 부터 어제 파일과의 차이를 기록" }];
-    C.push({ tag: "전일 정리", q: "어제 하루,<br>새로 신고된 아파트 거래는?",
+    var yd = chShift(chKstNow(), -1), ydN = chDayKey(yd), ydT = chMD(ydN) + "(" + chWd(ydN) + ")";
+    C.push({ tag: "전일 정리", dense: true, q: "어제 " + ydT + ",<br>새로 집계된 아파트 거래는?",
       a: "전국 약 <b>" + fmt(dl.all) + "건</b> 새 신고 · 서울 " + fmt(dl.se) + "건 · 경기·인천 " + fmt(dl.gi) + "건",
       body: '<div class="chc-kpis">' + [["전국", dl.all], ["서울", dl.se], ["경기·인천", dl.gi]].map(function (p) { return '<div><small>' + p[0] + "</small><b>" + fmt(p[1]) + "<em>건</em></b><span>새 신고</span></div>"; }).join("") + "</div>" +
         '<div class="chc-line">30일 누적 전국 <b>' + fmt(d.all.n) + "건</b> · 서울 " + fmt(d.se.n) + "건 · 새 신고가 " + dl.hi.length + "곳 · 어제 기준일 " + chMD(dl.prevAsOf) + "</div>",
       more: "실거래 신고는 계약 후 30일 안에 하므로 '어제 신고'는 2~4주 전 계약이 섞여 있습니다. 하루 숫자보다 일주일 흐름으로 보세요.",
-      how: "새 신고 = 오늘 30일 집계 − 어제 30일 집계 + 창에서 빠진 날(30일 전) 거래 · 국토부 실거래" });
-    if (dl.hi.length) C.push({ tag: "어제 신고가", q: "어제 새로 들어온<br>신고가는 어디?",
+      how: "새 신고 = 오늘 새벽 30일 집계 − 어제 30일 집계 + 창에서 빠진 날(30일 전) 거래 · 수집 " + kstTxt(CH.data.builtAt) + " 기준 · 국토부 실거래" });
+    if (dl.hi.length) C.push({ tag: "어제 신고가", dense: true, q: "어제 새로 들어온<br>신고가는 어디?",
       a: "<b>" + escHtml(dl.hi[0].apt) + "</b> " + eok(dl.hi[0].amount) + " · 이전 최고 대비 " + chB(dl.hi[0].up),
-      body: chList(dl.hi.slice(0, 7).map(function (t) { return chHiRow(t, chMD(t.d) + " 계약"); }), true, 5),
+      body: chList(dl.hi.slice(0, 9).map(function (t) { return chHiRow(t, chMD(t.d) + " 계약" + (t.prev ? " · 이전 " + eok(t.prev) : "")); }), true, 6),
       how: "같은 단지·같은 면적의 2020년 이후 최고가를 넘긴 거래 중 어제 집계에 처음 들어온 것 · 직거래 제외" });
-    if (dl.top.length) C.push({ tag: "어제 최고가", q: "어제 들어온 거래 중<br>가장 비싼 아파트는?",
+    if (dl.top.length) C.push({ tag: "어제 최고가", dense: true, q: "어제 들어온 거래 중<br>가장 비싼 아파트는?",
       a: "<b>" + escHtml(dl.top[0].apt) + "</b> " + Math.round(dl.top[0].area) + "㎡ <b>" + eok(dl.top[0].amount) + "</b>",
-      body: chList(dl.top.slice(0, 6).map(function (t, i) { return [(i + 1) + ". " + escHtml(t.apt), escHtml(chName(t.k)) + " · " + Math.round(t.area) + "㎡" + (t.floor ? " · " + t.floor + "층" : "") + " · " + chMD(t.d) + " 계약", eok(t.amount)]; }), true, 4),
+      body: chList(dl.top.slice(0, 8).map(function (t, i) { return [(i + 1) + ". " + escHtml(t.apt), escHtml(chName(t.k)) + " · " + Math.round(t.area) + "㎡" + (t.floor ? " · " + t.floor + "층" : "") + " · " + chMD(t.d) + " 계약", eok(t.amount)]; }), true, 4),
       how: "지역별 30일 최고가 5건 안에 어제 새로 들어온 거래 · 직거래 제외" });
     var nw = chNewsSince(30).slice(0, 5);
     if (nw.length) C.push({ tag: "어제 기사", q: "어제 부동산 기사,<br>무슨 얘기가 많았나?",
@@ -3993,39 +4164,49 @@ function chOpsCards(tab) {
       body: '<div class="chc-newsl">' + nw.map(function (n) { return "<div>" + escHtml(n.t) + (n.s ? " <small>" + escHtml(n.s) + "</small>" : "") + "</div>"; }).join("") + "</div>",
       how: "구글 뉴스 검색 결과 제목만 모은 것 · 기사 내용은 확인하지 않음 · 굵은 글씨 = 이번 주 많이 나온 말" });
   } else if (tab === "week") {
-    var wa = chWeekSum(S.all), ws = chWeekSum(S.seoul), wg = chWeekSum(S.ggic), hw = chWeekHighs(7);
-    C.push({ tag: "한주 정리", q: "이번 주 아파트 매매,<br>얼마나 계약됐나?",
-      a: "전국 <b>" + fmt(wa.wk) + "건</b>" + (wa.chg != null ? " · 일주일 전 같은 시점 대비 " + chB(wa.chg, null, 0) : "") + " · 신고가 " + hw.length + "곳",
-      body: '<div class="chc-kpis">' + [["전국", wa], ["서울", ws], ["경기·인천", wg]].map(function (p) { return '<div><small>' + p[0] + "</small><b>" + fmt(p[1].wk) + "<em>건</em></b><span class=\"" + cls(p[1].chg) + "\">" + (p[1].chg != null ? chPct(p[1].chg, 0) : "—") + "</span></div>"; }).join("") + "</div>" +
-        '<div class="chc-line">최근 7일 계약분 · 30일 누적 전국 ' + fmt(d.all.n) + "건 (" + chCmpLabel() + " " + chPct(d.all.chg, 0) + ")</div>",
-      more: "7일 건수는 신고 기한 때문에 실제의 절반 이하만 잡힙니다. 그래서 '일주일 전 같은 시점'에 잰 7일 건수와 견줍니다 — 같은 지연끼리의 비교입니다.",
-      how: (wa.has7 ? "증감 = 7일 전 같은 시점 집계 대비" : "일주일 전 비교값은 다음 주부터") + " · 국토부 실거래" });
-    if (hw.length) C.push({ tag: "이번 주 신고가", q: "이번 주 최고가를<br>새로 쓴 아파트는?",
-      a: "<b>" + escHtml(hw[0].apt) + "</b> " + eok(hw[0].max.amount) + " · " + chB(hw[0].u),
-      body: chList(hw.slice(0, 8).map(function (t) { return chHiRow(t, chMD(t.max.d) + " 계약"); }), true, 5),
-      how: "최근 7일 계약 중 2020년 이후 같은 면적 최고가를 넘긴 것 · 수도권·지방 통합 상위" });
-    if (d.upM.length || d.dnM.length) C.push({ tag: "이번 주 값 변화", q: "이번 주 값이 움직인<br>동네는?",
-      a: "전국 3% 넘게 오른 곳 <b class=\"up\">" + d.up + "곳</b> · 내린 곳 <b class=\"down\">" + d.dn + "곳</b> (30일 기준)",
-      body: (d.upM.length ? '<div class="chc-h">▲ 오른 곳</div>' + chList(d.upM.map(function (r) { return [escHtml(chName(r.k)), fmt(r.n) + "건 · ㎡당 중위", chPct(r.pc), "up"]; }), 2) : "") +
-        (d.dnM.length ? '<div class="chc-h">▼ 내린 곳</div>' + chList(d.dnM.map(function (r) { return [escHtml(chName(r.k)), fmt(r.n) + "건 · ㎡당 중위", chPct(r.pc), "down"]; }), 2) : ""),
-      how: "30일 ㎡당 중위가 " + chCmpLabel() + " · 양쪽 " + CH_MIN + "건 이상인 지역만 · 수도권" });
-    var re = chRateEvents(7);
-    if (re.length) C.push({ tag: "이번 주 금리·정책", q: "이번 주 금리·정책,<br>무엇이 바뀌었나?", a: "<b>" + escHtml(re[0].t) + "</b>",
-      body: chList(re.slice(0, 5).map(function (e) { return [escHtml(e.t), "", chMD(e.d)]; }), 2), how: "한국은행 ECOS · data/manual 대책 목록 · 보도자료 자동 점검(확인 필요 표시)" });
+    var ws0 = chWeekStart(chKstNow()), wFrom = chDayKey(ws0), wTo = today, pFrom = chDayKey(chShift(ws0, -7)), pTo = chDayKey(chShift(ws0, -1));
+    var nw1 = chNewSum(wFrom, wTo), nw0 = chNewSum(pFrom, pTo), hw = chHighsBetween(wFrom, wTo), wkTxt = chMD(wFrom) + "~" + chMD(wTo);
+    var wa = chWeekSum(S.all), ws = chWeekSum(S.seoul), wg = chWeekSum(S.ggic);
+    if (nw1.ok) {
+      var dayNm = ["일", "월", "화", "수", "목", "금", "토"];
+      C.push({ tag: "한주 정리", dense: true, q: "이번 주 " + wkTxt + ",<br>새로 집계된 아파트 거래는?",
+        a: "전국 <b>" + fmt(nw1.all) + "건</b>" + (nw0.ok && nw0.all && nw0.days.length >= 6 && nw1.days.length >= 6 ? " · 지난주 " + fmt(nw0.all) + "건 대비 " + chB((nw1.all / nw0.all - 1) * 100, null, 0) : " (" + nw1.days.length + "일치 기록)") + " · 신고가 " + hw.length + "곳",
+        body: '<div class="chc-kpis">' + [["전국", nw1.all, nw0.all], ["서울", nw1.se, nw0.se], ["경기·인천", nw1.gi, nw0.gi]].map(function (p) { var ch = nw0.ok && p[2] && nw0.days.length >= 6 && nw1.days.length >= 6 ? (p[1] / p[2] - 1) * 100 : null; return '<div><small>' + p[0] + "</small><b" + (fmt(p[1]).length >= 6 ? ' class="sm"' : "") + ">" + fmt(p[1]) + '<em>건</em></b><span class="' + cls(ch) + '">' + (ch != null ? chPct(ch, 0) + " vs 지난주" : nw1.days.length + "일치") + "</span></div>"; }).join("") + "</div>" +
+          chTable(["날짜", "전국", "서울", "경기·인천"], nw1.days.map(function (r) { return [chMD(r[0]) + "(" + dayNm[new Date(Date.UTC(Math.floor(r[0] / 10000), Math.floor(r[0] / 100) % 100 - 1, r[0] % 100)).getUTCDay()] + ")", fmt(r[1]), fmt(r[2]), fmt(r[3])]; }), { base: 5 }),
+        how: "날짜 = 새벽 수집일(전날 신고분) · 건수 = 30일 집계에 새로 반영된 거래 · 신고 기한이 30일이라 계약일과 다름 · 국토부 실거래" });
+    } else {
+      C.push({ tag: "한주 정리", dense: true, q: "이번 주 " + wkTxt + ",<br>아파트 매매 집계는?",
+        a: "전국 7일 계약분 <b>" + fmt(wa.wk) + "건</b> (신고 진행 중, 최종치 아님)" + (wa.chg != null ? " · 일주일 전 같은 시점 대비 " + chB(wa.chg, null, 0) : ""),
+        body: '<div class="chc-kpis">' + [["전국", wa], ["서울", ws], ["경기·인천", wg]].map(function (p) { return '<div><small>' + p[0] + "</small><b>" + fmt(p[1].wk) + '<em>건</em></b><span class="' + cls(p[1].chg) + '">' + (p[1].chg != null ? chPct(p[1].chg, 0) : "—") + "</span></div>"; }).join("") + "</div>" +
+          '<div class="chc-line">날짜별 신고 집계(dailyNew)는 다음 수집부터 쌓입니다. 그때부터 이 카드는 "이번 주에 집계된 건수"로 바뀝니다.</div>',
+        how: "7일 계약 건수는 신고 기한 때문에 실제보다 적게 잡힘 · 국토부 실거래" });
+    }
+    if (hw.length) C.push({ tag: "이번 주 신고가", dense: true, q: "이번 주 " + wkTxt + ",<br>최고가를 새로 쓴 아파트는?",
+      a: "<b>" + escHtml(hw[0].apt) + "</b> " + eok(hw[0].max.amount) + " · " + chB(hw[0].u) + " · 총 " + hw.length + "곳",
+      body: chList(hw.slice(0, 10).map(function (t) { return chHiRow(t, chMD(t.max.d) + " 계약"); }), true, 6),
+      how: "이번 주 계약된 거래 중 2020년 이후 같은 단지·같은 면적 최고가를 넘긴 것 · 수집 " + kstTxt(CH.data.builtAt) + " 기준 · 직거래 제외" });
+    if (d.upM.length || d.dnM.length) C.push({ tag: "값 변화", dense: true, q: "값이 움직인 동네는?<br>(최근 30일 기준)",
+      a: "전국 3% 넘게 오른 곳 <b class=\"up\">" + d.up + "곳</b> · 내린 곳 <b class=\"down\">" + d.dn + "곳</b>",
+      body: (d.upM.length ? '<div class="chc-h">▲ 오른 곳 (수도권)</div>' + chList(d.upM.map(function (r) { return [escHtml(chName(r.k)), fmt(r.n) + "건 · ㎡당 중위", chPct(r.pc), "up"]; }), 2) : "") +
+        (d.dnM.length ? '<div class="chc-h">▼ 내린 곳 (수도권)</div>' + chList(d.dnM.map(function (r) { return [escHtml(chName(r.k)), fmt(r.n) + "건 · ㎡당 중위", chPct(r.pc), "down"]; }), 2) : ""),
+      how: "주간 가격 변화는 표본이 적어 쓰지 않음 · 30일 ㎡당 중위가 " + chCmpLabel() + " · 양쪽 " + CH_MIN + "건 이상" });
+    var re = chRateEvents(today - wFrom + 1);
+    if (re.length) C.push({ tag: "이번 주 금리·정책", dense: true, q: "이번 주 금리·정책,<br>무엇이 바뀌었나?", a: "<b>" + escHtml(re[0].t) + "</b>",
+      body: chList(re.slice(0, 6).map(function (e) { return [escHtml(e.t), "", chMD(e.d)]; }), 2), how: "한국은행 ECOS 결정일 · data/manual 대책 발표·시행일 · 보도자료 자동 점검(확인 필요 표시)" });
     var kw = chKeywords(10);
-    if (kw.length) C.push({ tag: "이번 주 키워드", q: "이번 주 기사에<br>가장 많이 나온 말은?", a: kw.slice(0, 3).map(function (x) { return "<b>" + escHtml(x[0]) + "</b> " + x[1]; }).join(" · "),
+    if (kw.length) C.push({ tag: "이번 주 키워드", dense: true, q: "이번 주 기사에<br>가장 많이 나온 말은?", a: kw.slice(0, 3).map(function (x) { return "<b>" + escHtml(x[0]) + "</b> " + x[1]; }).join(" · "),
       body: '<div class="chc-hbars">' + kw.map(function (x) { return '<div class="chc-hbar"><span>' + escHtml(x[0]) + '</span><i><u style="width:' + (x[1] / kw[0][1] * 100).toFixed(0) + '%;background:#16294a"></u></i><b style="color:#18202c">' + x[1] + "</b></div>"; }).join("") + "</div>",
       how: "최근 기사 제목에 나온 횟수 · 구글 뉴스 검색 결과" });
     var nx = chEvents(today + 1, chDayKey(chShift(chKstNow(), 7)));
-    if (nx.length) C.push({ tag: "다음 주 미리보기", q: "다음 주,<br>무엇을 봐야 하나?", a: "<b>" + escHtml(nx[0].title) + "</b> · " + chMD(nx[0].d) + "(" + chWd(nx[0].d) + ")",
-      body: chList(nx.slice(0, 6).map(chEvRow), 2, 4), how: "일정 파일(calendar.json) + 대책 시행일 + 노선 개통 예정 · 날짜 확인 필요 표시는 공식 일정으로 확인" });
+    if (nx.length) C.push({ tag: "다음 주 미리보기", dense: true, q: "다음 주,<br>무엇을 봐야 하나?", a: "<b>" + escHtml(nx[0].title) + "</b> · " + chMD(nx[0].d) + "(" + chWd(nx[0].d) + ")",
+      body: chList(nx.slice(0, 7).map(chEvRow), 2, 5), how: "일정 파일(calendar.json) + 대책 시행일 + 노선 개통 예정 · 날짜 확인 필요 표시는 공식 일정으로 확인" });
   } else if (tab === "weekahead") {
     var mon = chShift(chKstNow(), (1 - k.w + 7) % 7 === 0 && k.w !== 1 ? 7 : (1 - k.w + 7) % 7);
     if (k.w === 1) mon = chKstNow();
     var from = chDayKey(mon), to = chDayKey(chShift(mon, 6)), ev = chEvents(from, to), un = chUpcomingNews(from, to);
-    C.push({ tag: "한주 예상", q: "이번 주(" + chMD(from) + "~" + chMD(to) + "),<br>부동산 일정은?",
+    C.push({ tag: "한주 예상", dense: true, q: "이번 주(" + chMD(from) + "~" + chMD(to) + "),<br>부동산 일정은?",
       a: ev.length ? "<b>" + ev.length + "건</b> · 첫 일정 " + chMD(ev[0].d) + "(" + chWd(ev[0].d) + ") " + escHtml(ev[0].title) : "정해진 큰 일정 없음 — 데이터 코너로",
-      body: ev.length ? chList(ev.slice(0, 8).map(chEvRow), 2, 5) : '<div class="chc-line">주간 지수 발표(목·금) 외 등록된 일정이 없습니다. data/manual/calendar.json 에 금통위·발표 일정을 적어 두면 여기 나옵니다.</div>',
+      body: ev.length ? chList(ev.slice(0, 10).map(chEvRow), 2, 6) : '<div class="chc-line">주간 지수 발표(목·금) 외 등록된 일정이 없습니다. data/manual/calendar.json 에 금통위·발표 일정을 적어 두면 여기 나옵니다.</div>',
       more: "일정은 '언제 숫자가 바뀌는가'를 알려 줍니다. 발표 전에 우리 실거래 숫자를 먼저 올려 두면, 발표 뒤 비교 글이 자연스럽게 이어집니다.",
       how: "일정 파일 + 대책 시행일 + 노선 개통 예정 · (날짜 확인 필요) 는 공식 일정으로 확인 뒤 올리기" });
     C.push({ tag: "체크포인트", q: "이번 주,<br>어디를 보면 되나?", a: "지난주 전국 7일 계약 <b>" + fmt(chWeekSum(S.all).wk) + "건</b> · 신고가 " + chWeekHighs(7).length + "곳에서 출발",
@@ -4035,27 +4216,39 @@ function chOpsCards(tab) {
       body: '<div class="chc-newsl">' + un.map(function (n) { return "<div>" + (n.when ? "<b>" + chMD(n.when) + "</b> " : "") + escHtml(n.t) + " <small>" + escHtml(n.s || "") + "</small></div>"; }).join("") + "</div>",
       how: "제목에 '예정·시행·개통·접수' 등이 있는 기사 · 날짜는 제목에서 추정 · 반드시 원문 확인" });
   } else if (tab === "month") {
-    var mo = chMonthlyCard(); if (mo) C.push(mo);
-    var hm = chWeekHighs(30);
-    if (hm.length) C.push({ tag: "이달의 신고가", q: "최근 30일,<br>최고가를 새로 쓴 아파트 TOP", a: "<b>" + escHtml(hm[0].apt) + "</b> " + eok(hm[0].max.amount) + " · " + chB(hm[0].u) + " · 총 " + hm.length + "곳",
-      body: chList(hm.slice(0, 8).map(function (t) { return chHiRow(t, chMD(t.max.d)); }), true, 5), how: "2020년 이후 같은 단지·같은 면적 최고가를 넘긴 거래 · 상승률 순 · 직거래 제외" });
-    if (d.hot.length) C.push({ tag: "이달 거래 급증", q: "최근 30일,<br>거래가 가장 많이 늘어난 곳은?", a: "<b>" + escHtml(chName(d.hot[0].k)) + "</b> " + d.hot[0].vt.toFixed(1) + "배 (" + fmt(d.hot[0].n) + "건)",
+    var mFrom = k.y * 10000 + k.m * 100 + 1, mTo = today, nm1 = chNewSum(mFrom, mTo), hm = chHighsBetween(mFrom, mTo);
+    var pmS = k.m === 1 ? (k.y - 1) * 10000 + 1201 : k.y * 10000 + (k.m - 1) * 100 + 1, pmE = k.m === 1 ? (k.y - 1) * 10000 + 1231 : k.y * 10000 + (k.m - 1) * 100 + chDaysInMonth(k.y, k.m - 1), nm0 = chNewSum(pmS, pmE);
+    if (nm1.ok) {
+      /* 주차별 */
+      var weeks = {}, order = [];
+      nm1.days.forEach(function (r) { var dt = new Date(Date.UTC(Math.floor(r[0] / 10000), Math.floor(r[0] / 100) % 100 - 1, r[0] % 100)), ws2 = chDayKey(chWeekStart(dt)); if (!weeks[ws2]) { weeks[ws2] = [0, 0, 0, r[0], r[0]]; order.push(ws2); } weeks[ws2][0] += r[1]; weeks[ws2][1] += r[2]; weeks[ws2][2] += r[3]; weeks[ws2][4] = r[0]; });
+      var covered = chMD(nm1.days[0][0]) + "~" + chMD(nm1.days[nm1.days.length - 1][0]), full = nm1.days.length >= k.d - 1;
+      C.push({ tag: "한달 정리", dense: true, q: k.m + "월 " + (full ? "1일~" + k.d + "일" : covered + " (" + nm1.days.length + "일치)") + ",<br>새로 집계된 아파트 거래는?",
+        a: "전국 <b>" + fmt(nm1.all) + "건</b>" + (nm0.ok && nm0.all && nm0.days.length >= 25 && full ? " · 지난달 " + fmt(nm0.all) + "건 대비 " + chB((nm1.all / nm0.all - 1) * 100, null, 0) : "") + " · 신고가 " + hm.length + "곳",
+        body: '<div class="chc-kpis">' + [["전국", nm1.all], ["서울", nm1.se], ["경기·인천", nm1.gi]].map(function (p) { return '<div><small>' + p[0] + "</small><b" + (fmt(p[1]).length >= 6 ? ' class="sm"' : "") + ">" + fmt(p[1]) + "<em>건</em></b><span>이달 집계</span></div>"; }).join("") + "</div>" +
+          chTable(["주차", "전국", "서울", "경기·인천"], order.map(function (w, i) { var v = weeks[w]; return [(i + 1) + "주 (" + chMD(v[3]) + "~" + chMD(v[4]) + ")", fmt(v[0]), fmt(v[1]), fmt(v[2])]; })),
+        how: "건수 = 이달 새벽 수집에서 30일 집계에 새로 반영된 거래(계약일 아님) · " + nm1.days.length + "일치 · 계약 기준 월간 확정치는 다음 달 초 '월간 결산' 카드" });
+    }
+    var mo = chMonthlyCard(); if (mo) { mo.tag = "지난달 확정 결산"; C.push(mo); }
+    if (hm.length) C.push({ tag: "이달의 신고가", dense: true, q: k.m + "월 계약 중<br>최고가를 새로 쓴 아파트 TOP", a: "<b>" + escHtml(hm[0].apt) + "</b> " + eok(hm[0].max.amount) + " · " + chB(hm[0].u) + " · 총 " + hm.length + "곳",
+      body: chList(hm.slice(0, 10).map(function (t) { return chHiRow(t, chMD(t.max.d)); }), true, 6), how: "이달 계약 중 2020년 이후 같은 단지·같은 면적 최고가를 넘긴 거래 · 상승률 순 · 직거래 제외 · 수집 " + kstTxt(CH.data.builtAt) + " 기준" });
+    if (d.hot.length) C.push({ tag: "이달 거래 급증", dense: true, q: "최근 30일,<br>거래가 가장 많이 늘어난 곳은?", a: "<b>" + escHtml(chName(d.hot[0].k)) + "</b> " + d.hot[0].vt.toFixed(1) + "배 (" + fmt(d.hot[0].n) + "건)",
       body: '<div class="chc-hbars">' + d.hot.map(function (r) { return '<div class="chc-hbar"><span>' + escHtml(chName(r.k)) + '</span><i><u style="width:' + (r.vt / d.hot[0].vt * 100).toFixed(1) + '%"></u></i><b>' + r.vt.toFixed(1) + "배</b></div>"; }).join("") + "</div>",
       how: "30일 건수 ÷ " + chCmpLabel().replace(" 대비", "") + " · 양쪽 " + CH_MIN + "건 이상 · 세대수 10% 넘게 몰린 단지(입주장) 제외" });
-    if (d.upM.length || d.dnM.length) C.push({ tag: "이달 값 변화", q: "최근 30일 값이<br>오른 동네, 내린 동네", a: "전국 3% 넘게 오른 곳 <b class=\"up\">" + d.up + "곳</b> · 내린 곳 <b class=\"down\">" + d.dn + "곳</b>",
+    if (d.upM.length || d.dnM.length) C.push({ tag: "이달 값 변화", dense: true, q: "최근 30일 값이<br>오른 동네, 내린 동네", a: "전국 3% 넘게 오른 곳 <b class=\"up\">" + d.up + "곳</b> · 내린 곳 <b class=\"down\">" + d.dn + "곳</b>",
       body: (d.upM.length ? '<div class="chc-h">▲ 오른 곳 (수도권)</div>' + chList(d.upM.map(function (r) { return [escHtml(chName(r.k)), fmt(r.n) + "건", chPct(r.pc), "up"]; }), 2) : "") + (d.dnM.length ? '<div class="chc-h">▼ 내린 곳 (수도권)</div>' + chList(d.dnM.map(function (r) { return [escHtml(chName(r.k)), fmt(r.n) + "건", chPct(r.pc), "down"]; }), 2) : ""),
       how: "㎡당 중위 " + chCmpLabel() });
-    var rm = chRateEvents(31);
-    if (rm.length) C.push({ tag: "이달 금리·정책", q: "이번 달 금리·정책,<br>무엇이 있었나?", a: "<b>" + escHtml(rm[0].t) + "</b>", body: chList(rm.slice(0, 6).map(function (e) { return [escHtml(e.t), "", chMD(e.d)]; }), 2, 4), how: "한국은행 ECOS · 대책 목록 · 보도자료 자동 점검" });
+    var rm = chRateEvents(k.d);
+    if (rm.length) C.push({ tag: "이달 금리·정책", dense: true, q: k.m + "월 금리·정책,<br>무엇이 있었나?", a: "<b>" + escHtml(rm[0].t) + "</b>", body: chList(rm.slice(0, 7).map(function (e) { return [escHtml(e.t), "", chMD(e.d)]; }), 2, 5), how: "한국은행 ECOS · 대책 목록 · 보도자료 자동 점검" });
     var kwm = chKeywords(8);
-    if (kwm.length) C.push({ tag: "이달의 키워드", q: "이번 달 기사,<br>한 단어로 하면?", a: "<b>" + escHtml(kwm[0][0]) + "</b> " + kwm.slice(1, 4).map(function (x) { return "· " + escHtml(x[0]); }).join(" "),
+    if (kwm.length) C.push({ tag: "이달의 키워드", dense: true, q: k.m + "월 기사,<br>한 단어로 하면?", a: "<b>" + escHtml(kwm[0][0]) + "</b> " + kwm.slice(1, 4).map(function (x) { return "· " + escHtml(x[0]); }).join(" "),
       body: '<div class="chc-hbars">' + kwm.map(function (x) { return '<div class="chc-hbar"><span>' + escHtml(x[0]) + '</span><i><u style="width:' + (x[1] / kwm[0][1] * 100).toFixed(0) + '%;background:#16294a"></u></i><b style="color:#18202c">' + x[1] + "</b></div>"; }).join("") + "</div>", how: "최근 기사 제목 집계 · 구글 뉴스" });
   } else if (tab === "monthahead") {
     var ny = k.m === 12 ? k.y + 1 : k.y, nm2 = k.d <= 3 ? k.m : (k.m === 12 ? 1 : k.m + 1); if (k.d <= 3) ny = k.y;
     var mf = ny * 10000 + nm2 * 100 + 1, mt = ny * 10000 + nm2 * 100 + chDaysInMonth(ny, nm2), evm = chEvents(mf, mt), unm = chUpcomingNews(mf, mt);
     var byKind = {}; evm.forEach(function (e) { byKind[e.kind] = (byKind[e.kind] || 0) + 1; });
-    C.push({ tag: "한달 예상", q: nm2 + "월,<br>부동산 일정 한눈에", a: "<b>" + evm.length + "건</b> · " + Object.keys(byKind).map(function (x) { return x + " " + byKind[x]; }).join(" · "),
-      body: chList(evm.filter(function (e) { return e.kind !== "통계" || /월간|주택통계/.test(e.title); }).slice(0, 9).map(chEvRow), 2, 5),
+    C.push({ tag: "한달 예상", dense: true, q: nm2 + "월,<br>부동산 일정 한눈에", a: "<b>" + evm.length + "건</b> · " + Object.keys(byKind).map(function (x) { return x + " " + byKind[x]; }).join(" · "),
+      body: chList(evm.filter(function (e) { return e.kind !== "통계" || /월간|주택통계/.test(e.title); }).slice(0, 12).map(chEvRow), 2, 7),
       more: "월간 일정은 '세금·정책·금리'가 핵심입니다. 주간 지수 발표는 매주 반복이라 여기선 월간·월말 통계만 추렸습니다.",
       how: "일정 파일 + 대책 시행일 + 노선 개통 예정 월 · (날짜 확인 필요) 는 공식 일정으로 확인" });
     C.push({ tag: "이달 체크포인트", q: nm2 + "월,<br>무엇을 보면 되나?", a: "지난달 확정 거래량과 이달 신고 흐름을 견주는 달", body: chList(chCheckpoints(evm).map(function (c) { return ['<i class="chc-pill">' + c[0] + "</i>" + c[1], "", ""]; }), 2), how: "월말 '한달 정리'에서 답을 맞춰 봅니다" });
@@ -4080,15 +4273,24 @@ function chOpsText(tab) {
     var nw = chNewsSince(30).slice(0, 4); if (nw.length) { L.push("■ 어제 기사 제목"); nw.forEach(function (n) { L.push("· " + n.t + (n.s ? " (" + n.s + ")" : "")); }); L.push(""); }
     L.push("※ '어제 신고'에는 2~4주 전 계약이 섞여 있습니다(신고 기한 30일). 하루 숫자보다 일주일 흐름으로 보세요.");
   } else if (tab === "week") {
-    var wa = chWeekSum(S.all), ws = chWeekSum(S.seoul), wg = chWeekSum(S.ggic), hw = chWeekHighs(7);
-    L.push("[이번 주 부동산 정리] " + chToday()); L.push("국토부 아파트 실거래 · 최근 7일 계약분"); L.push("");
-    L.push("■ 거래"); L.push("· 전국 " + fmt(wa.wk) + "건" + (wa.chg != null ? " (일주일 전 같은 시점 대비 " + chPct(wa.chg, 0) + ")" : "")); L.push("· 서울 " + fmt(ws.wk) + "건" + (ws.chg != null ? " (" + chPct(ws.chg, 0) + ")" : "") + " / 경기·인천 " + fmt(wg.wk) + "건" + (wg.chg != null ? " (" + chPct(wg.chg, 0) + ")" : "")); L.push("");
-    if (hw.length) { L.push("■ 이번 주 신고가 " + hw.length + "곳"); hw.slice(0, 5).forEach(function (t, i) { L.push((i + 1) + ". " + t.apt + " (" + chName(t.k) + ") " + chArea(t) + " " + eok(t.max.amount) + " " + chPct(t.u, 1)); }); L.push(""); }
+    var ws0 = chWeekStart(chKstNow()), wFrom = chDayKey(ws0), wTo = today, pFrom = chDayKey(chShift(ws0, -7)), pTo = chDayKey(chShift(ws0, -1));
+    var nw1 = chNewSum(wFrom, wTo), nw0 = chNewSum(pFrom, pTo), hw = chHighsBetween(wFrom, wTo), wa = chWeekSum(S.all), ws = chWeekSum(S.seoul), wg = chWeekSum(S.ggic);
+    L.push("[이번 주 부동산 정리] " + chMD(wFrom) + "~" + chMD(wTo)); L.push("국토부 아파트 실거래 신고 · 수집 " + kstTxt(CH.data.builtAt) + " 기준"); L.push("");
+    if (nw1.ok) {
+      var cmpOk = nw0.ok && nw0.days.length >= 6 && nw1.days.length >= 6;
+      L.push("■ 이번 주 새로 집계된 거래 (" + nw1.days.length + "일치)"); L.push("· 전국 " + fmt(nw1.all) + "건" + (cmpOk && nw0.all ? " (지난주 " + fmt(nw0.all) + "건 대비 " + chPct((nw1.all / nw0.all - 1) * 100, 0) + ")" : ""));
+      L.push("· 서울 " + fmt(nw1.se) + "건" + (cmpOk && nw0.se ? " (" + chPct((nw1.se / nw0.se - 1) * 100, 0) + ")" : "") + " / 경기·인천 " + fmt(nw1.gi) + "건" + (cmpOk && nw0.gi ? " (" + chPct((nw1.gi / nw0.gi - 1) * 100, 0) + ")" : ""));
+      L.push("· 날짜별(전국): " + nw1.days.map(function (r) { return chMD(r[0]) + " " + fmt(r[1]); }).join(" · "));
+    } else {
+      L.push("■ 거래 (7일 계약분 · 신고 진행 중이라 최종치 아님)"); L.push("· 전국 " + fmt(wa.wk) + "건" + (wa.chg != null ? " (일주일 전 같은 시점 대비 " + chPct(wa.chg, 0) + ")" : "")); L.push("· 서울 " + fmt(ws.wk) + "건 / 경기·인천 " + fmt(wg.wk) + "건");
+    }
+    L.push("");
+    if (hw.length) { L.push("■ 이번 주 계약 신고가 " + hw.length + "곳"); hw.slice(0, 6).forEach(function (t, i) { L.push((i + 1) + ". " + t.apt + " (" + chName(t.k) + ") " + chArea(t) + " " + eok(t.max.amount) + " " + chPct(t.u, 1) + " · " + chMD(t.max.d)); }); L.push(""); }
     if (d.upM.length || d.dnM.length) { L.push("■ 값이 움직인 곳 (30일 ㎡당 중위, 수도권)"); d.upM.forEach(function (r) { L.push("· ▲ " + chName(r.k) + " " + chPct(r.pc)); }); d.dnM.forEach(function (r) { L.push("· ▼ " + chName(r.k) + " " + chPct(r.pc)); }); L.push(""); }
-    var re = chRateEvents(7); if (re.length) { L.push("■ 금리·정책"); re.slice(0, 4).forEach(function (e) { L.push("· " + chMD(e.d) + " " + e.t); }); L.push(""); }
+    var re = chRateEvents(today - wFrom + 1); if (re.length) { L.push("■ 금리·정책"); re.slice(0, 5).forEach(function (e) { L.push("· " + chMD(e.d) + " " + e.t); }); L.push(""); }
     var kw = chKeywords(6); if (kw.length) L.push("■ 많이 나온 말: " + kw.map(function (x) { return x[0] + "(" + x[1] + ")"; }).join(" · "));
-    var nx = chEvents(today + 1, chDayKey(chShift(chKstNow(), 7))); if (nx.length) { L.push(""); L.push("■ 다음 주 일정"); evLines(nx, 4); }
-    L.push(""); L.push("※ 7일 건수는 신고 기한 때문에 실제보다 적게 잡혀, 일주일 전 같은 시점 집계와 견줍니다.");
+    var nx = chEvents(today + 1, chDayKey(chShift(chKstNow(), 7))); if (nx.length) { L.push(""); L.push("■ 다음 주 일정"); evLines(nx, 5); }
+    L.push(""); L.push("※ '집계된 거래' = 그날 새벽 수집에서 30일 집계에 새로 들어온 신고(계약일과 다름). 신고가는 수집 시점 기준이며 뒤늦은 신고로 바뀔 수 있습니다.");
   } else if (tab === "weekahead") {
     var mon = k.w === 1 ? chKstNow() : chShift(chKstNow(), (8 - k.w) % 7), from = chDayKey(mon), to = chDayKey(chShift(mon, 6)), ev = chEvents(from, to), un = chUpcomingNews(from, to);
     L.push("[이번 주 부동산 일정] " + chMD(from) + "~" + chMD(to)); L.push("");
@@ -4097,15 +4299,16 @@ function chOpsText(tab) {
     L.push(""); L.push("■ 지난주 숫자 (비교 기준)"); L.push("· 전국 7일 계약 " + fmt(chWeekSum(S.all).wk) + "건 · 신고가 " + chWeekHighs(7).length + "곳 · 30일 누적 " + fmt(d.all.n) + "건");
     if (un.length) { L.push(""); L.push("■ 기사·보도자료가 말한 예정 (확인 필요)"); un.slice(0, 4).forEach(function (n) { L.push("· " + (n.when ? chMD(n.when) + " " : "") + n.t + (n.s ? " (" + n.s + ")" : "")); }); }
   } else if (tab === "month") {
-    var mo = chMonthlyCard(), hm = chWeekHighs(30);
-    L.push("[이번 달 부동산 정리] " + chToday()); L.push("");
-    if (mo) { L.push("■ " + mo.q.replace(/<br>/g, " ")); L.push("· " + mo.a.replace(/<[^>]+>/g, "")); L.push(""); }
-    L.push("■ 최근 30일 거래"); L.push("· 전국 " + fmt(d.all.n) + "건 (" + chCmpLabel() + " " + chPct(d.all.chg, 0) + ") · 서울 " + fmt(d.se.n) + "건 (" + chPct(d.se.chg, 0) + ") · 경기·인천 " + fmt(d.gi.n) + "건 (" + chPct(d.gi.chg, 0) + ")"); L.push("");
-    if (hm.length) { L.push("■ 이달의 신고가 TOP"); hm.slice(0, 5).forEach(function (t, i) { L.push((i + 1) + ". " + t.apt + " (" + chName(t.k) + ") " + chArea(t) + " " + eok(t.max.amount) + " " + chPct(t.u, 1)); }); L.push(""); }
-    if (d.hot.length) { L.push("■ 거래 급증"); d.hot.slice(0, 3).forEach(function (r) { L.push("· " + chName(r.k) + " " + r.vt.toFixed(1) + "배 (" + fmt(r.n) + "건)"); }); L.push(""); }
-    if (d.upM.length || d.dnM.length) { L.push("■ 값 변화 (수도권)"); d.upM.forEach(function (r) { L.push("· ▲ " + chName(r.k) + " " + chPct(r.pc)); }); d.dnM.forEach(function (r) { L.push("· ▼ " + chName(r.k) + " " + chPct(r.pc)); }); L.push(""); }
-    var rm = chRateEvents(31); if (rm.length) { L.push("■ 금리·정책"); rm.slice(0, 5).forEach(function (e) { L.push("· " + chMD(e.d) + " " + e.t); }); L.push(""); }
+    var mFrom = k.y * 10000 + k.m * 100 + 1, nm1 = chNewSum(mFrom, today), hm = chHighsBetween(mFrom, today), mo = chMonthlyCard();
+    L.push("[" + k.m + "월 부동산 정리] " + k.m + ".1~" + k.m + "." + k.d); L.push("국토부 아파트 실거래 신고 · 수집 " + kstTxt(CH.data.builtAt) + " 기준"); L.push("");
+    if (nm1.ok) { L.push("■ 이달 새로 집계된 거래 (" + nm1.days.length + "일치)"); L.push("· 전국 " + fmt(nm1.all) + "건 · 서울 " + fmt(nm1.se) + "건 · 경기·인천 " + fmt(nm1.gi) + "건"); L.push(""); }
+    if (mo) { L.push("■ 지난달 확정 결산 — " + mo.q.replace(/<br>/g, " ")); L.push("· " + mo.a.replace(/<[^>]+>/g, "")); L.push(""); }
+    if (hm.length) { L.push("■ 이달 계약 신고가 TOP (" + hm.length + "곳)"); hm.slice(0, 6).forEach(function (t, i) { L.push((i + 1) + ". " + t.apt + " (" + chName(t.k) + ") " + chArea(t) + " " + eok(t.max.amount) + " " + chPct(t.u, 1) + " · " + chMD(t.max.d)); }); L.push(""); }
+    if (d.hot.length) { L.push("■ 거래 급증 (최근 30일)"); d.hot.slice(0, 3).forEach(function (r) { L.push("· " + chName(r.k) + " " + r.vt.toFixed(1) + "배 (" + fmt(r.n) + "건)"); }); L.push(""); }
+    if (d.upM.length || d.dnM.length) { L.push("■ 값 변화 (최근 30일, 수도권)"); d.upM.forEach(function (r) { L.push("· ▲ " + chName(r.k) + " " + chPct(r.pc)); }); d.dnM.forEach(function (r) { L.push("· ▼ " + chName(r.k) + " " + chPct(r.pc)); }); L.push(""); }
+    var rm = chRateEvents(k.d); if (rm.length) { L.push("■ 금리·정책"); rm.slice(0, 6).forEach(function (e) { L.push("· " + chMD(e.d) + " " + e.t); }); L.push(""); }
     var kwm = chKeywords(6); if (kwm.length) L.push("■ 이달의 키워드: " + kwm.map(function (x) { return x[0]; }).join(" · "));
+    L.push(""); L.push("※ 이달 계약 기준 거래량은 신고가 끝나는 다음 달 초에 확정됩니다(월간 결산 카드). 여기 숫자는 '이달에 집계된 신고' 와 수집 시점의 신고가입니다.");
   } else if (tab === "monthahead") {
     var ny = k.y, nm2 = k.d <= 3 ? k.m : (k.m === 12 ? 1 : k.m + 1); if (k.d > 3 && k.m === 12) ny = k.y + 1;
     var mf = ny * 10000 + nm2 * 100 + 1, mt = ny * 10000 + nm2 * 100 + chDaysInMonth(ny, nm2), evm = chEvents(mf, mt), unm = chUpcomingNews(mf, mt);

@@ -6,8 +6,48 @@
    열 이름은 다운로드 시점마다 조금씩 달라서 '학교명' '평균' '과목' 처럼 핵심 낱말로 찾는다. UTF-8 · EUC-KR(엑셀 기본) 둘 다 읽는다.
    ※ 국가수준 학업성취도평가의 학교별 결과는 2017년 이후 공개되지 않는다. 여기 '평균' 은 학교알리미에 공시된 학교 내신(지필+수행) 평균이라
       학교끼리 시험 난이도가 달라 절대 비교는 어렵다. 그래서 A 비율·특목고 진학률을 함께 둔다. 앱 설명에도 같은 문장을 적는다. */
+/* v9.1 학교알리미 OpenAPI(무료 인증키, 환경변수 SCHOOLINFO_API_KEY): 학교 기본정보(주소·좌표)와 학년별 학생수·학급수는 자동으로 받는다.
+   교과별 학업성취 사항·졸업생의 진로 현황은 OpenAPI 미제공 항목(화면은 캡차 보호)이라 CSV 로만 들어온다 — 둘을 학교코드/학교명으로 합친다. */
 var fs = require("fs"), path = require("path");
 var ROOT = path.join(__dirname, ".."), DIR = path.join(ROOT, "data", "school"), OUT = path.join(ROOT, "school_data.json");
+var API_KEY = (process.env.SCHOOLINFO_API_KEY || "").trim(), API_BASE = process.env.SCHOOLINFO_BASE || "https://www.schoolinfo.go.kr/openApi.do";
+var API_SIDO = { "11": "서울", "26": "부산", "27": "대구", "28": "인천", "29": "광주", "30": "대전", "31": "울산", "36": "세종", "41": "경기", "43": "충북", "44": "충남", "47": "경북", "48": "경남", "50": "제주", "51": "강원", "52": "전북", "46": "전남" };
+var API_SGG = { "36": "36110" };
+async function apiCall(item, kind, sido, year) {
+  var q = { apiKey: API_KEY, apiType: item, pbanYr: year, schulKndCode: kind, sidoCode: sido, sggCode: API_SGG[sido] || sido + "000" };
+  var url = API_BASE + "?" + Object.keys(q).map(function (k) { return k + "=" + encodeURIComponent(q[k]); }).join("&");
+  for (var i = 0; i < 3; i++) {
+    try {
+      var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, 120000);
+      var r = await fetch(url, { signal: ac.signal }); clearTimeout(t);
+      var d = await r.json();
+      if (d.resultCode === "success") return d.list || [];
+      if (/공시되지 않은|존재하지/.test(d.resultMsg || "")) return null;
+      throw new Error(d.resultMsg || "응답 오류");
+    } catch (e) { if (i === 2) { console.warn("  ! apiType=" + item + " kind=" + kind + " sido=" + sido + " " + year + ": " + e.message); return []; } await new Promise(function (res) { setTimeout(res, 1500 * (i + 1)); }); }
+  }
+}
+async function apiFetch(item, kind, sido) {
+  var y = new Date().getFullYear();
+  for (var k = 0; k < 3; k++) { var rows = await apiCall(item, kind, sido, y - k); if (rows === null) continue; return { year: y - k, rows: rows }; }
+  return { year: null, rows: [] };
+}
+/* 학교 기본정보(0) + 학년별 학생수(09) → { 코드: {n, k, addr, region, lat, lng, st, cls, per} } */
+async function apiSchools(log) {
+  if (!API_KEY) { log.push("SCHOOLINFO_API_KEY 없음 — 학교알리미 OpenAPI 는 건너뜀(주소·학생수는 CSV 의 지역 글자로만)"); return {}; }
+  var out = {}, calls = 0, years = {};
+  var sidos = Object.keys(API_SIDO), kinds = [["03", "중"], ["04", "고"]];
+  for (var i = 0; i < sidos.length; i++) for (var j = 0; j < kinds.length; j++) {
+    var base = await apiFetch("0", kinds[j][0], sidos[i]); calls++;
+    var stu = await apiFetch("09", kinds[j][0], sidos[i]); calls++;
+    if (base.year) years["기본정보"] = base.year; if (stu.year) years["학생수"] = stu.year;
+    base.rows.forEach(function (r) { if (!r.SCHUL_CODE || r.ABSCH_YN === "Y" || r.CLOSE_YN === "Y") return; out[r.SCHUL_CODE] = { n: r.SCHUL_NM, k: kinds[j][1], addr: r.SCHUL_RDNMA || r.ADRES_BRKDN || "", region: r.ADRCD_NM || "", lat: num(r.LTTUD), lng: num(r.LGTUD) }; });
+    stu.rows.forEach(function (r) { var o = out[r.SCHUL_CODE]; if (!o) return; o.st = num(r.COL_S_SUM); o.cls = num(r.COL_C_SUM); o.per = num(r.COL_SUM); });
+    if (calls % 8 === 0) await new Promise(function (res) { setTimeout(res, 1200); });     /* 분당 60회 제한 */
+  }
+  log.push("학교알리미 OpenAPI: 호출 " + calls + "회 · 학교 " + Object.keys(out).length + "곳 · 연도 " + JSON.stringify(years));
+  return out;
+}
 function readCsv(p) {
   var buf = fs.readFileSync(p), txt;
   try { txt = new TextDecoder("utf-8", { fatal: true }).decode(buf); } catch (e) { txt = new TextDecoder("euc-kr").decode(buf); }
@@ -49,12 +89,17 @@ function place(addr, region) {
   var m = s.match(/\s([가-힣0-9]+(?:동|읍|면))(?:\s|$|\d)/), dong = m ? m[1].replace(/\d+$/, "") : "";
   return { lawd: best ? best.c : null, dong: dong, sido: sd };
 }
-function main() {
-  if (!fs.existsSync(DIR)) { console.log("data/school 폴더가 없습니다 — 학교알리미 CSV 를 올려 주세요."); process.exit(0); }
-  var files = fs.readdirSync(DIR).filter(function (f) { return /\.csv$/i.test(f); });
-  if (!files.length) { console.log("data/school 에 CSV 가 없습니다."); process.exit(0); }
+async function main() {
+  var files = fs.existsSync(DIR) ? fs.readdirSync(DIR).filter(function (f) { return /\.csv$/i.test(f); }) : [];
+  if (!files.length && !API_KEY) { console.log("data/school 에 CSV 가 없고 SCHOOLINFO_API_KEY 도 없습니다 — 건너뜁니다."); process.exit(0); }
   var S = {}, log = [];
-  function sch(code, name) { var k = code || name; if (!S[k]) S[k] = { c: code || "", n: name, k: /고등학교$|고$/.test(name) ? "고" : /중학교$|중$/.test(name) ? "중" : "", a: {}, A: {}, s: null }; return S[k]; }
+  var API = await apiSchools(log), byName = {};
+  Object.keys(API).forEach(function (c) { var a = API[c]; byName[a.n + "|" + (a.region || "").split(" ").slice(-1)[0]] = c; byName[a.n] = byName[a.n] || c; });
+  function sch(code, name) {
+    var k = code || byName[name] || name;
+    if (!S[k]) S[k] = { c: code || byName[name] || "", n: name, k: /고등학교$|고$/.test(name) ? "고" : /중학교$|중$/.test(name) ? "중" : "", a: {}, A: {}, s: null };
+    return S[k];
+  }
   var SUBJ = { "국어": "ko", "영어": "en", "수학": "ma" };
   files.forEach(function (f) {
     var T = table(readCsv(path.join(DIR, f))); if (!T) { log.push(f + ": 머리글(학교명) 못 찾음"); return; }
@@ -92,20 +137,28 @@ function main() {
       log.push(f + ": 기본정보 " + n3 + "행");
     } else log.push(f + ": 파일 이름으로 종류를 알 수 없음(성취/진로/학교 중 하나를 이름에 넣어 주세요)");
   });
-  var out = { v: 1, built: new Date().toISOString().slice(0, 10), src: "학교알리미 공시자료(schoolinfo.go.kr) · " + files.join(", "), schools: [] }, miss = 0;
+  /* OpenAPI 학교를 합친다 — CSV 에 없는 학교도 주소·학생수만으로 들어간다(동네 상세용) */
+  Object.keys(API).forEach(function (c) {
+    var a = API[c], o = S[c] || (S[c] = { c: c, n: a.n, k: a.k, a: {}, A: {}, s: null });
+    if (!o.k) o.k = a.k;
+    var pl = place(a.addr, a.region); if (pl.lawd || !o.pl) o.pl = pl;
+    if (a.st) o.st = a.st; if (a.cls) o.cls = a.cls; if (a.per) o.per = a.per; if (a.lat) { o.lat = a.lat; o.lng = a.lng; }
+  });
+  var out = { v: 1, built: new Date().toISOString().slice(0, 10), src: "학교알리미 공시자료(schoolinfo.go.kr)" + (files.length ? " · " + files.join(", ") : "") + (API_KEY ? " · OpenAPI 기본정보·학생수" : ""), schools: [] }, miss = 0;
   Object.keys(S).forEach(function (k) {
     var o = S[k], pl = o.pl || {}; if (!pl.lawd) miss++;
     var ks = Object.keys(o.a);
     var rec = { c: o.c, n: o.n, k: o.k, l: pl.lawd || null, d: pl.dong || "", sd: pl.sido || "" };
     if (ks.length) { rec.a = o.a; rec.A = o.A; rec.gr = o.gr; rec.sem = o.sem; rec.avg = Math.round(ks.reduce(function (s, x) { return s + o.a[x]; }, 0) / ks.length * 10) / 10; var As = ks.map(function (x) { return o.A[x]; }).filter(function (v) { return v != null; }); if (As.length) rec.Aavg = Math.round(As.reduce(function (s, v) { return s + v; }, 0) / As.length * 10) / 10; }
     if (o.s) { rec.s = o.s; rec.sp = Math.round((o.s.sci + o.s.fl + o.s.gift) / o.s.grad * 1000) / 10; rec.spA = Math.round((o.s.sci + o.s.fl + o.s.gift + o.s.ar) / o.s.grad * 1000) / 10; }
-    if (o.st) rec.st = o.st;
-    if (rec.avg != null || rec.sp != null) out.schools.push(rec);
+    if (o.st) rec.st = o.st; if (o.cls) rec.cls = o.cls; if (o.per) rec.per = o.per; if (o.lat) { rec.lat = o.lat; rec.lng = o.lng; }
+    if (rec.avg != null || rec.sp != null || rec.st != null) out.schools.push(rec);
   });
   out.schools.sort(function (a, b) { return (b.avg || 0) - (a.avg || 0); });
-  out.n = { mid: out.schools.filter(function (s) { return s.k === "중"; }).length, high: out.schools.filter(function (s) { return s.k === "고"; }).length, noRegion: miss };
+  out.n = { mid: out.schools.filter(function (s) { return s.k === "중"; }).length, high: out.schools.filter(function (s) { return s.k === "고"; }).length, noRegion: miss,
+    withAch: out.schools.filter(function (s) { return s.avg != null; }).length, withCareer: out.schools.filter(function (s) { return s.sp != null; }).length, withStu: out.schools.filter(function (s) { return s.st != null; }).length };
   out.log = log;
   fs.writeFileSync(OUT, JSON.stringify(out));
   console.log(log.join("\n")); console.log("school_data.json — 중 " + out.n.mid + " · 고 " + out.n.high + " · 지역 못 찾음 " + miss + " · " + Math.round(fs.statSync(OUT).size / 1024) + "KB");
 }
-main();
+main().catch(function (e) { console.error(e); process.exit(1); });

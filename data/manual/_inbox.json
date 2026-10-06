@@ -1,8 +1,21 @@
 {
  "v": 1,
- "builtAt": "2026-10-06T04:30:31.137Z",
+ "builtAt": "2026-10-06T05:34:21.327Z",
  "asOf": 20261006,
  "items": [
+  {
+   "kind": "transit",
+   "line": "GTX-B 인천대입구~마석",
+   "what": "일정 변경",
+   "date": "2026-10-06",
+   "title": "GTX-B 청학역 변전소 절차 지연에 주민 반발…“개통 늦어질라”",
+   "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE92NnpWRmxrU2RhbW5HdWUwMUd2Q19xLWtwZGNOanozYU9BbTdkT2MtUEZjUjFocWdtdmVjNGZ4VjlZTlQ2RWt1dXcyLVl0Z2R6a2JKSTFkZFduaHR2QmdEZUhRSkwzOUNUcVE?oc=5",
+   "src": "인천일보",
+   "official": false,
+   "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
+   "firstSeen": "2026-10-06",
+   "isNew": true
+  },
   {
    "kind": "loan",
    "name": "버팀목 전세대출",
@@ -22,7 +35,7 @@
    "date": "2026-10-05",
    "title": "신혼 가구 보금자리론 소득 기준 완화",
    "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE9fbkswdEhaeXlENTJSTWpPa2QxTDcwdGZaZUNRaElWMy1HMmMtQ2VmazlaanZwOE1fWEF4UllacFE4cGpsOEJEZ2dtVThVMVlqeVZqYTQ0ZzFtMWc?oc=5",
-   "src": "KBS 뉴스",
+   "src": "news.kbs.co.kr",
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-06",

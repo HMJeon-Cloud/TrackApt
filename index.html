@@ -1226,6 +1226,20 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chcard .chc-row>div.ol3 b{font-size:11.1px}.chcard .chc-row>div.ol3 small{font-size:9.2px}
 .chcard .chc-row>div.ol4 b{font-size:10.5px}.chcard .chc-row>div.ol4 small{font-size:8.8px}
 .chcard .chc-fill{min-height:0}
+/* v9.0 학군 */
+.scrow{cursor:pointer}
+.scrow.on{outline:2px solid var(--accent);outline-offset:-2px}
+.scvs{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.scvs-h,.scvs-r{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 12px;border-top:1px solid var(--line)}
+.scvs-h{border-top:0;background:var(--bg);font-size:.74rem;font-weight:800;color:var(--sub)}
+.scvs-r>span:first-child{font-size:.86rem;font-weight:700;min-width:0}
+.scvs-r>span:first-child small{display:block;font-weight:500;color:var(--sub);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scvs-r>span i{display:block;height:7px;background:var(--bg);border-radius:4px;overflow:hidden;margin-bottom:3px}
+.scvs-r>span u{display:block;height:100%;background:#16294a;text-decoration:none}
+.scvs-r>span u.p{background:#c9a35c}
+.scvs-r>span b{font-size:.8rem}
+.chcard .chc-vsrs{display:flex;flex-direction:column;gap:6px}
+.chcard .chc-vsr b small{display:block;font-weight:600;color:#8a6d3b;font-size:10px}
 </style>
 </head>
 <body>
@@ -1233,7 +1247,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v8.4</span>
+    <span class="ver">v9.0</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1324,6 +1338,7 @@ var GROUPS = [
     { id: "tiers",   name: "전국 등급표", cat: "region", ic: "🏅", d: "시·군·구 10분위 급지표", build: buildTiers },
     { id: "rank",    name: "지역 순위",   cat: "region", ic: "🪜", d: "내 현금이 닿는 가장 위쪽", build: buildRank },
     { id: "mapx",    name: "지도로 보기", cat: "region", ic: "🗺️", d: "급지를 지도 위에서", build: buildMapx },
+    { id: "school",  name: "학군",        cat: "region", ic: "🏫", d: "학교알리미로 보는 학군지·학교 순위", build: buildSchool },
     { id: "gap",     name: "전세 끼고 사기", cat: "region", ic: "🔑", d: "갭과 전세가율 위치", build: buildGap },
     { id: "move",    name: "갈아타기",    cat: "region", ic: "↗️", d: "내 동네와의 가격 격차", build: buildMove },
     { id: "rota",    name: "다음 오를 곳", cat: "region", ic: "🔁", d: "같이 가던 동네 중 뒤처진 곳", build: buildRota },
@@ -1438,6 +1453,7 @@ function showTab(id) {
   if (id === "home") renderHomeData();
   if (id === "brief" && DB) renderBrief();
   if (id === "channel" && DB) renderChannel();
+  if (id === "school" && DB) renderSchool();
   if (!DB) return;
   if (id === "market") renderMarket();
   if (id === "rank") renderRank();
@@ -2370,8 +2386,8 @@ if ("serviceWorker" in navigator) {
    글은 고쳐 쓸 수 있는 칸에 넣고 [복사]로 가져간다. 카드는 360×450 을 3배로 찍어 1080×1350. */
 var CH = { tab: "daily", data: null, loading: false, scope: "all", band: "all" };   /* v8.0: scope/band = 카드 범위·평형 ("all"·"all" 이면 코너 기본 카드) */
 var CH_TABS = [["recap", "전일 정리"], ["week", "한주 정리"], ["weekahead", "한주 예상"], ["month", "한달 정리"], ["monthahead", "한달 예상"],
-  ["daily", "데일리"], ["lead", "대장아파트"], ["macro", "금리·정책"], ["mdd", "MDD·회복"], ["move", "내 집·갈아타기"], ["terms", "용어 한입"]];
-var CH_TAB_SHORT = { recap: "전일 정리", week: "한주 정리", weekahead: "한주 예상", month: "한달 정리", monthahead: "한달 예상", daily: "데일리", lead: "대장", macro: "금리·정책", mdd: "MDD", move: "내 집", terms: "용어" };
+  ["daily", "데일리"], ["lead", "대장아파트"], ["macro", "금리·정책"], ["mdd", "MDD·회복"], ["move", "내 집·갈아타기"], ["school", "학군"], ["terms", "용어 한입"]];
+var CH_TAB_SHORT = { recap: "전일 정리", week: "한주 정리", weekahead: "한주 예상", month: "한달 정리", monthahead: "한달 예상", daily: "데일리", lead: "대장", macro: "금리·정책", mdd: "MDD", move: "내 집", school: "학군", terms: "용어" };
 var CH_REGULAR = ["recap", "week", "weekahead", "month", "monthahead"];
 var CH_FOOT = "※ 국토부 실거래 신고를 정리한 참고 자료이며 투자 권유가 아닙니다.";
 
@@ -2554,6 +2570,7 @@ function chCardsFor(tab) {
   var C = [];
   function wrap(file, html) { return '<div class="chcardWrap">' + html + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_" + file) + '">이미지 저장</button></div>'; }
   if (tab === "terms") { chTermsCards().forEach(function (o, i) { C.push(wrap("용어_" + (i + 1), chCard(o))); }); note = "용어 카드는 범위·평형과 무관합니다."; }
+  else if (tab === "school") { scCards(codes, nm).forEach(function (o, i) { C.push(wrap("학군_" + nm + "_" + i, chCard(o))); }); note = nm + " 중학교 자료로 만든 카드입니다(평형 칩은 무관)."; }
   else if (typeof CH_OPS_TABS !== "undefined" && CH_OPS_TABS[tab]) { chOpsCards(tab).forEach(function (o, i) { C.push(wrap(CH_OPS_TABS[tab] + "_" + (i + 1), chCard(o))); }); note = "정기 코너는 전국 기준입니다(범위·평형 칩은 주제 코너에만 적용)."; }
   else if (tab === "lead") chLeadCards(codes, chLbk(CH.band), nm).forEach(function (o, i) { C.push(wrap("대장_" + nm + "_" + i, chCard(o))); });
   else if (tab === "macro") mcCards(codes, nm).forEach(function (o, i) { C.push(wrap("금리정책_" + nm + "_" + i, chCard(o))); });
@@ -2570,7 +2587,7 @@ function renderChannel() {
   CH.loading = true;
   var a = (typeof BRIEF !== "undefined" && BRIEF.data) ? Promise.resolve(BRIEF.data)
     : fetch("brief_data.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
-  var pm = new Promise(function (res) { macroLoad(res); });
+  var pm = new Promise(function (res) { macroLoad(res); if (typeof scLoad === "function") scLoad(function () {}); });
   Promise.all([a["catch"](function (e) { return { _err: String(e.message || e) }; }), pm]).then(function (vv) {
     var v = vv[0];
     CH.loading = false;
@@ -2939,6 +2956,7 @@ function chText(tab) {
   if (tab === "macro") return mcText();
   if (tab === "lead") return chLeadText(RANKED.filter(function (k) { return /^11/.test(k); }), "서울");
   if (tab === "terms") return typeof chTermsText === "function" ? chTermsText() : "";
+  if (tab === "school") return typeof scText === "function" ? scText(RANKED.filter(function (k) { return /^11/.test(k); }), "서울") : "";
   if (typeof CH_OPS_TABS !== "undefined" && CH_OPS_TABS[tab]) return chOpsText(tab);
   return chMoveText(chMove());
 }
@@ -3215,6 +3233,8 @@ function chCardsHtml(tab) {
     var yy = chYoYCard(RANKED.filter(function (k) { return /^(11|41|28)/.test(k); }), "수도권"); if (yy) add("1년 상승률", yy);
   } else if (tab === "terms") {
     if (typeof chTermsCards === "function") chTermsCards().forEach(function (o, i) { add("용어_" + (i + 1), o); });
+  } else if (tab === "school") {
+    if (typeof scCards === "function") { scCards(RANKED.filter(function (k) { return /^11/.test(k); }), "서울").forEach(function (o, i) { add("학군_서울_" + (i + 1), o); }); scCards(RANKED.filter(function (k) { return /^41/.test(k); }), "경기").slice(0, 1).forEach(function (o) { add("학군_경기", o); }); }
   } else if (typeof CH_OPS_TABS !== "undefined" && CH_OPS_TABS[tab]) {
     chOpsCards(tab).forEach(function (o, i) { add(CH_OPS_TABS[tab] + "_" + (i + 1), o); });
   } else if (tab === "macro") {
@@ -3290,7 +3310,7 @@ function paintChannel() {
     : "MDD·갈아타기 " + DB.sale.dates[1].replace("-", ".") + "까지 (자동 봉인 전)");
   meta.innerHTML = parts.join(" · ") || "불러오는 중…";
   var custom = !(CH.scope === "all" && CH.band === "all");
-  var baseTxt = (custom && CH.tab === "lead" && typeof chLeadText === "function") ? chLeadText(CH.scope === "all" ? RANKED.slice() : briefCodes(CH.scope), CH.scope === "all" ? "전국" : briefScopeName(CH.scope)) : chText(CH.tab);
+  var baseTxt = (custom && CH.tab === "school" && typeof scText === "function") ? scText(CH.scope === "all" ? RANKED.slice() : briefCodes(CH.scope), CH.scope === "all" ? "전국" : briefScopeName(CH.scope)) : (custom && CH.tab === "lead" && typeof chLeadText === "function") ? chLeadText(CH.scope === "all" ? RANKED.slice() : briefCodes(CH.scope), CH.scope === "all" ? "전국" : briefScopeName(CH.scope)) : chText(CH.tab);
   document.getElementById("ch-text").value = (!custom && typeof chPostText === "function") ? chPostText(CH.tab) : (baseTxt && typeof chCta === "function" && !/아직 읽지 못했|자료가 아직/.test(baseTxt) ? baseTxt + "\n\n" + chCta(CH.tab) + "\n\n" + chHashtags(CH.tab) : baseTxt);
   var cc = chCardsFor(CH.tab), note = document.getElementById("ch-cardnote");
   if (note) { note.textContent = cc.note; note.style.display = cc.note ? "" : "none"; }
@@ -3919,6 +3939,7 @@ var CH_TAGS_COMMON = ["#부동산", "#아파트", "#실거래가", "#부동산�
 var CH_TAGS = { daily: ["#아파트실거래", "#서울아파트", "#신고가", "#부동산시장", "#오늘의부동산"], lead: ["#대장아파트", "#신축아파트", "#대단지", "#서울대장"],
   macro: ["#기준금리", "#주담대금리", "#부동산정책", "#디딤돌대출", "#금리인하"], mdd: ["#집값", "#부동산하락", "#회복", "#부동산데이터"],
   move: ["#갈아타기", "#첫집", "#자금계획", "#서울84"], terms: ["#부동산용어", "#부동산기초", "#경제공부", "#부린이"],
+  school: ["#학군", "#학군지", "#대치동", "#목동", "#특목고", "#중학교"],
   recap: ["#어제의부동산", "#아파트실거래", "#신고가", "#오늘의부동산"], week: ["#주간부동산", "#이번주부동산", "#아파트실거래", "#신고가"],
   weekahead: ["#이번주일정", "#부동산일정", "#금통위", "#부동산정책"], month: ["#월간부동산", "#이달의부동산", "#아파트거래량", "#신고가"], monthahead: ["#이달의일정", "#부동산일정", "#세금일정", "#부동산정책"] };
 function chKstDate() { var d = new Date(Date.now() + 9 * 3600000); return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate(), w: d.getUTCDay(), key: d.toISOString().slice(0, 10) }; }
@@ -3961,7 +3982,7 @@ function chThreadsText(tab) {
 /* ── 표지·마무리 카드 (캐러셀 1장째·마지막) ── */
 function chCoverCard(tab, tags) {
   var plan = chTabName(tab), k = chKstDate(), days = ["일", "월", "화", "수", "목", "금", "토"];
-  var title = { daily: "오늘의 부동산,<br>숫자로 보는 " + k.m + "월 " + k.d + "일", recap: "어제의 부동산,<br>" + k.m + "월 " + k.d + "일 정리", week: "이번 주 부동산,<br>한 장으로 정리", weekahead: "이번 주 부동산,<br>무엇을 봐야 하나?", month: "이번 달 부동산,<br>숫자로 결산", monthahead: "다음 달 부동산,<br>일정 미리보기", lead: "지역별 대장아파트,<br>지금 얼마?", macro: "금리·정책,<br>이번 주 한눈에", mdd: "집값, 고점 대비<br>지금 어디쯤?", move: "내 집 마련·갈아타기,<br>현금 얼마면 될까?", terms: "부동산 용어,<br>한입에 정리" }[tab] || plan;
+  var title = { daily: "오늘의 부동산,<br>숫자로 보는 " + k.m + "월 " + k.d + "일", recap: "어제의 부동산,<br>" + k.m + "월 " + k.d + "일 정리", week: "이번 주 부동산,<br>한 장으로 정리", weekahead: "이번 주 부동산,<br>무엇을 봐야 하나?", month: "이번 달 부동산,<br>숫자로 결산", monthahead: "다음 달 부동산,<br>일정 미리보기", lead: "지역별 대장아파트,<br>지금 얼마?", macro: "금리·정책,<br>이번 주 한눈에", mdd: "집값, 고점 대비<br>지금 어디쯤?", move: "내 집 마련·갈아타기,<br>현금 얼마면 될까?", terms: "부동산 용어,<br>한입에 정리", school: "학군지는 어디?<br>학교알리미로 본 학군" }[tab] || plan;
   var uniq = []; (tags || []).forEach(function (t) { t = String(t).replace(/\s*·.*$/, ""); if (uniq.indexOf(t) < 0) uniq.push(t); });
   return { tag: plan, q: title,
     a: k.m + "." + k.d + "(" + days[k.w] + ") · 카드 " + (tags ? tags.length : 0) + "장 · 옆으로 넘겨 보세요 →",
@@ -4090,7 +4111,7 @@ function chPlanRegular() {
   return L;
 }
 function chPlanToday() { var r = chPlanRegular()[0]; return [r, CH_OPS_TABS[r]]; }
-function chPlanTheme() { var w = chKstDate().w; return { 2: "lead", 3: "macro", 4: "mdd", 5: "move", 6: "terms" }[w] || null; }
+function chPlanTheme() { var w = chKstDate().w; return { 2: "lead", 3: "macro", 4: "mdd", 5: "move", 6: (Math.floor(chKstDate().d / 7) % 2 ? "school" : "terms") }[w] || null; }   /* 토요일은 용어·학군 격주 */
 /* ── 일정 모으기: calendar.json(일회성+반복) + 대책 시행일 + 노선 개통 예정 월 ── */
 function chEvents(fromN, toN) {
   var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, cal = D.calendar || {}, out = [];
@@ -4368,6 +4389,154 @@ function chOpsText(tab) {
     L.push(""); L.push("※ 매주 반복되는 주간 지수 발표(목·금)는 뺐습니다. 금통위 날짜는 한국은행 공식 일정으로 확인하세요.");
   }
   L.push(""); L.push(CH_FOOT);
+  return L.join("\n");
+}
+
+/* ══ 학군 (v9.0) — 학교알리미 공시자료로 보는 학군지·학교 순위·학군 vs 집값 ══
+   자료: school_data.json (scripts/school_build.js 가 data/school/*.csv 에서 만든다)
+   지표 ① 국·영·수 평균(학교 내신 평균 — 학교마다 시험이 달라 참고용) ② 성취도 A 비율 ③ 특목고(과학고·외고·국제고·영재학교) 진학률(중학교)
+   국가수준 학업성취도평가의 학교별 결과는 2017년 이후 비공개라, 공시된 세 지표를 나란히 두고 본다. */
+var SC = { data: null, loading: false, scope: "seoul", kind: "중", metric: "sp", dong: null };
+var SC_METRICS = [["sp", "특목고 진학률", "과학고·외고·국제고·영재학교 진학자 ÷ 졸업자 (중학교)"], ["Aavg", "A 비율", "국·영·수 성취도 A 받은 학생 비율 평균"], ["avg", "국영수 평균", "국·영·수 학교 평균 점수의 평균 (학교 내신, 참고용)"]];
+/* 널리 알려진 학군지 — 동 이름으로 표시만 한다(점수에는 영향 없음) */
+var SC_HOT = { "대치동": "강남 대치", "도곡동": "강남 대치", "개포동": "강남", "목동": "목동", "신정동": "목동", "중계동": "중계", "상계동": "중계", "평촌동": "평촌", "호계동": "평촌", "범계동": "평촌", "영통동": "영통", "매탄동": "영통", "풍덕천동": "수지", "죽전동": "수지", "동천동": "수지", "상현동": "수지", "서현동": "분당", "수내동": "분당", "정자동": "분당", "이매동": "분당", "송도동": "송도", "좌동": "해운대", "우동": "해운대", "범어동": "수성", "만촌동": "수성", "황금동": "수성", "봉선동": "봉선", "둔산동": "둔산", "반포동": "반포", "잠실동": "잠실", "광장동": "광장", "일산동": "일산", "마두동": "일산" };
+function buildSchool(root) {
+  root.innerHTML =
+    '<div class="card"><h2>학군</h2>' +
+      '<p class="desc">학교알리미(schoolinfo.go.kr) 공시자료로 <b>학군지가 어디인지, 지역별로 어느 학교가 성취가 높은지</b> 봅니다. ' +
+        '지표는 세 가지입니다. <b>특목고 진학률</b>(중학교 졸업생 중 과학고·외고·국제고·영재학교 진학 비율 — 학군 비교에 가장 많이 쓰는 숫자), <b>A 비율</b>(국·영·수 성취도 A 를 받은 학생 비율), <b>국영수 평균</b>(학교 내신 평균). ' +
+        '국가수준 학업성취도평가의 학교별 점수는 2017년 이후 공개되지 않아, 공시된 이 세 지표를 나란히 둡니다. 내신 평균은 학교마다 시험 난이도가 달라 절대 비교가 어렵고, 특목고 진학률도 자사고·일반고 선호가 지역마다 달라 하나만 보면 틀립니다. ' +
+        '자료 올리는 법: 학교알리미 → 공시자료 다운로드 → "교과별(학년별) 학업성취 사항"·"졸업생의 진로 현황"(중학교) 을 엑셀로 받아 CSV 로 저장 → GitHub 의 data/school/ 에 올리고(파일 이름에 "성취"·"진로" 포함) Actions 를 한 번 돌리면 school_data.json 이 만들어집니다.</p>' +
+      '<div class="seg" id="sc-scope"></div><div class="seg" id="sc-scope2" style="margin-top:6px;display:none"></div>' +
+      '<div class="seg" id="sc-kind" style="margin-top:6px"><button type="button" data-k="중" class="on">중학교</button><button type="button" data-k="고">고등학교</button></div>' +
+      '<div class="seg" id="sc-metric" style="margin-top:6px">' + SC_METRICS.map(function (m) { return '<button type="button" data-m="' + m[0] + '"' + (m[0] === SC.metric ? ' class="on"' : "") + ">" + m[1] + "</button>"; }).join("") + "</div>" +
+      '<p class="hint" id="sc-status">자료를 여는 중…</p></div>' +
+    '<div class="card"><h2>학군지 순위 — 동네</h2>' +
+      '<p class="desc">같은 동(洞)에 있는 학교들의 지표 평균입니다. 학교가 2곳 이상인 동만 올립니다. 오른쪽은 그 시·군·구 전용 84㎡ 실거래 가운데값(월별 저장본)입니다. 널리 알려진 학군지는 이름표를 붙였습니다 — 점수에는 영향이 없습니다. 동네 줄을 누르면 아래에 그 동네 학교와 아파트가 나옵니다.</p>' +
+      '<div id="sc-dong"></div></div>' +
+    '<div class="card"><h2>학교 순위</h2>' +
+      '<p class="desc">고른 범위 안 학교를 지표 순으로 줄 세웁니다. 특목고 진학률은 중학교만 있습니다(고등학교는 A 비율·평균). 괄호 안은 과학고·외고·국제고·영재학교 진학자 수입니다.</p>' +
+      '<div id="sc-school"></div></div>' +
+    '<div class="card" id="sc-pick-card" style="display:none"><h2>이 동네 학교와 아파트</h2>' +
+      '<p class="desc">고른 동네의 학교 전체와, 그 시·군·구의 84㎡·59㎡ 실거래 가운데값·최근 30일 거래입니다. [단지] 를 누르면 아파트 찾기로 갑니다.</p>' +
+      '<div id="sc-pick"></div></div>' +
+    '<div class="card"><h2>학군 vs 집값</h2>' +
+      '<p class="desc">시·군·구별로 학군 지표 평균과 84㎡ 가운데값을 나란히 놓습니다. 학군이 좋은데 값이 덜 오른 곳, 값은 비싼데 학군 지표는 보통인 곳이 보입니다. 상관이 인과는 아닙니다 — 학군지는 직장·교통·신축 조건이 겹치는 경우가 많습니다.</p>' +
+      '<div id="sc-vs"></div></div>';
+  ["sc-scope", "sc-scope2"].forEach(function (id) { root.querySelector("#" + id).addEventListener("click", function (ev) { var b = ev.target.closest("button[data-s]"); if (!b) return; SC.scope = b.dataset.s; SC.dong = null; scPaintScope(); scRender(); }); });
+  root.querySelector("#sc-kind").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-k]"); if (!b) return; SC.kind = b.dataset.k; if (SC.kind === "고" && SC.metric === "sp") SC.metric = "Aavg"; scSeg("sc-kind", "k", SC.kind); scSeg("sc-metric", "m", SC.metric); scRender(); });
+  root.querySelector("#sc-metric").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-m]"); if (!b) return; SC.metric = b.dataset.m; if (SC.metric === "sp") { SC.kind = "중"; scSeg("sc-kind", "k", "중"); } scSeg("sc-metric", "m", SC.metric); scRender(); });
+  root.querySelector("#sc-dong").addEventListener("click", function (ev) { var r = ev.target.closest("[data-scdong]"); if (!r) return; SC.dong = r.dataset.scdong; scRender(); var pc = document.getElementById("sc-pick-card"); if (pc) pc.scrollIntoView({ behavior: "smooth", block: "start" }); });
+  scPaintScope();
+}
+function scSeg(id, attr, v) { var el = document.getElementById(id); if (!el) return; Array.prototype.forEach.call(el.querySelectorAll("button"), function (b) { b.classList.toggle("on", b.dataset[attr] === v); }); }
+function scPaintScope() {
+  var top = document.getElementById("sc-scope"), sub = document.getElementById("sc-scope2"); if (!top || typeof BRIEF_GROUPS === "undefined") return;
+  var f = briefFind(SC.scope);
+  top.innerHTML = BRIEF_GROUPS.map(function (g) { return '<button type="button" data-s="' + g.id + '"' + (g === f.g ? ' class="on"' : "") + ">" + g.name + "</button>"; }).join("");
+  sub.innerHTML = f.g.subs.length ? '<button type="button" data-s="' + f.g.id + '"' + (!f.s ? ' class="on"' : "") + ">전체</button>" + f.g.subs.map(function (x) { return '<button type="button" data-s="' + x.id + '"' + (f.s === x ? ' class="on"' : "") + ">" + x.name + "</button>"; }).join("") : "";
+  sub.style.display = f.g.subs.length ? "" : "none";
+}
+function scLoad(cb) {
+  if (SC.data) { cb(SC.data); return; }
+  if (SC.loading) return; SC.loading = true;
+  fetch("school_data.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (j) { SC.data = j; SC.loading = false; cb(j); })["catch"](function (e) { SC.loading = false; SC.data = { _err: String(e.message || e), schools: [] }; cb(SC.data); });
+}
+function scOk() { return SC.data && !SC.data._err && SC.data.schools && SC.data.schools.length; }
+function scVal(s, m) { return m === "sp" ? s.sp : m === "Aavg" ? s.Aavg : s.avg; }
+function scFmt(v, m) { return v == null ? "—" : m === "avg" ? v.toFixed(1) + "점" : v.toFixed(1) + "%"; }
+function scMetricNm(m) { return (SC_METRICS.filter(function (x) { return x[0] === m; })[0] || [])[1] || m; }
+function scPrice(l, ak) { if (typeof DB === "undefined" || !DB || !DB[ak || "a84"] || !DB[ak || "a84"].series[l]) return null; return typeof chLast === "function" ? chLast(chSer(ak || "a84", l)) : null; }
+function scCnt30(l) { var j = (typeof BRIEF !== "undefined" && BRIEF.regions && BRIEF.regions[l]) || (typeof CH !== "undefined" && CH.data && CH.data.regions && CH.data.regions[l]); return j && !j.error ? j.count : null; }
+/* 범위 안 학교 (학교급·지표 있는 것만) */
+function scPool(codes, kind, m) { return SC.data.schools.filter(function (s) { return s.l && codes.indexOf(s.l) >= 0 && s.k === kind && scVal(s, m) != null; }); }
+/* 동네 집계 */
+function scDongs(pool, m, minN) {
+  var g = {};
+  pool.forEach(function (s) { if (!s.d) return; var k = s.l + "|" + s.d; (g[k] = g[k] || { l: s.l, d: s.d, L: [] }).L.push(s); });
+  return Object.keys(g).map(function (k) { var o = g[k]; o.L.sort(function (a, b) { return scVal(b, m) - scVal(a, m); }); o.n = o.L.length; o.v = o.L.reduce(function (s, x) { return s + scVal(x, m); }, 0) / o.n; o.p84 = scPrice(o.l); o.hot = SC_HOT[o.d] || ""; return o; })
+    .filter(function (o) { return o.n >= (minN || 2); }).sort(function (a, b) { return b.v - a.v; });
+}
+function scGus(pool, m) {
+  var g = {};
+  pool.forEach(function (s) { (g[s.l] = g[s.l] || { l: s.l, L: [] }).L.push(s); });
+  return Object.keys(g).map(function (l) { var o = g[l]; o.n = o.L.length; o.v = o.L.reduce(function (s, x) { return s + scVal(x, m); }, 0) / o.n; o.p84 = scPrice(l); o.top = o.L.slice().sort(function (a, b) { return scVal(b, m) - scVal(a, m); })[0]; return o; }).filter(function (o) { return o.n >= 2; });
+}
+function scSub(s) { return [s.d, s.k === "중" && s.s ? "특목 " + (s.s.sci + s.s.fl + s.s.gift) + "명 / 졸업 " + s.s.grad + "명" + (s.s.ar ? " · 자사고 " + s.s.ar : "") : "", s.a ? "국 " + s.a.ko + " · 영 " + s.a.en + " · 수 " + s.a.ma : ""].filter(Boolean).join(" · "); }
+function renderSchool() {
+  var st = document.getElementById("sc-status"); if (!st) return;
+  scLoad(function () { scRender(); });
+}
+function scRender() {
+  var st = document.getElementById("sc-status"); if (!st) return;
+  if (!scOk()) { st.innerHTML = SC.data && SC.data._err && !/404/.test(SC.data._err) ? "학군 자료를 읽지 못했습니다 (" + escHtml(SC.data._err) + ")" : "아직 학군 자료(school_data.json)가 없습니다. 위 설명대로 학교알리미 CSV 를 data/school/ 에 올리고 Actions 를 돌리면 여기 나옵니다."; ["sc-dong", "sc-school", "sc-vs"].forEach(function (id) { document.getElementById(id).innerHTML = '<p class="hint">자료 없음</p>'; }); return; }
+  var D = SC.data, codes = briefCodes(SC.scope), nm = briefScopeName(SC.scope), m = SC.metric, kind = SC.kind, pool = scPool(codes, kind, m);
+  st.innerHTML = "학교알리미 공시 · 만든 날 " + escHtml(D.built || "") + " · 중 " + (D.n ? D.n.mid : "?") + "곳 · 고 " + (D.n ? D.n.high : "?") + "곳" + (D.n && D.n.noRegion ? " · 지역 못 맞춘 학교 " + D.n.noRegion + "곳" : "") + " · 지금 범위: <b>" + escHtml(nm) + " " + kind + "학교 " + pool.length + "곳</b> · 지표 " + scMetricNm(m);
+  /* 동네 */
+  var dongs = scDongs(pool, m, 2), dEl = document.getElementById("sc-dong");
+  dEl.innerHTML = dongs.length ? '<div class="bflist">' + dongs.slice(0, 20).map(function (o, i) {
+    return '<div class="bfrow scrow' + (SC.dong === o.l + "|" + o.d ? " on" : "") + '" data-scdong="' + o.l + "|" + o.d + '"><span class="bfno">' + (i + 1) + '</span><div class="bfbody"><div class="bfname">' + escHtml(chName(o.l)) + " " + escHtml(o.d) + (o.hot ? ' <i class="tagmini gold">' + escHtml(o.hot) + " 학군</i>" : "") + "</div>" +
+      '<div class="bfwhy">' + kind + "학교 " + o.n + "곳 · 1위 " + escHtml(o.L[0].n) + " " + scFmt(scVal(o.L[0], m), m) + (o.p84 ? " · 84㎡ " + eok(o.p84) : "") + "</div></div>" +
+      '<div class="bfval">' + scFmt(o.v, m) + "<small>" + scMetricNm(m) + " 평균</small></div></div>";
+  }).join("") + "</div>" + (dongs.length > 20 ? '<p class="hint">외 ' + (dongs.length - 20) + "곳 — 범위를 좁혀 보세요.</p>" : "") : '<p class="hint">이 범위에 학교가 2곳 이상인 동이 없습니다. 자료 범위(시도)를 확인하세요.</p>';
+  /* 학교 */
+  var top = pool.slice().sort(function (a, b) { return scVal(b, m) - scVal(a, m); }), sEl = document.getElementById("sc-school");
+  sEl.innerHTML = top.length ? '<div class="bflist">' + top.slice(0, 30).map(function (s, i) {
+    return briefRow(i + 1, "<b>" + escHtml(s.n) + "</b>", escHtml(chName(s.l)) + (s.d ? " " + escHtml(s.d) : "") + (SC_HOT[s.d] ? ' <i class="tagmini gold">' + escHtml(SC_HOT[s.d]) + "</i>" : ""), escHtml(scSub(s)), scFmt(scVal(s, m), m), "", scMetricNm(m), '<button type="button" class="btn sm ghost" data-bfgo="' + s.l + '">단지</button>');
+  }).join("") + "</div>" + (top.length > 30 ? '<p class="hint">외 ' + (top.length - 30) + "곳</p>" : "") : '<p class="hint">이 범위·학교급에 지표가 있는 학교가 없습니다.</p>';
+  /* 동네 상세 */
+  var pc = document.getElementById("sc-pick-card"), pEl = document.getElementById("sc-pick");
+  if (SC.dong) {
+    var pr = SC.dong.split("|"), l = pr[0], dg = pr[1], all = D.schools.filter(function (s) { return s.l === l && s.d === dg; }).sort(function (a, b) { return (a.k === b.k ? 0 : a.k === "중" ? -1 : 1) || ((scVal(b, m) || 0) - (scVal(a, m) || 0)); });
+    pc.style.display = "";
+    pEl.innerHTML = '<div class="bfsub">' + escHtml(chName(l)) + " " + escHtml(dg) + (SC_HOT[dg] ? ' · <b>' + escHtml(SC_HOT[dg]) + " 학군</b>" : "") + "</div>" +
+      '<div class="status" style="margin:6px 0 10px">' + statBox("84㎡ 가운데값", scPrice(l) ? eok(scPrice(l)) : "—", "", "월별 저장본 최근") + statBox("59㎡ 가운데값", scPrice(l, "a59") ? eok(scPrice(l, "a59")) : "—", "", "") + statBox("최근 30일 매매", scCnt30(l) != null ? fmt(scCnt30(l)) + "건" : "—", "", "지금 시장 자료") + "</div>" +
+      '<div class="bflist">' + all.map(function (s) { return briefRow("", "<b>" + escHtml(s.n) + "</b>", s.k + "학교", escHtml(scSub(s)), s.k === "중" && s.sp != null ? s.sp.toFixed(1) + "%" : s.Aavg != null ? s.Aavg.toFixed(1) + "%" : s.avg != null ? s.avg.toFixed(1) + "점" : "—", "", s.k === "중" && s.sp != null ? "특목 진학률" : s.Aavg != null ? "A 비율" : "평균", ""); }).join("") + "</div>" +
+      '<div class="chbtns"><button type="button" class="btn sm" data-bfgo="' + l + '">이 지역 아파트 찾기</button></div>';
+  } else pc.style.display = "none";
+  /* 학군 vs 집값 */
+  var gus = scGus(pool, m).filter(function (o) { return o.p84; }), vEl = document.getElementById("sc-vs");
+  if (gus.length >= 3) {
+    var mx = Math.max.apply(null, gus.map(function (o) { return o.v; })), px = Math.max.apply(null, gus.map(function (o) { return o.p84; }));
+    gus.sort(function (a, b) { return b.v - a.v; });
+    vEl.innerHTML = '<div class="scvs"><div class="scvs-h"><span>지역</span><span>' + scMetricNm(m) + "</span><span>84㎡ 가운데값</span></div>" + gus.slice(0, 25).map(function (o) {
+      return '<div class="scvs-r"><span>' + escHtml(chName(o.l)) + "<small>" + o.n + "곳 · 1위 " + escHtml(o.top.n) + '</small></span><span><i><u style="width:' + (o.v / mx * 100).toFixed(0) + '%"></u></i><b>' + scFmt(o.v, m) + '</b></span><span><i><u class="p" style="width:' + (o.p84 / px * 100).toFixed(0) + '%"></u></i><b>' + eok(o.p84) + "</b></span></div>";
+    }).join("") + "</div><p class=\"hint\">막대 길이는 범위 안 최댓값 대비 · 가격은 월별 저장본의 가장 최근 전용 84㎡ 가운데값</p>";
+  } else vEl.innerHTML = '<p class="hint">시·군·구가 3곳 이상이고 84㎡ 가격이 있는 범위에서 보입니다. 범위를 넓혀 보세요.</p>';
+}
+/* ── 채널 카드: 학군지 TOP · 학교 TOP · 학군 vs 집값 ── */
+function scCards(codes, scopeNm) {
+  if (!scOk()) return [];
+  var m = "sp", pool = scPool(codes, "중", m), C = [], sc = escHtml(scopeNm || "이 범위");
+  if (pool.length < 3) { m = "Aavg"; pool = scPool(codes, "중", m); }
+  if (pool.length < 3) return [];
+  var dongs = scDongs(pool, m, 2), top = pool.slice().sort(function (a, b) { return scVal(b, m) - scVal(a, m); }), gus = scGus(pool, m).filter(function (o) { return o.p84; }).sort(function (a, b) { return b.v - a.v; });
+  var mn = m === "sp" ? "특목고 진학률" : "A 비율", how = m === "sp" ? "특목고 진학률 = 과학고·외고·국제고·영재학교 진학자 ÷ 졸업자 (학교알리미 '졸업생의 진로 현황')" : "A 비율 = 국·영·수 성취도 A 학생 비율 평균 (학교알리미 '교과별 학업성취 사항')";
+  if (dongs.length) C.push({ tag: "학군지", dense: true, q: sc + ",<br>학군지는 어디인가?", src: "학교알리미 공시 · 투자 권유 아님",
+    a: "<b>" + escHtml(chName(dongs[0].l)) + " " + escHtml(dongs[0].d) + "</b> " + mn + " " + scFmt(dongs[0].v, m) + " · 중학교 " + dongs[0].n + "곳 평균",
+    body: chList(dongs.slice(0, 10).map(function (o, i) { return [(i + 1) + ". " + escHtml(chName(o.l).replace(/^서울 |^경기 /, "")) + " " + escHtml(o.d) + (o.hot ? ' <i class="chc-pill">' + escHtml(o.hot) + "</i>" : ""), "중 " + o.n + "곳 · 1위 " + escHtml(o.L[0].n) + (o.p84 ? " · 84㎡ " + eok(o.p84) : ""), scFmt(o.v, m)]; }), true, 6),
+    how: how + " · 같은 동 중학교 2곳 이상 평균 · 내신 평균은 학교마다 시험이 달라 쓰지 않음" });
+  if (top.length) C.push({ tag: "학교 TOP", dense: true, q: sc + " 중학교,<br>" + mn + "이 높은 곳은?", src: "학교알리미 공시 · 투자 권유 아님",
+    a: "<b>" + escHtml(top[0].n) + "</b> " + scFmt(scVal(top[0], m), m) + (top[0].s ? " (" + (top[0].s.sci + top[0].s.fl + top[0].s.gift) + "명 / " + top[0].s.grad + "명)" : ""),
+    body: chList(top.slice(0, 10).map(function (s, i) { return [(i + 1) + ". " + escHtml(s.n), escHtml(chName(s.l).replace(/^서울 |^경기 /, "")) + " " + escHtml(s.d) + (s.s ? " · 특목 " + (s.s.sci + s.s.fl + s.s.gift) + "/" + s.s.grad + "명" : ""), scFmt(scVal(s, m), m)]; }), true, 6),
+    how: how + " · 특목고 진학은 지역별 자사고·일반고 선호에 따라 다르니 A 비율도 함께 보기" });
+  if (gus.length >= 3) { var mx = gus[0].v, px = Math.max.apply(null, gus.map(function (o) { return o.p84; }));
+    C.push({ tag: "학군 vs 집값", dense: true, q: sc + ",<br>학군과 집값은 같이 가나?", src: "학교알리미 · 국토부 실거래 · 투자 권유 아님",
+      a: "<b>" + escHtml(chName(gus[0].l)) + "</b> " + mn + " 1위 · 84㎡ " + eok(gus[0].p84),
+      body: '<div class="chc-vsrs">' + gus.slice(0, 8).map(function (o) { return '<div class="chc-vsr"><span>' + escHtml(chShortGu(o.l)) + '</span><div class="chc-vsb"><i><u class="lead" style="width:' + (o.v / mx * 100).toFixed(1) + '%"></u></i><i><u class="med" style="width:' + (o.p84 / px * 100).toFixed(1) + '%"></u></i></div><b>' + scFmt(o.v, m) + "<small>" + eok(o.p84) + "</small></b></div>"; }).join("") + "</div>" +
+        '<div class="chc-legend"><i style="background:#16294a"></i>' + mn + ' <i style="background:#c9a35c;margin-left:8px"></i>84㎡ 가운데값</div>',
+      how: "막대 = 범위 안 최댓값 대비 · 가격 = 월별 저장본 최근 84㎡ 가운데값 · 상관이 인과는 아님(직장·교통·신축 조건이 겹침)" }); }
+  return C;
+}
+function scText(codes, scopeNm) {
+  if (!scOk()) return "학군 자료(school_data.json)가 아직 없습니다. 학교알리미 CSV 를 data/school/ 에 올리고 Actions 를 돌리세요.";
+  var m = "sp", pool = scPool(codes, "중", m); if (pool.length < 3) { m = "Aavg"; pool = scPool(codes, "중", m); }
+  if (pool.length < 3) return "이 범위에는 학군 자료가 있는 중학교가 3곳 미만입니다.";
+  var dongs = scDongs(pool, m, 2), top = pool.slice().sort(function (a, b) { return scVal(b, m) - scVal(a, m); }), mn = m === "sp" ? "특목고 진학률" : "A 비율", L = [];
+  L.push("[학군 한눈에] " + scopeNm + " 중학교 | " + chToday()); L.push("학교알리미 공시자료 · " + mn + " 기준"); L.push("");
+  L.push("■ 학군지 (같은 동 중학교 2곳 이상 평균)"); dongs.slice(0, 7).forEach(function (o, i) { L.push((i + 1) + ". " + chName(o.l) + " " + o.d + (o.hot ? " [" + o.hot + "]" : "") + " — " + scFmt(o.v, m) + " (" + o.n + "곳, 1위 " + o.L[0].n + ")" + (o.p84 ? " · 84㎡ " + eok(o.p84) : "")); }); L.push("");
+  L.push("■ 학교 TOP"); top.slice(0, 7).forEach(function (s, i) { L.push((i + 1) + ". " + s.n + " (" + chName(s.l) + " " + s.d + ") " + scFmt(scVal(s, m), m) + (s.s ? " · 특목 " + (s.s.sci + s.s.fl + s.s.gift) + "/" + s.s.grad + "명" : "")); }); L.push("");
+  L.push("※ 국가수준 학업성취도평가의 학교별 점수는 2017년 이후 비공개입니다. 여기 숫자는 학교알리미에 공시된 진로 현황·성취도 분포이며, 지역마다 자사고·일반고 선호가 달라 하나의 지표로 학군을 단정할 수 없습니다. 학군은 집값을 이루는 여러 요소 중 하나이고, 투자 권유가 아닙니다.");
   return L.join("\n");
 }
 

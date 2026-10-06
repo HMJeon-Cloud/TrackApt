@@ -165,21 +165,35 @@ async function main() {
   var xlsN = fs.existsSync(DIR) ? fs.readdirSync(DIR).filter(function (f) { return /\.xls$/i.test(f); }).length : 0;
   if (!files.length && !API_KEY) { console.log("data/school 에 CSV/XLSX 가 없고 SCHOOLINFO_API_KEY 도 없습니다 — 건너뜁니다."); process.exit(0); }
   var S = {}, log = [], years = {};
-  var API = await apiSchools(log, years), byName = {};
-  Object.keys(API).forEach(function (c) { var a = API[c]; byName[a.n + "|" + (a.region || "").split(" ").slice(-1)[0]] = c; byName[a.n] = byName[a.n] == null ? c : (byName[a.n] === c ? c : false); });   /* 같은 이름이 여럿이면 false(모름) */
+  var API = await apiSchools(log, years), byName = {}, HINT = "", unmatched = [], ambiguous = [];
+  Object.keys(API).forEach(function (c) { var a = API[c]; (byName[a.n] = byName[a.n] || []).push(c); });
+  /* 학교 이름 → API 학교코드. 같은 이름이 여러 지역에 있으면 파일 이름의 지역 글자(예: '안양')로 고른다 */
+  function findCode(name) {
+    var L = byName[name] || byName[String(name).replace(/\s+/g, "")] || [];
+    if (L.length === 1) return L[0];
+    if (L.length > 1 && HINT) {
+      var hit = L.filter(function (c) { var a = API[c]; var t = (a.region || "") + " " + (a.addr || ""); return HINT.split("|").some(function (h) { return h && t.indexOf(h) >= 0; }); });
+      if (hit.length === 1) return hit[0];
+    }
+    if (L.length > 1 && ambiguous.indexOf(name) < 0) ambiguous.push(name + "(" + L.length + "곳)");
+    if (!L.length && Object.keys(API).length && unmatched.indexOf(name) < 0) unmatched.push(name);
+    return "";
+  }
   function sch(code, name) {
-    var k = code || byName[name] || name;
-    if (!S[k]) S[k] = { c: code || byName[name] || "", n: name, k: /고등학교$|고$/.test(name) ? "고" : /중학교$|중$/.test(name) ? "중" : "", a: {}, A: {}, s: null };
+    var cc = code || findCode(name), k = cc || name;
+    if (!S[k]) S[k] = { c: cc || "", n: name, k: /고등학교$|고$/.test(name) ? "고" : /중학교$|중$/.test(name) ? "중" : "", a: {}, A: {}, s: null };
     return S[k];
   }
   var SUBJ = { "국어": "ko", "영어": "en", "수학": "ma" };
   files.forEach(function (f) {
+    HINT = (path.basename(f).replace(/\.[a-z]+$/i, "").match(/[가-힣]{2,}/g) || []).filter(function (w) { return !/^(교과별|학업성취|학업|성취|사항|졸업생|진로|현황|학교|기본정보|중학교|고등학교|학년별)$/.test(w); }).join("|");
     var T; try { T = table(readAny(path.join(DIR, f))); } catch (e) { log.push(f + ": 읽기 실패 — " + e.message); return; }
     if (!T) { log.push(f + ": 머리글(학교명) 못 찾음"); return; }
     var H = T.head, cName = col(H, [/^학교명$/, /학교명/]), cCode = col(H, [/학교코드|정보공시학교코드/]), cAddr = col(H, [/주소|소재지/]), cReg = col(H, [/^지역$/, /시군구|행정구역/]), cKind = col(H, [/학교급/]);
     if (/성취|achieve/i.test(f)) {
-      var cGr = col(H, [/^학년$/, /학년/]), cSem = col(H, [/학기/]), cSub = col(H, [/^과목$/, /과목/, /교과/]), cAvg = col(H, [/^평균$/, /평균\(?점/, /평균/]), cA = col(H, [/^A$/, /비율A$/, /분포비율A/, /A\(?비율|A등급|성취도A|우수/, /A$/]);
-      if (T.year) years.ach = T.year;
+      var cGr = col(H, [/^학년$/, /학년(?!도)/]), cSem = col(H, [/학기/]), cSub = col(H, [/^과목$/, /과목/, /교과/]), cAvg = col(H, [/^평균$/, /평균\(?점/, /평균/]), cA = col(H, [/^A$/, /비율A$/, /분포비율A/, /A\(?비율|A등급|성취도A|우수/, /A$/]);
+      var cYr = col(H, [/학년도/]); if (cYr && T.body[0] && T.body[0][cYr]) T.year = T.year || T.body[0][cYr];
+      if (T.year) years.ach = years.ach && years.ach > T.year ? years.ach : T.year;
       if (!cName || !cSub || !cAvg) { log.push(f + ": 필요한 열(학교명·과목·평균) 못 찾음 — 머리글: " + H.slice(0, 12).join("|")); return; }
       var n = 0, byKey = {};
       T.body.forEach(function (r) {
@@ -195,7 +209,8 @@ async function main() {
       log.push(f + ": 성취 " + n + "행 (" + (cA ? "A 비율 포함" : "A 비율 열 없음") + (T.schoolName ? " · 학교 " + T.schoolName : "") + (T.year ? " · " + T.year + "학년도" : "") + ")" + (!n ? " — 머리글: " + H.slice(0, 12).join("|") : ""));
     } else if (/진로|career/i.test(f)) {
       var cGrad = col(H, [/졸업자/, /졸업생수|졸업생\(?계|졸업생/]), cSci = col(H, [/과학고/]), cFl = col(H, [/외국어고|외고|국제고/]), cAr = col(H, [/자율형사립|자사고|자율고/]), cGift = col(H, [/영재/]);
-      if (T.year) years.career = T.year;
+      var cYr2 = col(H, [/학년도/]); if (cYr2 && T.body[0] && T.body[0][cYr2]) T.year = T.year || T.body[0][cYr2];
+      if (T.year) years.career = years.career && years.career > T.year ? years.career : T.year;
       if (!cName || !cGrad) { log.push(f + ": 필요한 열(학교명·졸업자) 못 찾음 — 머리글: " + H.slice(0, 12).join("|")); return; }
       var n2 = 0;
       T.body.forEach(function (r) {
@@ -239,8 +254,12 @@ async function main() {
   out.schools.sort(function (a, b) { return (b.avg || 0) - (a.avg || 0); });
   out.n = { mid: out.schools.filter(function (s) { return s.k === "중"; }).length, high: out.schools.filter(function (s) { return s.k === "고"; }).length, noRegion: miss,
     withAch: out.schools.filter(function (s) { return s.avg != null; }).length, withCareer: out.schools.filter(function (s) { return s.sp != null; }).length, withStu: out.schools.filter(function (s) { return s.st != null; }).length };
+  if (unmatched.length) log.push("학교알리미 목록에 없는 이름 " + unmatched.length + "곳: " + unmatched.slice(0, 10).join(", "));
+  if (ambiguous.length) log.push("같은 이름이 여러 곳이라 못 고른 학교: " + ambiguous.slice(0, 10).join(", ") + " — 파일 이름에 지역(예: 안양)을 넣으면 고릅니다");
   out.log = log; out.years = years;
   fs.writeFileSync(OUT, JSON.stringify(out));
+  var achL = out.schools.filter(function (x) { return x.avg != null; });
+  log.push("성취 자료 학교 " + achL.length + "곳 중 지역 연결 " + achL.filter(function (x) { return x.l; }).length + "곳" + (achL.length ? " (예: " + achL.slice(0, 3).map(function (x) { return x.n + "→" + (x.l || "?") + " " + (x.d || ""); }).join(", ") + ")" : ""));
   console.log(log.join("\n")); console.log("school_data.json — 중 " + out.n.mid + " · 고 " + out.n.high + " · 지역 못 찾음 " + miss + " · " + Math.round(fs.statSync(OUT).size / 1024) + "KB");
 }
 main().catch(function (e) { console.error(e); process.exit(1); });

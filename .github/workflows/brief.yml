@@ -39,6 +39,12 @@ jobs:
           KOSIS_KEY: ${{ secrets.KOSIS_KEY }}   # 통계청 KOSIS Open API 키
           INBOX_NOTE: ${{ runner.temp }}/trackapt_inbox_new.md
         run: node scripts/macro_build.js
+      - name: 학군 공시 엑셀(.xls) → CSV (학교알리미 학교별 다운로드 파일)
+        if: always()
+        run: |
+          ls data/school/*.xls >/dev/null 2>&1 || { echo "변환할 .xls 없음"; exit 0; }
+          pip install -q xlrd
+          python3 scripts/xls2csv.py
       - name: 학군 자료 만들기 (OpenAPI 기본정보·학생수 + data/school CSV)
         if: always()
         env:

@@ -1257,7 +1257,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.3</span>
+    <span class="ver">v9.4</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -4491,6 +4491,12 @@ function scFmt(v, m) {
   if (m === "per") return v.toFixed(1) + "명";
   return fmt(Math.round(v)) + "명";
 }
+/* 성취 지표 고르기 — 고른 것 → 특목고 진학률(중) → A 비율 → 평균 중 자료가 있는 첫 번째 */
+function scAchMetric(list, kind, prefer) {
+  var c = [prefer].concat(kind === "중" ? ["sp", "Aavg", "avg"] : ["Aavg", "avg"]).filter(function (x) { return x && SC_ACH.indexOf(x) >= 0; });
+  for (var i = 0; i < c.length; i++) if (list.some(function (x) { return scVal(x, c[i]) != null; })) return c[i];
+  return kind === "중" ? "sp" : "Aavg";
+}
 function scCls(v, m) { return (m === "net" || m === "stChg") ? (v > 0 ? "up" : v < 0 ? "down" : "") : ""; }
 function scAgg(L, m) { var vs = L.map(function (x) { return scVal(x, m); }).filter(function (v) { return v != null; }); if (!vs.length) return null; var s = vs.reduce(function (a, b) { return a + b; }, 0); return SC_SUM[m] ? s : s / vs.length; }
 function scMetricNm(m) { return (SC_METRICS.filter(function (x) { return x[0] === m; })[0] || [])[1] || m; }
@@ -4515,7 +4521,7 @@ function scSub(s) {
     s.st ? "학생 " + fmt(s.st) + "명" + (s.stChg != null ? " (" + (s.stChg > 0 ? "+" : "") + s.stChg + "%)" : "") + (s.per ? " · 학급당 " + s.per : "") : "",
     s.ent != null ? "입학 " + fmt(s.ent) : "", s.net != null ? "전입 " + fmt(s.mi) + "/전출 " + fmt(s.mo) : "",
     s.k === "중" && s.s ? "특목 " + (s.s.sci + s.s.fl + s.s.gift) + "/" + s.s.grad + "명" + (s.s.ar ? " · 자사고 " + s.s.ar : "") : "",
-    s.a ? "국 " + s.a.ko + " · 영 " + s.a.en + " · 수 " + s.a.ma : ""].filter(Boolean).join(" · ");
+    s.a ? (s.gr ? s.gr + "학년" + (s.sem ? " " + s.sem + "학기" : "") + " " : "") + "국 " + s.a.ko + " · 영 " + s.a.en + " · 수 " + s.a.ma : ""].filter(Boolean).join(" · ");
 }
 function renderSchool() {
   var st = document.getElementById("sc-status"); if (!st) return;
@@ -4535,7 +4541,8 @@ function scRender() {
   document.getElementById("sc-kpi").innerHTML = statBox(kind + "학교 · 학생", all.length + "곳 · " + (tot != null ? fmt(Math.round(tot)) + "명" : "—"), "", "범위 안 합계") +
     statBox("순전입(연간)", net != null ? scFmt(net, "net") : "—", scCls(net, "net"), net != null ? "전입 " + fmt(mi) + " · 전출 " + fmt(mo) : "자료 없음") +
     statBox("올해 입학생", ent != null ? fmt(Math.round(ent)) + "명" : "—", "", per != null ? "학급당 " + per.toFixed(1) + "명" : "") +
-    statBox(kind === "중" ? "특목고 진학률" : "A 비율", kind === "중" ? (sp != null ? sp.toFixed(1) + "%" : "자료 없음") : (scAgg(all, "Aavg") != null ? scAgg(all, "Aavg").toFixed(1) + "%" : "자료 없음"), "", kind === "중" ? "학교 평균 · 공시 파일" : "국영수 A 학생 비율");
+    (function () { var km = scAchMetric(all, kind, null), kv = scAgg(all.filter(function (x) { return scVal(x, km) != null; }), km), kn = all.filter(function (x) { return scVal(x, km) != null; }).length;
+      return statBox(scMetricNm(km), kv != null ? scFmt(kv, km) : "자료 없음", "", kv != null ? kn + "곳 평균 · 공시 파일" : "공시 파일을 올리면"); })();
   /* 학생이 모이는 동네 — 순전입 합계 */
   var dd = scDongs(all, "net", 2), dEl0 = document.getElementById("sc-demand");
   dEl0.innerHTML = dd.length ? '<div class="bflist">' + dd.slice(0, 15).map(function (o, i) {
@@ -4544,8 +4551,15 @@ function scRender() {
       '<div class="bfval ' + scCls(o.v, "net") + '">' + scFmt(o.v, "net") + "<small>순전입</small></div></div>";
   }).join("") + "</div>" + (dd.length > 15 ? '<p class="hint">외 ' + (dd.length - 15) + "곳 — 범위를 좁혀 보세요.</p>" : "") : '<p class="hint">' + (hasDem ? "이 범위에 학교가 2곳 이상인 동이 없습니다." : "전출입 자료가 아직 없습니다 — SCHOOLINFO_API_KEY 로 받습니다.") + "</p>";
   /* 성취가 높은 동네 */
-  var am = SC_ACH.indexOf(m) >= 0 ? m : (kind === "중" ? "sp" : "Aavg"), dongs = scDongs(all.filter(function (s) { return scVal(s, am) != null; }), am, 2), dEl = document.getElementById("sc-dong");
-  dEl.innerHTML = dongs.length ? '<p class="hint" style="margin:0 0 6px">지표: <b>' + scMetricNm(am) + "</b></p>" + '<div class="bflist">' + dongs.slice(0, 20).map(function (o, i) {
+  var am = scAchMetric(all, kind, SC_ACH.indexOf(m) >= 0 ? m : null), achAll = all.filter(function (s) { return scVal(s, am) != null; }), dongs = scDongs(achAll, am, 2), dEl = document.getElementById("sc-dong");
+  if (dongs.length < 3 && achAll.length) {
+    /* 동으로 묶을 학교가 부족하면(자료를 일부 학교만 올렸거나 동 이름이 없는 학교) 학교별로 바로 보여 준다 */
+    var achTop = achAll.slice().sort(function (a, b) { return scVal(b, am) - scVal(a, am); });
+    dEl.innerHTML = '<p class="hint" style="margin:0 0 6px">지표: <b>' + scMetricNm(am) + "</b> · 성취 자료가 있는 " + kind + "학교 " + achAll.length + "곳 — 동 단위로 묶기엔 부족해 학교별로 보여 줍니다. 공시 파일을 더 올리면 동네 순위로 바뀝니다.</p>" +
+      '<div class="bflist">' + achTop.slice(0, 20).map(function (s2, i) {
+        return briefRow(i + 1, "<b>" + escHtml(s2.n) + "</b>", escHtml(chName(s2.l)) + (s2.d ? " " + escHtml(s2.d) : ""), escHtml(scSub(s2)), scFmt(scVal(s2, am), am), "", scMetricNm(am), '<button type="button" class="btn sm ghost" data-bfgo="' + s2.l + '">단지</button>');
+      }).join("") + "</div>";
+  } else dEl.innerHTML = dongs.length ? '<p class="hint" style="margin:0 0 6px">지표: <b>' + scMetricNm(am) + "</b></p>" + '<div class="bflist">' + dongs.slice(0, 20).map(function (o, i) {
     return '<div class="bfrow scrow' + (SC.dong === o.l + "|" + o.d ? " on" : "") + '" data-scdong="' + o.l + "|" + o.d + '"><span class="bfno">' + (i + 1) + '</span><div class="bfbody"><div class="bfname">' + escHtml(chName(o.l)) + " " + escHtml(o.d) + (o.hot ? ' <i class="tagmini gold">' + escHtml(o.hot) + " 학군</i>" : "") + "</div>" +
       '<div class="bfwhy">' + kind + " " + o.n + "곳 · 1위 " + escHtml(o.L[0].n) + " " + scFmt(scVal(o.L[0], am), am) + (o.net != null ? " · 순전입 " + scFmt(o.net, "net") : "") + (o.p84 ? " · 84㎡ " + eok(o.p84) : "") + "</div></div>" +
       '<div class="bfval">' + scFmt(o.v, am) + "<small>" + scMetricNm(am) + " 평균</small></div></div>";
@@ -4588,9 +4602,10 @@ function scCards(codes, scopeNm) {
     dd.slice(0, 18).map(function (o, i) { return [(i + 1) + ". " + escHtml(chName(o.l).replace(/^서울 |^경기 /, "")) + " " + escHtml(o.d) + (o.hot ? ' <i class="chc-pill">' + escHtml(o.hot) + "</i>" : ""), "중 " + o.n + "곳 · 학생 " + fmt(Math.round(o.st || 0)) + (o.ent != null ? " · 입학 " + fmt(Math.round(o.ent)) : "") + (o.per ? " · 학급당 " + o.per.toFixed(1) : "") + (o.p84 ? " · 84㎡ " + eok(o.p84) : ""), scFmt(o.v, "net"), scCls(o.v, "net")]; }), 6).forEach(function (o) { C.push(o); });
   var m = "sp", pool = scPool(codes, "중", m);
   if (pool.length < 3) { m = "Aavg"; pool = scPool(codes, "중", m); }
+  if (pool.length < 3) { m = "avg"; pool = scPool(codes, "중", m); }
   if (pool.length < 3) return C;
   var dongs = scDongs(pool, m, 2), top = pool.slice().sort(function (a, b) { return scVal(b, m) - scVal(a, m); }), gus = scGus(pool, m).filter(function (o) { return o.p84; }).sort(function (a, b) { return b.v - a.v; });
-  var mn = m === "sp" ? "특목고 진학률" : "A 비율", how = m === "sp" ? "특목고 진학률 = 과학고·외고·국제고·영재학교 진학자 ÷ 졸업자 (학교알리미 '졸업생의 진로 현황')" : "A 비율 = 국·영·수 성취도 A 학생 비율 평균 (학교알리미 '교과별 학업성취 사항')";
+  var mn = scMetricNm(m), how = m === "avg" ? "국영수 평균 = 국·영·수 학교 평균의 평균(학교 내신 · 학교마다 시험 난이도가 달라 참고용)" : m === "sp" ? "특목고 진학률 = 과학고·외고·국제고·영재학교 진학자 ÷ 졸업자 (학교알리미 '졸업생의 진로 현황')" : "A 비율 = 국·영·수 성취도 A 학생 비율 평균 (학교알리미 '교과별 학업성취 사항')";
   if (dongs.length) chPaged({ tag: "학군지", date: basisAch, q: sc + ",<br>학군지는 어디인가?", src: "학교알리미 공시 · 투자 권유 아님",
     a: "<b>" + escHtml(chName(dongs[0].l)) + " " + escHtml(dongs[0].d) + "</b> " + mn + " " + scFmt(dongs[0].v, m) + " · 중학교 " + dongs[0].n + "곳 평균",
     how: how + " · 같은 동 중학교 2곳 이상 평균 · 내신 평균은 학교마다 시험이 달라 쓰지 않음 · " + basisAch },

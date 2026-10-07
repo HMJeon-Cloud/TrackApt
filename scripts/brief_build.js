@@ -248,6 +248,8 @@ function leadersOf(lawd, hi, sale, cur, today) {
 
 /* 직거래는 가족 간 거래처럼 시세와 먼 값이 섞여 가격 계산(중위가·최고가·신고가)에서 뺀다. 건수에는 넣는다. */
 function priced(t) { return !/직거래/.test(t.dealingGbn || ""); }
+/* 짧은 지문(FNV-1a 32비트 ×2 → base36) — 거래 하나를 12자 안팎으로 */
+function fp(str) { var h1 = 0x811c9dc5, h2 = 0x01000193; for (var i = 0; i < str.length; i++) { var c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619) >>> 0; h2 = Math.imul(h2 ^ c, 2246822519) >>> 0; } return h1.toString(36) + h2.toString(36).slice(0, 4); }
 
 /* 한 달치를 끝까지 (1,000건씩 쪽 넘김) 받은 뒤 아파트만 남긴다. 뺀 거래는 list.dropped 에 */
 async function trades(lawd, kind, ym) {
@@ -349,6 +351,11 @@ async function summarize(lawd, today) {
   } catch (e) { console.warn(lawd, "월별 장부 실패:", e.message); }
   var cur = sale.filter(function (t) { return dnum(t) > d0; });
   var prv = sale.filter(function (t) { var d = dnum(t); return d > d1 && d <= d0; });
+  /* v9.5 정확한 '새 신고' 판정용 — 최근 60일 계약 거래의 지문(같은 값이 여러 건이면 #순번) */
+  var tkSeen = {}, tk = sale.filter(function (t) { return dnum(t) > d1; }).map(function (t) {
+    var base0 = t.apt + "|" + t.dong + "|" + Math.round(t.area * 100) + "|" + (t.floor || "") + "|" + t.amount + "|" + dnum(t), k2 = (tkSeen[base0] = (tkSeen[base0] || 0) + 1);
+    return [fp(base0 + "#" + k2), dnum(t), t.apt, t.dong, Math.round(t.area * 100) / 100, t.floor || null, t.amount, priced(t) ? 1 : 0];
+  });
   var base = sale.filter(function (t) { var d = dnum(t); return d > d2 && d <= d0; });
   var rentAll = rent.filter(function (t) { return dnum(t) > d0; });
   var rentCur = rentAll.filter(function (t) { return t.jeonse && t.deposit > 0; });   /* 전세 */
@@ -417,7 +424,7 @@ async function summarize(lawd, today) {
   var oddJ = dropOdd(lawd, busyRent(rentCur, false), rentAll, "전세", thisYear);
   var oddW = dropOdd(lawd, busyRent(wolCur, true), rentAll, "월세", thisYear);
   return {
-    count: cur.length, prevCount: prv.length, weekCount: week, rentCount: rentCur.length, wolCount: wolCur.length,
+    count: cur.length, prevCount: prv.length, weekCount: week, rentCount: rentCur.length, wolCount: wolCur.length, _tk: tk,
     dayOut: sale.filter(function (t) { return dnum(t) === d0; }).length,      /* v8.2: 어제 창에는 있었는데 오늘 창에서 빠진 날(30일 전)의 거래 수 — 하루 새 신고 추정용 */
     busyJ: oddJ.keep, busyW: oddW.keep, busyOdd: oddS.odd.concat(oddJ.odd, oddW.odd),
     pm: median(curP.map(function (t) { return t.amount / t.area; })),
@@ -517,25 +524,38 @@ async function news() {
     if (done % 25 === 0) console.log(done + "/" + codes.length + " · 호출 " + CALLS + " · " + Math.round((Date.now() - t0) / 1000) + "초");
   }));
   out.news = await news();
-  /* v8.2 어제 파일과의 차이(전일 이슈 정리용): 하루 새 신고 추정 = 오늘 30일 건수 − 어제 30일 건수 + 창에서 빠진 날 건수, 새로 들어온 신고가·최고가 거래 */
+  /* v9.5 '새로 들어온 신고' — 지난 실행까지 본 적 없는 거래만 센다(data/seen.json, 지문 + 처음 본 날).
+     건수 차이로 추정하던 v8.2 방식은 해제 거래·하루 두 번 실행·규칙 변경에 흔들려 틀린 값을 냈다(예: 10.6 44건, 10.7 3,060건). */
   (function () {
-    var prevOut = null; try { prevOut = JSON.parse(fs.readFileSync(path.join(ROOT, "brief_data.json"), "utf8")); } catch (e) {}
-    if (!prevOut || !prevOut.regions || prevOut.asOf === out.asOf) { if (prevOut && prevOut.delta && prevOut.asOf === out.asOf) out.delta = prevOut.delta; return; }
-    function hk(t) { return t.apt + "|" + (t.area || t.band) + "|" + (t.max ? t.max.amount + "|" + t.max.d : ""); }
-    function tk(t) { return t.apt + "|" + Math.round(t.area) + "|" + t.amount + "|" + t.d; }
-    var D = { prevAsOf: prevOut.asOf, regions: {} }, nSum = 0, hiN = 0;
+    var SP = path.join(ROOT, "data", "seen.json"), seen = null;
+    try { seen = JSON.parse(fs.readFileSync(SP, "utf8")); } catch (e) {}
+    var first = !seen || !seen.ks, today0 = out.asOf, keep = dayN(shiftDay(today, -75));
+    if (first) seen = { v: 1, ks: {}, since: today0 };
+    if (!first && seen.since === today0) first = true;     /* 시작한 날 다시 돌려도 여전히 기준선 */
+    var D = { method: "seen", since: seen.since || today0, regions: {} }, nSum = 0, hiN = 0, ran = seen.lastRun === today0;
     Object.keys(out.regions).forEach(function (c) {
-      var r = out.regions[c], p = prevOut.regions[c]; if (!r || r.error || !p || p.error) return;
-      var newN = Math.max(0, r.count - p.count + (r.dayOut || 0));
-      var seenH = {}; (p.newHighAll || []).forEach(function (t) { seenH[hk(t)] = 1; }); (p.newHigh || []).forEach(function (t) { seenH[hk(t)] = 1; });
-      var hi = (r.newHighAll || []).filter(function (t) { return !seenH[hk(t)]; }).slice(0, 6).map(function (t) { return { apt: t.apt, dong: t.dong, area: t.area, band: t.band, amount: t.max.amount, floor: t.max.floor, d: t.max.d, up: t.upAll, prev: t.allPrev ? t.allPrev[0] : null }; });
-      var seenT = {}; (p.top || []).forEach(function (t) { seenT[tk(t)] = 1; });
-      var top = (r.top || []).filter(function (t) { return !seenT[tk(t)]; }).slice(0, 3).map(function (t) { return { apt: t.apt, dong: t.dong, area: t.area, amount: t.amount, floor: t.floor, d: t.d }; });
-      nSum += newN; hiN += hi.length;
-      if (newN || hi.length || top.length) D.regions[c] = { n: newN, hi: hi, top: top };
+      var r = out.regions[c], tk = r._tk || []; delete r._tk; delete r.dayOut;
+      if (!r || r.error) return;
+      var K = seen.ks[c] || (seen.ks[c] = {}), fresh = [];
+      /* 같은 날 다시 돌리면 '오늘 처음 본' 지문을 다시 센다(값이 바뀌지 않게). 단 장부를 시작한 날은 기준선이라 세지 않는다 */
+      tk.forEach(function (t) { var f = K[t[0]]; if (f == null) { K[t[0]] = today0; if (!first) fresh.push(t); } else if (f === today0 && ran && today0 !== seen.since) fresh.push(t); });
+      /* 오래된 지문 정리 — 계약일이 75일 넘은 것 */
+      Object.keys(K).forEach(function (k) { if (K[k] < keep) delete K[k]; });
+      if (first) return;
+      var newKey = {}; fresh.forEach(function (t) { newKey[t[2] + "|" + t[4] + "|" + t[6] + "|" + t[1]] = 1; });
+      var hi = (r.newHighAll || []).filter(function (h) { return newKey[h.apt + "|" + Math.round(h.max.area * 100) / 100 + "|" + h.max.amount + "|" + h.max.d]; }).slice(0, 8)
+        .map(function (h) { return { apt: h.apt, dong: h.dong, area: h.area, band: h.band, amount: h.max.amount, floor: h.max.floor, d: h.max.d, up: h.upAll, prev: h.allPrev ? h.allPrev[0] : null, n: h.n }; });
+      var top = fresh.filter(function (t) { return t[7]; }).sort(function (a, b) { return b[6] - a[6]; }).slice(0, 4)
+        .map(function (t) { return { apt: t[2], dong: t[3], area: t[4], amount: t[6], floor: t[5], d: t[1] }; });
+      nSum += fresh.length; hiN += hi.length;
+      D.regions[c] = { n: fresh.length, hi: hi, top: top };
     });
+    seen.lastRun = today0; if (!seen.since) seen.since = today0;
+    fs.mkdirSync(path.dirname(SP), { recursive: true });
+    fs.writeFileSync(SP, JSON.stringify(seen));
+    if (first) { console.log("새 신고 장부(data/seen.json) 시작 — 오늘은 기준만 잡고, 내일부터 '어제 새로 들어온 신고' 를 셉니다"); return; }
     out.delta = D;
-    console.log("어제 대비 — 새 신고 약 " + nSum + "건 · 새 신고가 " + hiN + "곳 (어제 " + prevOut.asOf + ")");
+    console.log("어제 이후 새 신고 " + nSum + "건 · 그중 신고가 " + hiN + "곳 (지문 대조)");
   })();
   /* 하루치 요약 기록 data/brief_hist.json (v6.52) — 최근 30일은 신고 기한(30일)이 남아 늘 적게 잡힌다.
      '직전 30일'과 견주면 거래가 줄어든 것처럼 보이므로, 30일 전에 같은 방식으로 잰 값을 꺼내
@@ -545,6 +565,7 @@ async function news() {
     try { hist = JSON.parse(fs.readFileSync(HP, "utf8")); } catch (e) {}
     var row = {};
     Object.keys(out.regions).forEach(function (c) { var r = out.regions[c], dl = out.delta && out.delta.regions[c]; row[c] = [r.count, r.pm == null ? null : Math.round(r.pm * 10) / 10, r.weekCount || 0, dl ? dl.n : (out.delta ? 0 : null)]; });
+    if (out.delta && out.delta.method === "seen") row._exact = 1;
     hist[String(out.asOf)] = row;
     var keep = dayN(shiftDay(today, -120));
     Object.keys(hist).forEach(function (k) { if (Number(k) < keep) delete hist[k]; });
@@ -564,7 +585,8 @@ async function news() {
     Object.keys(hist).sort().forEach(function (k) {
       if (Number(k) < dayN(shiftDay(today, -45))) return;
       var row2 = hist[k], o = { all: 0, se: 0, gi: 0, ok: false };
-      Object.keys(row2).forEach(function (c) { var v = row2[c][3]; if (v == null) return; o.ok = true; o.all += v; if (/^11/.test(c)) o.se += v; if (/^(41|28)/.test(c)) o.gi += v; });
+      if (!row2._exact) return;          /* v9.5: 지문 대조로 센 날만 (그 전 추정치는 버림) */
+      Object.keys(row2).forEach(function (c) { if (c[0] === "_") return; var v = row2[c][3]; if (v == null) return; o.ok = true; o.all += v; if (/^11/.test(c)) o.se += v; if (/^(41|28)/.test(c)) o.gi += v; });
       if (o.ok) out.dailyNew[k] = [o.all, o.se, o.gi];
     });
     console.log("하루 기록 " + Object.keys(hist).length + "일치 · 30일 전 비교 기준 " + (snap || "아직 없음") + " · 7일 전 " + (snap7 || "아직 없음") + " · 날짜별 신고 " + Object.keys(out.dailyNew).length + "일");

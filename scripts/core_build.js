@@ -38,12 +38,25 @@ lastI = Math.min(lastI, nowI);
 var M = lastI - m0i + 1, added = lastI - baseLast;
 if (added <= 0) { console.log("장부에 저장본 뒤 달이 없습니다 (저장본 " + idxYm(baseLast) + "까지)."); }
 var groupsLedger = readJson(GRP_P) || { v: 1, m: {} };
+/* v9.5: 경계 2개월의 묶음 p3 가 1개월 중위로 봉인돼 있었다 → 한 번 지우고 다시 계산 */
+if (!groupsLedger.v95) {
+  var fixYms = [idxYm(baseLast + 1), idxYm(baseLast + 2)];
+  Object.keys(groupsLedger.m).forEach(function (g) { fixYms.forEach(function (ym) { if (groupsLedger.m[g][ym]) delete groupsLedger.m[g][ym]; }); });
+  groupsLedger.v95 = true;
+  console.log("경계 달 묶음 값 다시 계산: " + fixYms.join(", "));
+}
 
-/* p3: 그 달과 앞 두 달의 평당가 raw 를 모아 중위. raw 가 없는 달이 끼면 그 달은 뺀다(저장본 규칙과 같음) */
-function p3Of(rawByYm, ymI) {
-  var pool = [], any = false;
-  for (var k = 0; k < 3; k++) { var r = rawByYm[idxYm(ymI - k)]; if (r && r.p && r.p.length) { pool = pool.concat(r.p); any = true; } }
-  return any ? med3(pool) : null;
+/* p3: 그 달과 앞 두 달의 평당가 raw 를 모아 중위.
+   v9.5: 앞 달이 저장본 달(raw 없음)이면 '1개월 중위'로 떨어져 경계에서 가짜 급락이 생겼다 →
+         3개월 raw 가 다 있으면 합쳐서 중위, 하나라도 없으면 세 달 월 중위값(p)을 건수로 가중 평균한다(근사, 경계 2개월만 해당). */
+function p3Of(rawByYm, ymI, monthly) {
+  var pool = [], full = true;
+  for (var k = 0; k < 3; k++) { var r = rawByYm[idxYm(ymI - k)]; if (r && r.p && r.p.length) pool = pool.concat(r.p); else full = false; }
+  if (full && pool.length) return med3(pool);
+  if (!monthly) return pool.length ? med3(pool) : null;
+  var sw = 0, sv = 0;
+  for (var k2 = 0; k2 < 3; k2++) { var mm = monthly(ymI - k2); if (mm && mm.p != null && mm.n) { sw += mm.n; sv += mm.p * mm.n; } }
+  return sw ? Math.round(sv / sw) : (pool.length ? med3(pool) : null);
 }
 function extend(series, M0, fill) {           /* {o, 배열들} 을 M 길이까지 늘린다 */
   var out = {}; Object.keys(series).forEach(function (k) {
@@ -65,7 +78,10 @@ Object.keys(base.regions).forEach(function (code) {
     var ym = idxYm(m0i + idx), c = cell(ym);
     if (!c || c.n == null) return k === "n" ? 0 : null;
     if (k === "n") return c.n; if (k === "p") return c.p; if (k === "a84") return c.a84; if (k === "a59") return c.a59;
-    if (k === "p3") return c.p3 != null ? c.p3 : p3Of(rawByYm, m0i + idx);
+    if (k === "p3") return c.p3 != null ? c.p3 : p3Of(rawByYm, m0i + idx, function (ii) {
+      if (ii <= baseLast) { var j = ii - m0i - b.s.o; return j >= 0 ? { p: b.s.p[j], n: b.s.n[j] } : null; }
+      var cc = cell(idxYm(ii)); return cc ? { p: cc.p, n: cc.n } : null;
+    });
     return null;
   });
   if (b.r) rec.r = extend(b.r, M, function (k, idx) {
@@ -96,9 +112,20 @@ Object.keys(base.groups).forEach(function (g) {
   function compute(ym) {
     var q = P[ym]; if (!q) return null;
     var o = { n: q.hasS ? q.n : null, p: med3(q.p), a84: med3(q.a84), a59: med3(q.a59), rn: q.hasR ? q.rn : null, j: q.hasR ? q.j : null, d84: med3(q.d84), d59: med3(q.d59) };
-    var pool3 = [];
-    for (var k = 0; k < 3; k++) { var qq = P[idxYm(ymIdx(ym) - k)]; if (qq && qq.p.length) pool3 = pool3.concat(qq.p); }
-    o.p3 = pool3.length ? med3(pool3) : null;
+    var pool3 = [], full3 = true;
+    for (var k = 0; k < 3; k++) { var qq = P[idxYm(ymIdx(ym) - k)]; if (qq && qq.p.length) pool3 = pool3.concat(qq.p); else full3 = false; }
+    if (full3 && pool3.length) o.p3 = med3(pool3);
+    else {   /* v9.5 경계 달: 저장본 달의 월 중위값과 건수로 가중 평균 */
+      var sw = 0, sv = 0;
+      for (var k2 = 0; k2 < 3; k2++) {
+        var ii = ymIdx(ym) - k2, pv = null, nv = null;
+        if (ii <= baseLast) { var j = ii - m0i - b.s.o; if (j >= 0) { pv = b.s.p[j]; nv = b.s.n[j]; } }
+        else if (k2 === 0) { pv = o.p; nv = o.n; }
+        else { var q2 = P[idxYm(ii)]; if (q2) { pv = med3(q2.p); nv = q2.n; } }
+        if (pv != null && nv) { sw += nv; sv += pv * nv; }
+      }
+      o.p3 = sw ? Math.round(sv / sw) : (pool3.length ? med3(pool3) : null);
+    }
     return o;
   }
   var vals = {};

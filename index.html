@@ -1250,6 +1250,46 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chcard .chc-row>div>small.ol1{font-size:10.3px}.chcard .chc-row>div>small.ol2{font-size:9.7px}.chcard .chc-row>div>small.ol3{font-size:9.2px}.chcard .chc-row>div>small.ol4{font-size:8.8px}
 .chcard .chc-q small{font-size:12px;font-weight:600;opacity:.75}
 .chcard .olw{white-space:normal!important;overflow:visible!important;display:block}
+/* v9.5 채널 — 1 카드 → 2 글, 카드는 옆으로 넘겨 한눈에 */
+.chstep h2{display:flex;align-items:center;gap:8px}
+.chstepno{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#16294a;color:#e9d3a6;font-size:13px;font-weight:800}
+.chsum{background:linear-gradient(135deg,#0f1c30,#16294a);color:#fff;border-radius:14px;padding:14px 16px;margin:10px 0 6px;display:flex;flex-direction:column;gap:3px}
+.chsum:empty{display:none}
+.chsum b{font-size:1.02rem;letter-spacing:-.02em}
+.chsum span{font-size:1.25rem;font-weight:800;color:#e9d3a6;letter-spacing:-.02em;line-height:1.3}
+.chsum small{font-size:.74rem;color:rgba(255,255,255,.6)}
+.chcards.strip{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}
+.chcards.strip .chcardWrap{flex:none;scroll-snap-align:start}
+.chcards.strip .chcard{zoom:.7}
+@media(min-width:700px){.chcards.strip .chcard{zoom:.82}}
+.chcards.strip .chcardWrap>.btn{display:block;margin:6px auto 0}
+#ch-tmode{margin-bottom:8px}
+.chpost{min-height:300px}
+/* v9.5 지금 시장 — 한눈에 */
+.bfhero{margin-top:12px;background:linear-gradient(135deg,#0f1c30,#16294a);color:#fff;border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.bfhero:empty{display:none}
+.bfhero small{font-size:.74rem;color:rgba(255,255,255,.6)}
+.bfhero b{font-size:1.18rem;line-height:1.38;letter-spacing:-.02em;font-weight:800}
+.bfhero b em{font-style:normal;color:#e9d3a6}
+.bfhero b em.up{color:#ff8a8f}.bfhero b em.down{color:#8fb6ff}
+.bfhero span{font-size:.82rem;color:rgba(255,255,255,.78);line-height:1.45}
+.bfkey{font-size:1.02rem;line-height:1.4;letter-spacing:-.02em;padding:10px 12px;margin:2px 0 10px;background:var(--bg);border-left:3px solid #c9a35c;border-radius:4px 10px 10px 4px}
+.bfkey small{font-size:.74rem;color:var(--sub)}
+.bflist.clip>.bfrow:nth-child(n+4){display:none}
+.bfmore{display:block;margin:6px 0 0 auto}
+#tab-brief .card>h2+.sub,#tab-channel .card>h2+.sub{font-size:.78rem}
+.bftiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+@media(max-width:420px){.bftiles{grid-template-columns:repeat(2,1fr)}}
+.bft{appearance:none;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:10px 12px;text-align:left;font:inherit;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.bft:active{transform:scale(.98)}
+.bft small{font-size:.72rem;color:var(--sub);font-weight:700}
+.bft b{font-size:1.3rem;font-weight:800;letter-spacing:-.03em;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bft span{font-size:.72rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chval{margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:.8rem;background:var(--panel)}
+.chval.err{border-color:#f5c2c0;background:#fff1f0}
+.chval summary{cursor:pointer;font-weight:700}
+.chval p{margin:6px 0 0;line-height:1.45;color:var(--sub)}
+.chval p b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -1257,7 +1297,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.4</span>
+    <span class="ver">v9.5</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1854,6 +1894,7 @@ function buildBrief(root) {
         '카드 이미지는 <b>채널 브리핑</b>에서 같은 범위·평형으로 만들 수 있습니다(v8.0부터 한곳에서만).</p>' +
       '<div class="seg" id="bf-scope"></div>' +
       '<div class="seg" id="bf-scope2" style="margin-top:6px;display:none"></div>' +
+      '<div class="bfhero" id="bf-hero"></div>' +
       '<div class="status" id="bf-kpi" style="margin-top:12px"></div>' +
       '<p class="hint" id="bf-prog"></p>' +
       '<div class="chbtns"><button type="button" class="btn sm" id="bf-mkcards">이 범위를 카드로</button><button type="button" class="btn sm ghost" id="bf-zip" style="display:none">카드 전부 ZIP 저장</button><span class="hint">이벤트성 카드 — 채널 정기 카드와 구분되는 \'지금 시장\' 판</span></div>' +
@@ -2006,6 +2047,11 @@ function renderBrief() {
       Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); });
       loadBriefLive();
     });
+    document.getElementById("bf-kpi").addEventListener("click", function (ev) {
+      var t = ev.target.closest("[data-jump]"); if (!t) return; var el = document.getElementById(t.dataset.jump); if (!el) return;
+      var c = el.closest(".card"); if (c && c.classList.contains("folded")) c.classList.remove("folded");
+      (c || el).scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     document.getElementById("bf-mkcards").addEventListener("click", function () {
       var el = document.getElementById("bf-live"); el.style.display = ""; document.getElementById("bf-zip").style.display = ""; renderBriefLiveCards();
     });
@@ -2083,14 +2129,16 @@ function briefRow(no, name, sub, why, main, mainCls, unit, btn) {
 }
 function dTxt(d) { return d ? (Math.floor(d / 100) % 100) + "." + (d % 100) : ""; }
 function renderBriefLive(scope, codes, remaining) {
+  if (typeof CH !== "undefined" && !CH.data) CH.data = BRIEF.data;
   var rows = [], tops = [], busy = [], busyJ = [], busyW = [], hasRentBusy = false, highs = [], highsAll = [], gaps = [], hiFrom = 0, exS = 0, exB = 0, exU = 0, exL = 0, exApts = [], hasEx = false;
-  var cnt = 0, prev = 0, week = 0, rentN = 0, errs = 0, got = 0, asOf = null, win = null;
+  var cnt = 0, prev = 0, week = 0, rentN = 0, errs = 0, got = 0, asOf = null, win = null, snN = 0, snC = 0;
   codes.forEach(function (c) {
     var j = BRIEF.regions[c]; if (!j) return;
     got++;
     if (j.error) { errs++; return; }
     asOf = asOf || j.asOf; win = win || j.window;
     cnt += j.count; prev += j.prevCount; week += j.weekCount || 0; rentN += j.rentCount || 0;
+    if (j.snap && j.snap.n != null) { snN += j.snap.n; snC += j.count; }
     var vt = j.prevCount >= 5 ? j.count / j.prevCount : null;
     var pc = (j.pm && j.prevPm && j.count >= BRIEF_MIN && j.prevCount >= BRIEF_MIN) ? (j.pm / j.prevPm - 1) * 100 : null;
     rows.push({ k: c, n: j.count, pn: j.prevCount, vt: vt, pc: pc, pm: j.pm, rank: RANKED.indexOf(c) + 1, high: (j.newHigh || []).length });
@@ -2102,20 +2150,21 @@ function renderBriefLive(scope, codes, remaining) {
     if (j.busyJ) hasRentBusy = true;
     (j.busyJ || []).forEach(function (t) { if (bandOk(t)) { t.k = c; busyJ.push(t); } });
     (j.busyW || []).forEach(function (t) { if (bandOk(t)) { t.k = c; busyW.push(t); } });
-    (j.newHigh || []).forEach(function (t) { t.k = c; highs.push(t); });
-    (j.newHighAll || []).forEach(function (t) { t.k = c; highsAll.push(t); });
+    (j.newHigh || []).forEach(function (t) { t.k = c; if (typeof chHiOk !== "function" || chHiOk(t, c)) highs.push(t); });
+    (j.newHighAll || []).forEach(function (t) { t.k = c; if (typeof chHiOk !== "function" || chHiOk(t, c)) highsAll.push(t); });
     if (j.hiFrom) hiFrom = Math.max(hiFrom, j.hiFrom);
     if (j.excl) { hasEx = true; exS += j.excl.small; exB += j.excl.bulk; exU += j.excl.unreg || 0; exL += j.excl.lease || 0; (j.excl.bulkApts || []).forEach(function (a) { a.k = c; exApts.push(a); }); }
     if (!isRegulated(c)) (j.gaps || []).forEach(function (t) { t.k = c; gaps.push(t); });
   });
   var prog = document.getElementById("bf-prog");
   if (prog) prog.textContent = briefAsOf() + " · 매일 새벽 3시 자동 갱신" + (errs ? " · " + errs + "곳은 수집 실패로 빠졌습니다" : "");
-  var chg = prev ? (cnt / prev - 1) * 100 : null;
-  var highN = rows.reduce(function (a, r) { return a + r.high; }, 0);
+  /* v9.5: '직전 30일'은 신고가 다 끝난 창이라 항상 줄어 보인다 → 한 달 전 같은 시점에 잰 30일 건수와 견준다(있으면) */
+  var lagOk = snN > 0, chg = lagOk ? (snC / snN - 1) * 100 : null;
+  var highN = highsAll.length || rows.reduce(function (a, r) { return a + r.high; }, 0);
   var pmUp = rows.filter(function (r) { return r.pc != null && r.pc > 3; }).length, pmDn = rows.filter(function (r) { return r.pc != null && r.pc < -3; }).length;
   document.getElementById("bf-kpi").innerHTML =
     statBox("최근 30일 매매 신고", fmt(cnt) + "건", "", win ? dTxt(win[0]) + " ~ " + dTxt(win[1]) : "") +
-    statBox("직전 30일 대비", chg != null ? pct(chg, 0) : "—", cls(chg), "최근 7일 계약 " + fmt(week) + "건") +
+    statBox("한 달 전 같은 시점 대비", chg != null ? pct(chg, 0) : "기록 쌓는 중", cls(chg), lagOk ? "같은 신고 지연끼리 비교" : "같은 시점 기록이 30일 쌓이면 표시") +
     statBox("값 오른 지역 / 내린 지역", pmUp + " / " + pmDn, "", "㎡당 중위 ±3% 기준") +
     statBox("신고가 경신 단지", fmt(highN) + "곳", highN ? "up" : "", "전세 신고 " + fmt(rentN) + "건");
   function goBtn(k) { return '<button type="button" class="btn sm ghost" data-bfgo="' + k + '">단지</button>'; }
@@ -2130,10 +2179,10 @@ function renderBriefLive(scope, codes, remaining) {
   var pr = ok.filter(function (r) { return r.pc != null; }).sort(function (a, b) { return b.pc - a.pc; });
   var up = pr.slice(0, 4), dn = pr.slice(-3).reverse().filter(function (r) { return r.pc < -3; });
   document.getElementById("bf-price").innerHTML = pr.length ? '<div class="bfsub">오른 곳</div><div class="bflist">' + up.map(function (r, i) {
-    return briefRow(i + 1, regionCell(r.k), "", "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건" + (r.vt != null ? " · 거래 " + r.vt.toFixed(2) + "배" : "") + " · 급지 " + r.rank + "위",
+    return briefRow(i + 1, regionCell(r.k), "", (Math.abs(r.pc) > 25 ? "표본 차이 주의 · " : "") + "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건" + (r.vt != null ? " · 거래 " + r.vt.toFixed(2) + "배" : "") + " · 급지 " + r.rank + "위",
       pct(r.pc, 1), cls(r.pc), "㎡당가", goBtn(r.k));
   }).join("") + "</div>" + (dn.length ? '<div class="bfsub">내린 곳</div><div class="bflist">' + dn.map(function (r, i) {
-    return briefRow(i + 1, regionCell(r.k), "", "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건 · 급지 " + r.rank + "위", pct(r.pc, 1), "down", "㎡당가", goBtn(r.k));
+    return briefRow(i + 1, regionCell(r.k), "", (Math.abs(r.pc) > 25 ? "표본 차이 주의 · " : "") + "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건 · 급지 " + r.rank + "위", pct(r.pc, 1), "down", "㎡당가", goBtn(r.k));
   }).join("") + "</div>" : "") : '<p class="hint">양쪽 30일 모두 ' + BRIEF_MIN + "건 이상인 지역이 아직 없습니다.</p>";
   /* 신고가 — 역대 대비 / 90일 대비 */
   function hbOk(t) { var hb = t.band >= 101 ? "L" : t.band <= 46 ? "S" : String(t.band); return BRIEF.hband === "all" || hb === BRIEF.hband; }
@@ -2210,6 +2259,51 @@ function renderBriefLive(scope, codes, remaining) {
       return briefRow("", "<b>" + escHtml(t.apt) + "</b>", escHtml(kbLabel(t.k)) + " " + escHtml(t.dong),
         why, t.n + "건", "", "30일 " + ({ sale: "매매", je: "전세", wol: "월세" })[BRIEF.bkind], locBtn(t));
     }).join("") || '<p class="hint">없음</p>') + "</div>" + exHint;
+  /* v9.5 한눈에 — 맨 위 한 문장 + 섹션마다 결론 한 줄 + 목록은 3줄 */
+  var HL0 = (BRIEF.hmode === "90" ? highs : highsAll)[0];
+  var nm = briefScopeName(scope), hero = document.getElementById("bf-hero");
+  if (hero && got) {
+    var trend = chg == null ? "" : chg <= -10 ? "줄었고" : chg >= 10 ? "늘었고" : "비슷하고";
+    var volTxt = chg == null ? "거래는 30일간 <em>" + fmt(cnt) + "건</em> 신고됐고(최근 2주는 신고 진행 중)," : "거래는 한 달 전 같은 시점보다 " + '<em class="' + cls(chg) + '">' + pct(chg, 0) + "</em> " + trend;
+    var pv = pmUp > pmDn * 1.5 ? "오른 곳이 많습니다" : pmDn > pmUp * 1.5 ? "내린 곳이 많습니다" : "오른 곳과 내린 곳이 엇갈립니다";
+    hero.innerHTML = '<small>' + escHtml(nm) + " · 최근 30일 · " + escHtml(briefAsOf()) + "</small>" +
+      "<b>" + volTxt + " 값은 " + pv + ".</b>" +
+      "<span>매매 " + fmt(cnt) + "건 · 값 오른 지역 " + pmUp + " / 내린 지역 " + pmDn + " · 신고가 " + fmt(highN) + "곳" + (hot[0] ? " · 거래 몰린 곳 1위 " + escHtml(kbLabel(hot[0].k)) : "") + "</span>";
+  }
+  /* 요약 지도 — 섹션마다 숫자 하나, 누르면 그 섹션으로 */
+  var kpiEl = document.getElementById("bf-kpi");
+  if (kpiEl && got) {
+    var lr0 = (typeof chLeadOn === "function" && chLeadOn()) ? chLeadRows(codes, BRIEF.lband || "84").sort(function (a, b) { return b.avg - a.avg; })[0] : null;
+    var mr = (typeof MACRO !== "undefined" && MACRO.data && MACRO.data.rates) || {};
+    function tile(jump, lab, big, sub, c) { return '<button type="button" class="bft" data-jump="' + jump + '"><small>' + lab + "</small><b" + (c ? ' class="' + c + '"' : "") + ">" + big + "</b><span>" + sub + "</span></button>"; }
+    kpiEl.className = "bftiles";
+    kpiEl.innerHTML =
+      tile("bf-hot", "30일 매매", fmt(cnt) + "건", chg != null ? "한 달 전 같은 시점 " + pct(chg, 0) : (hot[0] ? "몰린 곳 " + escHtml(kbLabel(hot[0].k)) : "최근 2주 신고 진행 중"), cls(chg)) +
+      tile("bf-price", "값 오른 · 내린 지역", pmUp + " · " + pmDn, "㎡당 중위 ±3% 기준") +
+      tile("bf-high", "신고가", fmt(highN) + "곳", HL0 ? escHtml(HL0.apt) + " " + pct(BRIEF.hmode === "90" ? HL0.up : HL0.upAll, 0) : "", "up") +
+      tile("bf-top", "가장 비싼 거래", tops[0] ? eok(tops[0].amount) : "—", tops[0] ? escHtml(tops[0].apt) : "") +
+      tile("bf-lead", "대장 84㎡ 1위", lr0 ? eok(lr0.avg) : "—", lr0 ? escHtml(chName(lr0.k)) : "") +
+      tile("bf-macro", "기준금리", mr.base ? mr.base.v.toFixed(2) + "%" : "—", mr.mortgage ? "주담대 " + mr.mortgage.v.toFixed(2) + "%" : "");
+  }
+  function setKey(id, html) { var el = document.getElementById(id); if (!el || !html) return; var k = document.createElement("div"); k.className = "bfkey"; k.innerHTML = html; el.insertBefore(k, el.firstChild); bfClip(el, 3); }
+  if (hot[0]) setKey("bf-hot", "가장 몰린 곳 <b>" + escHtml(kbLabel(hot[0].k)) + "</b> — 직전 30일의 <b>" + hot[0].vt.toFixed(2) + "배</b> (" + fmt(hot[0].n) + "건)");
+  var upSafe = pr.filter(function (r) { return r.pc > 3 && r.pc <= 25; }), spikes = pr.filter(function (r) { return Math.abs(r.pc) > 25; }).length;
+  if (pr.length) setKey("bf-price", "<b class=\"up\">" + pmUp + "곳 상승</b> · <b class=\"down\">" + pmDn + "곳 하락</b>" + (upSafe[0] ? " — 오른 곳 1위 " + escHtml(kbLabel(upSafe[0].k)) + " <b class=\"up\">" + pct(upSafe[0].pc, 1) + "</b>" : "") + (spikes ? " <small>· ±25% 넘게 튄 " + spikes + "곳은 대형·신축 거래가 몰린 표본 차이일 수 있어 순위만 참고</small>" : ""));
+  var HL = BRIEF.hmode === "90" ? highs : highsAll, dropN = typeof chHiDropped === "function" ? chHiDropped(codes) : 0;
+  if (HL.length) setKey("bf-high", "<b>" + HL.length + "곳</b> 최고가 경신 — 1위 <b>" + escHtml(HL[0].apt) + "</b> " + eok(HL[0].max.amount) + " <b class=\"up\">" + pct(BRIEF.hmode === "90" ? HL[0].up : HL[0].upAll, 1) + "</b>" + (dropN ? ' <small>· 1건으로 급등한 이상치 ' + dropN + "건은 확인 필요로 뺌</small>" : ""));
+  if (tops[0]) setKey("bf-top", "가장 비싼 거래 <b>" + escHtml(tops[0].apt) + "</b> " + Math.round(tops[0].area) + "㎡ <b>" + eok(tops[0].amount) + "</b>");
+  bfClip(document.getElementById("bf-pick"), 3); bfClip(document.getElementById("bf-gap"), 3);
+}
+/* 목록이 길면 앞 n줄만 — '더 보기' */
+function bfClip(el, n) {
+  if (!el) return;
+  Array.prototype.forEach.call(el.querySelectorAll(".bflist"), function (L) {
+    var rows = L.querySelectorAll(":scope > .bfrow"); if (rows.length <= n || L.getAttribute("data-clip")) return;
+    L.setAttribute("data-clip", "1"); L.classList.add("clip");
+    var b = document.createElement("button"); b.type = "button"; b.className = "btn sm ghost bfmore"; b.textContent = "더 보기 (" + (rows.length - n) + ")";
+    b.addEventListener("click", function () { var on = L.classList.toggle("clip"); b.textContent = on ? "더 보기 (" + (rows.length - n) + ")" : "접기"; });
+    L.parentNode.insertBefore(b, L.nextSibling);
+  });
 }
 function locBtn(t) {
   return '<button type="button" class="btn sm ghost" data-bfloc="' + escHtml(disp(t.k) + " " + t.dong + " " + t.apt) + '">' + bicon("pin") + "</button>";
@@ -2266,7 +2360,8 @@ function renderBriefLead(codes) {
   var bk = BRIEF.lband || "84", rows = chLeadRows(codes, bk).sort(function (a, b) { return b.avg - a.avg; });
   if (!rows.length) { el.innerHTML = '<p class="hint">이 범위·평형에서 최근 1년 거래가 있는 대장 후보가 없습니다.</p>'; return; }
   var open = {}; Array.prototype.forEach.call(el.querySelectorAll(".bflg.open"), function (g) { open[g.getAttribute("data-k")] = 1; });
-  el.innerHTML = '<div class="bfleads">' + rows.map(function (r, i) {
+  var keyL = '<div class="bfkey">1위 <b>' + escHtml(chName(rows[0].k)) + "</b> 대장 평균 <b>" + eok(rows[0].avg) + "</b>" + (rows[0].med ? " — 동네 가운데값의 " + rows[0].x.toFixed(1) + "배" : "") + " · " + rows.length + "개 지역</div>";
+  el.innerHTML = keyL + '<div class="bfleads">' + rows.map(function (r, i) {
     var top = r.L[0];
     return '<div class="bflg' + (open[r.k] ? " open" : "") + '" data-k="' + r.k + '"><div class="bflg-h"><span class="bfno">' + (i + 1) + "</span>" +
       '<div class="bfbody"><div class="bfname">' + escHtml(chName(r.k)) + (r.med ? ' <small>가운데값 ' + eok(r.med) + " · " + r.x.toFixed(1) + "배</small>" : "") + "</div>" +
@@ -2285,6 +2380,8 @@ function renderBriefMacro(codes, scopeNm) {
   var el = document.getElementById("bf-macro"); if (!el) return;
   macroLoad(function () {
     var D = MACRO.data || {}, R = D.rates || {}, ib = D.inbox || [], T = [];
+    var mt = document.querySelector('.bft[data-jump="bf-macro"]');    /* 요약 지도 금리 칸은 금리 자료가 늦게 오면 여기서 채운다 */
+    if (mt && R.base) { mt.querySelector("b").textContent = R.base.v.toFixed(2) + "%"; mt.querySelector("span").textContent = R.mortgage ? "주담대 " + R.mortgage.v.toFixed(2) + "%" : ""; }
     function tile(nm, v, sub, c, wide) { return '<div class="bfmt' + (wide ? " wide" : "") + '"><small>' + nm + "</small><b" + (c ? ' class="' + c + '"' : "") + ">" + v + "</b>" + (sub ? "<span>" + sub + "</span>" : "") + "</div>"; }
     if (R.base) { var ch = R.base.changes || [], l = ch[ch.length - 1], pv = ch[ch.length - 2]; T.push(tile("기준금리", R.base.v.toFixed(2) + "%", l ? mcYmd(l[0]) + " " + (pv ? (l[1] > pv[1] ? "인상" : l[1] < pv[1] ? "인하" : "동결") : "") : "")); }
     if (R.mortgage) T.push(tile("주담대 평균", R.mortgage.v.toFixed(2) + "%", "3억·30년 월 " + mcMan(mcPay(30000, R.mortgage.v) * 10000) + "원"));
@@ -2324,8 +2421,8 @@ function renderBriefLiveCards() {
     how: "30일 건수 ÷ 직전 30일 건수 · " + BRIEF_MIN + "건 미만 제외 · 가격보다 손바뀜이 먼저 움직입니다" });
   if (L.up.length || L.dn.length) add("값 움직이는 곳", { tag: "값 움직이는 곳", q: sc + ",<br>지금 값이 움직이는 곳은?",
     a: "오른 곳 <b class=\"up\">" + L.up.length + "곳</b> · 내린 곳 <b class=\"down\">" + L.dn.length + "곳</b> (±3% 밖)",
-    body: (L.up.length ? '<div class="chc-h">▲ 오른 곳</div>' + chList(L.up.slice(0, 5).map(function (r) { return [escHtml(chName(r.k)), "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건", pct(r.pc, 1), "up"]; }), 2, 3) : "") +
-      (L.dn.length ? '<div class="chc-h">▼ 내린 곳</div>' + chList(L.dn.slice(0, 4).map(function (r) { return [escHtml(chName(r.k)), "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건", pct(r.pc, 1), "down"]; }), 2, 2) : ""),
+    body: (L.up.length ? '<div class="chc-h">▲ 오른 곳</div>' + chList(L.up.slice(0, 5).map(function (r) { return [escHtml(chName(r.k)), (Math.abs(r.pc) > 25 ? "표본 차이 주의 · " : "") + "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건", pct(r.pc, 1), "up"]; }), 2, 3) : "") +
+      (L.dn.length ? '<div class="chc-h">▼ 내린 곳</div>' + chList(L.dn.slice(0, 4).map(function (r) { return [escHtml(chName(r.k)), (Math.abs(r.pc) > 25 ? "표본 차이 주의 · " : "") + "㎡당 중위 " + fmt(r.pm) + "만 · 30일 " + fmt(r.n) + "건", pct(r.pc, 1), "down"]; }), 2, 2) : ""),
     how: "30일 ㎡당 중위 vs 직전 30일 · 표본이 섞이면 튈 수 있어 ±3% 안은 보합" });
   if (L.highs.length) { var hb = { all: "", 84: " 84㎡대", 59: " 59㎡대", L: " 대형", S: " 소형" }[L.hband] || "";
     add("신고가", { tag: "신고가" + hb, q: sc + hb + ",<br>최고가를 새로 쓴 아파트는?",
@@ -2490,29 +2587,34 @@ function buildChannel(root) {
         return '<div class="chtabrow"><small>' + g[0] + '</small><div class="seg chtabs">' + CH_TABS.filter(g[1]).map(function (t) {
           return '<button type="button" data-ch="' + t[0] + '"' + (t[0] === CH.tab ? ' class="on"' : "") + ">" + (CH_TAB_SHORT[t[0]] || t[1]) + "</button>";
         }).join("") + "</div></div>"; }).join("") + "</div></div>" +
-    '<div class="card"><h2>올릴 글</h2>' + CH_HELP_TEXT +
-      '<div class="chbtns" style="margin:0 0 8px"><button type="button" class="btn sm" id="ch-copy">글 복사</button>' +
-        '<button type="button" class="btn sm ghost" id="ch-copyall">모든 코너 한 번에 복사</button>' +
-        '<button type="button" class="btn sm ghost" id="ch-expand">글 전체 보기</button>' +
-        '<span class="hint" id="ch-copied"></span></div>' +
-      '<div class="chbtns" style="margin:0 0 8px"><button type="button" class="btn sm ghost" id="ch-threads">스레드용(500자) 복사</button>' +
-        '<button type="button" class="btn sm ghost" id="ch-tags">해시태그만 복사</button>' +
-        '<button type="button" class="btn sm ghost" id="ch-posted">✓ 올림 표시</button></div>' +
-      '<textarea class="chpost short" id="ch-text" rows="9" spellcheck="false"></textarea></div>' +
-    '<div class="card"><h2>카드 이미지</h2>' + CH_HELP_CARD +
-      '<div class="seg" id="ch-scope"></div><div class="seg" id="ch-scope2" style="margin-top:6px;display:none"></div>' +
+    '<div class="card chstep"><h2><i class="chstepno">1</i>카드</h2>' + CH_HELP_CARD +
+      '<div id="ch-scopebox"><div class="seg" id="ch-scope"></div><div class="seg" id="ch-scope2" style="margin-top:6px;display:none"></div>' +
       '<div class="seg" id="ch-band" style="margin-top:6px">' + [["all", "전체 평형"], ["84", "84㎡대"], ["59", "59㎡대"], ["S", "소형"], ["L", "대형"]].map(function (b) {
-        return '<button type="button" data-cb="' + b[0] + '"' + (b[0] === CH.band ? ' class="on"' : "") + ">" + b[1] + "</button>"; }).join("") + "</div>" +
+        return '<button type="button" data-cb="' + b[0] + '"' + (b[0] === CH.band ? ' class="on"' : "") + ">" + b[1] + "</button>"; }).join("") + "</div></div>" +
+      '<div class="chsum" id="ch-sum"></div>' +
       '<p class="hint" id="ch-cardnote"></p>' +
-      '<div class="chbtns" style="margin:4px 0 10px"><button type="button" class="btn sm" id="ch-zip">카드 전부 ZIP 저장 (표지·마무리 포함, 순서 번호)</button><span class="hint">캐러셀은 표지 → 본문 → 마무리 순으로 올리면 됩니다 (최대 10장)</span></div>' +
-      '<div class="chcards" id="ch-cards"></div></div>';
+      '<div class="chcards strip" id="ch-cards"></div>' +
+      '<div class="chbtns" style="margin:10px 0 0"><button type="button" class="btn sm" id="ch-zip">카드 전부 ZIP 저장</button><button type="button" class="btn sm ghost" id="ch-view">세로로 크게 보기</button><span class="hint">옆으로 넘겨 확인 · 파일 이름 번호 순서로 올리면 됩니다(최대 10장)</span></div></div>' +
+    '<div class="card chstep"><h2><i class="chstepno">2</i>올릴 글</h2>' + CH_HELP_TEXT +
+      '<div class="seg" id="ch-tmode"><button type="button" data-t="insta" class="on">인스타 글</button><button type="button" data-t="threads">스레드 글</button><button type="button" data-t="reels">릴스 대본</button><button type="button" data-t="raw">상세 원문</button></div>' +
+      '<textarea class="chpost" id="ch-text" rows="14" spellcheck="false"></textarea>' +
+      '<div class="chbtns" style="margin:8px 0 0"><button type="button" class="btn sm" id="ch-copy">이 글 복사</button>' +
+        '<button type="button" class="btn sm ghost" id="ch-tags">해시태그만</button>' +
+        '<button type="button" class="btn sm ghost" id="ch-posted">올림 표시</button>' +
+        '<span class="hint" id="ch-tlen"></span><span class="hint" id="ch-copied"></span></div></div>';
   root.querySelector("#ch-ops").addEventListener("click", function (ev) {
     var b = ev.target.closest("button[data-ch]"); if (!b) return;
     CH.tab = b.dataset.ch; CH.tabUser = true;
     Array.prototype.forEach.call(root.querySelectorAll("#ch-tabs button[data-ch]"), function (x) { x.classList.toggle("on", x.dataset.ch === CH.tab); });
     paintChannel();
   });
-  root.querySelector("#ch-threads").addEventListener("click", function () { chCopy(chThreadsText(CH.tab)); });
+  root.querySelector("#ch-tmode").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button[data-t]"); if (!b) return; CH.tmode = b.dataset.t;
+    Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); }); chShowText();
+  });
+  root.querySelector("#ch-view").addEventListener("click", function (ev) {
+    var el = document.getElementById("ch-cards"), on = el.classList.toggle("strip"); ev.currentTarget.textContent = on ? "세로로 크게 보기" : "옆으로 넘겨 보기"; chFitLater(el);
+  });
   root.querySelector("#ch-tags").addEventListener("click", function () { chCopy(chHashtags(CH.tab)); });
   root.querySelector("#ch-posted").addEventListener("click", function () { chMarkPosted(CH.tab); paintChannel(); var c = document.getElementById("ch-copied"); if (c) c.textContent = chTabName(CH.tab) + " 올림으로 기록했습니다"; });
   root.querySelector("#ch-zip").addEventListener("click", function () {
@@ -2523,6 +2625,7 @@ function buildChannel(root) {
     var b = ev.target.closest("button[data-ch]"); if (!b) return;
     CH.tab = b.dataset.ch; CH.tabUser = true;
     Array.prototype.forEach.call(ev.currentTarget.querySelectorAll("button[data-ch]"), function (x) { x.classList.toggle("on", x === b); });
+    if (CH.tab === "school" && typeof scLoad === "function" && !(SC && SC.data)) scLoad(function () { if (CH.tab === "school") paintChannel(); });
     paintChannel();
   });
   ["ch-scope", "ch-scope2"].forEach(function (id) {
@@ -2538,13 +2641,7 @@ function buildChannel(root) {
     paintChannel();
   });
   root.querySelector("#ch-copy").addEventListener("click", function () { chCopy(document.getElementById("ch-text").value); });
-  root.querySelector("#ch-copyall").addEventListener("click", function () {
-    chCopy(CH_TABS.map(function (t) { return chText(t[0]); }).filter(Boolean).join("\n\n────────\n\n"));
-  });
-  root.querySelector("#ch-expand").addEventListener("click", function (ev) {
-    var ta = document.getElementById("ch-text"), on = ta.classList.toggle("short");
-    ev.currentTarget.textContent = on ? "글 전체 보기" : "글 접기";
-  });
+
   root.querySelector("#ch-cards").addEventListener("click", function (ev) {
     var b = ev.target.closest("[data-chsave]"); if (!b) return;
     var card = b.parentNode.querySelector(".chcard");
@@ -2552,6 +2649,12 @@ function buildChannel(root) {
     chCardImage(card, b.dataset.chsave).then(progClose, function () { progClose(); alert("이미지 저장에 실패했습니다."); });
   });
   chPaintScope();
+}
+function chShowText() {
+  var ta = document.getElementById("ch-text"); if (!ta) return;
+  var m = CH.tmode || "insta", T = CH.texts || {}, v = T[m] || T.raw || "";
+  ta.value = v;
+  var ln = document.getElementById("ch-tlen"); if (ln) ln.textContent = v.length + "자" + (m === "threads" ? " / 500" : m === "insta" ? " / 2,200" : "");
 }
 /* 카드 범위 칩 — 지금 시장과 같은 묶음(BRIEF_GROUPS) */
 function chPaintScope() {
@@ -2597,7 +2700,8 @@ function renderChannel() {
   CH.loading = true;
   var a = (typeof BRIEF !== "undefined" && BRIEF.data) ? Promise.resolve(BRIEF.data)
     : fetch("brief_data.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
-  var pm = new Promise(function (res) { macroLoad(res); if (typeof scLoad === "function") scLoad(function () {}); });
+  fetch("data/validate.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { CH.val = j; if (CH.data) { var ops = document.getElementById("ch-ops"); if (ops && typeof chOpsBanner === "function") ops.innerHTML = chOpsBanner(); } })["catch"](function () {});
+  var pm = new Promise(function (res) { macroLoad(res); if (typeof scLoad === "function") scLoad(function () { if (CH.data && CH.tab === "school") paintChannel(); }); });
   Promise.all([a["catch"](function (e) { return { _err: String(e.message || e) }; }), pm]).then(function (vv) {
     var v = vv[0];
     CH.loading = false;
@@ -2678,7 +2782,8 @@ function chSum(codes) {
     if (useSnap && j.snap) { o.sn += j.snap.n || 0; o.sc += j.count || 0; }
   });
   o.lag = useSnap && o.sn > 0;
-  o.chg = o.lag ? (o.sc / o.sn - 1) * 100 : (o.pn ? (o.n / o.pn - 1) * 100 : null);
+  /* v9.5: 같은 신고 지연끼리(한 달 전 같은 시점 기록)가 아니면 증감을 내지 않는다 — '직전 30일'은 늘 줄어 보여 틀린 인상을 준다 */
+  o.chg = o.lag ? (o.sc / o.sn - 1) * 100 : null;
   return o;
 }
 function chCmpLabel() { return CH.data.snap30 ? "한 달 전 같은 시점 집계 대비" : "직전 30일 대비"; }
@@ -2691,9 +2796,19 @@ function chScopes() {
     metro: all.filter(function (c) { return /^(11|41|28)/.test(c); })
   };
 }
+/* v9.5 신고가 이상치 — 1건뿐인데 이전 최고 대비 +60% 넘거나, ㎡당 가격이 그 지역 30일 중위의 3.5배 넘으면 '확인 필요'로 빼 둔다
+   (예: 동작구 성우2차 76㎡ 10억 '+257%' — 이전 기록이 다른 동·지분 거래와 섞인 것으로 보임). scripts/validate.js B5 와 같은 규칙 */
+function chHiOk(t, c) {
+  var j = CH.data && CH.data.regions && CH.data.regions[c], up = t.upAll != null ? t.upAll : t.up;
+  var amt = t.max ? t.max.amount : t.amount, ar = (t.max && t.max.area) || t.area, n = t.n || 1;
+  if (up != null && up > 60 && n <= 1) return false;
+  if (j && j.pm && amt && ar && amt / ar / j.pm > 3.5) return false;
+  return true;
+}
+function chHiDropped(codes) { var n = 0; codes.forEach(function (c) { var j = CH.data.regions[c]; if (!j || j.error) return; (j.newHighAll || []).forEach(function (t) { if (!chHiOk(t, c)) n++; }); }); return n; }
 function chCollect(codes, field, extra) {
-  var out = [];
-  codes.forEach(function (c) { var j = CH.data.regions[c]; if (!j || j.error) return; (j[field] || []).forEach(function (t) { out.push(Object.assign({ k: c }, t, extra || {})); }); });
+  var out = [], hi = /^newHigh/.test(field);
+  codes.forEach(function (c) { var j = CH.data.regions[c]; if (!j || j.error) return; (j[field] || []).forEach(function (t) { if (hi && !chHiOk(t, c)) return; out.push(Object.assign({ k: c }, t, extra || {})); }); });
   return out;
 }
 function chWin() {
@@ -3094,6 +3209,7 @@ function chFitLater(root) {
   setTimeout(function () { chFitCards(root); }, 400);
 }
 function chCard(o) {
+  if (CH.cap) CH.cap.push(o);
   var live = o.variant === "live", cls = "chcard" + (o.dense ? " chc-dense" : "") + (live ? " chc-live" : "");
   var more = o.dense ? "" : '<div class="chc-more"><b>알아두면 좋은 점</b>' + String(o.more || chMoreOf(o.tag)).split(/(?<=[.다요])\s+/).map(function (x) { return "<span>" + x + " </span>"; }).join("") + "</div>";
   return '<div class="' + cls + '"><div class="chc-head">' + CH_DECO +
@@ -3162,14 +3278,14 @@ function chTile(v) {
 function chCardsHtml(tab) {
   var C = [];
   function add(file, o) { C.push([file, chCard(o)]); }
-  var lagNote = CH.data && CH.data.snap30 ? "증감 = 한 달 전 같은 시점에 잰 30일 건수 대비" : "증감 = 직전 30일 대비 · 최근분은 신고가 덜 들어와 감소가 크게 보임";
+  var lagNote = CH.data && CH.data.snap30 ? "증감 = 한 달 전 같은 시점에 잰 30일 건수 대비(같은 신고 지연끼리)" : "30일 누계 · 증감은 한 달 전 같은 시점 기록이 쌓이면 표시(직전 30일과 견주면 신고 지연 때문에 늘 줄어 보여 쓰지 않음)";
   if (tab === "daily") {
     var d = chDaily(); if (!d) return "";
     /* 1 거래량 */
     add("거래량", { tag: "거래량", q: "지난 30일, 아파트<br>얼마나 팔렸나?",
-      a: "서울 " + fmt(d.se.n) + "건 " + chB(d.se.chg, null, 0) + " · 경기·인천 " + fmt(d.gi.n) + "건 " + chB(d.gi.chg, null, 0),
+      a: "서울 " + fmt(d.se.n) + "건" + (d.se.chg != null ? " " + chB(d.se.chg, null, 0) : "") + " · 경기·인천 " + fmt(d.gi.n) + "건" + (d.gi.chg != null ? " " + chB(d.gi.chg, null, 0) : "") + " · 전국 " + fmt(d.all.n) + "건",
       body: '<div class="chc-kpis">' + [["전국", d.all], ["서울", d.se], ["경기·인천", d.gi]].map(function (p) {
-          return '<div><small>' + p[0] + "</small><b" + (fmt(p[1].n).length >= 6 ? ' class="sm"' : "") + ">" + fmt(p[1].n) + '<em>건</em></b><span class="' + cls(p[1].chg) + '">' + chPct(p[1].chg, 0) + "</span></div>";
+          return '<div><small>' + p[0] + "</small><b" + (fmt(p[1].n).length >= 6 ? ' class="sm"' : "") + ">" + fmt(p[1].n) + '<em>건</em></b><span class="' + cls(p[1].chg) + '">' + (p[1].chg != null ? chPct(p[1].chg, 0) : "30일 누계") + "</span></div>";
         }).join("") + "</div>" +
         '<div class="chc-line">최근 7일 계약 <b>' + fmt(d.all.wk) + "건</b> · " + escHtml(chWin()) + " 계약분</div>",
       how: lagNote });
@@ -3334,9 +3450,11 @@ function paintChannel() {
     : "MDD·갈아타기 " + DB.sale.dates[1].replace("-", ".") + "까지 (자동 봉인 전)");
   meta.innerHTML = parts.join(" · ") || "불러오는 중…";
   var custom = !(CH.scope === "all" && CH.band === "all");
+  var scNm = CH.scope === "all" ? "전국" : briefScopeName(CH.scope);
   var baseTxt = (custom && CH.tab === "school" && typeof scText === "function") ? scText(CH.scope === "all" ? RANKED.slice() : briefCodes(CH.scope), CH.scope === "all" ? "전국" : briefScopeName(CH.scope)) : (custom && CH.tab === "lead" && typeof chLeadText === "function") ? chLeadText(CH.scope === "all" ? RANKED.slice() : briefCodes(CH.scope), CH.scope === "all" ? "전국" : briefScopeName(CH.scope)) : chText(CH.tab);
-  document.getElementById("ch-text").value = (!custom && typeof chPostText === "function") ? chPostText(CH.tab) : (baseTxt && typeof chCta === "function" && !/아직 읽지 못했|자료가 아직/.test(baseTxt) ? baseTxt + "\n\n" + chCta(CH.tab) + "\n\n" + chHashtags(CH.tab) : baseTxt);
-  var cc = chCardsFor(CH.tab), note = document.getElementById("ch-cardnote");
+  CH.rawText = (!custom && typeof chPostText === "function") ? chPostText(CH.tab) : (baseTxt && typeof chCta === "function" && !/아직 읽지 못했|자료가 아직/.test(baseTxt) ? baseTxt + "\n\n" + chCta(CH.tab) + "\n\n" + chHashtags(CH.tab) : baseTxt);
+  CH.cap = [];
+  var cc = chCardsFor(CH.tab), note = document.getElementById("ch-cardnote"), capList = CH.cap; CH.cap = null;
   if (note) { note.textContent = cc.note; note.style.display = cc.note ? "" : "none"; }
   if (cc.html && typeof chCoverCard === "function") {        /* 캐러셀용 표지·마무리 */
     var tmp = document.createElement("div"); tmp.innerHTML = cc.html;
@@ -3344,6 +3462,12 @@ function paintChannel() {
     function wrapC(file, o) { return '<div class="chcardWrap chc-edge">' + chCard(o) + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_" + file) + '">이미지 저장</button></div>'; }
     cc.html = wrapC("표지_" + CH.tab, chCoverCard(CH.tab, tags)) + cc.html + wrapC("마무리", chOutroCard(CH.tab));
   }
+  CH.texts = typeof chTexts === "function" ? chTexts(CH.tab, capList, scNm) : {};
+  CH.texts.raw = CH.rawText;
+  chShowText();
+  var sumEl = document.getElementById("ch-sum");
+  if (sumEl) { var U = typeof chUniqCards === "function" ? chUniqCards(capList) : []; sumEl.innerHTML = U.length ? '<b>' + escHtml(chClean(U[0].q)) + "</b><span>" + escHtml(chClean(U[0].a)) + "</span><small>카드 " + (capList.length + 2) + "장 · 표지·마무리 포함" + (U[0].date ? " · 기준 " + escHtml(U[0].date) : "") + "</small>" : ""; }
+  var sb = document.getElementById("ch-scopebox"); if (sb) sb.style.display = (CH_REGULAR.indexOf(CH.tab) >= 0 || CH.tab === "terms" || CH.tab === "macro") ? "none" : "";
   document.getElementById("ch-cards").innerHTML = cc.html || '<p class="hint">이 코너는 ' + (custom ? "이 범위·평형으로 만들 카드가 없습니다. 범위를 넓히거나 전체 평형을 골라 보세요." : "카드로 만들 자료가 아직 없습니다.") + "</p>";
   chNumberCards(document.getElementById("ch-cards"));
   chFitLater(document.getElementById("ch-cards"));
@@ -3429,7 +3553,7 @@ function chScopeData(codes, band) {
   var o = { live: live, band: band, bk: bk, MIN: MIN, lag: lag, rows: rows, n: 0, pn: 0, wk: 0, je: 0, wol: 0 };
   rows.forEach(function (r) { o.n += r.n; o.pn += r.pn; });
   live.forEach(function (c) { var j = R[c]; o.wk += j.weekCount || 0; o.je += j.rentCount || 0; o.wol += j.wolCount || 0; });
-  o.chg = o.pn ? (o.n / o.pn - 1) * 100 : null;
+  o.chg = lag && o.pn ? (o.n / o.pn - 1) * 100 : null;      /* v9.5: 같은 지연끼리일 때만 */
   o.byN = rows.slice().sort(function (a, b) { return b.n - a.n; });
   o.up = rows.filter(function (r) { return r.pc != null && r.pc > 3; }).sort(function (a, b) { return b.pc - a.pc; });
   o.dn = rows.filter(function (r) { return r.pc != null && r.pc < -3; }).sort(function (a, b) { return a.pc - b.pc; });
@@ -3456,7 +3580,7 @@ function chScopeCards(codes, band, scopeNm) {
   var cmp = d.lag ? "한 달 전 같은 시점 대비" : "직전 30일 대비" + (d.bk ? "" : "(최근분은 신고 지연으로 감소가 크게 보임)");
   function add(file, o) { C.push([file + "_" + (scopeNm || "") + (bn ? "_" + bn : ""), chCard(o)]); }
   /* 1 거래량 */
-  var kp = [[scopeNm || "전체", { n: d.n, chg: d.chg }]].concat(d.byN.slice(0, d.live.length >= 3 ? 2 : 0).map(function (r) { return [chName(r.k), { n: r.n, chg: r.pn ? (r.n / r.pn - 1) * 100 : null }]; }));
+  var kp = [[scopeNm || "전체", { n: d.n, chg: d.chg }]].concat(d.byN.slice(0, d.live.length >= 3 ? 2 : 0).map(function (r) { return [chName(r.k), { n: r.n, chg: d.lag && r.pn ? (r.n / r.pn - 1) * 100 : null }]; }));
   add("거래량", { tag: tagS("거래량"), q: sc + (bn ? " " + bn : "") + ",<br>지난 30일 얼마나 팔렸나?",
     a: fmt(d.n) + "건 " + chB(d.chg, null, 0) + (d.byN[0] && d.live.length > 1 ? " · 최다 " + escHtml(chName(d.byN[0].k)) + " " + fmt(d.byN[0].n) + "건" : ""),
     body: '<div class="chc-kpis">' + kp.map(function (p) {
@@ -3978,8 +4102,13 @@ function chTabName(tab) { for (var i = 0; i < CH_TABS.length; i++) if (CH_TABS[i
 function chDataAgeH() { var b = CH.data && CH.data.builtAt; if (!b) return null; var t = new Date(b).getTime(); return isFinite(t) ? (Date.now() - t) / 3600000 : null; }
 function chOpsBanner() {
   var age = chDataAgeH(), posted = chPosted(), plan = chPlanToday(), tk = chKstDate().key, L = [];
-  if (age != null && age > 36) L.push('<div class="chwarn">⚠ 실거래 자료가 <b>' + Math.round(age) + '시간 전</b> 것입니다. 새벽 수집(GitHub Actions)이 실패했을 수 있어요 — 올리기 전에 Actions 로그를 확인하세요.</div>');
-  else if (CH.data && CH.data._err) L.push('<div class="chwarn">⚠ 오늘 자료를 읽지 못했습니다 — 카드 숫자를 쓰지 마세요.</div>');
+  if (age != null && age > 36) L.push('<div class="chwarn">실거래 자료가 <b>' + Math.round(age) + '시간 전</b> 것입니다. 새벽 수집(GitHub Actions)이 실패했을 수 있어요 — 올리기 전에 Actions 로그를 확인하세요.</div>');
+  else if (CH.data && CH.data._err) L.push('<div class="chwarn">오늘 자료를 읽지 못했습니다 — 카드 숫자를 쓰지 마세요.</div>');
+  if (CH.val && CH.val.summary) {
+    var V = CH.val, bad = V.checks.filter(function (c) { return c.level === "error" || c.level === "warn"; });
+    L.push('<details class="chval' + (V.summary.error ? " err" : "") + '"><summary>데이터 점검 ' + (V.summary.error ? "오류 " + V.summary.error + " · " : "") + "주의 " + V.summary.warn + " · 정상 " + V.summary.ok + ' <small>(' + escHtml(String(V.built || "").slice(5, 16).replace("T", " ")) + " UTC)</small></summary>" +
+      bad.map(function (c) { return "<p><b>" + escHtml(c.id + " " + c.title) + "</b> " + escHtml(c.detail) + "</p>"; }).join("") + "</details>");
+  }
   var last = Object.keys(posted).map(function (k) { return [k, posted[k]]; }).sort(function (a, b) { return b[1].localeCompare(a[1]); }).slice(0, 3);
   var days = ["일", "월", "화", "수", "목", "금", "토"], w = chKstDate().w, kd = chKstDate(), dim = chDaysInMonth(kd.y, kd.m);
   var todo = chPlanRegular().slice(), th = chPlanTheme(); if (th) todo.push(th);
@@ -3995,8 +4124,8 @@ function chOpsBanner() {
 function chHashtags(tab) { return (CH_TAGS[tab] || []).concat(CH_TAGS_COMMON).join(" "); }
 function chCta(tab) {
   var next = [null, CH_TAB_SHORT[chPlanTheme() || "daily"]];
-  return "📌 매일 새벽 3시, 국토부 실거래 신고로 새로 만듭니다. 저장해 두고 다음 달 같은 숫자와 비교해 보세요.\n" +
-    "💬 궁금한 동네·단지는 댓글로 — 매일 '어제의 부동산', 일요일 한주 정리, 월요일 한주 예상\n" +
+  return "매일 새벽 3시, 국토부 실거래 신고로 새로 만듭니다. 저장해 두고 다음 달 같은 숫자와 비교해 보세요.\n" +
+    "궁금한 동네·단지는 댓글로 — 매일 '어제의 부동산', 일요일 한주 정리, 월요일 한주 예상\n" +
     "출처: 국토교통부 실거래가 공개시스템" + (tab === "macro" ? " · 한국은행 ECOS · 통계청 KOSIS" : "") + " · 참고 자료이며 투자 권유가 아닙니다 · @uphill.lab";
 }
 function chPostText(tab) { var t = chText(tab); if (!t || /아직 읽지 못했|자료가 아직/.test(t)) return t; return t + "\n\n" + chCta(tab) + "\n\n" + chHashtags(tab); }
@@ -4012,7 +4141,7 @@ function chCoverCard(tab, tags) {
   var plan = chTabName(tab), k = chKstDate(), days = ["일", "월", "화", "수", "목", "금", "토"];
   var title = { daily: "오늘의 부동산,<br>숫자로 보는 " + k.m + "월 " + k.d + "일", recap: "어제의 부동산,<br>" + k.m + "월 " + k.d + "일 정리", week: "이번 주 부동산,<br>한 장으로 정리", weekahead: "이번 주 부동산,<br>무엇을 봐야 하나?", month: "이번 달 부동산,<br>숫자로 결산", monthahead: "다음 달 부동산,<br>일정 미리보기", lead: "지역별 대장아파트,<br>지금 얼마?", macro: "금리·정책,<br>이번 주 한눈에", mdd: "집값, 고점 대비<br>지금 어디쯤?", move: "내 집 마련·갈아타기,<br>현금 얼마면 될까?", terms: "부동산 용어,<br>한입에 정리", school: "학군지는 어디?<br>학교알리미로 본 학군" }[tab] || plan;
   var uniq = []; (tags || []).forEach(function (t) { t = String(t).replace(/\s*·.*$/, ""); if (uniq.indexOf(t) < 0) uniq.push(t); });
-  return { tag: plan, q: title,
+  return { tag: plan, _cover: true, q: title,
     a: k.m + "." + k.d + "(" + days[k.w] + ") · 카드 " + (tags ? tags.length : 0) + "장 · 옆으로 넘겨 보세요 →",
     body: '<div class="chc-toc">' + uniq.slice(0, 9).map(function (t, i) { return '<div><span>' + (i + 1) + "</span>" + escHtml(t) + "</div>"; }).join("") + "</div>",
     more: "국토부에 신고된 아파트 실거래만 씁니다. 호가·광고가 아니라 실제 계약된 값이고, 매일 새벽 3시에 새로 모읍니다.",
@@ -4022,7 +4151,7 @@ function chOutroCard(tab) {
   var next = [null, "매일 전일 정리 · 일 한주 정리 · 월 한주 예상"];
   return { tag: "마무리", q: "도움이 됐다면<br>저장해 두세요",
     a: "매일 새벽 3시, <b>국토부 실거래</b>로 새로 만듭니다",
-    body: chList([["저장·공유", "다음 달 같은 숫자와 비교하면 흐름이 보입니다", "🔖"], ["댓글", "궁금한 동네·단지·용어를 남겨 주세요", "💬"], ["다음 코너", next[1], "→"], ["@uphill.lab", "우상향연구소 — 숫자로 보는 부동산", "✓"]], true),
+    body: chList([["저장·공유", "다음 달 같은 숫자와 비교하면 흐름이 보입니다", "저장"], ["댓글", "궁금한 동네·단지·용어를 남겨 주세요", "댓글"], ["다음 코너", next[1], "매일"], ["@uphill.lab", "우상향연구소 — 숫자로 보는 부동산", "팔로우"]], true),
     more: "모든 숫자는 국토교통부 실거래가 공개시스템" + (tab === "macro" ? "과 한국은행·통계청 공개 자료" : "") + "에서 가져오며, 특정 단지 매수를 권하지 않습니다.",
     how: "참고 자료이며 투자 권유가 아닙니다 · 대출·세금은 금융기관·세무사 확인" };
 }
@@ -4184,11 +4313,11 @@ function chCheckpoints(ev) {
 }
 /* ── 재료 ── */
 function chDeltaSum() {
-  var D = CH.data && CH.data.delta; if (!D || !D.regions) return null;
+  var D = CH.data && CH.data.delta; if (!D || !D.regions || D.method !== "seen") return null;   /* v9.5: 지문 대조로 센 것만 (옛 추정치는 쓰지 않음) */
   var S = chScopes(), o = { all: 0, se: 0, gi: 0, hi: [], top: [] };
   Object.keys(D.regions).forEach(function (c) {
     var r = D.regions[c]; o.all += r.n || 0; if (/^11/.test(c)) o.se += r.n || 0; if (/^(41|28)/.test(c)) o.gi += r.n || 0;
-    (r.hi || []).forEach(function (t) { o.hi.push(Object.assign({ k: c }, t)); }); (r.top || []).forEach(function (t) { o.top.push(Object.assign({ k: c }, t)); });
+    (r.hi || []).forEach(function (t) { if (chHiOk(t, c)) o.hi.push(Object.assign({ k: c }, t)); }); (r.top || []).forEach(function (t) { o.top.push(Object.assign({ k: c }, t)); });
   });
   o.hi.sort(function (a, b) { return b.up - a.up; }); o.top.sort(function (a, b) { return b.amount - a.amount; });
   o.prevAsOf = D.prevAsOf; return o;
@@ -4417,6 +4546,144 @@ function chOpsText(tab) {
   }
   L.push(""); L.push(CH_FOOT);
   return L.join("\n");
+}
+
+/* ══ v9.5 업로드용 글 — 인스타 · 스레드 · 릴스 (카드에서 그대로 뽑는다, 이모지 없음) ══
+   카드가 그려질 때 chCard 가 CH.cap 에 카드 객체를 모으고, 여기서 질문(q)·한 줄 답(a)·읽는 법(how)·해설(chMoreOf)로 글을 쓴다.
+   → 카드에 없는 숫자는 글에도 없다(정확성). */
+function chClean(h) { return String(h || "").replace(/<br\s*\/?>/gi, " ").replace(/<small>.*?<\/small>/gi, "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim(); }
+function chUniqCards(cards) {
+  var seen = {}, out = [];
+  (cards || []).forEach(function (o) {
+    var tag = String(o.tag || "").replace(/\s\d+\/\d+$/, "");
+    if (/^마무리$/.test(tag) || o._cover) return;
+    if (seen[tag]) return; seen[tag] = 1; out.push(o);
+  });
+  return out;
+}
+var CH_TIPS = {
+  recap: ["실거래가는 계약 후 30일 안에 신고합니다. 그래서 '어제 신고'에는 2~4주 전 계약이 섞여 있고, 최근 2주 숫자는 늘 적게 보입니다."],
+  week: ["거래량은 '일주일 전 같은 시점'끼리 비교해야 합니다. 신고 기한(30일) 때문에 최근 숫자는 계속 늘어나기 때문입니다."],
+  month: ["월 거래량은 다음 달 초에야 거의 확정됩니다. 이번 달 숫자로 '거래 절벽'을 말하기 전에 날짜부터 확인하세요."],
+  weekahead: ["발표 전에 실거래 숫자를 먼저 봐 두면, 발표 뒤 기사가 맞는 말인지 바로 보입니다."],
+  monthahead: ["재산세·종부세는 6월 1일에 집을 가진 사람이 냅니다. 잔금일을 언제로 잡느냐가 그해 보유세를 가릅니다."],
+  daily: ["신고가는 같은 단지·같은 면적끼리만 비교해야 합니다. 84㎡와 74㎡를 섞으면 신고가가 아닙니다.", "직거래는 가족 간 거래가 섞여 시세보다 싸게 찍힐 수 있어, 시세를 볼 때는 빼고 봐야 합니다."],
+  lead: ["대장아파트는 그 동네 시세의 기준점입니다. 대장이 최고가 근처면 그 지역 흐름이 살아 있다는 신호로 많이 읽습니다."],
+  macro: ["기준금리가 내려도 주담대 금리는 바로 따라오지 않습니다. 은행 대출금리는 국고채·은행채 같은 시장금리를 먼저 따라갑니다."],
+  mdd: ["평균보다 가운데값을 보세요. 초고가 몇 건이 평균을 끌어올리기 때문입니다."],
+  move: ["국민평형 84㎡는 '국민주택규모'(전용 85㎡ 이하)에서 나온 기준입니다. 흔히 34평형이라 부르지만 전용은 약 25.4평입니다."],
+  school: ["학군지는 성적보다 먼저 '전입'으로 보입니다. 중학교 학급당 학생 수가 많고 전입이 많은 동네가 아이를 데리고 이사 오는 동네입니다."],
+  terms: ["1평은 3.3058㎡입니다. 평당가에 25.4를 곱하면 전용 84㎡ 가격이 대략 나옵니다."]
+};
+var CH_REEL_OPEN = {
+  recap: "어제 부동산, 30초 요약", week: "이번 주 부동산, 이것만 보면 됩니다", weekahead: "이번 주 부동산 일정, 하나만 체크하세요",
+  month: "이번 달 부동산 결산, 숫자로 끝냅니다", monthahead: "이번 달 놓치면 안 되는 부동산 일정", daily: "지금 아파트 시장, 숫자 세 개면 됩니다",
+  lead: "동네 시세, 대장아파트 하나면 보입니다", macro: "금리 숫자 하나가 내 월 상환액을 바꿉니다", mdd: "집값, 고점 대비 지금 어디쯤일까",
+  move: "서울 84㎡, 현금 얼마 있어야 살까", school: "학군지는 성적보다 이걸로 먼저 보입니다", terms: "부동산 기사, 이 단어 모르면 절반은 오해합니다"
+};
+/* 릴스 훅 — [눈길 끄는 첫 줄, 그 답이 들어 있는 카드(우선순위), 꺼내는 방식]. 숫자는 카드 한 줄 답에서 그대로 가져온다(지어내지 않음) */
+var CH_HOOKS = {
+  daily: ["지난 30일, 가장 비싸게 팔린 아파트", [/최고가 거래/, /신고가/], "seg"],
+  recap: ["어제 새로 신고된 가장 비싼 아파트", [/어제 최고가/, /어제 신고가/, /전일 정리/], "seg"],
+  week: ["이번 주 최고가를 새로 쓴 아파트", [/이번 주 신고가/, /한주 정리/], "seg"],
+  month: ["이번 달 최고가를 새로 쓴 아파트", [/이달의 신고가/, /한달 정리/], "seg"],
+  lead: ["서울에서 가장 비싼 대장아파트", [/대장 TOP/, /대장 시세/], "seg"],
+  macro: ["3억 빌리면 한 달에 갚는 돈", [/주담대/, /기준금리/], "lastbold"],
+  mdd: ["집값, 고점 대비 지금 여기까지 왔습니다", [/^MDD/, /하락/], "seg"],
+  move: ["서울 84㎡, 현금 이만큼이면 됩니다", [/내 집 마련/, /예산별/], "lastbold"],
+  school: ["아이들이 전학 오는 동네 1위", [/학생이 모이는/, /학군지/], "bold"],
+  weekahead: ["이번 주 부동산, 이 날짜만 기억하세요", [/한주 예상/], "seg"],
+  monthahead: ["이번 달 부동산, 놓치면 안 되는 날", [/한달 예상/], "seg"],
+  terms: ["부동산 기사, 이 단어 모르면 절반은 오해합니다", [/용어/], "q"]
+};
+function chHook(tab, C) {
+  var h = CH_HOOKS[tab] || [CH_REEL_OPEN[tab] || "", [], "seg"], o = null;
+  (h[1] || []).some(function (re) { o = C.filter(function (x) { return re.test(String(x.tag)); })[0]; return !!o; });
+  o = o || C[0];
+  var a = chClean(o.a), bolds = (String(o.a || "").match(/<b[^>]*>(.*?)<\/b>/g) || []).map(chClean), v;
+  if (h[2] === "bold") v = bolds[0] || a.split(" · ")[0];
+  else if (h[2] === "lastbold") v = bolds[bolds.length - 1] || a.split(" · ")[0];
+  else if (h[2] === "q") v = chClean(o.q);
+  else v = a.split(" · ")[0];
+  v = v.replace(/^1위\s*/, "").replace(/^→\s*/, "");
+  if (h[2] === "lastbold" && tab === "macro") v = "월 " + v;
+  if (v.length > 30) v = v.slice(0, 29) + "…";
+  return { line1: h[0] || chClean(o.q), line2: v, q: chClean(o.q), a: a };
+}
+function chTexts(tab, cards, scopeNm) {
+  var C = chUniqCards(cards), k = chKstDate(), name = chTabName(tab), date = k.m + "월 " + k.d + "일";
+  if (!C.length) return { insta: "", threads: "", reels: "" };
+  var head = C[0], q0 = chClean(head.q), a0 = chClean(head.a), basis = head.date && !/\(/.test(head.date) ? head.date : "";
+  var tags = chHashtags(tab), src = "출처: 국토교통부 실거래가 공개시스템" + (tab === "macro" ? " · 한국은행 ECOS · 통계청 KOSIS" : tab === "school" ? " · 학교알리미" : "");
+  var tips = (CH_TIPS[tab] || []).slice(0, 2);
+  var moreSeen = {}, insights = [];
+  C.forEach(function (o) { var m = typeof chMoreOf === "function" ? chMoreOf(String(o.tag).replace(/\s\d+\/\d+$/, "")) : ""; if (m && !moreSeen[m] && insights.length < 2) { moreSeen[m] = 1; insights.push(m); } });
+  /* 인스타 */
+  var I = [];
+  I.push("[" + name + "] " + date + (scopeNm && scopeNm !== "전국" ? " · " + scopeNm : ""));
+  I.push(q0 + " " + a0);
+  I.push("");
+  I.push("오늘의 요약");
+  C.slice(0, 8).forEach(function (o, i) { var a = chClean(o.a); I.push((i + 1) + ". " + chClean(o.q) + (a ? " — " + a : "")); });
+  if (insights.length || tips.length) { I.push(""); I.push("읽는 포인트"); insights.concat(tips).slice(0, 3).forEach(function (t) { I.push("· " + t); }); }
+  I.push("");
+  I.push("저장해 두고 다음에 같은 숫자와 비교해 보세요. 궁금한 동네·단지는 댓글로 남겨 주시면 카드로 만들어 드립니다.");
+  I.push("매일 새벽 갱신되는 숫자는 프로필 링크에서 볼 수 있습니다.");
+  I.push("");
+  I.push(src + (basis ? " · 기준 " + basis : "") + " · 참고 자료이며 투자 권유가 아닙니다 · @uphill.lab");
+  I.push("");
+  I.push(tags);
+  /* 스레드 (500자) — 대화체, 핵심 3개 + 한 줄 인사이트 */
+  var T = [];
+  T.push(q0);
+  T.push(a0);
+  T.push("");
+  C.slice(1, 4).forEach(function (o) { var a = chClean(o.a); if (a) T.push("- " + chClean(o.q).replace(/[?？]$/, "") + ": " + a); });
+  var ins = insights[0] || tips[0];
+  if (ins) { T.push(""); T.push(ins); }
+  T.push("");
+  T.push("카드 " + C.length + "장 전체는 인스타 @uphill.lab");
+  var th = T.join("\n");
+  while (th.length > 500 && T.length > 5) { T.splice(T.length - 4, 1); th = T.join("\n"); }
+  if (th.length > 500) th = th.slice(0, 497) + "…";
+  /* 릴스 대본 (약 30초, 9:16) */
+  var R = [], c2 = C[1] || null, c3 = C[2] || null, c4 = C[3] || null, tip = tips[0] || insights[0] || "";
+  R.push("[릴스 대본 · 약 30초 · 세로 9:16] " + name + " · " + date);
+  R.push("");
+  var H = chHook(tab, C);
+  R.push("커버 문구(2줄 · 굵게)");
+  R.push(H.line1);
+  R.push(H.line2);
+  R.push("");
+  R.push("0~2초 · 훅 (검은 화면에 흰 글씨, 숫자는 금색으로 크게)");
+  R.push("\"" + H.line1 + ". " + H.line2 + ".\"");
+  R.push("");
+  R.push("2~3초 · 붙잡기");
+  R.push("\"집 보러 가기 전에, 이 숫자부터 보고 가세요.\"");
+  R.push("");
+  R.push("3~6초 · 질문 → 답 (숫자 하나만 크게)");
+  R.push("\"" + q0 + "\"");
+  R.push("→ " + a0);
+  [c2, c3, c4].forEach(function (o, i) {
+    if (!o) return;
+    R.push("");
+    R.push((6 + i * 5) + "~" + (11 + i * 5) + "초 · 핵심 " + (i + 1) + " (카드 " + (C.indexOf(o) + 1) + "번 화면)");
+    R.push("\"" + chClean(o.q) + "\" → " + chClean(o.a));
+  });
+  if (tip) { R.push(""); R.push("21~26초 · 알아두면 돈 되는 상식"); R.push("\"" + tip + "\""); }
+  R.push("");
+  R.push("26~30초 · 마무리 (프로필로)");
+  R.push("\"이 숫자, 매일 새벽 실거래로 다시 뽑습니다. 내 동네는 어떤지, 프로필에서 확인해 보세요.\"");
+  R.push("화면: @uphill.lab · 프로필 링크");
+  R.push("");
+  R.push("편집 메모: 컷마다 숫자 하나만 크게, 1.5~2초 컷, 자막은 화면 위쪽 1/3, 마지막 컷에 계정명 고정");
+  R.push("");
+  R.push("릴스 설명란");
+  R.push(H.line1 + " — " + H.line2 + ".");
+  R.push(a0);
+  R.push("전체 카드와 매일 갱신되는 숫자는 프로필 링크에서. " + src + " · 투자 권유 아님");
+  R.push(tags);
+  return { insta: I.join("\n"), threads: th, reels: R.join("\n") };
 }
 
 /* ══ 학군 (v9.0) — 학교알리미 공시자료로 보는 학군지·학교 순위·학군 vs 집값 ══

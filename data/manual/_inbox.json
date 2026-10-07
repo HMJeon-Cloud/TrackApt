@@ -1,14 +1,14 @@
 {
  "v": 1,
- "builtAt": "2026-10-07T00:15:46.255Z",
- "asOf": 20261007,
+ "builtAt": "2026-10-07T22:41:53.204Z",
+ "asOf": 20261008,
  "items": [
   {
    "kind": "loan",
    "name": "버팀목 전세대출",
    "manual": "2.3~3.3",
    "found": "2.20~3.30",
-   "date": "2026-10-07",
+   "date": "2026-10-08",
    "title": "버팀목 전세대출 금리 공고 연 2.20~3.30% (수동 2.3~3.3%)",
    "url": "https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020301.jsp",
    "src": "기금e든든",
@@ -18,12 +18,23 @@
    "isNew": false
   },
   {
+   "kind": "loan",
+   "date": "2026-10-07",
+   "title": "보금자리론 10월 금리 동결…연 4.90~5.20% 적용",
+   "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE96NERIaVNaUUxuZzJrNGJiQmFFcHNPc3hQcTlKYWE0NEFNWUNnQzBGZ2ZfaDJzWklRZThITmVSUVZ1cG5DakJsalRObEVIWS1ud1hYaTRzVzRneWZxSFh3VkY0ZF9UcUMzNGVQRw?oc=5",
+   "src": "시사신문",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-10-08",
+   "isNew": true
+  },
+  {
    "kind": "transit",
    "line": "GTX-B 인천대입구~마석",
    "what": "일정 변경",
    "date": "2026-10-06",
    "title": "GTX-B 청학역 변전소 절차 지연에 주민 반발…“개통 늦어질라”",
-   "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE92NnpWRmxrU2RhbW5HdWUwMUd2Q19xLWtwZGNOanozYU9BbTdkT2MtUEZjUjFocWdtdmVjNGZ4VjlZTlQ2RWt1dXcyLVl0Z2R6a2JKSTFkZFduaHR2QmdEZUhRSkwzOUNUcVE?oc=5",
+   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5DZmFDREJ3TU0yU2ZsS1cxMjl0S2NnMVhuQjRlZWxXdG1OOGtpMk5tMHo4WWc5cnowTktVN2lJazhVRUpRNW1RRW15ZUhmR3ZxN0wteTc4Vk1Ea3c0SjBmZkU4ZnNwTlE1VmtaNUUtTnQ?oc=5",
    "src": "인천일보",
    "official": false,
    "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",

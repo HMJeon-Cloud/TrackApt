@@ -1416,6 +1416,244 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chcard .rp-cor .chc-sr>i{white-space:nowrap}
 .chcard .rp-cor .chc-gh b{white-space:normal!important;overflow:visible!important;font-size:14.5px!important}
 .chcard .rp-cor .chc-gh b.ol small.rp-chain,.chcard .rp-cor .chc-gh b small.rp-chain{white-space:normal!important;display:inline!important}
+/* ══ v9.9 인포그래픽 카드 ══ */
+.chcard.chc-info{position:relative;padding:14px 16px 10px;background:linear-gradient(180deg,#f3f7fd 0%,#e9f0fa 100%);color:#16213a;display:flex;flex-direction:column;font-family:inherit}
+.chc-info .if-sky{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.chc-info>*{position:relative;z-index:1}
+.chc-info .if-top{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:8px}
+.chc-info .if-idx{font-size:12px;font-weight:800;color:#16294a;letter-spacing:.02em}
+.chc-info.if-dark .if-idx{color:#fff}
+.chc-info .if-title{display:inline-block;background:#16294a;color:#fff;font-size:15.5px;font-weight:800;letter-spacing:-.03em;padding:6px 14px;border-radius:999px;line-height:1.25}
+.chc-info .if-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:7px}
+.chc-info .if-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:9.5px;color:#6b7684;margin-top:6px;padding-top:5px;border-top:1px solid rgba(22,41,74,.12)}
+.chc-info .if-foot b{font-size:11.5px;color:#16294a;font-weight:800;white-space:nowrap}
+.chc-info.if-dark .if-foot{color:rgba(255,255,255,.75);border-top-color:rgba(255,255,255,.2)}
+.chc-info.if-dark .if-foot b{color:#fff}
+.chc-info .if-key{font-size:11.5px;line-height:1.4;background:#fff;border-left:3px solid #f5b70a;border-radius:4px 10px 10px 4px;padding:5px 9px;color:#16213a;box-shadow:0 1px 2px rgba(15,28,48,.06)}
+.chc-info .if-key b{color:#16294a}
+.chc-info .if-chain{font-size:16.5px;font-weight:900;letter-spacing:-.04em;line-height:1.3;color:#16294a}
+.chc-info .if-map{position:relative;align-self:center;flex:none}
+.chc-info .if-map svg{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 3px rgba(22,41,74,.15))}
+.chc-info .if-ml{position:absolute;transform:translate(-50%,-50%);font-size:8.5px;font-weight:800;color:#16213a;text-align:center;line-height:1.1;white-space:nowrap;text-shadow:0 0 2px #fff,0 0 2px #fff}
+.chc-info .if-ml b{font-size:8.5px;font-weight:900}
+.chc-info .if-ml.if-seoul{font-size:12px;color:#16294a}
+.chc-info .if-leg{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
+.chc-info .if-leg>div{display:flex;align-items:center;gap:5px;font-size:11.5px;background:#fff;border-radius:8px;padding:4px 6px;flex-wrap:wrap}
+.chc-info .if-leg i{width:10px;height:10px;border-radius:3px;flex:none}
+.chc-info .if-leg b{font-weight:800;flex:1;min-width:0}
+.chc-info .if-leg em{font-style:normal;font-size:10.5px;font-weight:800;margin-left:auto}
+.chc-info .if-ok{color:#e5484d}.chc-info .if-no{color:#2f6fe4}
+.chc-info .if-leg.col{grid-template-columns:1fr;flex:1;align-content:start}
+.chc-info .if-leg.col>div{display:grid;grid-template-columns:10px 1fr;column-gap:5px;row-gap:1px;padding:5px 7px}
+.chc-info .if-leg.col>div i{grid-row:1/4;align-self:start;margin-top:3px}
+.chc-info .if-leg.col small{font-size:9.5px;color:#6b7684;grid-column:2}
+.chc-info .if-leg.col em{grid-column:2;margin-left:0}
+.chc-info .if-leg.col.sm>div{padding:4px 6px}
+.chc-info .if-leg.row{grid-template-columns:repeat(5,auto);justify-content:center;gap:4px}
+.chc-info .if-leg.row>div{font-size:10px;padding:3px 6px}
+.chc-info .if-row{display:flex;gap:8px;align-items:flex-start}
+.chc-info .if-paths{display:flex;flex-direction:column;gap:5px}
+.chc-info .if-path{background:#fff;border:1.5px solid var(--c);border-radius:10px;padding:5px 8px}
+.chc-info .if-path>b{display:block;font-size:12px;font-weight:900;color:var(--c);margin-bottom:3px}
+.chc-info .if-path>div{display:flex;flex-wrap:wrap;align-items:center;gap:3px 2px}
+.chc-info .if-pill{display:inline-flex;flex-direction:column;align-items:center;background:var(--c);color:#fff;border-radius:7px;padding:2px 7px 1px;font-size:11.5px;font-weight:800;line-height:1.15}
+.chc-info .if-pill small{font-size:8.5px;font-weight:700;opacity:.9}
+.chc-info .if-pill.odd{background:#fff;color:var(--c);border:1.5px dashed var(--c)}
+.chc-info .if-arr{font-style:normal;font-size:10px;color:#8b95a1}
+.chc-info .if-2box{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.chc-info .if-box{background:#fff;border-radius:12px;padding:8px 9px;border-top:4px solid}
+.chc-info .if-box.red{border-color:#e5484d}.chc-info .if-box.blue{border-color:#3b82f6}
+.chc-info .if-box h4{margin:0 0 4px;font-size:11.5px;font-weight:800;color:#16294a}
+.chc-info .if-box h4 b{font-size:20px;color:#e5484d;margin-left:3px}
+.chc-info .if-box.blue h4 b{color:#3b82f6}
+.chc-info .if-box p{margin:0;font-size:13px;font-weight:800;line-height:1.35}
+.chc-info .if-box small{font-size:9.5px;color:#6b7684;font-weight:600}
+.chc-info .if-sub{font-size:14px;font-weight:900;color:#16294a;letter-spacing:-.03em}
+.chc-info .if-tile{background:#fff;border-radius:12px;padding:8px 10px;text-align:center}
+.chc-info .if-tile span{display:block;font-size:10.5px;font-weight:800;color:#6b7684}
+.chc-info .if-tile b{display:block;font-size:30px;font-weight:900;letter-spacing:-.04em;line-height:1.15}
+.chc-info .if-tile b.up{color:#e5484d}
+.chc-info .if-tile small{font-size:10px;color:#6b7684}
+.chc-info .if-tl{background:#fff;border-radius:12px;padding:7px 8px}
+.chc-info .if-tl-ax,.chc-info .if-tl-r{display:grid;grid-template-columns:104px 1fr 64px;align-items:center;gap:6px}
+.chc-info .if-tl-ax>div{display:flex;justify-content:space-between;font-size:9px;font-weight:800;color:#8b95a1;border-bottom:1px solid #e3e8ef;padding-bottom:2px}
+.chc-info .if-tl-ax em{font-style:normal}
+.chc-info .if-tl-ax>span:last-child{font-size:9px;font-weight:800;color:#8b95a1;text-align:right}
+.chc-info .if-tl-r{height:27px;border-bottom:1px dashed #eef1f5}
+.chc-info .if-tl-r>span:first-child{font-size:10.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
+.chc-info .if-tl-r>span:first-child i{width:8px;height:8px;border-radius:50%;flex:none}
+.chc-info .if-tl-tr{position:relative;height:100%;background:linear-gradient(90deg,#eef1f5 1px,transparent 1px) 0 0/25% 100%}
+.chc-info .if-tl-tr b{position:absolute;top:5px;width:11px;height:11px;border-radius:50%;transform:translateX(-50%);box-shadow:0 0 0 2px #fff}
+.chc-info .if-tl-tr small{position:absolute;bottom:0;transform:translateX(-50%);font-size:8px;font-weight:700;color:#6b7684}
+.chc-info .if-tl-v{position:relative;height:12px;background:#f1f3f6;border-radius:3px}
+.chc-info .if-tl-v u{position:absolute;left:0;top:0;bottom:0;border-radius:3px;opacity:.85}
+.chc-info .if-tl-v em{position:absolute;right:2px;top:-1px;font-style:normal;font-size:9.5px;font-weight:900;color:#16213a}
+.chc-info .if-chips{display:flex;flex-wrap:wrap;gap:3px;align-items:center;font-size:10.5px}
+.chc-info .if-chips b{font-weight:900;margin-right:2px}
+.chc-info .if-chips span{background:#fff;border-radius:999px;padding:2px 7px;font-weight:800}
+.chc-info .if-chips .up{color:#e5484d}.chc-info .if-chips .dn{color:#2f6fe4}
+.chc-info .if-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.chc-info .if-tiles>div{background:#fff;border:2px solid var(--c);border-radius:10px;text-align:center;padding:0 0 4px;overflow:hidden}
+.chc-info .if-tiles span{display:block;background:var(--c);color:#fff;font-size:10px;font-weight:800;padding:3px 2px;line-height:1.15;min-height:26px;display:flex;align-items:center;justify-content:center}
+.chc-info .if-tiles b{display:block;font-size:22px;font-weight:900;color:var(--c);letter-spacing:-.04em;line-height:1.2;margin-top:2px}
+.chc-info .if-tiles b small{font-size:13px}
+.chc-info .if-tiles em{font-style:normal;font-size:10.5px;font-weight:800;color:var(--c)}
+.chc-info .if-bars{background:#fff;border-radius:12px;padding:8px 9px;border-top:4px solid #16294a}
+.chc-info .if-bars h4{margin:0 0 6px;font-size:12.5px;font-weight:900}
+.chc-info .if-bars h4 small{font-size:9.5px;color:#6b7684}
+.chc-info .if-bars>div{margin-bottom:7px}
+.chc-info .if-bars span{display:block;font-size:11px;font-weight:800;margin-bottom:2px}
+.chc-info .if-bars i{display:block;height:11px;background:#eef1f5;border-radius:6px;overflow:hidden;width:calc(100% - 34px);display:inline-block;vertical-align:middle}
+.chc-info .if-bars u{display:block;height:100%;border-radius:6px}
+.chc-info .if-bars b{display:inline-block;width:32px;text-align:right;font-size:11px;font-weight:900;vertical-align:middle}
+.chc-info .if-tip{background:#fff8e1;border-radius:12px;padding:8px 11px}
+.chc-info .if-tip b{font-size:13px;font-weight:900;color:#16294a}
+.chc-info .if-tip p{margin:3px 0 0;font-size:12px;font-weight:700;line-height:1.45}
+.chc-info .if-vs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chc-info .if-vs>div{background:#fff;border-radius:12px;padding:6px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.chc-info .if-vs b{font-size:13.5px;font-weight:900}
+.chc-info .if-vs small{font-size:9.5px;color:#6b7684}
+.chc-info .if-vs em{font-style:normal;color:#fff;font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 12px;margin-top:4px}
+.chc-info .if-vs em.red{background:#e5484d}.chc-info .if-vs em.blue{background:#3b82f6}
+.chc-info .if-check{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
+.chc-info .if-check li{font-size:11.5px;line-height:1.4;padding-left:16px;position:relative}
+.chc-info .if-check li:before{content:"✓";position:absolute;left:0;color:#16294a;font-weight:900}
+.chc-info .if-sum{display:flex;flex-direction:column;gap:6px}
+.chc-info .if-sum>div{background:#fff;border-radius:10px;overflow:hidden}
+.chc-info .if-sum h4{margin:0;background:#16294a;color:#fff;font-size:12px;font-weight:800;padding:5px 9px}
+.chc-info .if-sum p{margin:0;padding:5px 9px;font-size:11.5px;font-weight:700;line-height:1.4}
+.chc-info .if-cv{color:#fff;display:flex;flex-direction:column;height:100%}
+.chc-info .if-cv h2{margin:4px 0 6px;font-size:33px;line-height:1.12;font-weight:900;letter-spacing:-.05em;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+.chc-info .if-cv h2 mark{background:none;color:#ffd84d}
+.chc-info .if-cv>p{margin:0 0 8px;font-size:13.5px;font-weight:700;line-height:1.45;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.chc-info .if-toc{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.chc-info .if-toc li{background:rgba(255,255,255,.92);color:#16213a;border-radius:999px;padding:3px 10px 3px 4px;font-size:11.5px;font-weight:800;display:flex;align-items:center;gap:6px;width:max-content;max-width:100%}
+.chc-info .if-toc i{font-style:normal;background:#2f6fe4;color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px}
+.chc-info .if-brand{font-size:30px;font-weight:900;letter-spacing:-.03em;color:#fff}
+.chc-info .if-brand.sm{font-size:20px;margin-top:auto}
+.chc-info .if-out{color:#fff;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding-top:18px}
+.chc-info .if-out p{margin:0;font-size:15px;font-weight:800;line-height:1.45}
+.chc-info .if-follow{display:flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:6px 6px 6px 8px;color:#16213a}
+.chc-info .if-follow .if-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#2f6fe4)}
+.chc-info .if-follow b{font-size:15px;font-weight:900}
+.chc-info .if-follow em{font-style:normal;background:#7c3aed;color:#fff;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800}
+.chc-info .if-ico{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%}
+.chc-info .if-ico>div{display:flex;flex-direction:column;align-items:center;gap:3px}
+.chc-info .if-ico span{font-size:10.5px;font-weight:700;line-height:1.3}
+.if-sw{display:inline-flex;align-items:center;gap:4px;font-weight:700;margin-right:6px}
+.if-sw button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 10px;font-size:.8rem;font-weight:700;color:var(--sub)}
+.if-sw button.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.chc-info .if-note{margin:0;font-size:9.5px;color:#6b7684;line-height:1.35}
+.chc-info .if-note.big{font-size:11.5px;font-weight:800;color:#16294a}
+.chc-info .if-chain{font-size:15px}
+.chc-info .if-leg>div{padding:3px 6px;font-size:11px}
+.chc-info .if-path{padding:4px 7px}
+.chc-info .if-path>b{font-size:11.5px;margin-bottom:2px}
+.chc-info .if-pill{padding:1px 6px 0;font-size:11px}
+.chc-info .if-paths{gap:4px}
+.chc-info .if-paths.g2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.chc-info .if-paths.g2 .if-pill{font-size:10.5px;padding:1px 5px 0}
+.chc-info .if-tl-r{height:25px}
+.chc-info .if-leg.col>div{padding:4px 6px}
+.chc-info .if-tl-ax,.chc-info .if-tl-r{grid-template-columns:116px 1fr 58px}
+/* ══ v9.10 인포그래픽 — 프리미엄 다크·유리·입체 ══ */
+.chcard.chc-info{color:#eef3ff;background:radial-gradient(120% 70% at 100% 0%,rgba(76,141,255,.35) 0%,rgba(76,141,255,0) 55%),radial-gradient(90% 60% at 0% 100%,rgba(255,77,94,.28) 0%,rgba(255,77,94,0) 60%),linear-gradient(160deg,#0a1430 0%,#151d48 55%,#26184a 100%)}
+.chcard.chc-info:before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:14px 14px;z-index:0;pointer-events:none}
+.chc-info .if-idx{color:#ffd84d}
+.chc-info .if-title{background:linear-gradient(180deg,#ffe27a 0%,#ffb81c 100%);color:#13204a;box-shadow:0 3px 0 #b97a00,0 8px 18px rgba(0,0,0,.35);padding:6px 15px}
+.chc-info .if-foot{color:rgba(230,236,255,.6);border-top-color:rgba(255,255,255,.14)}
+.chc-info .if-foot b{color:#fff}
+.chc-info .if-key{background:linear-gradient(90deg,rgba(255,216,77,.18),rgba(255,255,255,.06));border-left:3px solid #ffd84d;color:#eef3ff;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.chc-info .if-key b{color:#ffe27a}
+.chc-info .if-chain{color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.4)}
+.chc-info .if-chain span{text-shadow:0 0 10px currentColor}
+.chc-info .if-ml{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 3px rgba(0,0,0,.8)}
+.chc-info .if-ml.if-seoul{color:#fff;font-size:13px}
+/* 유리 판넬 공통 */
+.chc-info .if-leg>div,.chc-info .if-path,.chc-info .if-box,.chc-info .if-tile,.chc-info .if-tl,.chc-info .if-bars,.chc-info .if-vs>div,.chc-info .if-sum>div{background:linear-gradient(180deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,.05) 100%);border:1px solid rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 8px 18px rgba(0,0,0,.28);color:#eef3ff}
+.chc-info .if-leg small,.chc-info .if-box small,.chc-info .if-tile small,.chc-info .if-tile span,.chc-info .if-vs small,.chc-info .if-note,.chc-info .if-bars h4 small{color:rgba(225,232,255,.68)!important}
+.chc-info .if-note.big{color:#fff}
+.chc-info .if-ok{color:#ff7b86;text-shadow:0 0 8px rgba(255,77,94,.5)}.chc-info .if-no{color:#7fb2ff}
+.chc-info .if-leg i{box-shadow:0 0 8px currentColor;border-radius:50%}
+/* 알약 = 입체 버튼 */
+.chc-info .if-path{border:1px solid rgba(255,255,255,.16);border-left:4px solid var(--c)}
+.chc-info .if-path>b{color:#fff}
+.chc-info .if-pill{background:linear-gradient(180deg,rgba(255,255,255,.35) 0%,rgba(255,255,255,0) 55%),var(--c);box-shadow:0 2px 0 rgba(0,0,0,.35),0 4px 10px rgba(0,0,0,.25);text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.chc-info .if-pill.odd{background:rgba(255,255,255,.08);color:#fff;border:1.5px dashed var(--c);box-shadow:none}
+.chc-info .if-arr{color:rgba(255,255,255,.5)}
+/* 박스·타일 */
+.chc-info .if-box{border-top:3px solid}
+.chc-info .if-box h4{color:#fff}
+.chc-info .if-box.red{border-top-color:#ff4d5e}.chc-info .if-box.blue{border-top-color:#3b8bff}
+.chc-info .if-box h4 b{color:#ff6b78;text-shadow:0 0 12px rgba(255,77,94,.6);font-size:24px}
+.chc-info .if-box.blue h4 b{color:#6ea8ff;text-shadow:0 0 12px rgba(59,139,255,.6)}
+.chc-info .if-box p{color:#fff}
+.chc-info .if-sub{color:#fff}
+.chc-info .if-tile b.up{color:#ff6b78;text-shadow:0 0 16px rgba(255,77,94,.55),0 2px 0 rgba(0,0,0,.4);font-size:34px}
+/* 타임라인 */
+.chc-info .if-tl-ax>div{color:rgba(225,232,255,.6);border-bottom-color:rgba(255,255,255,.18)}
+.chc-info .if-tl-ax>span:last-child{color:rgba(225,232,255,.6)}
+.chc-info .if-tl-r{border-bottom-color:rgba(255,255,255,.08)}
+.chc-info .if-tl-r>span:first-child{color:#fff}
+.chc-info .if-tl-r>span:first-child i{box-shadow:0 0 6px currentColor}
+.chc-info .if-tl-tr{background:linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px) 0 0/25% 100%}
+.chc-info .if-tl-tr b{box-shadow:0 0 0 2px rgba(255,255,255,.9),0 0 12px 2px rgba(255,255,255,.35)}
+.chc-info .if-tl-tr small{color:rgba(225,232,255,.75)}
+.chc-info .if-tl-v{background:rgba(255,255,255,.08)}
+.chc-info .if-tl-v u{opacity:1;background-image:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0) 60%)!important;background-color:inherit}
+.chc-info .if-tl-v em{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+/* 칩 */
+.chc-info .if-chips b{color:#fff}
+.chc-info .if-chips span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)}
+.chc-info .if-chips .up{color:#ff7b86}.chc-info .if-chips .dn{color:#7fb2ff}
+/* 단계 타일 = 입체 블록 */
+.chc-info .if-tiles>div{background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.18);border-bottom:4px solid var(--c);box-shadow:0 6px 0 rgba(0,0,0,.25),0 10px 18px rgba(0,0,0,.3)}
+.chc-info .if-tiles span{background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 60%),var(--c);text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.chc-info .if-tiles b{color:#fff;text-shadow:0 0 14px var(--c),0 2px 0 rgba(0,0,0,.35)}
+.chc-info .if-tiles b small{color:rgba(255,255,255,.7)}
+.chc-info .if-tiles em{color:#fff;opacity:.85}
+/* 막대 = 반짝이는 원통 */
+.chc-info .if-bars{border-top:3px solid #ffd84d}
+.chc-info .if-bars h4{color:#fff}
+.chc-info .if-bars span{color:#fff}
+.chc-info .if-bars i{background:rgba(255,255,255,.1);height:13px;box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
+.chc-info .if-bars u{background-image:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 50%,rgba(0,0,0,.15) 100%)!important;box-shadow:0 0 10px rgba(255,255,255,.15)}
+.chc-info .if-bars b{color:#fff}
+.chc-info .if-tip{background:linear-gradient(135deg,rgba(255,216,77,.22),rgba(255,166,43,.1));border:1px solid rgba(255,216,77,.35);box-shadow:0 8px 18px rgba(0,0,0,.25)}
+.chc-info .if-tip b{color:#ffe27a}.chc-info .if-tip p{color:#fff}
+.chc-info .if-vs b{color:#fff}
+.chc-info .if-vs em{box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.chc-info .if-check li{color:#eef3ff}.chc-info .if-check li:before{color:#ffd84d}
+.chc-info .if-check b{color:#ffe27a}
+.chc-info .if-sum h4{background:linear-gradient(90deg,#ffd84d,#ffa62b);color:#13204a}
+.chc-info .if-sum p{color:#fff}
+.chc-info .if-leg.row>div{color:#fff}
+.chc-info .if-tl-ax>div{font-size:8px;letter-spacing:-.02em}
+.chc-info .if-body{gap:5px}
+/* html2canvas 호환: inset 그림자·텍스트 그라데이션 대신 단색/테두리로 */
+.chc-info .if-key{background:rgba(255,216,77,.13);box-shadow:none}
+.chc-info .if-leg>div,.chc-info .if-path,.chc-info .if-box,.chc-info .if-tile,.chc-info .if-tl,.chc-info .if-bars,.chc-info .if-vs>div,.chc-info .if-sum>div{box-shadow:0 8px 18px rgba(0,0,0,.28);border-top-color:rgba(255,255,255,.28)}
+.chc-info .if-bars i{box-shadow:none}
+/* v9.11 글자 맞춤 · 사진 자리 */
+.chc-info{word-break:keep-all;overflow-wrap:normal}
+.chc-info .nw,.chc-info .if-chain span{white-space:nowrap}
+.chc-info .if-title{max-width:100%;overflow:hidden;box-sizing:border-box}
+.chc-info .if-leg b,.chc-info .if-tiles span,.chc-info .if-box h4,.chc-info .if-sum h4,.chc-info .if-path>b,.chc-info .if-bars span,.chc-info .if-tile span,.chc-info .if-toc li,.chc-info .if-sub,.chc-info .if-tip b{overflow:hidden;min-width:0;max-width:100%}
+.chc-info .if-toc li{max-width:100%;box-sizing:border-box}
+.chc-info .if-photo{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
+.chc-info .if-photo.dim{opacity:.22}
+.chc-info .if-shade{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(8,14,36,.55) 0%,rgba(8,14,36,.15) 40%,rgba(8,14,36,.75) 100%)}
+.chc-info .if-mapbg{position:absolute;inset:-6% -4%;background-size:cover;background-position:center;opacity:.35;border-radius:16px;z-index:0}
+.chc-info .if-map svg{position:relative;z-index:1}
+.chc-info .if-ml{z-index:2}
+.chc-info .if-aptimg{width:86px;height:102px;object-fit:contain}
+.chc-info .if-leg>div.stk{display:grid;grid-template-columns:10px 1fr;column-gap:6px;row-gap:0;align-items:center}
+.chc-info .if-leg>div.stk em{grid-column:2;margin-left:0;font-size:11px}
+.chc-info .if-key{white-space:normal}
+.chc-info .if-tiles span{white-space:normal;line-height:1.15}
+.chc-info .if-tl-r>span:first-child{display:block;line-height:25px}
+.chc-info .if-tl-r>span:first-child i{display:inline-block;margin-right:4px;vertical-align:middle}
+.chc-info .if-2box>div,.chc-info .if-tiles>div{min-width:0}
 </style>
 </head>
 <body>
@@ -1423,7 +1661,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.8.1</span>
+    <span class="ver">v9.11</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -3489,8 +3727,8 @@ function chOneLine(c) {
 }
 /* 캐러셀 쪽수 — 카드 꼬리 가운데 01/10 */
 function chNumberCards(root) {
-  var cards = root.querySelectorAll(".chcardWrap .chcard"), n = cards.length;
-  Array.prototype.forEach.call(cards, function (c, i) { var e = c.querySelector(".chc-idx"); if (e) var z = function (x) { return x < 10 ? "0" + x : String(x); }; e.textContent = n > 1 ? z(i + 1) + " / " + z(n) : ""; });
+  var cards = root.querySelectorAll(".chcardWrap .chcard"), n = cards.length, z = function (x) { return x < 10 ? "0" + x : String(x); };
+  Array.prototype.forEach.call(cards, function (c, i) { var e = c.querySelector(".chc-idx"); if (e) e.textContent = n > 1 ? z(i + 1) + " / " + z(n) : ""; });
 }
 /* base 를 주면 그 뒤 행은 '남는 자리가 있을 때만' 보이는 여분(chc-opt) — chFitCards 가 넘치면 뒤에서부터 지운다 */
 function chList(rows, sm, base) {
@@ -3710,6 +3948,13 @@ function paintChannel() {
     function wrapC(file, o) { return '<div class="chcardWrap chc-edge">' + chCard(o) + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_" + file) + '">이미지 저장</button></div>'; }
     cc.html = wrapC("표지_" + CH.tab, chCoverCard(CH.tab, tags)) + cc.html + wrapC("마무리", chOutroCard(CH.tab));
   }
+  /* v9.9 인포그래픽 덱(확산 탭) — 기본 카드는 글 만들기(CH.cap)에만 쓰고, 화면·저장은 인포그래픽으로 */
+  var isInfo = (CH.tab === "ripple" || CH.tab === "ripple2") && typeof ifDeckFor === "function";
+  if (isInfo && CH.style !== "basic") {
+    var deck = []; try { deck = ifDeckFor(CH.tab); } catch (e) { if (window.console) console.error(e); }
+    if (deck.length) cc.html = deck.map(function (h, i) { return '<div class="chcardWrap">' + h + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_" + CH.tab + "_인포_" + (i + 1)) + '">이미지 저장</button></div>'; }).join("");
+  }
+  if (isInfo && note) { note.innerHTML = '<span class="if-sw">카드 모양 <button type="button" data-ifstyle="info" class="' + (CH.style !== "basic" ? "on" : "") + '">인포그래픽</button><button type="button" data-ifstyle="basic" class="' + (CH.style === "basic" ? "on" : "") + '">기본(상세)</button></span>' + (cc.note ? " " + escHtml(cc.note) : ""); note.style.display = ""; }
   CH.texts = typeof chTexts === "function" ? chTexts(CH.tab, capList, scNm) : {};
   CH.texts.raw = CH.rawText;
   chShowText();
@@ -3719,6 +3964,8 @@ function paintChannel() {
   document.getElementById("ch-cards").innerHTML = cc.html || '<p class="hint">이 코너는 ' + (custom ? "이 범위·평형으로 만들 카드가 없습니다. 범위를 넓히거나 전체 평형을 골라 보세요." : "카드로 만들 자료가 아직 없습니다.") + "</p>";
   chNumberCards(document.getElementById("ch-cards"));
   chFitLater(document.getElementById("ch-cards"));
+  if (typeof ifFitLater === "function") ifFitLater(document.getElementById("ch-cards"));
+  if (typeof ifImgLoad === "function" && (CH.tab === "ripple" || CH.tab === "ripple2")) ifImgLoad(function () { if (Object.keys(IF_IMG_OK).length && (CH.tab === "ripple" || CH.tab === "ripple2")) paintChannel(); });
 }
 
 
@@ -5500,6 +5747,240 @@ function rpText() {
   L.push("출처: 국토부 실거래(" + D.lastYm + "까지) · KB부동산 · 한국부동산원 주간 동향 보도 · 투자 권유 아님 · @uphill.lab");
   return L.join("\n");
 }
+
+/* v9.9 수도권 지도(통계청 2018 시군구 경계, southkorea-maps) — 단순화한 SVG 경로. 화성·부천은 2018 경계라 한 덩어리 */
+var RP_MAP = {"seoul":{"vb":[0,0,600,492],"p":{"서울 종로구":"M299,125L308,132L318,172L304,187L322,199L340,199L350,219L358,215L364,224L370,223L371,234L323,241L302,239L290,245L271,222L276,220L279,192L269,181L271,175L266,167L264,139L278,130Z","서울 중구":"M371,234L371,246L375,249L351,277L350,284L344,280L343,273L330,279L316,267L293,263L283,271L282,257L293,252L290,245L293,241Z","서울 용산구":"M293,263L316,267L330,279L343,273L351,292L362,296L362,302L317,352L290,346L265,332L265,315L258,303L274,293L277,282L285,276L283,271Z","서울 성동구":"M399,233L421,251L443,257L418,313L395,299L362,302L362,296L351,292L351,278L375,249L371,246L371,234L382,238Z","서울 광진구":"M486,237L483,256L487,262L499,258L502,261L492,289L466,315L452,322L418,313L449,234L467,238L482,231Z","서울 동대문구":"M441,183L437,192L449,234L441,256L421,251L398,233L382,238L371,234L370,223L399,189L405,190L410,181L423,179L436,167Z","서울 중랑구":"M502,148L506,173L501,183L504,194L499,195L493,213L485,218L482,231L474,236L449,234L437,192L442,181L438,155L460,147L471,151L479,146Z","서울 성북구":"M314,117L336,136L349,140L352,153L369,163L380,161L381,167L408,139L426,157L439,157L439,169L436,167L423,179L410,181L405,190L399,189L370,223L364,224L358,215L350,219L340,199L322,199L304,187L318,172L314,145L308,132L301,131L302,126Z","서울 강북구":"M363,55L356,92L368,95L384,108L408,139L381,167L380,161L369,163L353,154L348,146L349,140L336,136L315,118L316,100L308,82L329,63L326,39L333,34L350,31L351,40Z","서울 도봉구":"M359,0L377,1L384,17L396,11L402,16L407,13L412,30L406,55L415,83L417,110L409,102L398,128L383,107L355,90L364,55L351,40L349,20L351,9Z","서울 노원구":"M457,13L459,20L475,22L469,40L475,57L468,76L472,88L470,96L473,103L490,101L497,107L498,124L489,134L487,147L471,151L460,147L426,157L397,126L409,102L417,110L415,83L406,55L411,26L428,12Z","서울 은평구":"M262,76L276,88L285,123L264,139L266,164L252,178L253,186L237,193L224,214L217,214L212,206L197,227L168,200L176,194L173,199L176,204L194,202L194,178L197,177L194,163L204,144L207,131L203,123L210,118L212,103L201,95L214,102L227,100L245,91L255,79Z","서울 서대문구":"M277,187L276,220L271,222L293,252L280,260L247,264L232,258L235,249L231,246L197,227L212,206L217,214L224,214L237,193L253,186L252,178L266,164L271,175L270,184Z","서울 마포구":"M168,200L208,236L231,246L235,249L232,258L247,264L282,257L285,276L277,282L270,296L258,303L237,289L233,293L226,289L201,289L193,277L146,250L128,234L142,225L160,223L161,211Z","서울 양천구":"M158,345L156,357L142,355L134,346L127,345L100,358L95,349L85,345L92,316L82,301L83,290L93,278L94,287L98,288L109,316L142,310L140,284L143,271L155,279L166,277L180,307L164,318L164,332L162,339L158,341Z","서울 강서구":"M55,174L166,262L163,268L166,278L155,279L143,271L140,284L142,310L109,316L98,288L94,287L93,278L87,289L70,290L57,286L43,299L37,285L10,277L0,264L16,252L19,256L16,246L24,239L26,231L42,217L41,211L52,205L47,187Z","서울 구로구":"M156,357L164,332L183,347L189,384L199,391L193,402L180,401L164,389L158,390L161,385L155,385L157,380L151,383L148,373L126,397L117,397L115,412L100,409L96,404L79,407L76,412L72,409L84,386L69,370L79,365L83,350L95,349L101,359L127,345L134,346L142,355Z","서울 금천구":"M168,390L178,400L188,403L208,399L210,410L206,413L214,426L214,440L226,442L235,455L221,472L212,475L207,483L198,483L185,449L179,450L174,443L173,436L178,434L169,428L172,426L154,390Z","서울 영등포구":"M232,293L237,289L258,303L265,315L265,332L232,336L222,368L211,371L199,391L192,388L183,347L163,330L166,314L180,307L163,268L166,262L193,277L201,289L226,289Z","서울 동작구":"M313,372L311,406L295,408L287,401L281,394L280,375L271,381L261,375L249,378L234,373L229,382L199,391L211,371L222,368L232,336L265,332L276,337L309,352L316,364Z","서울 관악구":"M233,373L261,375L271,381L281,376L281,394L287,401L295,408L311,406L319,422L321,439L301,446L286,461L284,472L249,479L247,469L226,442L214,440L214,426L206,413L210,410L208,399L193,402L199,391L229,382Z","서울 서초구":"M355,322L359,319L363,324L386,392L397,390L410,415L407,418L410,422L458,408L459,416L474,434L463,463L454,470L441,468L443,477L437,489L414,492L388,474L392,463L390,445L387,429L383,426L374,440L359,445L350,441L342,422L333,423L333,433L320,437L320,425L311,407L313,369L316,364L309,352L317,352L349,318Z","서울 강남구":"M395,299L434,319L437,359L474,371L492,384L515,424L505,432L505,439L489,432L474,443L474,434L459,416L458,408L410,422L407,418L410,415L397,390L386,392L361,322L349,318L368,299Z","서울 송파구":"M514,294L508,314L545,334L538,346L539,354L563,358L568,364L563,384L550,393L543,411L527,410L527,421L516,419L515,424L485,377L437,359L434,319L447,323L460,319L494,286Z","서울 강동구":"M591,217L589,229L598,254L600,282L571,283L546,324L545,333L508,314L514,294L494,286L505,257L529,241L550,240L576,221Z"},"c":{"서울 종로구":[289,184],"서울 중구":[324,260],"서울 용산구":[309,309],"서울 성동구":[399,267],"서울 광진구":[465,276],"서울 동대문구":[412,207],"서울 중랑구":[470,187],"서울 성북구":[375,171],"서울 강북구":[343,98],"서울 도봉구":[385,69],"서울 노원구":[443,86],"서울 은평구":[232,153],"서울 서대문구":[240,217],"서울 마포구":[193,254],"서울 양천구":[149,313],"서울 강서구":[81,243],"서울 구로구":[129,372],"서울 금천구":[194,438],"서울 영등포구":[215,323],"서울 동작구":[265,369],"서울 관악구":[266,424],"서울 서초구":[357,399],"서울 강남구":[432,377],"서울 송파구":[494,356],"서울 강동구":[550,269]}},"metro":{"vb":[0,0,600,704],"p":{"서울 종로구":"M249,331L254,343L250,347L260,351L269,360L246,363L240,357L243,349L239,334Z","서울 중구":"M269,360L270,365L263,374L244,371L247,362Z","서울 용산구":"M247,369L261,371L266,380L253,393L246,392L239,388L237,380Z","서울 성동구":"M269,360L289,367L282,382L263,377L270,365Z","서울 광진구":"M301,361L300,367L305,368L303,376L291,385L282,382L291,360Z","서울 동대문구":"M287,341L288,366L269,360L276,348Z","서울 중랑구":"M305,336L303,354L298,361L291,360L287,338Z","서울 성북구":"M257,331L268,340L279,334L288,339L288,342L268,357L263,356L260,351L250,347L254,343L249,330Z","서울 강북구":"M266,310L264,320L279,334L271,341L253,328L251,318L257,312L258,304L263,303Z","서울 도봉구":"M268,295L279,298L280,303L282,325L279,323L276,331L264,320L267,310L262,300Z","서울 노원구":"M280,302L298,301L296,321L304,325L304,329L301,336L284,339L276,330L279,323L282,325Z","서울 은평구":"M240,318L244,329L239,334L235,347L220,358L212,351L219,351L224,324L221,321Z","서울 서대문구":"M242,347L240,357L247,365L243,368L234,369L220,358L239,341Z","서울 마포구":"M212,351L234,369L244,367L244,372L237,380L221,376L200,360L209,357Z","서울 양천구":"M209,391L208,395L200,391L192,395L188,391L188,376L191,373L195,383L204,382L205,371L211,372L215,381L210,384Z","서울 강서구":"M180,343L211,368L211,373L205,371L204,382L195,383L191,373L177,379L164,369L179,352Z","서울 구로구":"M208,395L211,388L216,392L219,407L206,399L197,410L185,410L188,403L184,399L188,393Z","서울 금천구":"M208,404L223,407L225,418L230,422L220,430Z","서울 영등포구":"M210,370L237,380L239,388L230,389L227,398L218,404L216,392L210,387L215,381Z","서울 동작구":"M251,393L252,409L245,407L243,400L230,399L220,404L230,389L242,389Z","서울 관악구":"M219,407L243,400L255,418L244,427L234,429L225,418L223,407Z","서울 서초구":"M264,385L280,413L293,409L298,417L287,432L273,428L272,414L265,420L261,413L254,417L251,393Z","서울 강남구":"M285,384L287,395L302,402L309,414L306,418L297,419L293,409L280,413L263,384L275,379Z","서울 송파구":"M309,377L307,383L318,388L316,394L324,397L317,410L309,414L301,400L287,395L286,384L294,384L303,375Z","서울 강동구":"M330,357L333,374L325,374L317,388L307,383L309,377L303,375L306,367Z","인천 중구":"M20,442L35,455L32,463L23,465L21,454L16,451ZM100,407L105,405L116,413L110,421L111,432L102,432L102,427L106,425L103,420L96,428L96,420L100,419L96,419L95,418L95,416L109,416L103,408L101,414L97,412L102,403ZM26,436L16,424L10,430L3,426L7,423L0,412L25,398L56,393L59,379L89,395L91,402L85,407L61,414L35,437ZM85,376L91,385L76,385Z","인천 동구":"M109,400L115,399L128,409L120,405L120,412L116,413L102,403L109,401L114,406Z","인천 남구":"M120,405L137,416L138,430L111,432L110,421L120,412Z","인천 연수구":"M98,439L102,434L112,434L112,438L112,431L118,430L141,430L125,451L137,456L124,473L120,474L115,474L120,476L104,474L102,479L102,476L96,476L96,479L91,479L97,474L92,474L91,470L114,470L107,470L107,474L115,474L120,470L105,458L102,439L99,439L98,439Z","인천 남동구":"M143,407L160,415L170,411L166,434L160,436L159,442L147,456L125,451L141,434L133,411L140,413Z","인천 부평구":"M163,385L155,392L156,403L165,412L157,415L143,407L140,413L132,410L138,404L132,389L133,385Z","인천 계양구":"M154,350L160,356L166,352L176,355L164,369L163,385L134,385L132,379L141,376L143,370L131,354L144,357L147,351Z","인천 서구":"M149,350L144,357L131,354L143,370L132,380L138,404L133,411L114,399L114,395L100,399L97,372L101,369L94,364L88,352L104,343L109,345L113,333L120,327L136,336L140,345Z","경기 수원시 장안구":"M269,474L275,487L273,501L247,505L243,497L248,482L252,485Z","경기 수원시 권선구":"M275,526L268,536L254,532L247,534L239,521L231,518L230,507L235,501L232,497L243,497L260,517L272,518Z","경기 수원시 팔달구":"M276,503L277,511L272,515L275,516L274,520L260,517L250,504Z","경기 수원시 영통구":"M275,488L283,493L283,500L295,499L295,505L285,513L290,518L293,513L292,524L280,533L275,530L275,516L272,515L277,511L272,492Z","경기 성남시 수정구":"M313,410L330,411L322,425L307,431L306,443L293,449L277,446L276,433L287,432L288,426L301,416L306,418Z","경기 성남시 중원구":"M332,410L338,425L333,440L328,445L307,440L307,431L322,425Z","경기 성남시 분당구":"M308,439L329,445L327,451L330,454L313,469L315,478L304,480L270,462L277,446L293,449Z","경기 의정부시":"M302,255L318,269L311,271L310,281L303,291L280,303L279,298L265,295L260,264L266,260L283,264Z","경기 안양시 만안구":"M235,429L238,428L238,436L229,442L236,452L235,459L226,459L217,468L207,441L215,442L219,428L223,430L230,422Z","경기 안양시 동안구":"M245,428L244,437L252,448L244,467L235,457L236,452L229,442L238,436L238,428Z","경기 부천시":"M165,369L177,379L188,376L190,392L184,399L188,403L185,410L192,408L189,417L166,411L156,403L155,392L163,388Z","경기 광명시":"M207,402L219,430L215,442L207,441L210,447L203,447L197,441L194,418L189,417L192,408L197,410L197,406Z","경기 평택시":"M309,577L308,585L303,588L310,609L300,616L311,621L302,633L305,637L308,633L320,636L317,644L321,651L313,657L316,661L298,671L301,674L298,680L294,677L272,687L257,683L223,700L219,686L206,684L202,675L202,680L199,678L189,657L187,658L184,657L188,655L175,653L170,647L199,641L212,616L221,613L235,620L247,613L258,615L255,606L259,607L257,592L260,585L273,581L277,586L281,583L294,586L299,578Z","경기 동두천시":"M279,154L296,158L297,171L303,174L308,186L318,188L321,196L318,206L303,214L295,208L284,210L277,196L263,191L263,180L270,173L271,166L276,163Z","경기 안산시 상록구":"M211,459L217,468L209,488L222,487L225,495L231,495L235,501L230,509L219,503L196,515L185,501L188,496L196,495L196,476L193,473L195,466L205,467Z","경기 안산시 단원구":"M90,502L92,506L94,503L95,503L102,509L94,503L92,506L93,506L108,516L113,512L116,514L114,516L115,517L114,516L116,515L116,513L111,508L116,512L116,515L113,522L121,541L117,553L115,541L110,540L109,548L107,531L106,534L94,532L104,544L100,543L100,544L98,548L96,550L100,543L99,538L95,542L89,538L83,552L76,546L76,541L81,540L75,536L76,532L86,530L83,527L82,515L71,504L83,510L89,503L87,499L89,502L101,492L105,491ZM177,470L195,466L193,473L196,476L195,495L166,502L146,494L163,477L173,479Z","경기 고양시 덕양구":"M231,271L228,280L229,291L222,310L235,310L241,299L252,303L257,309L251,318L253,328L249,330L242,331L242,319L238,316L229,323L221,321L224,324L219,351L213,349L209,357L200,360L162,331L164,328L175,333L177,326L185,323L183,317L188,314L187,310L200,301L195,279L201,277L214,284L220,281L223,272Z","경기 고양시 일산동구":"M183,283L194,281L201,299L187,310L188,314L183,317L185,323L177,326L175,333L153,324L158,313L164,314L170,306L171,296L168,291L176,278Z","경기 고양시 일산서구":"M149,293L171,296L168,309L158,313L152,322L130,310L127,304L128,295L134,301Z","경기 과천시":"M261,413L265,420L273,415L273,428L278,432L275,440L252,447L244,437L245,425Z","경기 구리시":"M318,324L319,343L327,349L324,353L328,356L301,368L300,358L307,344L306,336L301,335L304,325Z","경기 남양주시":"M366,254L388,262L397,281L402,283L403,298L409,299L406,302L412,307L384,376L382,389L377,394L372,384L355,373L340,352L324,353L327,350L320,346L318,324L297,323L298,301L291,296L303,291L310,281L311,271L318,267L326,271L331,264L344,260L350,268L364,261Z","경기 오산시":"M262,552L285,549L288,565L299,571L301,577L295,585L281,583L277,586L269,567L257,561Z","경기 시흥시":"M170,452L172,452L175,450L175,451L176,445L172,451L171,450L165,450L164,448L158,446L160,436L167,432L172,411L194,418L197,441L210,447L212,460L201,468L189,465L177,470L173,479L163,477L146,494L127,483L106,491L104,491L135,480L134,473L140,472L151,454L155,456L152,453L156,448Z","경기 군포시":"M236,458L244,467L244,472L238,478L237,488L231,490L232,494L225,495L222,487L209,488L224,461Z","경기 의왕시":"M277,440L263,478L252,485L248,482L244,497L232,496L231,490L237,488L253,444Z","경기 하남시":"M334,350L340,352L356,375L373,386L369,392L361,394L363,401L357,404L357,409L331,403L328,412L317,410L324,397L315,392L325,374L333,374L330,356L327,357Z","경기 용인시 처인구":"M355,468L366,477L373,475L371,514L395,513L392,539L400,547L408,547L411,551L409,556L425,558L425,572L431,576L425,590L430,594L426,605L416,596L401,599L391,590L383,597L375,584L369,582L365,571L360,577L360,588L343,594L334,608L309,605L303,588L308,585L313,565L324,559L319,528L330,519L329,504L314,488L316,480L336,474L340,484L348,475L346,470Z","경기 용인시 기흥구":"M314,488L327,498L330,519L319,528L322,535L320,539L295,541L287,534L285,527L292,524L293,514L290,518L286,512L295,505L299,487Z","경기 용인시 수지구":"M270,462L306,481L315,478L316,485L299,487L295,499L283,500L282,490L275,488L273,476L266,470Z","경기 파주시":"M255,140L266,150L245,174L244,183L239,185L241,188L237,193L234,224L224,224L220,232L224,242L220,249L234,251L231,271L223,272L220,281L214,284L201,277L184,283L178,277L168,293L149,293L134,301L128,295L131,279L124,254L127,227L122,224L130,221L135,210L128,209L131,204L127,200L132,187L125,184L127,166L133,165L140,156L153,160L159,153L168,154L177,146L187,165L193,163L198,150L214,160L217,159L217,146L234,153L248,139Z","경기 이천시":"M449,468L456,477L466,478L471,490L479,493L472,511L475,522L470,529L473,550L467,558L471,563L484,559L489,564L490,555L499,554L506,567L514,568L514,600L498,606L502,615L491,612L486,620L488,626L483,629L467,621L462,626L455,623L463,619L467,609L466,598L460,588L443,584L437,575L426,573L424,557L409,556L411,551L408,547L400,547L392,539L395,513L399,510L396,504L403,501L405,490L422,484L437,469Z","경기 안성시":"M367,573L369,582L375,584L383,597L391,590L401,599L416,596L426,605L430,594L425,590L433,575L443,584L459,588L466,599L463,619L447,623L439,645L417,652L414,659L421,667L410,676L400,674L390,683L378,685L381,693L375,704L361,690L357,692L344,686L341,675L331,669L308,666L316,661L313,657L315,653L321,651L317,644L320,636L308,633L305,637L302,632L311,621L300,616L301,612L309,611L309,604L334,608L343,594L360,588L360,577Z","경기 김포시":"M67,250L96,264L111,254L124,254L131,279L127,303L129,309L180,343L179,352L160,356L156,350L149,350L140,345L136,336L120,327L113,333L109,345L104,343L95,350L89,344L82,345L71,318L76,314L69,308L72,303L67,288L71,271L66,263Z","경기 화성시":"M159,635L157,631L161,622L128,591L132,590L130,578L123,580L137,574L132,569L118,572L123,568L120,559L122,561L126,554L118,557L123,538L118,527L120,514L112,505L117,509L123,503L112,504L123,502L123,509L132,508L127,512L130,520L168,524L172,534L170,526L175,527L175,515L183,515L181,501L186,503L199,520L202,512L205,512L209,510L209,510L204,512L204,508L225,503L231,518L239,521L248,534L254,532L268,536L276,525L276,531L280,533L286,529L295,541L320,539L322,545L320,549L324,559L313,565L310,577L301,578L297,570L288,565L285,549L262,552L257,561L269,567L273,581L258,587L257,615L247,613L235,620L221,613L212,616L196,643L178,644L175,635Z","경기 광주시":"M402,379L414,398L415,414L407,419L409,425L413,426L428,454L438,455L438,467L432,474L416,488L405,490L403,501L396,504L398,511L379,516L370,512L373,475L366,477L355,468L346,470L348,475L340,484L336,474L314,477L313,469L330,455L327,450L337,435L337,422L330,408L331,403L357,409L357,404L363,401L361,394L374,389L378,394L389,379Z","경기 양주시":"M245,174L260,176L265,183L262,186L263,191L277,196L283,209L295,208L302,213L308,238L301,256L283,264L266,260L260,264L266,293L263,303L255,306L241,299L236,310L223,311L221,308L229,291L228,280L231,276L234,251L220,249L224,242L220,232L224,224L234,224L237,193L241,188L239,185L244,183Z","경기 포천시":"M335,49L335,61L348,73L366,52L379,54L373,62L370,80L374,85L384,83L386,93L395,98L396,92L411,83L425,91L432,85L438,94L439,116L430,126L425,144L414,152L411,163L414,172L402,183L392,181L389,208L375,210L369,229L371,242L364,261L350,268L344,260L333,263L325,272L302,255L308,238L303,214L318,206L321,196L318,188L308,186L303,174L297,171L295,152L304,149L307,154L318,145L314,124L305,123L306,113L316,106L319,114L335,110L332,85L328,81L329,52Z","경기 여주시":"M470,431L477,442L494,440L496,436L519,445L524,439L534,440L534,448L544,442L546,447L542,452L541,461L552,460L564,464L568,495L561,500L565,512L559,529L560,540L536,582L512,572L513,567L507,568L499,554L490,555L489,564L484,559L471,563L467,558L473,550L470,529L475,522L472,511L479,493L448,467L439,472L438,455L428,454L419,440L429,427L449,436L463,427Z","경기 연천군":"M297,0L304,6L305,23L325,22L323,32L328,35L327,43L332,49L328,81L332,85L335,110L319,114L316,106L304,117L305,123L314,124L317,147L307,154L300,149L295,152L296,158L281,153L263,180L248,173L266,150L255,138L234,153L217,146L217,159L214,160L198,150L193,163L187,165L179,147L173,149L175,144L187,141L189,131L201,127L200,116L207,104L201,93L204,88L221,73L230,79L246,73L246,68L239,61L245,56L246,42L253,36L252,28L261,31L267,18Z","경기 가평군":"M438,117L449,140L476,143L478,160L500,165L507,180L503,206L491,207L471,226L470,232L475,239L468,248L478,265L463,281L465,287L470,282L476,285L484,281L481,315L474,322L488,341L484,354L469,353L459,361L448,356L448,335L442,325L436,324L436,315L431,310L419,320L408,322L412,307L406,302L409,299L403,298L402,283L397,281L393,269L386,260L366,255L375,210L389,208L392,181L402,183L414,172L411,163L414,152L425,144L430,126Z","경기 양평군":"M408,322L419,320L431,310L437,316L434,319L436,324L442,325L448,335L448,356L459,361L469,353L484,354L488,339L484,331L493,329L501,320L526,334L544,353L562,350L574,357L578,354L586,364L597,367L600,370L598,377L585,378L575,390L565,395L565,400L570,401L581,412L582,433L571,456L572,462L541,461L542,452L546,447L544,442L534,448L534,440L524,439L519,445L496,436L494,440L477,442L471,432L463,427L449,436L429,427L419,436L409,425L407,419L414,417L415,409L412,402L414,398L405,381L390,379L382,386L400,334Z"},"c":{"서울 종로구":[247,348],"서울 중구":[256,368],"서울 용산구":[250,384],"서울 성동구":[276,372],"서울 광진구":[295,372],"서울 동대문구":[280,354],"서울 중랑구":[296,346],"서울 성북구":[268,345],"서울 강북구":[260,324],"서울 도봉구":[273,315],"서울 노원구":[289,312],"서울 은평구":[229,340],"서울 서대문구":[234,352],"서울 마포구":[216,364],"서울 양천구":[206,382],"서울 강서구":[186,360],"서울 구로구":[201,399],"서울 금천구":[218,412],"서울 영등포구":[225,384],"서울 동작구":[238,396],"서울 관악구":[238,413],"서울 서초구":[263,401],"서울 강남구":[283,399],"서울 송파구":[303,395],"서울 강동구":[319,370],"인천 중구":[40,410],"인천 동구":[114,407],"인천 남구":[125,419],"인천 연수구":[118,454],"인천 남동구":[153,424],"인천 부평구":[146,398],"인천 계양구":[154,363],"인천 서구":[119,367],"경기 수원시 장안구":[260,492],"경기 수원시 권선구":[248,517],"경기 수원시 팔달구":[266,513],"경기 수원시 영통구":[284,508],"경기 성남시 수정구":[300,429],"경기 성남시 중원구":[325,428],"경기 성남시 분당구":[299,458],"경기 의정부시":[286,276],"경기 안양시 만안구":[221,447],"경기 안양시 동안구":[241,445],"경기 부천시":[171,396],"경기 광명시":[206,424],"경기 평택시":[260,639],"경기 동두천시":[285,183],"경기 안산시 상록구":[204,482],"경기 안산시 단원구":[175,486],"경기 고양시 덕양구":[219,315],"경기 고양시 일산동구":[183,303],"경기 고양시 일산서구":[148,306],"경기 과천시":[260,430],"경기 구리시":[314,347],"경기 남양주시":[360,335],"경기 오산시":[282,569],"경기 시흥시":[182,452],"경기 군포시":[228,475],"경기 의왕시":[258,461],"경기 하남시":[343,380],"경기 용인시 처인구":[356,533],"경기 용인시 기흥구":[308,513],"경기 용인시 수지구":[288,480],"경기 파주시":[184,216],"경기 이천시":[441,548],"경기 안성시":[380,640],"경기 김포시":[99,306],"경기 화성시":[225,573],"경기 광주시":[377,442],"경기 양주시":[263,246],"경기 포천시":[354,158],"경기 여주시":[518,505],"경기 연천군":[268,90],"경기 가평군":[421,236],"경기 양평군":[493,388]}}};
+
+/* ══ v9.9 인포그래픽 카드 — 지도·타일·막대·타임라인으로 '한눈에' (확산 순서 · 확산·대장 탭) ══
+   숫자는 전부 rpData()/rpCorrData()/rpLeadData()/RP_REFS 에서 그대로 가져온다(지어낸 숫자 없음).
+   지도 = v9_maps.js(RP_MAP) 통계청 2018 시군구 경계. 지도 위 글자는 SVG가 아니라 HTML로 얹는다(이미지 저장 시 글꼴 유지). */
+var IF_COL = { s: ["#ff4d5e", "#ffa62b", "#22c55e", "#3b8bff"], g: ["#a76bff", "#ffa62b", "#22c55e", "#3b8bff"] };
+function ifEsc(s) { return escHtml(String(s == null ? "" : s)); }
+function ifPct(v, dg) { if (v == null) return "–"; var x = dg == null ? 1 : dg; return (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(x) + "%"; }
+function ifShort(nm) { return typeof rpShort === "function" ? rpShort(nm.replace(/^(서울|경기|인천) /, "")) : nm; }
+/* 카드 틀 — 쪽 번호는 덱을 다 만든 뒤 채운다 */
+function ifCard(o) {
+  if (typeof CH !== "undefined" && CH.cap && o.cap) CH.cap.push(o.cap);
+  var cls = "chcard chc-info" + (o.cover ? " if-cover" : "") + (o.dark ? " if-dark" : "");
+  var bgx = o.bg || (ifImg("panel") ? '<div class="if-photo dim" style="background-image:url(' + ifImg("panel") + ')"></div>' : "");
+  return '<div class="' + cls + '">' + bgx +
+    '<div class="if-top"><span class="if-idx"></span>' + (o.title ? '<span class="if-title">' + o.title + "</span>" : "") + "</div>" +
+    '<div class="if-body">' + o.body + "</div>" +
+    '<div class="if-foot"><span>' + ifEsc(o.src || "국토부 실거래 · 우상향연구소 집계 · 투자 권유 아님") + '</span><b>@uphill.lab</b></div></div>';
+}
+/* 야경 스카이라인 배경(그림) — 실제 건물·로고를 본뜨지 않은 일반 실루엣 */
+/* ── 사진·그림 자리(ChatGPT 등으로 만든 이미지를 data/img 에 올리면 그림 대신 씀) ── */
+var IF_IMG = { cover: "data/img/cover.jpg", outro: "data/img/outro.jpg", panel: "data/img/panel.jpg", lead: "data/img/apt_lead.png", mid: "data/img/apt_mid.png", map: "data/img/map_bg.jpg" }, IF_IMG_OK = {}, IF_IMG_TRY = false;
+function ifImgLoad(cb) {
+  if (IF_IMG_TRY) return; IF_IMG_TRY = true;
+  var keys = Object.keys(IF_IMG), left = keys.length;
+  keys.forEach(function (k) { var im = new Image(); im.onload = function () { IF_IMG_OK[k] = true; if (--left === 0 && cb) cb(); }; im.onerror = function () { if (--left === 0 && cb) cb(); }; im.src = IF_IMG[k] + "?v=" + Math.floor(Date.now() / 864e5); });
+}
+function ifImg(k) { return IF_IMG_OK[k] ? IF_IMG[k] + "?v=" + Math.floor(Date.now() / 864e5) : null; }
+function ifBg(k, seed) { var u = ifImg(k); return u ? '<div class="if-photo" style="background-image:url(' + u + ')"></div><div class="if-shade"></div>' : ifSky(seed); }
+function ifSky(seed) {
+  var r = seed || 7, rnd = function () { r = (r * 9301 + 49297) % 233280; return r / 233280; };
+  var b = "", win = "", x = 0;
+  while (x < 360) {
+    var w = 14 + Math.floor(rnd() * 22), h = 34 + Math.floor(rnd() * 70), y = 340 - h;
+    if (x > 240 && x < 270) { h = 150; y = 190; w = 16; }
+    b += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + (h + 40) + '" fill="#0d1830"/>';
+    for (var wy = y + 6; wy < 336; wy += 8) for (var wx = x + 3; wx < x + w - 3; wx += 6) if (rnd() < 0.32) win += '<rect x="' + wx + '" y="' + wy + '" width="2.4" height="3" fill="#ffd27a" opacity="' + (0.45 + rnd() * 0.5).toFixed(2) + '"/>';
+    x += w + 1;
+  }
+  return '<svg class="if-sky" viewBox="0 0 360 450" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="ifsk' + seed + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14254a"/><stop offset=".55" stop-color="#3d4f86"/><stop offset=".78" stop-color="#e59b5d"/><stop offset="1" stop-color="#2a3558"/></linearGradient>' +
+    '<linearGradient id="ifrv' + seed + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#253b6e"/><stop offset="1" stop-color="#0b1430"/></linearGradient></defs>' +
+    '<rect width="360" height="450" fill="url(#ifsk' + seed + ')"/>' + b + win +
+    '<rect y="338" width="360" height="112" fill="url(#ifrv' + seed + ')"/><path d="M0,346 Q90,338 180,346 T360,344" stroke="#ffcf7a" stroke-width="1.2" fill="none" opacity=".5"/></svg>';
+}
+/* 지도 — fill(nm) 이 색을 돌려주면 칠하고, label(nm) 이 글자를 돌려주면 그 자리에 얹는다 */
+/* 색 어둡게/밝게 — #rrggbb(aa) · rgba() 모두 */
+function ifShade(c, f) {
+  var r, g, b, a = 1, m;
+  if ((m = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(c))) { r = parseInt(m[1].slice(0, 2), 16); g = parseInt(m[1].slice(2, 4), 16); b = parseInt(m[1].slice(4, 6), 16); if (m[2]) a = parseInt(m[2], 16) / 255; }
+  else if ((m = /rgba?\(([^)]+)\)/.exec(c))) { var q = m[1].split(",").map(Number); r = q[0]; g = q[1]; b = q[2]; if (q.length > 3) a = q[3]; }
+  else return c;
+  var t = function (x) { return Math.max(0, Math.min(255, Math.round(f < 0 ? x * (1 + f) : x + (255 - x) * f))); };
+  return "rgba(" + t(r) + "," + t(g) + "," + t(b) + "," + a + ")";
+}
+/* 입체 지도 — 기울여(세로 0.72) 눕히고, 지역마다 depth(nm) 만큼 솟아오르게. 뒤(위쪽)부터 그려 앞이 덮는다 */
+var IF_MAPN = 0;
+function ifMap(kind, w, fill, label, opt) {
+  opt = opt || {};
+  var M = RP_MAP[kind], vb = M.vb, K = 0.72, dmax = 0, id = "ifm" + (++IF_MAPN);
+  var names = Object.keys(M.p).sort(function (x, y) { return M.c[x][1] - M.c[y][1]; });
+  var dep = {}; names.forEach(function (nm) { dep[nm] = opt.depth ? opt.depth(nm) : (fill(nm) ? 10 : 4); if (dep[nm] > dmax) dmax = dep[nm]; });
+  var T = dmax + 6, VH = Math.round(vb[3] * K + T + 16), h = Math.round(w * VH / vb[2]), body = "", labs = "";
+  var sw = kind === "seoul" ? 1.6 : 1;
+  names.forEach(function (nm) {
+    var f = fill(nm) || "rgba(150,165,190,.35)", d = dep[nm], side = ifShade(f, -0.45), st = Math.max(2, Math.round(d / 6));
+    for (var k = 0; k < d; k += st) body += '<path d="' + M.p[nm] + '" fill="' + side + '" transform="translate(0,' + (T - k) + ') scale(1,' + K + ')"/>';
+    body += '<path d="' + M.p[nm] + '" fill="' + f + '" stroke="rgba(255,255,255,.85)" stroke-width="' + sw + '" stroke-linejoin="round" transform="translate(0,' + (T - d) + ') scale(1,' + K + ')"/>' +
+      '<path d="' + M.p[nm] + '" fill="url(#' + id + 'g)" transform="translate(0,' + (T - d) + ') scale(1,' + K + ')"/>';
+    var t = label ? label(nm) : null;
+    if (t) { var c = M.c[nm]; labs += '<span class="if-ml" style="left:' + (c[0] / vb[2] * 100).toFixed(1) + "%;top:" + ((c[1] * K + T - d) / VH * 100).toFixed(1) + '%">' + t + "</span>"; }
+  });
+  if (opt.river && kind === "seoul") body += '<path d="M8,268 C70,262 120,250 175,262 C230,276 270,258 320,250 C380,240 440,236 500,226 C540,220 575,212 598,200" stroke="#7fd0ff" stroke-width="7" fill="none" opacity=".8" stroke-linecap="round" transform="translate(0,' + (T - 12) + ') scale(1,' + K + ')" filter="url(#' + id + 'w)"/>';
+  if (opt.seoulBlob && kind === "metro") { var c0 = M.c["서울 중구"]; labs += '<span class="if-ml if-seoul" style="left:' + (c0[0] / vb[2] * 100).toFixed(1) + "%;top:" + ((c0[1] * K + T - 8) / VH * 100).toFixed(1) + '%">서울</span>'; }
+  var defs = '<defs><linearGradient id="' + id + 'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".55" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient>' +
+    '<filter id="' + id + 's" x="-20%" y="-20%" width="140%" height="160%"><feGaussianBlur stdDeviation="14"/></filter><filter id="' + id + 'w"><feGaussianBlur stdDeviation="1.2"/></filter></defs>';
+  var shadow = '<ellipse cx="' + vb[2] / 2 + '" cy="' + (vb[3] * K + T + 4) + '" rx="' + vb[2] * 0.46 + '" ry="16" fill="#000" opacity=".45" filter="url(#' + id + 's)"/>';
+  return '<div class="if-map" style="width:' + w + "px;height:" + h + 'px">' + (ifImg("map") ? '<div class="if-mapbg" style="background-image:url(' + ifImg("map") + ')"></div>' : "") + '<svg viewBox="0 0 ' + vb[2] + " " + VH + '" width="' + w + '" height="' + h + '">' + defs + shadow + body + "</svg>" + labs + "</div>";
+}
+/* 단계 → 지도 이름 연결 (2018 경계: 화성·부천은 한 덩어리 → 동탄구·원미구 단계로 칠함) */
+function ifStageOf(w, nm) {
+  var st = RP_STAGES[w];
+  for (var i = 0; i < st.length; i++) for (var j = 0; j < st[i][1].length; j++) { var s = st[i][1][j]; if (s === nm || s.indexOf(nm + " ") === 0) return i; }
+  return -1;
+}
+function ifShortStage(n) { return { "하남·광명·수지·평촌": "하남·광명권", "수원·동탄·구리권": "수원·동탄권" }[n] || n; }
+function ifStatus(a) { return a.R != null ? '<em class="if-ok">' + rpYm(a.R) + " 회복</em>" : '<em class="if-no">아직 ' + ifPct(a.vs) + "</em>"; }
+function ifKey(t) { return '<div class="if-key">' + t + "</div>"; }
+function ifDeck(list) {
+  var n = list.length;
+  return list.map(function (h, i) { return h.replace('<span class="if-idx"></span>', '<span class="if-idx">' + (i + 1) + "/" + n + "</span>"); });
+}
+function ifOutro() {
+  var ico = function (d) { return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + d + "</svg>"; };
+  return ifCard({ cover: true, dark: true, bg: ifBg("outro", 31), src: "참고 자료이며 투자 권유가 아닙니다",
+    body: '<div class="if-out"><b class="if-brand">uphill.lab</b><p>숫자로 보는 부동산,<br>매일 새벽 새로 뽑습니다</p><div class="if-follow"><span class="if-av"></span><b>@uphill.lab</b><em>팔로우</em></div>' +
+      '<div class="if-ico"><div>' + ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>') + "<span>매일 새벽<br>업데이트</span></div><div>" + ico('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>') + "<span>실거래로 보는<br>시장 흐름</span></div><div>" + ico('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>') + "<span>궁금한 동네<br>댓글로</span></div></div></div>" });
+}
+function ifCoverCard(t1, t2, t3, sub, items, basis) {
+  return ifCard({ cover: true, dark: true, bg: ifBg("cover", 11), src: basis,
+    body: '<div class="if-cv"><h2>' + t1 + "<br><mark>" + t2 + "</mark>" + (t3 ? "<br>" + t3 : "") + "</h2><p>" + sub + "</p>" +
+      (items ? '<ol class="if-toc">' + items.map(function (x, i) { return "<li><i>" + (i + 1) + "</i>" + x + "</li>"; }).join("") + "</ol>" : "") + '<b class="if-brand sm">uphill.lab</b></div>' });
+}
+/* ── 확산 순서 덱 ── */
+function ifRippleDeck() {
+  var D = rpData(); if (!D || !D.seoul.length) return [];
+  var basis = "국토부 실거래 ~" + D.lastYm + " · 투자 권유 아님", C = [];
+  C.push(ifCoverCard("서울·경기", "집값이 퍼지는", "순서", "어디서 먼저 오르고, 어디로 번질까?", ["서울 안, 퍼지는 순서", "서울 → 경기, 퍼지는 순서", "권역·축별 경로", "튀는 값 · 최근 1년", "2017~2021 타임라인", "KB 지수 지도"], basis));
+  function legend(list, col) {
+    return '<div class="if-leg">' + list.map(function (a, i) { return '<div class="stk"><i style="background:' + col[i] + '"></i><b>' + ifEsc(a.nm) + "</b>" + ifStatus(a) + "</div>"; }).join("") + "</div>";
+  }
+  /* 서울 지도 */
+  C.push(ifCard({ title: "서울 안, 집값이 퍼지는 순서", src: basis,
+    body: '<div class="if-chain">' + D.seoul.map(function (a, i) { return '<span style="color:' + IF_COL.s[i] + '">' + ifEsc(a.nm) + "</span>"; }).join(" → ") + "</div>" +
+      ifMap("seoul", 300, function (nm) { var i = ifStageOf("seoul", nm); return i >= 0 ? IF_COL.s[i] : null; }, function (nm) { return ifEsc(nm.replace(/^서울 /, "").replace(/구$/, "")); }, { river: true, depth: function (nm) { var i = ifStageOf("seoul", nm); return [40, 28, 17, 8][i] || 4; } }) +
+      legend(D.seoul, IF_COL.s) }));
+  /* 경기 지도 */
+  C.push(ifCard({ title: "서울에서 경기로 퍼지는 순서", src: basis,
+    body: '<div class="if-chain">' + D.gg.map(function (a, i) { return '<span style="color:' + IF_COL.g[i] + '">' + ifEsc(a.nm) + "</span>"; }).join(" → ") + "</div>" +
+      '<div class="if-row">' + ifMap("metro", 192, function (nm) { if (/^서울/.test(nm)) return "rgba(200,210,230,.55)"; var i = ifStageOf("gg", nm); return i >= 0 ? (/화성시$|부천시$/.test(nm) ? IF_COL.g[i] + "66" : IF_COL.g[i]) : null; }, null, { seoulBlob: true, depth: function (nm) { if (/^서울/.test(nm)) return 5; var i = ifStageOf("gg", nm); return i >= 0 ? [34, 22, 13, 7][i] : 3; } }) +
+      '<div class="if-leg col">' + D.gg.map(function (a, i) { return '<div><i style="background:' + IF_COL.g[i] + '"></i><b>' + (i + 1) + ". " + ifEsc(a.nm) + "</b>" + ifStatus(a) + "</div>"; }).join("") + '<p class="if-note">화성은 동탄만 3단계(옅은 색) · 이름 목록은 기본 카드</p></div></div>' }));
+  /* 권역·축별 경로 — 알약 사슬 */
+  ["seoul", "gg"].forEach(function (w) {
+    var CD = rpCorrData(w, D.last), col = ["#e5484d", "#7c5cf6", "#22a06b", "#f59e0b", "#3b82f6", "#0ea5a4"];
+    C.push(ifCard({ title: w === "seoul" ? "서울 권역별, 어디서 어디로" : "서울에서 경기로, 축별 경로", src: basis,
+      body: ifKey("<b>왼쪽부터 먼저 오른 곳</b>(2016~21 급등 시작 달) · 점선 = 혼자 튄 곳") + '<div class="if-paths' + (w === "gg" ? " g2" : "") + '">' + CD.map(function (c, ci) {
+        return '<div class="if-path" style="--c:' + col[ci % col.length] + '"><b>' + ifEsc(c.nm) + "</b><div>" + c.g.map(function (g) { return '<span class="if-pill' + (g.odd ? " odd" : "") + '">' + ifEsc(rpShort(g.nm)) + (g.odd ? "*" : "") + "<small>" + (g.key != null ? rpYm(g.key).slice(2) : "–") + "</small></span>"; }).join('<i class="if-arr">→</i>') + "</div></div>";
+      }).join("") + "</div>" }));
+  });
+  /* 튀는 값 + 최근 1년 */
+  var odd = []; ["seoul", "gg"].forEach(function (w) { rpCorrData(w, D.last).forEach(function (c) { c.g.forEach(function (g) { if (g.odd) odd.push(g); }); }); });
+  var blip = odd.filter(function (g) { return g.odd.type === "blip"; }), s4 = D.seoul[D.seoul.length - 1], g3 = D.gg[2];
+  C.push(ifCard({ title: "튀는 값, 그리고 최근 1년", src: basis,
+    body: '<div class="if-2box"><div class="if-box red"><h4>1년 반 넘게 앞선 곳 <b>' + odd.length + "</b></h4><p>" + odd.map(function (g) { return ifEsc(rpShort(g.nm)); }).join(", ") + '</p><small>같은 축보다 급등이 18개월 이상 빨랐던 곳</small></div>' +
+      '<div class="if-box blue"><h4>그중 착시 <b>' + blip.length + "</b></h4><p>" + (blip.length ? blip.map(function (g) { return "<strong>" + ifEsc(rpShort(g.nm)) + "</strong>" + (g.note ? "<br><small>" + ifEsc(g.note.s) + "</small>" : ""); }).join("<br>") : "없음") + "</p></div></div>" +
+      '<div class="if-sub">회복은 차례로, <b>최근 1년은 모두 상승</b></div>' +
+      '<div class="if-2box"><div class="if-tile"><span>서울 4단계 · ' + ifEsc(s4.nm) + "</span><b class=\"up\">" + ifPct(s4.y1) + "</b><small>최근 1년 · 고점 대비 " + ifPct(s4.vs) + '</small></div><div class="if-tile"><span>경기 3단계 · ' + ifEsc(g3.nm) + "</span><b class=\"up\">" + ifPct(g3.y1) + "</b><small>최근 1년 · 고점 대비 " + ifPct(g3.vs) + "</small></div></div>" +
+      ifKey("고점은 아직이지만, 늦은 단계도 지금 오르는 중") }));
+  /* 지난 상승기 타임라인 — 점 = 상승 시작 달, 오른쪽 = 2021 한 해 */
+  var all = D.seoul.map(function (a, i) { return [a, IF_COL.s[i], "서울" + a.no]; }).concat(D.gg.map(function (a, i) { return [a, IF_COL.g[i], "경기" + a.no]; }));
+  var t0 = rpIdx(2017, 1), t1 = rpIdx(2021, 1), mx = Math.max.apply(null, all.map(function (x) { return x[0].y21 || 0; }));
+  C.push(ifCard({ title: "2017~2021년에도 같은 순서였다", src: basis,
+    body: ifKey("<b>점 = 상승이 시작된 달</b>(전년 대비 +10% 3개월) · 막대 = 2021년 한 해 상승률") +
+      '<div class="if-tl"><div class="if-tl-ax"><span></span><div>' + [2017, 2018, 2019, 2020, 2021].map(function (y) { return "<em>" + y + "</em>"; }).join("") + "</div><span>2021 한 해</span></div>" +
+      all.map(function (x) {
+        var a = x[0], p = a.A != null ? Math.max(0, Math.min(1, (a.A - t0) / (t1 - t0))) * 100 : null;
+        return '<div class="if-tl-r"><span><i style="background:' + x[1] + '"></i>' + ifEsc(x[2]) + " " + ifEsc(ifShortStage(a.nm)) + '</span><div class="if-tl-tr">' + (p != null ? '<b style="left:' + p.toFixed(1) + "%;background:" + x[1] + '"></b><small style="left:' + p.toFixed(1) + '%">' + rpYm(a.A).slice(2) + "</small>" : "") + '</div><span class="if-tl-v"><u style="width:' + ((a.y21 || 0) / mx * 100).toFixed(0) + "%;background:" + x[1] + '"></u><em>' + ifPct(a.y21, 0) + "</em></span></div>";
+      }).join("") + "</div>" + '<p class="if-note big">서울 2017년 출발 → 경기 외곽 2020년 출발, 늦게 출발한 곳이 마지막 해에 크게</p>' }));
+  /* KB 지수 지도 */
+  var K = RP_REFS.kb, kv = {};
+  K.seUp.forEach(function (x) { kv["서울 " + x[0]] = x[1]; }); K.seDn.forEach(function (x) { kv["서울 " + x[0]] = x[1]; });
+  var dn = {}; K.seDn.forEach(function (x) { dn["서울 " + x[0]] = 1; });
+  C.push(ifCard({ title: "KB 지수, 서울 어디까지 회복했나", src: K.src + " · " + K.asOf + " · 투자 권유 아님",
+    body: ifKey("<b>빨강 = 이미 전고점 위</b>, <b>파랑 = 아직 아래</b> → 노도강·금천·중랑이 마지막 차례") +
+      ifMap("seoul", 304, function (nm) { var v = kv[nm]; if (dn[nm]) return "rgba(59,139,255," + (0.45 + Math.min(1, -v / 15) * 0.6).toFixed(2) + ")"; if (v != null) return "rgba(255,77,94," + (0.55 + Math.min(1, v / 32) * 0.45).toFixed(2) + ")"; return "rgba(255,77,94,.45)"; },
+        function (nm) { var v = kv[nm], s = ifEsc(nm.replace(/^서울 /, "").replace(/구$/, "")); return v != null ? s + "<br><b>" + ifPct(v, 0) + "</b>" : ""; }, { river: true, depth: function (nm) { var v = kv[nm]; return dn[nm] ? 5 : v != null ? 10 + v * 0.9 : 12; } }) +
+      '<div class="if-chips"><b>경기</b>' + K.ggUp.map(function (x) { return '<span class="up">' + ifEsc(x[0].replace(/^(성남|용인|고양) /, "")) + " " + ifPct(x[1]) + "</span>"; }).join("") + K.ggDn.slice(0, 2).map(function (x) { return '<span class="dn">' + ifEsc(x[0].replace(/^(성남|용인|고양) /, "")) + " " + ifPct(x[1]) + "</span>"; }).join("") + "</div>" + '<p class="if-note">서울 ' + K.seUpN + '개 구가 고점 위 · 숫자 없는 곳은 상위 10 밖</p>' }));
+  C.push(ifOutro());
+  return ifDeck(C);
+}
+/* ── 확산·대장 덱 ── */
+function ifLeadDeck() {
+  var D = rpLeadData(); if (!D) return [];
+  var basis = "국토부 실거래 · 대장 = 500세대↑·20년 이내 ㎡당가 상위 3곳(84㎡) · 투자 권유 아님", C = [], s4 = D.seoul[3], g3 = D.gg[2];
+  C.push(ifCoverCard("중위가로는 아직,", "대장은 이미 신고가", "", "중위가는 노도강 " + ifPct(s4.vs) + ", 수원권 " + ifPct(g3.vs) + "이지만<br>대장은 " + Math.round(s4.lp) + "%, " + Math.round(g3.lp) + "%가 신고가", null, basis));
+  function tiles(list, col) { return '<div class="if-tiles">' + list.map(function (a, i) { return '<div style="--c:' + col[i] + '"><span>' + ifEsc(a.nm) + "</span><b>" + a.lr + "<small>/" + a.lt + "</small></b><em>" + (a.lp != null ? Math.round(a.lp) + "%" : "–") + "</em></div>"; }).join("") + "</div>"; }
+  function shareOf(nm) { var L = rpLeadOf(nm); if (!L) return null; var c = L.filter(function (t) { return !t.nb; }); if (!c.length) return null; return c.filter(function (t) { return t.rec; }).length / c.length; }
+  function shareCol(v) { return v == null ? null : v >= 0.99 ? "#ff4d5e" : v >= 0.6 ? "#ff9aa2" : v >= 0.3 ? "#8fb8ff" : "#3b8bff"; }
+  var legend = '<div class="if-leg row"><div><i style="background:#ff4d5e"></i>3곳 모두</div><div><i style="background:#ff9aa2"></i>2곳</div><div><i style="background:#8fb8ff"></i>1곳</div><div><i style="background:#3b8bff"></i>0곳</div><div><i style="background:rgba(150,165,190,.5)"></i>대상 아님</div></div>';
+  C.push(ifCard({ title: "서울 대장 3곳, 신고가 찍었나", src: basis,
+    body: tiles(D.seoul, IF_COL.s) + ifMap("seoul", 304, function (nm) { return shareCol(shareOf(nm)); }, function (nm) { return ifEsc(nm.replace(/^서울 /, "").replace(/구$/, "")); }, { river: true, depth: function (nm) { var v = shareOf(nm); return v == null ? 3 : 6 + v * 28; } }) + legend }));
+  C.push(ifCard({ title: "경기 대장 3곳, 신고가 찍었나", src: basis,
+    body: tiles(D.gg, IF_COL.g) + '<div class="if-row">' + ifMap("metro", 192, function (nm) { if (/^서울/.test(nm)) return "rgba(200,210,230,.55)"; if (ifStageOf("gg", nm) < 0) return null; var full = RP_STAGES.gg.reduce(function (z, s) { return z.concat(s[1]); }, []).filter(function (s) { return s === nm || s.indexOf(nm + " ") === 0; })[0]; var sc = shareCol(shareOf(full)); return sc && /화성시$|부천시$/.test(nm) ? sc + "66" : sc; }, null, { seoulBlob: true, depth: function (nm) { if (/^서울/.test(nm)) return 5; return ifStageOf("gg", nm) >= 0 ? 16 : 3; } }) +
+      '<div class="if-leg col sm">' + D.gg.map(function (a, i) { return '<div><i style="background:' + IF_COL.g[i] + '"></i><b>' + ifEsc(a.nm) + "</b><small>" + a.lr + "/" + a.lt + " 신고가</small></div>"; }).join("") + "</div></div>" + legend }));
+  function bars(list, col, nm) { return '<div class="if-bars"><h4>' + nm + " 대장 <small>신고가 비율</small></h4>" + list.map(function (a, i) { return '<div><span>' + ifEsc(a.nm) + '</span><i><u style="width:' + (a.lp || 0).toFixed(0) + "%;background:" + col[i] + '"></u></i><b>' + (a.lp != null ? Math.round(a.lp) + "%" : "–") + "</b></div>"; }).join("") + "</div>"; }
+  C.push(ifCard({ title: "대장으로 봐도 순서는 같다", src: basis,
+    body: '<div class="if-2box">' + bars(D.seoul, IF_COL.s, "서울") + bars(D.gg, IF_COL.g, "경기") + "</div>" +
+      '<div class="if-tip"><b>대장으로 봐도 같은 순서</b><p>서울 ' + D.seoul.map(function (a) { return Math.round(a.lp || 0) + "%"; }).join(" → ") + "<br>경기 " + D.gg.map(function (a) { return Math.round(a.lp || 0) + "%"; }).join(" → ") + "</p></div>" }));
+  var bld = function (tall, c) {
+    var h = tall ? 96 : 50, w = tall ? 30 : 46, d = 16, x0 = 22 - (tall ? 0 : 8), base = 108, top = base - h, win = "";
+    for (var yy = top + 7; yy < base - 4; yy += 8) for (var xx = x0 + 4; xx < x0 + w - 4; xx += 7) win += '<rect x="' + xx + '" y="' + yy + '" width="3.6" height="4" fill="#ffe08a" opacity="' + (((xx * 7 + yy * 3) % 5) ? 0.9 : 0.25) + '"/>';
+    return '<svg viewBox="0 0 100 118" width="86" height="102"><ellipse cx="50" cy="111" rx="38" ry="5" fill="#000" opacity=".35"/>' +
+      '<polygon points="' + (x0 + w) + "," + top + " " + (x0 + w + d) + "," + (top - d * 0.55) + " " + (x0 + w + d) + "," + (base - d * 0.55) + " " + (x0 + w) + "," + base + '" fill="' + ifShade(c, -0.45) + '"/>' +
+      '<polygon points="' + x0 + "," + top + " " + (x0 + d) + "," + (top - d * 0.55) + " " + (x0 + w + d) + "," + (top - d * 0.55) + " " + (x0 + w) + "," + top + '" fill="' + ifShade(c, 0.35) + '"/>' +
+      '<rect x="' + x0 + '" y="' + top + '" width="' + w + '" height="' + h + '" fill="' + c + '"/>' + win + "</svg>";
+  };
+  C.push(ifCard({ title: "대장 숫자는 이렇게 읽으세요", src: basis,
+    body: '<div class="if-vs"><div>' + (ifImg("lead") ? '<img class="if-aptimg" src="' + ifImg("lead") + '">' : bld(true, "#3b5bdb")) + '<b>대장아파트</b><small>새 아파트·대단지 상위 3곳</small><em class="red">신고가 먼저</em></div><div>' + (ifImg("mid") ? '<img class="if-aptimg" src="' + ifImg("mid") + '">' : bld(false, "#6b7a99")) + '<b>중위가</b><small>그 동네 보통 집(구축 포함)</small><em class="blue">늦게 따라옴</em></div></div>' +
+      '<ul class="if-check"><li>대장 = 그 동네 시세의 <b>천장</b>, 중위가 = <b>보통 집</b></li><li>둘이 다르면 같은 동네 안에서도 <b>양극화</b>가 진행 중</li><li>2021년 이후 준공은 비교할 2021년 거래가 없어 제외</li></ul>' +
+      '<div class="if-tip"><b>예) 노도강</b><p>대장 ' + s4.lt + "곳 중 " + s4.lr + "곳 신고가 · 중위가는 고점 대비 " + ifPct(s4.vs) + "</p></div>" }));
+  C.push(ifCard({ title: "한눈에 보는 핵심 정리", src: basis,
+    body: '<div class="if-sum">' +
+      "<div><h4>1. 중위가로는 아직, 대장은 이미 신고가</h4><p>중위가 노도강 " + ifPct(s4.vs) + " · 수원권 " + ifPct(g3.vs) + "<br>대장 신고가 " + Math.round(s4.lp) + "% · " + Math.round(g3.lp) + "%</p></div>" +
+      "<div><h4>2. 서울 대장 신고가</h4><p>" + D.seoul.map(function (a) { return '<span class="nw">' + ifEsc(a.nm) + " " + a.lr + "/" + a.lt + "</span>"; }).join(" · ") + "</p></div>" +
+      "<div><h4>3. 경기 대장 신고가</h4><p>" + D.gg.map(function (a) { return '<span class="nw">' + ifEsc(a.nm) + " " + a.lr + "/" + a.lt + "</span>"; }).join(" · ") + "</p></div>" +
+      "<div><h4>4. 순서는 같다</h4><p>서울 " + D.seoul.map(function (a) { return Math.round(a.lp || 0) + "%"; }).join("→") + " · 경기 " + D.gg.map(function (a) { return Math.round(a.lp || 0) + "%"; }).join("→") + "</p></div></div>" }));
+  C.push(ifOutro());
+  return ifDeck(C);
+}
+function ifDeckFor(tab) { return tab === "ripple" ? ifRippleDeck() : tab === "ripple2" ? ifLeadDeck() : []; }
+document.addEventListener("click", function (ev) { var b = ev.target.closest && ev.target.closest("[data-ifstyle]"); if (!b || typeof CH === "undefined") return; CH.style = b.dataset.ifstyle; if (typeof paintChannel === "function") paintChannel(); });
+
+/* ── 글자 맞춤: 한 줄에 넣되(글자 줄여 최대 76%), 그래도 길면 단어 단위로 줄바꿈 · 지도 이름표 겹침 풀기 ── */
+var IF_FIT_SEL = ".if-title,.if-leg b,.if-tiles span,.if-box h4,.if-sum h4,.if-path>b,.if-tl-r>span:first-child,.if-bars span,.if-tile span,.if-vs b,.if-vs small,.if-toc li,.if-sub,.if-tip b";
+function ifFit(root) {
+  if (!root) return;
+  Array.prototype.forEach.call(root.querySelectorAll(".chc-info"), function (card) {
+    Array.prototype.forEach.call(card.querySelectorAll(IF_FIT_SEL), function (el) {
+      el.style.fontSize = ""; el.style.whiteSpace = "nowrap";
+      var fs = parseFloat(getComputedStyle(el).fontSize), k = 1, one = el.matches(".if-tl-r>span:first-child,.if-title,.if-toc li"), lim = one ? 0.7 : 0.85;
+      while (el.scrollWidth > el.clientWidth + 1 && k > lim) { k -= 0.03; el.style.fontSize = (fs * k).toFixed(2) + "px"; }
+      if (!one && el.scrollWidth > el.clientWidth + 1) { el.innerHTML = el.innerHTML.replace(/·(?!<wbr>)/g, "·<wbr>"); el.style.fontSize = (fs * 0.94).toFixed(2) + "px"; el.style.whiteSpace = "normal"; }
+    });
+    Array.prototype.forEach.call(card.querySelectorAll(".if-map"), function (m) {
+      var ls = Array.prototype.slice.call(m.querySelectorAll(".if-ml")); if (ls.length < 2) return;
+      ls.forEach(function (l) { l.style.marginTop = "0px"; l.style.fontSize = ""; });
+      var z = m.getBoundingClientRect().width / (m.offsetWidth || 1) || 1;
+      function hit(a, b) { var r = a.getBoundingClientRect(), q = b.getBoundingClientRect(); var ox = Math.min(r.right, q.right) - Math.max(r.left, q.left), oy = Math.min(r.bottom, q.bottom) - Math.max(r.top, q.top); return ox > 1 && oy > 1 ? [ox, oy, r, q] : null; }
+      /* 1) 겹치는 이름표는 글자를 조금 줄이고 2) 그래도 겹치면 위아래로 벌린다 */
+      for (var i = 0; i < ls.length; i++) for (var j = i + 1; j < ls.length; j++) if (hit(ls[i], ls[j])) { ls[i].style.fontSize = "7.5px"; ls[j].style.fontSize = "7.5px"; }
+      for (var pass = 0; pass < 8; pass++) {
+        var moved = false;
+        for (i = 0; i < ls.length; i++) for (j = i + 1; j < ls.length; j++) {
+          var h = hit(ls[i], ls[j]); if (!h) continue; moved = true;
+          var d = (h[1] / z) / 2 + 0.6, up = h[2].top <= h[3].top ? ls[i] : ls[j], dn = up === ls[i] ? ls[j] : ls[i];
+          up.style.marginTop = (parseFloat(up.style.marginTop) - d) + "px"; dn.style.marginTop = (parseFloat(dn.style.marginTop) + d) + "px";
+        }
+        if (!moved) break;
+      }
+    });
+  });
+}
+function ifFitLater(root) { if (!root) return; ifFit(root); setTimeout(function () { ifFit(root); }, 450); if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ifFit(root); }); }
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

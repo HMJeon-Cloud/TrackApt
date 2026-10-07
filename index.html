@@ -1405,6 +1405,17 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chcard .rp-2col .rp-step>div{min-width:0}
 .chcard .rp-2col .rp-step small{font-size:10.5px!important}
 .chcard .rp-axis{padding-left:100px;padding-right:64px;white-space:nowrap}
+.chcard .rp-dots i.half{background:linear-gradient(90deg,#e5484d 50%,#fff 50%);border:2px solid #e5484d;box-sizing:border-box}
+.chcard .rp-cor .chc-sr>i.near{color:#c26a00}
+.chcard .rp-cor-hd{grid-template-columns:1fr 58px 50px 62px!important;padding:0 11px 2px!important}
+.chcard .rp-ld-hd{grid-template-columns:62px 52px 1fr!important;padding:0 11px 2px!important}
+.chcard .rp-cor-hd span,.chcard .rp-cor-hd i,.chcard .rp-ld-hd span,.chcard .rp-ld-hd i{font-size:10.5px!important;color:#8b95a1!important;font-weight:700;font-style:normal}
+.chcard .rp-ld-hd i,.chcard .rp-cor-hd i{text-align:right}
+.chcard .rp-cor-hd,.chcard .rp-ld-hd{display:grid;gap:8px;align-items:end;border:0}
+.chcard .rp-cor .chc-sr,.chcard .rp-cor-hd{grid-template-columns:1fr 56px 46px 70px!important}
+.chcard .rp-cor .chc-sr>i{white-space:nowrap}
+.chcard .rp-cor .chc-gh b{white-space:normal!important;overflow:visible!important;font-size:14.5px!important}
+.chcard .rp-cor .chc-gh b.ol small.rp-chain,.chcard .rp-cor .chc-gh b small.rp-chain{white-space:normal!important;display:inline!important}
 </style>
 </head>
 <body>
@@ -1412,7 +1423,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.8</span>
+    <span class="ver">v9.8.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -5308,7 +5319,7 @@ function rpBar(v, mx) { var w = Math.min(50, Math.abs(v) / mx * 50); return '<i 
 function rpCards() {
   var D = rpData(); if (!D || !D.seoul.length) return [];
   var C = [], basis = "실거래 ~" + D.lastYm, src = "국토부 실거래 · 우상향연구소 집계 · 투자 권유 아님";
-  function base(o) { o.dense = true; o.compact = true; o.date = o.date || basis; o.src = o.src || src; if (o.key) { o.body = rpKey(o.key) + (o.body || ""); o.bodyHead = rpKey(o.key); } return o; }
+  function base(o) { o.dense = true; o.compact = true; o.date = o.date || basis; o.src = o.src || src; if (o.key) { var hd = rpKey(o.key) + (o.colHead || ""); o.body = hd + (o.body || ""); o.bodyHead = hd; } return o; }
   function flow(list) {
     return list.map(function (a, i) {
       return '<div class="chc-row rp-step"><i>' + a.no + '</i><div><b>' + escHtml(a.nm) + "</b><small>" + a.gu.map(function (g) { return escHtml(rpShort(g.nm)); }).join(" · ") + '</small></div><span class="' + (a.R != null ? "up" : "down") + '">' + rpRecTxt(a) + "</span></div>" + (i < list.length - 1 ? '<div class="rp-arrow">↓</div>' : "");
@@ -5329,14 +5340,15 @@ function rpCards() {
       for (var q = 0; q < c.g.length; q += 5) {
         rows.push({ html: '<div class="chc-row chc-grp rp-grp rp-cor"><div class="chc-gh"><b>' + c.no + ". " + escHtml(c.nm) + (q ? " <small>이어서</small>" : '<small class="rp-chain">' + chain + "</small>") + "</b></div>" +
           c.g.slice(q, q + 5).map(function (g) {
-            return '<div class="chc-sr"><span>' + escHtml(g.nm) + (g.odd ? '<small class="rp-odd">*' + RP_ODD[g.odd.type] + "</small>" : "") + "</span><span>" + (g.key != null ? rpYm(g.key) : "–") + "</span><span>" + (g.rise != null ? "+" + Math.round(g.rise) + "%" : "–") + '</span><i class="' + (g.R != null || g.vs >= 0 ? "top" : "") + '">' + (g.R != null ? rpYm(g.R) : rpPct(g.vs)) + "</i></div>";
+            return '<div class="chc-sr"><span>' + escHtml(g.nm) + (g.odd ? '<small class="rp-odd">*' + RP_ODD[g.odd.type] + "</small>" : "") + "</span><span>" + (g.key != null ? rpYm(g.key) : "–") + "</span><span>" + (g.rise != null ? "+" + Math.round(g.rise) + "%" : "–") + '</span><i class="' + (g.R != null ? "top" : g.vs >= 0 ? "near" : "") + '">' + (g.R != null ? rpYm(g.R).slice(2) + " 회복" : g.vs >= 0 ? "막 넘음" : "아직 " + (g.vs < 0 ? "−" : "+") + Math.abs(Math.round(g.vs)) + "%") + "</i></div>";
           }).join("") + "</div>" });
       }
     });
     var o = base({ tag: w === "seoul" ? "서울 권역별 경로" : "경기 축별 경로", q: (w === "seoul" ? "서울 권역별, 어디서 어디로" : "서울에서 경기로, 축별 경로"), cnt: CD.length + (w === "seoul" ? "개 권역" : "개 축"),
-      key: "<b>금색 = 지난 상승기에 오른 순서</b> · 숫자 = 급등 시작 · 상승률 · 이번 회복(파랑 % = 아직)",
+      key: "<b>금색 화살표 = 지난 상승기 급등 순서</b> · 빨강 = 이번 회복 · 파랑 = 아직",
+      colHead: '<div class="chc-sr rp-hd rp-cor-hd"><span></span><span>급등 시작</span><span>상승폭</span><i>이번 회복</i></div>',
       a: CD.map(function (c) { return c.g.slice(0, 3).map(function (g) { return rpShort(g.nm); }).join("→"); }).join(" / "),
-      how: "급등 시작 = 전년 대비 +20% 가 3개월 이어진 첫 달(2016~21) · 상승률 = 2016~19 저점 → 2020~22 고점 · * = 같은 축보다 1년 반 넘게 튀는 곳" });
+      how: "급등 시작 = 전년 대비 +20% 가 3개월 이어진 첫 달 · 상승폭 = 2016~19 저점 → 2020~22 고점(지난 상승기 전체) · 막 넘음 = 지금 고점 위지만 3개월 미만 · * = 같은 축보다 1년 반 넘게 튀는 곳" });
     bfPack(o, rows, true, 2).forEach(function (c) { C.push(c); });
   });
   /* 튀는 값 — 한 장, 한 줄씩 */
@@ -5403,7 +5415,7 @@ function rpCards() {
 function rpLeadOf(nm) {
   var k = rpCode(nm), R = typeof CH !== "undefined" && CH.data && CH.data.regions;
   var L = R && R[k] && R[k].leaders && R[k].leaders["84"]; if (!L || !L.length) return null;
-  return L.map(function (t) { var nb = (t.by || 0) >= 2021, rec = !nb && t.mx && t.mx[1] >= 20230101; return { apt: t.apt, p: t.p[0], gap: t.mx ? (t.p[0] / t.mx[0] - 1) * 100 : null, mxd: t.mx ? t.mx[1] : null, nb: nb, rec: rec }; });
+  return L.map(function (t) { var nb = (t.by || 0) >= 2021, rec = !nb && t.mx && t.mx[1] >= 20230101; return { half: rec && t.mx && t.p[0] / t.mx[0] < 0.92, apt: t.apt, p: t.p[0], gap: t.mx ? (t.p[0] / t.mx[0] - 1) * 100 : null, mxd: t.mx ? t.mx[1] : null, nb: nb, rec: rec }; });
 }
 function rpLeadData() {
   var D = rpData(); if (!D || typeof CH === "undefined" || !CH.data || !CH.data.regions) return null;
@@ -5419,7 +5431,7 @@ function rpLeadData() {
 function rpLeadCards() {
   var D = rpLeadData(); if (!D) return [];
   var C = [], basis = "대장 실거래 ~" + kstTxt(CH.data.builtAt).split(" ")[0], src = "국토부 실거래 · 대장 = 500세대↑·20년 이내 ㎡당가 상위 3곳(84㎡) · 투자 권유 아님";
-  function base(o) { o.dense = true; o.compact = true; o.date = o.date || basis; o.src = o.src || src; if (o.key) { o.body = rpKey(o.key) + (o.body || ""); o.bodyHead = rpKey(o.key); } return o; }
+  function base(o) { o.dense = true; o.compact = true; o.date = o.date || basis; o.src = o.src || src; if (o.key) { var hd = rpKey(o.key) + (o.colHead || ""); o.body = hd + (o.body || ""); o.bodyHead = hd; } return o; }
   var s4 = D.seoul[3], g3 = D.gg[2];
   /* 1 중위가 vs 대장 */
   function row(a, w) { return [w + a.no + " " + a.nm, rpPct(a.vs), a.lt ? a.lr + "/" + a.lt + " (" + Math.round(a.lp) + "%)" : "–"]; }
@@ -5436,13 +5448,14 @@ function rpLeadCards() {
       rows.push({ html: '<div class="chc-row chc-grp rp-grp rp-ld"><div class="chc-gh"><b>' + (w === "seoul" ? "서울" : "경기") + a.no + " " + escHtml(a.nm) + (q ? " <small>이어서</small>" : "") + '</b><em class="' + (a.lp >= 80 ? "up" : a.lp >= 50 ? "" : "down") + '">' + (q ? "" : a.lt ? "신고가 " + a.lr + "/" + a.lt : "–") + "</em></div>" +
         a.ld.slice(q, q + 6).map(function (r) {
           var worst = r.L.filter(function (t) { return !t.nb && !t.rec; }).sort(function (x, y) { return x.gap - y.gap; })[0];
-          return '<div class="chc-sr"><span>' + escHtml(rpShort(r.nm)) + '</span><span class="rp-dots">' + r.L.map(function (t) { return '<i class="' + (t.nb ? "nb" : t.rec ? "on" : "off") + '"></i>'; }).join("") + "</span><i class=\"" + (worst ? "" : "top") + '">' + (worst ? escHtml(worst.apt.slice(0, 7)) + " " + rpPct(worst.gap) : "모두 신고가") + "</i></div>";
+          return '<div class="chc-sr"><span>' + escHtml(rpShort(r.nm)) + '</span><span class="rp-dots">' + r.L.map(function (t) { return '<i class="' + (t.nb ? "nb" : t.half ? "half" : t.rec ? "on" : "off") + '"></i>'; }).join("") + "</span><i class=\"" + (worst ? "" : "top") + '">' + (worst ? escHtml(worst.apt.slice(0, 7)) + " " + rpPct(worst.gap) : "모두 신고가") + "</i></div>";
         }).join("") + "</div>" });
     });
     var o = base({ tag: w === "seoul" ? "서울 대장 Top3" : "경기 대장 Top3", q: (w === "seoul" ? "서울" : "경기") + " 대장 3곳, 신고가 찍었나", cnt: D[w].length + "단계",
-      key: '<span class="rp-dots"><i class="on"></i></span> 신고가 <span class="rp-dots"><i class="off"></i></span> 아직 <span class="rp-dots"><i class="nb"></i></span> 신축(비교 불가) · <b>오른쪽 = 아직인 대장 중 가장 먼 곳</b>',
+      key: '<b>점 = 대장 1·2·3위</b> <span class="rp-dots"><i class="on"></i></span> 신고가 <span class="rp-dots"><i class="half"></i></span> 찍고 하락 <span class="rp-dots"><i class="off"></i></span> 아직 <span class="rp-dots"><i class="nb"></i></span> 신축',
+      colHead: '<div class="chc-sr rp-hd rp-ld-hd"><span></span><span>1·2·3위</span><i>아직인 대장 중 가장 먼 곳</i></div>',
       a: D[w].map(function (a) { return a.nm + " " + (a.lt ? a.lr + "/" + a.lt : "–"); }).join(" · "),
-      how: "점 순서 = 대장 1·2·3위(㎡당가) · % = 최근 거래가 ÷ 2020년 이후 최고가 · 신고가 = 2023년 이후 최고가 경신" });
+      how: "신고가 = 2023년 이후 거래가 2020~22년 최고가를 넘음 · 반쪽 점 = 신고가를 찍었지만 최근 거래가 그보다 8% 넘게 낮음(1건 신고가일 수 있음) · % = 최근 거래가 ÷ 2020년 이후 최고가 · 신축 = 2021년 이후 준공(비교 불가)" });
     bfPack(o, rows, true, 2).forEach(function (c) { C.push(c); });
   });
   /* 4 대장 기준 순서 한 장 */

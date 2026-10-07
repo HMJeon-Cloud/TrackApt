@@ -26,16 +26,16 @@ var RP_REFS = {
     ggUp: [["성남 분당구", 30.6], ["과천시", 28.6], ["하남시", 15.6], ["용인 수지구", 12.4]],
     ggDn: [["동두천시", -27.4], ["이천시", -23.4], ["고양 일산서구", -22.6], ["양주시", -21.5], ["오산시", -20.5], ["평택시", -20.3]], ggAll: 91.3 },
   news: [
-    { d: "2011", t: "강남 상승은 과천·성남으로 크게 번진다", l: "김시원·김봉한·최두열, '지역 주택가격의 파급효과: GVAR를 응용한 실증분석', 응용경제 13권 3호", src: "논문" },
-    { d: "2022.09", t: "강남구 상승 충격이 서초·송파, 그리고 용산·양천·강동으로 번져 약 5개월 지속", l: "윤재형, Asia-Pacific Journal of Business 13권 3호 · 2003~2021 월별 서울 25개 구", src: "논문" },
-    { d: "2021.12", t: "지난 상승기 마지막 해, 서울 1위는 노원구(+23.3%) · 강남구 +14.8%", l: "KB 아파트 매매가격(1~11월) · 인천 +31.5%, 경기 +28.5% — 외곽이 가장 늦게, 가장 크게", src: "중앙일보(다음)" },
-    { d: "2025.02", t: "서울 강남 +0.38% 반등할 때 경기 평균 −0.03%, 과천만 +0.57%", l: "한국부동산원 주간 · 동두천 −0.85%, 이천 −0.31%, 평택 −0.18%", src: "이투데이" },
-    { d: "2025.05", t: "과천 올해 +5.28%, 송파(+4.90%)·강남(+4.50%)보다 높아", l: "한국부동산원 · 성남·광명·하남도 신고가 잇따라 — '준서울'이 서울 상급지와 함께 움직임", src: "이투데이" },
-    { d: "2025.06", t: "강남3구·마용성 급등 뒤 노도강 반등 신호 — '키 맞추기'", l: "한국부동산원 주간 서울 +0.36%(6년 9개월 만 최대) · 성동 +0.76%, 강남 +0.75%", src: "뉴시스" },
-    { d: "2025.06", t: "전고점 넘은 곳: 강남3구·용산·성동·마포·양천 / 노도강·금천은 83~89% 수준", l: "도봉 82.7% · 노원 85.7% · 강북 86.5% · 금천 88.9%", src: "뉴시스" },
-    { d: "2025.10", t: "다음 차례 한강벨트: 성동 +1.63%, 광진 +1.49%, 마포 +1.29% (2주)", l: "한국부동산원 주간 · 노도강도 9월부터 주간 상승폭 확대", src: "뉴시스 · 세계일보" },
-    { d: "2026.07", t: "대출 막히자 '하향 이동' — 성북→노도강, 영등포→금관구", l: "상반기 노도강 매수 중 다른 구 주민 +95.4% · 금관구 매수 5년 만 최대", src: "뉴시스" },
-    { d: "2026.07", t: "경기로 번진 상승 — 화성 동탄 주간 +0.73%, 전국 1위", l: "한국부동산원 7월 2주 · 서울 +0.30% · 구리·동탄 등 비규제지역으로 풍선효과", src: "디지털데일리 · 머니투데이방송" }
+    { h: "강남 오르면 과천·성남이 따라 오른다", w: "강남→준서울", d: "2011", t: "강남 상승은 과천·성남으로 크게 번진다", l: "김시원·김봉한·최두열, '지역 주택가격의 파급효과: GVAR를 응용한 실증분석', 응용경제 13권 3호", src: "논문" },
+    { h: "강남 → 서초·송파 → 용산·양천·강동", w: "서울 안 순서", d: "2022.09", t: "강남구 상승 충격이 서초·송파, 그리고 용산·양천·강동으로 번져 약 5개월 지속", l: "윤재형, Asia-Pacific Journal of Business 13권 3호 · 2003~2021 월별 서울 25개 구", src: "논문" },
+    { h: "마지막 해 1위는 노원 +23.3%", w: "외곽이 끝물에", d: "2021.12", t: "지난 상승기 마지막 해, 서울 1위는 노원구(+23.3%) · 강남구 +14.8%", l: "KB 아파트 매매가격(1~11월) · 인천 +31.5%, 경기 +28.5% — 외곽이 가장 늦게, 가장 크게", src: "중앙일보(다음)" },
+    { h: "강남 반등, 경기는 과천만 상승", w: "준서울 먼저", d: "2025.02", t: "서울 강남 +0.38% 반등할 때 경기 평균 −0.03%, 과천만 +0.57%", l: "한국부동산원 주간 · 동두천 −0.85%, 이천 −0.31%, 평택 −0.18%", src: "이투데이" },
+    { h: "과천 +5.28%, 송파·강남보다 높아", w: "준서울=1단계", d: "2025.05", t: "과천 올해 +5.28%, 송파(+4.90%)·강남(+4.50%)보다 높아", l: "한국부동산원 · 성남·광명·하남도 신고가 잇따라 — '준서울'이 서울 상급지와 함께 움직임", src: "이투데이" },
+    { h: "강남·마용성 뒤 노도강 반등 신호", w: "1·2단계→4단계", d: "2025.06", t: "강남3구·마용성 급등 뒤 노도강 반등 신호 — '키 맞추기'", l: "한국부동산원 주간 서울 +0.36%(6년 9개월 만 최대) · 성동 +0.76%, 강남 +0.75%", src: "뉴시스" },
+    { h: "전고점 넘은 곳: 강남3구·용산·성동·마포·양천", w: "1·2단계 먼저", d: "2025.06", t: "전고점 넘은 곳: 강남3구·용산·성동·마포·양천 / 노도강·금천은 83~89% 수준", l: "도봉 82.7% · 노원 85.7% · 강북 86.5% · 금천 88.9%", src: "뉴시스" },
+    { h: "한강벨트 2주 +1.3~1.6%", w: "2단계 차례", d: "2025.10", t: "다음 차례 한강벨트: 성동 +1.63%, 광진 +1.49%, 마포 +1.29% (2주)", l: "한국부동산원 주간 · 노도강도 9월부터 주간 상승폭 확대", src: "뉴시스 · 세계일보" },
+    { h: "대출 막히자 노도강·금관구로 이동", w: "4단계 차례", d: "2026.07", t: "대출 막히자 '하향 이동' — 성북→노도강, 영등포→금관구", l: "상반기 노도강 매수 중 다른 구 주민 +95.4% · 금관구 매수 5년 만 최대", src: "뉴시스" },
+    { h: "동탄 주간 +0.73% 전국 1위", w: "경기 3단계", d: "2026.07", t: "경기로 번진 상승 — 화성 동탄 주간 +0.73%, 전국 1위", l: "한국부동산원 7월 2주 · 서울 +0.30% · 구리·동탄 등 비규제지역으로 풍선효과", src: "디지털데일리 · 머니투데이방송" }
   ]
 };
 function rpOn() { return typeof MC !== "undefined" && MC && MC.regions; }
@@ -67,6 +67,7 @@ function rpStat(names, last) {
   var R = null, dip = false; for (i = rpIdx(2022, 7); i <= last - 2; i++) if (v(i) && v(i) <= pk * 0.95) dip = true; else if (dip && v(i) >= pk && v(i + 1) >= pk && v(i + 2) >= pk) { R = i; break; }
   var b23 = v(rpIdx(2023, 12)), cur = v(last);
   return { A: A, R: R, pk: pk, cur: cur, vs: pk && cur ? (cur / pk - 1) * 100 : null, g: b23 && cur ? (cur / b23 - 1) * 100 : null,
+    y1: cur && v(last - 12) ? (cur / v(last - 12) - 1) * 100 : null,
     y21: v(rpIdx(2021, 12)) && v(rpIdx(2020, 12)) ? (v(rpIdx(2021, 12)) / v(rpIdx(2020, 12)) - 1) * 100 : null, ks: S.ks };
 }
 /* ── 권역별 경로: 구·시 하나하나의 '급등 시작'(전년 대비 +20% 3개월 연속 첫 달, 2016~2021) 순으로 줄 세운다 ── */
@@ -88,13 +89,13 @@ var RP_CORR = {
 };
 /* 튀는 값 원인 — 그때 기사·자료로 확인한 것만. 없으면 자동 진단만 보여 준다 */
 var RP_NOTES = {
-  "경기 하남시": { t: "미사강변도시 입주(2016)로 새 아파트 매매가 몰려 중위가가 계단처럼 뛴 것 — 시세 급등이라기보다 '팔린 단지 구성' 변화",
+  "경기 하남시": { s: "미사 입주로 신축 거래 쏠림 — 시세 급등 아님", t: "미사강변도시 입주(2016)로 새 아파트 매매가 몰려 중위가가 계단처럼 뛴 것 — 시세 급등이라기보다 '팔린 단지 구성' 변화",
     ev: ["2016.04 미사 푸르지오1차·동원로얄듀크 입주 앞두고 '2월부터 거래량 늘며 가격 상승' (이코노미스트)", "2016.08 '미사지구 새 아파트 입주 영향으로 기존 아파트 전셋값 하락', 하남 주간 전세 −0.82% (뉴스토마토)", "실거래: 2016.03 ㎡당 중위 1,437→1,732만(+21%, 두 달) · 2016.09 월 343건(직전 2년 중위의 약 2배) · 2017~18 전년 대비 +3~5%로 식음"] },
-  "경기 성남시 분당구": { t: "2018년 초 전국 상승률 1위권 — 경부 축의 출발점",
+  "경기 성남시 분당구": { s: "2018년 초 전국 상승률 1위", t: "2018년 초 전국 상승률 1위권 — 경부 축의 출발점",
     ev: ["2018.01~05 누적 +9.72%로 전국 1위, 1월 거래 1,287건 (뉴시스, 한국감정원 주간)", "신분당선 연장·GTX-A 착공 기대 · 실거래 급등이 24개월 중 12개월 지속"] },
-  "서울 양천구": { t: "목동 신시가지 재건축 연한 도래 + 강남 재건축 분양 성공 뒤 투자 수요가 목동으로 — 서남권에서 혼자 일찍 출발",
+  "서울 양천구": { s: "목동 재건축 연한 도래 + 투자 수요", t: "목동 신시가지 재건축 연한 도래 + 강남 재건축 분양 성공 뒤 투자 수요가 목동으로 — 서남권에서 혼자 일찍 출발",
     ev: ["2016.08 양천구 주간 +0.45%로 서울 25개 구 중 1위, 신시가지 2단지 65㎡ 6.5억→7.6억(3~6월) (아주경제)", "'강남 재건축 단지 분양 성공 뒤 대지지분 많은 목동으로 눈 돌려' — 2016년 말 1~6단지, 2018년 14개 단지 재건축 연한 충족 (아주경제)"] },
-  "경기 과천시": { t: "재건축 기대로 2018년 일찍 오른 것은 맞지만, 월 거래가 30건 안팎이라 시점·폭은 크게 흔들림",
+  "경기 과천시": { s: "재건축 기대, 월 거래 30건이라 흔들림", t: "재건축 기대로 2018년 일찍 오른 것은 맞지만, 월 거래가 30건 안팎이라 시점·폭은 크게 흔들림",
     ev: ["2018.05 '과천은 재건축 호재로 수혜' (뉴시스)", "실거래 월 중위 30건 — 단지 하나의 거래로 중위가가 움직임"] }
 };
 var RP_ODD = { blip: "일시적 급등", thin: "표본 적음", lead: "실제 선도" };
@@ -150,105 +151,173 @@ function rpData() {
 function rpShort(nm) { var x = nm.replace(/^(성남시|용인시|안양시|수원시|화성시|고양시|안산시|부천시) /, ""); return x.length > 2 ? x.replace(/(시|구)$/, "") : x; }
 function rpPct(v) { return v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(1) + "%"; }
 function rpRecTxt(a) { return a.R != null ? rpYm(a.R) + " 회복" : "아직 " + rpPct(a.vs); }
+/* 모든 카드 공통: 맨 위 '이렇게 읽으세요' 한 줄(rpKey) + 같은 행 모양 */
+function rpKey(t) { return '<div class="rp-key">' + t + "</div>"; }
+function rpBar(v, mx) { var w = Math.min(50, Math.abs(v) / mx * 50); return '<i class="rp-bar"><u class="' + (v >= 0 ? "pos" : "neg") + '" style="width:' + w.toFixed(1) + "%;" + (v >= 0 ? "left:50%" : "right:50%") + '"></u></i>'; }
 function rpCards() {
   var D = rpData(); if (!D || !D.seoul.length) return [];
   var C = [], basis = "실거래 ~" + D.lastYm, src = "국토부 실거래 · 우상향연구소 집계 · 투자 권유 아님";
-  function base(o) { o.dense = true; o.compact = true; o.date = o.date || basis; o.src = o.src || src; return o; }
-  /* 1 흐름 한 장 */
-  function flow(list, title) {
-    return '<div class="rp-sec">' + title + "</div>" + list.map(function (a, i) {
+  function base(o) { o.dense = true; o.compact = true; o.date = o.date || basis; o.src = o.src || src; if (o.key) { o.body = rpKey(o.key) + (o.body || ""); o.bodyHead = rpKey(o.key); } return o; }
+  function flow(list) {
+    return list.map(function (a, i) {
       return '<div class="chc-row rp-step"><i>' + a.no + '</i><div><b>' + escHtml(a.nm) + "</b><small>" + a.gu.map(function (g) { return escHtml(rpShort(g.nm)); }).join(" · ") + '</small></div><span class="' + (a.R != null ? "up" : "down") + '">' + rpRecTxt(a) + "</span></div>" + (i < list.length - 1 ? '<div class="rp-arrow">↓</div>' : "");
     }).join("");
   }
-  C.push(base({ tag: "확산 순서 · 서울", q: "서울 안, 집값이 퍼지는 순서", body: '<div class="rp-flow">' + flow(D.seoul, "강남에서 시작해 바깥으로") + "</div>",
-    a: "강남3구·용산 → 한강벨트 → 중간 지대 → 노도강·금관구",
-    how: "오른쪽 = 2020~22년 최고치를 3개월 연속 넘은 첫 달(전고점 회복) · 아직이면 지금 고점 대비 · 6개월 거래량 가중 ㎡당 중위가" }));
-  C.push(base({ tag: "확산 순서 · 경기", q: "서울에서 경기로 퍼지는 순서", body: '<div class="rp-flow">' + flow(D.gg, "강남과 가까운 곳부터") + "</div>",
-    a: "과천·분당 → 하남·광명·수지·평촌 → 수원·동탄·구리 → 외곽",
-    how: "오른쪽 = 2020~22년 최고치를 3개월 연속 넘은 첫 달(전고점 회복) · 아직이면 지금 고점 대비 · 6개월 거래량 가중 ㎡당 중위가" }));
-  /* 2 이번 회복기 숫자 */
-  function tbl(list, w) { return list.map(function (a) { return [w + a.no + " " + a.nm, a.R != null ? rpYm(a.R) : "아직", rpPct(a.g), rpPct(a.vs)]; }); }
-  C.push(base({ tag: "이번 회복기", q: "전고점 회복도, 오른 폭도 순서대로", body: chTable(["단계", "전고점 회복", "23.12 이후", "고점 대비"], tbl(D.seoul, "서울").concat(tbl(D.gg, "경기")), { cls: "wide" }),
-    a: "서울 1단계 " + rpYm(D.seoul[0].R || D.last) + " → 4단계 " + (D.seoul[3] && D.seoul[3].R != null ? rpYm(D.seoul[3].R) : "아직") + " · 경기 1단계 " + (D.gg[0].R != null ? rpYm(D.gg[0].R) : "아직"),
-    how: "23.12 이후 = 2023년 12월 → " + D.lastYm + " ㎡당 중위가 변화 · 고점 = 2020~22년 최고" }));
-  /* 3 지난 상승기 — 시작 순서와 마지막 해 */
-  function tbl2(list, w) { return list.map(function (a) { return [w + a.no + " " + a.nm, a.A != null ? rpYm(a.A) : "–", rpPct(a.y21)]; }); }
-  C.push(base({ tag: "지난 상승기", q: "2017~2021년에도 같은 순서였다", body: chTable(["단계", "상승 시작", "2021 한 해"], tbl2(D.seoul, "서울").concat(tbl2(D.gg, "경기")), { cls: "wide" }),
-    a: "서울이 2017년에 먼저 오르고, 경기 외곽은 2020년에야 시작 — 대신 마지막 해(2021)에 가장 크게",
-    how: "상승 시작 = 전년 같은 달보다 +10% 가 3개월 이어진 첫 달 · 2021 한 해 = 2020.12 → 2021.12" }));
-  /* 권역별 경로 — 구·시를 지난 상승기 '급등 시작' 순으로, 이번 회복과 나란히 */
+  var s4 = D.seoul[D.seoul.length - 1], g3 = D.gg[2];
+  C.push(base({ tag: "확산 순서 · 서울", q: "서울 안, 집값이 퍼지는 순서", key: "위에서 아래로 차례대로 회복 · <b>빨강 = 이미 전고점 넘음, 파랑 = 아직</b>",
+    body: '<div class="rp-flow">' + flow(D.seoul) + "</div>", a: "강남3구·용산 → 한강벨트 → 중간 지대 → 노도강·금관구",
+    how: "전고점 = 2020~22년 최고 · 회복 = 5% 넘게 빠졌다가 그 값을 3개월 연속 넘은 첫 달 · 6개월 거래량 가중 ㎡당 중위가" }));
+  C.push(base({ tag: "확산 순서 · 경기", q: "서울에서 경기로 퍼지는 순서", key: "강남과 가까운 곳부터 회복 · <b>빨강 = 이미 전고점 넘음, 파랑 = 아직</b>",
+    body: '<div class="rp-flow">' + flow(D.gg) + "</div>", a: "과천·분당 → 하남·광명·수지·평촌 → 수원·동탄·구리 → 외곽",
+    how: "전고점 = 2020~22년 최고 · 회복 = 5% 넘게 빠졌다가 그 값을 3개월 연속 넘은 첫 달 · 6개월 거래량 가중 ㎡당 중위가" }));
+  /* 권역·축별 경로 */
   ["seoul", "gg"].forEach(function (w) {
     var CD = rpCorrData(w, D.last), rows = [];
     CD.forEach(function (c) {
       var chain = c.g.map(function (g) { return escHtml(rpShort(g.nm)) + (g.odd ? "*" : ""); }).join(" → ");
       for (var q = 0; q < c.g.length; q += 5) {
-        rows.push({ html: '<div class="chc-row chc-grp rp-grp rp-cor"><div class="chc-gh"><b>' + c.no + ". " + escHtml(c.nm) + (q ? " <small>이어서</small>" : "<small>" + escHtml(c.sub) + "</small>") + "</b></div>" +
-          (q ? "" : '<div class="rp-chain">' + chain + "</div>") +
-          '<div class="chc-sr rp-hd"><span></span><span>급등 시작</span><span>상승률</span><i>이번 회복</i></div>' +
+        rows.push({ html: '<div class="chc-row chc-grp rp-grp rp-cor"><div class="chc-gh"><b>' + c.no + ". " + escHtml(c.nm) + (q ? " <small>이어서</small>" : '<small class="rp-chain">' + chain + "</small>") + "</b></div>" +
           c.g.slice(q, q + 5).map(function (g) {
             return '<div class="chc-sr"><span>' + escHtml(g.nm) + (g.odd ? '<small class="rp-odd">*' + RP_ODD[g.odd.type] + "</small>" : "") + "</span><span>" + (g.key != null ? rpYm(g.key) : "–") + "</span><span>" + (g.rise != null ? "+" + Math.round(g.rise) + "%" : "–") + '</span><i class="' + (g.R != null || g.vs >= 0 ? "top" : "") + '">' + (g.R != null ? rpYm(g.R) : rpPct(g.vs)) + "</i></div>";
           }).join("") + "</div>" });
       }
     });
-    var odds = []; CD.forEach(function (c) { c.g.forEach(function (g) { if (g.odd) odds.push(g); }); });
     var o = base({ tag: w === "seoul" ? "서울 권역별 경로" : "경기 축별 경로", q: (w === "seoul" ? "서울 권역별, 어디서 어디로" : "서울에서 경기로, 축별 경로"), cnt: CD.length + (w === "seoul" ? "개 권역" : "개 축"),
+      key: "<b>금색 = 지난 상승기에 오른 순서</b> · 숫자 = 급등 시작 · 상승률 · 이번 회복(파랑 % = 아직)",
       a: CD.map(function (c) { return c.g.slice(0, 3).map(function (g) { return rpShort(g.nm); }).join("→"); }).join(" / "),
-      how: "급등 시작 = 전년 같은 달보다 +20% 가 3개월 이어진 첫 달(2016~21) · 상승률 = 2016~19 저점 → 2020~22 고점(6개월 가중 ㎡당 중위) · 이번 회복 = 그 고점을 3개월 연속 넘은 달, 아직이면 고점 대비" });
-    if (odds.length) o.how = "* = 같은 축에서 시점이 18개월 넘게 튀는 곳(뒤 '튀는 값' 카드) · " + o.how;
+      how: "급등 시작 = 전년 대비 +20% 가 3개월 이어진 첫 달(2016~21) · 상승률 = 2016~19 저점 → 2020~22 고점 · * = 같은 축보다 1년 반 넘게 튀는 곳" });
     bfPack(o, rows, true, 2).forEach(function (c) { C.push(c); });
   });
-  /* 튀는 값 진단 — 자동 진단(실거래) + 확인한 원인(기사·자료) */
-  var oddRows = [];
-  ["seoul", "gg"].forEach(function (w) {
-    rpCorrData(w, D.last).forEach(function (c) {
-      c.g.forEach(function (g) {
-        if (!g.odd) return;
-        var auto = "급등 시작 " + rpYm(g.on) + " — " + escHtml(c.nm) + " 가운데(" + rpYm(c.med) + ")보다 " + Math.abs(g.odd.gap) + "개월 " + (g.odd.gap < 0 ? "빠름" : "늦음") + " · 이후 24개월 중 +20% 지속 " + g.sus + "개월 · 월 거래 중위 " + g.nMed + "건" + (g.odd.type === "blip" && g.on2 != null ? " · 식었다가 " + rpYm(g.on2) + " 다시 급등 → 이 달로 줄 세움" : "");
-        var n = g.note;
-        oddRows.push({ html: '<div class="chc-row chc-grp rp-oddg"><div class="chc-gh"><b>' + escHtml(g.nm) + "<small>" + escHtml(c.nm) + '</small></b><em class="rp-t ' + g.odd.type + '">' + RP_ODD[g.odd.type] + "</em></div>" +
-          '<p class="rp-auto">' + auto + "</p>" +
-          (n ? '<p class="rp-why"><b>원인</b> ' + escHtml(n.t) + "</p>" + n.ev.map(function (e) { return '<p class="rp-ev">· ' + escHtml(e) + "</p>"; }).join("") : '<p class="rp-why"><b>원인</b> 기사 확인 전 — 자동 진단만 표시</p>') + "</div>" });
-      });
-    });
-  });
-  if (oddRows.length) {
-    var oo = base({ tag: "튀는 값", q: "혼자 튀는 숫자, 왜 그럴까", cnt: oddRows.length + "곳", src: "국토부 실거래 · 당시 보도 · 투자 권유 아님",
-      a: "같은 축보다 1년 반 넘게 앞서거나 늦은 곳 " + oddRows.length + "곳 — 실제 선도인지, 팔린 단지 구성 탓인지 구분",
-      how: "일시적 급등 = +20% 가 10개월 못 가고 18개월 안에 +8% 밑으로 식음(신축 입주·대단지 거래 쏠림 의심) · 표본 적음 = 월 거래 중위 40건 미만 · 실제 선도 = 오래 지속" });
-    bfPack(oo, oddRows, true, 2).forEach(function (c) { C.push(c); });
+  /* 튀는 값 — 한 장, 한 줄씩 */
+  var odd = [];
+  ["seoul", "gg"].forEach(function (w) { rpCorrData(w, D.last).forEach(function (c) { c.g.forEach(function (g) { if (g.odd) odd.push([g, c]); }); }); });
+  if (odd.length) {
+    var blip = odd.filter(function (x) { return x[0].odd.type === "blip"; });
+    C.push(base({ tag: "튀는 값", q: "혼자 튀는 숫자, 진짜일까", cnt: odd.length + "곳", src: "국토부 실거래 · 당시 보도 · 투자 권유 아님",
+      key: odd.length + "곳 중 <b>착시는 " + blip.length + "곳(" + blip.map(function (x) { return rpShort(x[0].nm); }).join("·") + ")</b> — 나머지는 실제로 먼저 오른 곳",
+      a: "같은 축보다 1년 반 넘게 앞선 곳 " + odd.length + "곳 — 착시 " + blip.length + "곳",
+      body: chList(odd.map(function (x) {
+        var g = x[0], c = x[1], ty = g.odd.type, lab = ty === "blip" ? "착시" : ty === "thin" ? "표본 적음" : "진짜 선도";
+        var why = g.note ? g.note.s : ty === "lead" ? "급등 " + g.sus + "개월 지속(원인 기사 확인 전)" : "자동 진단만";
+        if (ty === "blip" && g.on2 != null) why += " → " + rpYm(g.on2) + "로 보정";
+        return [escHtml(g.nm) + ' <small class="rp-ax">' + escHtml(c.nm) + " · " + rpYm(g.on) + "</small>", escHtml(why), '<em class="rp-t ' + ty + '">' + lab + "</em>"];
+      }), true),
+      how: "착시 = 급등이 10개월 못 가고 1년 반 안에 식음(신축 입주 등으로 팔린 단지가 바뀐 탓) · 표본 적음 = 월 거래 40건 미만 · 진짜 선도 = 오래 지속" }));
   }
-  /* 6 지수로 교차 확인 (KB) */
+  /* 숫자 표 2장 */
+  function tbl(list, w) { return list.map(function (a) { return [w + a.no + " " + a.nm, a.R != null ? rpYm(a.R) : "아직", rpPct(a.y1), rpPct(a.vs)]; }); }
+  C.push(base({ tag: "이번 회복기", q: "회복은 차례로, 최근 1년은 모두 상승", key: "<b>'고점 대비'</b>는 순서대로 낮아지지만 <b>'최근 1년'</b>은 노도강·수원권도 +" + Math.round(Math.min(s4.y1 || 0, g3.y1 || 0)) + "% 넘게 — 늦은 곳도 오르는 중",
+    body: chTable(["단계", "전고점 회복", "최근 1년", "고점 대비"], tbl(D.seoul, "서울").concat(tbl(D.gg, "경기")), { cls: "wide" }),
+    a: "서울 4단계 최근 1년 " + rpPct(s4.y1) + " · 경기 3단계 " + rpPct(g3.y1) + " — 고점은 아직이지만 오르는 중",
+    how: "최근 1년 = " + rpYm(D.last - 12) + " → " + D.lastYm + " · 고점 대비 = 2020~22년 최고와 비교 · 중위가는 오래된 단지가 섞여 대장보다 늦게 회복(대장 버전 탭 참고)" }));
+  function tbl2(list, w) { return list.map(function (a) { return [w + a.no + " " + a.nm, a.A != null ? rpYm(a.A) : "–", rpPct(a.y21)]; }); }
+  C.push(base({ tag: "지난 상승기", q: "2017~2021년에도 같은 순서였다", key: "<b>위쪽일수록 먼저 출발</b>, 아래쪽은 늦게 출발했지만 마지막 해(2021)에 더 크게",
+    body: chTable(["단계", "상승 시작", "2021 한 해"], tbl2(D.seoul, "서울").concat(tbl2(D.gg, "경기")), { cls: "wide" }),
+    a: "서울이 2017년에 먼저 오르고, 경기 외곽은 2020년에야 시작 — 대신 마지막 해(2021)에 가장 크게",
+    how: "상승 시작 = 전년 같은 달보다 +10% 가 3개월 이어진 첫 달 · 2021 한 해 = 2020.12 → 2021.12" }));
+  /* KB 지수 — 막대 2장 */
   var K = RP_REFS.kb;
-  C.push(base({ a: "서울 " + K.seUpN + "개 구 전고점 위 · 아래는 " + K.seDn.map(function (x) { return x[0].replace(/구$/, ""); }).join("·") + " · 경기는 분당·과천·하남·수지가 위", tag: "지수로 확인", q: "KB 지수로 봐도 같은 그림", src: K.src + " · " + K.asOf + " · 투자 권유 아님", date: "KB " + K.asOf,
-    body: '<div class="rp-kb">' +
-      '<div class="rp-sec">서울 — 전고점 위 ' + K.seUpN + "곳 · 아래 " + K.seDn.length + "곳</div>" +
-      '<div class="rp-chips up">' + K.seUp.slice(0, 6).map(function (x) { return "<span>" + x[0] + " <b>+" + x[1] + "%</b></span>"; }).join("") + "<span>외 " + (K.seUpN - 6) + "곳</span></div>" +
-      '<div class="rp-chips dn">' + K.seDn.map(function (x) { return "<span>" + x[0] + " <b>" + x[1] + "%</b></span>"; }).join("") + "</div>" +
-      '<div class="rp-sec">경기 — 전체 고점의 ' + K.ggAll + "%</div>" +
-      '<div class="rp-chips up">' + K.ggUp.map(function (x) { return "<span>" + x[0] + " <b>+" + x[1] + "%</b></span>"; }).join("") + "</div>" +
-      '<div class="rp-chips dn">' + K.ggDn.map(function (x) { return "<span>" + x[0] + " <b>" + x[1] + "%</b></span>"; }).join("") + "</div></div>",
-    how: "빨강 = 전고점 위 · 파랑 = 아래 · 상급지(1·2단계)는 위, 마지막 단계(노도강·외곽)는 아직 아래" }));
-  /* 7 기사·논문 — 시간순 */
-  var items = RP_REFS.news.map(function (n) { return { t: '<em class="rp-d">' + n.d + "</em> " + escHtml(n.t), lines: [escHtml(n.l) + ' <u class="rp-s">' + escHtml(n.src) + "</u>"] }; });
-  var PB = 3;
-  for (var i = 0; i < items.length; i += PB) {
-    C.push(base({ a: "논문 2편 · 보도 " + (items.length - 2) + "건 — 강남에서 준서울·한강벨트로, 마지막에 노도강·경기 외곽으로", tag: "기사·연구" + (items.length > PB ? " " + (i / PB + 1) + "/" + Math.ceil(items.length / PB) : ""), q: "기사·연구로 본 확산 순서", cnt: items.length + "건",
-      body: chBrief(items.slice(i, i + PB)), src: "논문·언론 보도 정리 · 수치는 각 보도 인용 · 투자 권유 아님", date: "자료 2011~2026.07" }));
+  function kbCard(tag, q, up, dn, key, extra) {
+    var all = up.concat(dn), mx = Math.max.apply(null, all.map(function (x) { return Math.abs(x[1]); }).concat([10]));
+    C.push(base({ tag: tag, q: q, key: key, src: K.src + " · " + K.asOf + " · 투자 권유 아님", date: "KB " + K.asOf, a: key.replace(/<[^>]+>/g, ""),
+      body: '<div class="rp-bars">' + all.map(function (x) { return '<div class="rp-br"><span>' + escHtml(x[0]) + "</span>" + rpBar(x[1], mx) + '<b class="' + (x[1] >= 0 ? "up" : "down") + '">' + (x[1] > 0 ? "+" : "") + x[1] + "%</b></div>"; }).join("") +
+        '<div class="rp-axis"><span>◀ 고점 아래</span><span>고점 위 ▶</span></div></div>' + (extra || ""),
+      how: "KB 아파트 매매가격지수 · 2021~22년 고점과 비교 · 실거래 중위가와 달리 같은 집의 시세 변화를 따라감" }));
   }
-  /* 8 읽는 법 */
-  C.push(base({ tag: "읽는 법", q: "순서는 '경향'이지 법칙이 아니다",
+  kbCard("지수로 확인 · 서울", "KB 지수, 서울 어디까지 회복했나", K.seUp.slice(0, 5), K.seDn, "<b>오른쪽(빨강) = 먼저 오른 곳</b>, 왼쪽(파랑) = 아직 고점 아래 → 노도강·금천·중랑이 마지막 차례", '<div class="rp-note">전고점 위 ' + K.seUpN + "개 구 중 상위 5곳만 표시</div>");
+  kbCard("지수로 확인 · 경기", "KB 지수, 경기 어디까지 회복했나", K.ggUp, K.ggDn, "<b>오른쪽(빨강) = 분당·과천·하남·수지</b>, 왼쪽(파랑) = 외곽 → 경기 전체는 고점의 " + K.ggAll + "%");
+  /* 기사·연구 — 날짜 · 한 줄 · 무엇을 보여 주나 */
+  var nw = RP_REFS.news;
+  for (var i = 0; i < nw.length; i += 5) {
+    C.push(base({ tag: "기사·연구" + (nw.length > 5 ? " " + (i / 5 + 1) + "/" + Math.ceil(nw.length / 5) : ""), q: "기사·연구도 같은 순서를 말한다", cnt: nw.length + "건",
+      key: "<b>오른쪽 꼬리표 = 그 기사가 보여 주는 단계</b> · 위에서 아래로 시간순",
+      a: "논문 2편 · 보도 " + (nw.length - 2) + "건 — 강남에서 준서울·한강벨트로, 마지막에 노도강·경기 외곽으로",
+      body: chList(nw.slice(i, i + 5).map(function (n) { return ['<em class="rp-d">' + n.d + "</em> " + escHtml(n.h), escHtml(n.src), '<em class="rp-w">' + escHtml(n.w) + "</em>"]; }), true),
+      src: "논문·언론 보도 정리 · 수치는 각 보도 인용 · 투자 권유 아님", date: "자료 2011~2026.07", how: "자세한 수치와 링크는 근거 문서(확산순서_근거.md)" }));
+  }
+  /* 읽는 법 */
+  C.push(base({ tag: "읽는 법", q: "순서는 경향이지 법칙이 아니다", key: "<b>먼저 오른 곳 → 다음 차례</b>는 참고만, 다음 차례가 꼭 오르는 건 아님",
     body: chList([
-      ["상급지가 먼저, 외곽이 나중", "돈과 수요가 비싼 곳에서 출발해 '아직 싸 보이는 곳'으로 옮겨 가는 키 맞추기", ""],
-      ["마지막 단계가 가장 크게 오르기도", "2021년 노원 +23.3%(서울 1위), 경기·인천 +28~31% — 늦게 오른 곳이 끝물에 급등", ""],
-      ["규제가 순서를 바꾼다", "토지거래허가·대출 규제가 걸리면 비규제지역(구리·동탄 등)으로 먼저 번지는 풍선효과", ""],
-      ["준서울은 거의 같이 간다", "과천·분당은 강남과 시차 없이 움직인 해가 많음 — 서울 2단계와 동급", ""],
-      ["다음 차례 ≠ 꼭 오른다", "공급(입주 물량)·일자리·교통이 약하면 순서가 와도 덜 오르거나 건너뜀", ""]
+      ["상급지 먼저, 외곽 나중", "비싼 곳에서 출발해 '아직 싸 보이는 곳'으로", '<em class="rp-w">순서</em>'],
+      ["늦은 곳이 끝물에 크게", "2021년 노원 +23.3% 서울 1위", '<em class="rp-w">폭</em>'],
+      ["규제가 길을 바꾼다", "규제지역을 건너 비규제지역으로(풍선효과)", '<em class="rp-w">예외</em>'],
+      ["다음 차례 ≠ 꼭 오름", "공급·일자리·교통이 약하면 건너뜀", '<em class="rp-w">주의</em>']
     ], true),
     how: "과거 흐름을 정리한 참고 자료입니다. 특정 지역 매수·매도 권유가 아닙니다." }));
-  /* 순서: 흐름 2장 → 권역·축별 경로 → 숫자 표 → 지수 → 기사 → 읽는 법 */
-  var W = function (t) { return /^확산 순서/.test(t) ? 0 : /권역별|축별|튀는 값/.test(t) ? 1 : /회복기|상승기/.test(t) ? 2 : 3; };
-  C = C.map(function (c, i) { return [W(String(c.tag)), i, c]; }).sort(function (x, y) { return x[0] - y[0] || x[1] - y[1]; }).map(function (x) { return x[2]; });
   return C;
+}
+/* ══ 대장 Top3 버전 (탭 'ripple2') — 지역별 대장 3곳이 2021~22 고점을 넘었나 ══
+   대장 = 500세대↑·20년 이내 중 ㎡당가 상위 3곳(84㎡). 신고가 = 2023년 이후 거래가 2020~22년 최고가를 넘은 것(최고가 장부 기준).
+   2021년 이후 준공은 2021년 거래가 없어 비교 불가 → 회색, 비율에서 뺌 */
+function rpLeadOf(nm) {
+  var k = rpCode(nm), R = typeof CH !== "undefined" && CH.data && CH.data.regions;
+  var L = R && R[k] && R[k].leaders && R[k].leaders["84"]; if (!L || !L.length) return null;
+  return L.map(function (t) { var nb = (t.by || 0) >= 2021, rec = !nb && t.mx && t.mx[1] >= 20230101; return { apt: t.apt, p: t.p[0], gap: t.mx ? (t.p[0] / t.mx[0] - 1) * 100 : null, mxd: t.mx ? t.mx[1] : null, nb: nb, rec: rec }; });
+}
+function rpLeadData() {
+  var D = rpData(); if (!D || typeof CH === "undefined" || !CH.data || !CH.data.regions) return null;
+  ["seoul", "gg"].forEach(function (w) {
+    D[w].forEach(function (a) {
+      a.ld = []; a.lt = 0; a.lr = 0;
+      RP_STAGES[w][a.no - 1][1].forEach(function (nm) { var L = rpLeadOf(nm); if (!L) return; var cmp = L.filter(function (t) { return !t.nb; }); a.lt += cmp.length; a.lr += cmp.filter(function (t) { return t.rec; }).length; a.ld.push({ nm: nm.replace(/^(서울|경기) /, ""), L: L }); });
+      a.lp = a.lt ? a.lr / a.lt * 100 : null;
+    });
+  });
+  return D;
+}
+function rpLeadCards() {
+  var D = rpLeadData(); if (!D) return [];
+  var C = [], basis = "대장 실거래 ~" + kstTxt(CH.data.builtAt).split(" ")[0], src = "국토부 실거래 · 대장 = 500세대↑·20년 이내 ㎡당가 상위 3곳(84㎡) · 투자 권유 아님";
+  function base(o) { o.dense = true; o.compact = true; o.date = o.date || basis; o.src = o.src || src; if (o.key) { o.body = rpKey(o.key) + (o.body || ""); o.bodyHead = rpKey(o.key); } return o; }
+  var s4 = D.seoul[3], g3 = D.gg[2];
+  /* 1 중위가 vs 대장 */
+  function row(a, w) { return [w + a.no + " " + a.nm, rpPct(a.vs), a.lt ? a.lr + "/" + a.lt + " (" + Math.round(a.lp) + "%)" : "–"]; }
+  C.push(base({ tag: "중위가 vs 대장", q: "중위가로는 아직, 대장은 이미 신고가", key: "같은 단계도 <b>대장만 보면 훨씬 앞서 있음</b> — 수원·동탄권 대장 " + (g3 ? g3.lr + "/" + g3.lt : "") + "곳, 노도강 대장 " + (s4 ? s4.lr + "/" + s4.lt : "") + "곳이 이미 신고가",
+    body: chTable(["단계", "중위가 고점 대비", "대장 신고가"], D.seoul.map(function (a) { return row(a, "서울"); }).concat(D.gg.map(function (a) { return row(a, "경기"); })), { cls: "wide" }),
+    a: "중위가는 노도강 " + rpPct(s4.vs) + ", 수원권 " + rpPct(g3.vs) + "이지만 대장은 " + Math.round(s4.lp || 0) + "%, " + Math.round(g3.lp || 0) + "%가 신고가",
+    how: "중위가 = 그 지역에서 팔린 모든 아파트의 가운데값(오래된·작은 단지 포함) · 대장 신고가 = 2023년 이후 거래가 2020~22 최고가를 넘음 · 2021년 이후 준공은 제외" }));
+  /* 2~3 단계별 대장 상태: 지역 한 줄 = 점 3개 */
+  ["seoul", "gg"].forEach(function (w) {
+    var rows = [];
+    D[w].forEach(function (a) {
+      if (!a.ld.length) return;
+      for (var q = 0; q < a.ld.length; q += 6)
+      rows.push({ html: '<div class="chc-row chc-grp rp-grp rp-ld"><div class="chc-gh"><b>' + (w === "seoul" ? "서울" : "경기") + a.no + " " + escHtml(a.nm) + (q ? " <small>이어서</small>" : "") + '</b><em class="' + (a.lp >= 80 ? "up" : a.lp >= 50 ? "" : "down") + '">' + (q ? "" : a.lt ? "신고가 " + a.lr + "/" + a.lt : "–") + "</em></div>" +
+        a.ld.slice(q, q + 6).map(function (r) {
+          var worst = r.L.filter(function (t) { return !t.nb && !t.rec; }).sort(function (x, y) { return x.gap - y.gap; })[0];
+          return '<div class="chc-sr"><span>' + escHtml(rpShort(r.nm)) + '</span><span class="rp-dots">' + r.L.map(function (t) { return '<i class="' + (t.nb ? "nb" : t.rec ? "on" : "off") + '"></i>'; }).join("") + "</span><i class=\"" + (worst ? "" : "top") + '">' + (worst ? escHtml(worst.apt.slice(0, 7)) + " " + rpPct(worst.gap) : "모두 신고가") + "</i></div>";
+        }).join("") + "</div>" });
+    });
+    var o = base({ tag: w === "seoul" ? "서울 대장 Top3" : "경기 대장 Top3", q: (w === "seoul" ? "서울" : "경기") + " 대장 3곳, 신고가 찍었나", cnt: D[w].length + "단계",
+      key: '<span class="rp-dots"><i class="on"></i></span> 신고가 <span class="rp-dots"><i class="off"></i></span> 아직 <span class="rp-dots"><i class="nb"></i></span> 신축(비교 불가) · <b>오른쪽 = 아직인 대장 중 가장 먼 곳</b>',
+      a: D[w].map(function (a) { return a.nm + " " + (a.lt ? a.lr + "/" + a.lt : "–"); }).join(" · "),
+      how: "점 순서 = 대장 1·2·3위(㎡당가) · % = 최근 거래가 ÷ 2020년 이후 최고가 · 신고가 = 2023년 이후 최고가 경신" });
+    bfPack(o, rows, true, 2).forEach(function (c) { C.push(c); });
+  });
+  /* 4 대장 기준 순서 한 장 */
+  function chain(list) { return list.map(function (a) { return '<div class="chc-row rp-step"><i>' + a.no + "</i><div><b>" + escHtml(a.nm) + "</b><small>" + a.lr + "/" + a.lt + '곳</small></div><span class="' + (a.lp >= 80 ? "up" : "down") + '">' + (a.lp != null ? Math.round(a.lp) + "%" : "–") + "</span></div>"; }).join(""); }
+  C.push(base({ tag: "대장으로 본 순서", q: "대장으로 봐도 순서는 같다", key: "<b>% = 대장 중 신고가 비율</b> → 아래 단계일수록 낮아짐, 순서는 중위가와 같음",
+    body: '<div class="rp-2col rp-ld2"><div><div class="rp-sec">서울</div>' + chain(D.seoul) + '</div><div><div class="rp-sec">경기</div>' + chain(D.gg) + "</div></div>",
+    a: "대장 신고가 비율 서울 " + D.seoul.map(function (a) { return Math.round(a.lp || 0) + "%"; }).join("→") + " · 경기 " + D.gg.map(function (a) { return Math.round(a.lp || 0) + "%"; }).join("→"),
+    how: "대장은 새 아파트·대단지라 먼저 오르고, 중위가는 오래된 단지까지 섞여 늦게 따라옴" }));
+  /* 5 읽는 법 */
+  C.push(base({ tag: "읽는 법 · 대장", q: "대장 숫자는 이렇게 읽으세요", key: "<b>대장 = 그 동네 시세의 천장</b>, 중위가 = 그 동네 보통 집 — 둘이 다르면 '양극화' 신호",
+    body: chList([
+      ["대장이 먼저, 보통 집이 나중", "신축·대단지에 수요가 먼저 몰리고 오래된 단지가 따라옴", '<em class="rp-w">순서</em>'],
+      ["대장 신고가 ≠ 동네 전체 회복", "노도강은 대장 일부만 신고가, 중위가는 아직 고점 아래", '<em class="rp-w">양극화</em>'],
+      ["신축은 비교에서 뺐어요", "2021년 이후 입주 단지는 2021년 거래가 없어 신고가 판단 불가", '<em class="rp-w">회색</em>'],
+      ["최근 거래 1건이 기준", "대장 값은 같은 면적 최근 실거래 — 한 건으로 흔들릴 수 있음", '<em class="rp-w">주의</em>']
+    ], true),
+    how: "참고 자료입니다. 특정 단지 매수·매도 권유가 아닙니다." }));
+  return C;
+}
+function rpLeadText() {
+  var D = rpLeadData(); if (!D) return "";
+  var L = ["대장 Top3로 보면 — 중위가로는 아직이라도 대장은 이미 신고가", ""];
+  ["seoul", "gg"].forEach(function (w) { L.push(w === "seoul" ? "■ 서울" : "■ 경기"); D[w].forEach(function (a) { L.push(a.no + ". " + a.nm + " — 대장 " + a.lt + "곳 중 " + a.lr + "곳 신고가 · 중위가 고점 대비 " + rpPct(a.vs)); }); L.push(""); });
+  L.push("대장은 새 아파트·대단지라 먼저 오르고, 중위가는 오래된 단지까지 섞여 늦게 따라옵니다.");
+  L.push("출처: 국토부 실거래 · 대장 = 500세대 이상·20년 이내 ㎡당가 상위 3곳(84㎡) · 투자 권유 아님 · @uphill.lab");
+  return L.join("\n");
 }
 function rpText() {
   var D = rpData(); if (!D) return "";

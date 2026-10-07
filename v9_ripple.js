@@ -49,12 +49,12 @@ function rpLast() {
 var RP_NAME = null;
 function rpCode(nm) { if (!RP_NAME) { RP_NAME = {}; Object.keys(MC.regions).forEach(function (k) { RP_NAME[MC.regions[k].nm] = k; }); } return RP_NAME[nm]; }
 /* 묶음 시계열: 6개월 거래량 가중 ㎡당 중위가(만원/평) — 거래 60건 미만이면 비움 */
-function rpSeries(names, last) {
+function rpSeries(names, last, minN) {
   var ks = names.map(rpCode).filter(Boolean); if (!ks.length) return null;
   var L = last + 1, num = [], den = [];
   for (var i = 0; i < L; i++) { var a = 0, b = 0; ks.forEach(function (k) { var s = MC.regions[k].s, o = s.o || 0, j = i - o, p = j >= 0 ? s.p[j] : null, n = j >= 0 ? s.n[j] : null; if (p && n) { a += p * n; b += n; } }); num.push(a); den.push(b); }
   var out = [];
-  for (var t = 0; t < L; t++) { var A = 0, B = 0; for (var q = Math.max(0, t - 5); q <= t; q++) { A += num[q]; B += den[q]; } out.push(B >= 60 ? A / B : null); }
+  for (var t = 0; t < L; t++) { var A = 0, B = 0; for (var q = Math.max(0, t - 5); q <= t; q++) { A += num[q]; B += den[q]; } out.push(B >= (minN || 60) ? A / B : null); }
   return { s: out, ks: ks };
 }
 function rpStat(names, last) {
@@ -64,10 +64,75 @@ function rpStat(names, last) {
   var A = null, i;
   for (i = rpIdx(2017, 6); i <= rpIdx(2021, 12) - 2; i++) if (yoy(i) >= 10 && yoy(i + 1) >= 10 && yoy(i + 2) >= 10) { A = i; break; }
   var pk = 0; for (i = rpIdx(2020, 1); i < rpIdx(2022, 7); i++) if (v(i) > pk) pk = v(i);
-  var R = null; for (i = rpIdx(2022, 7); i <= last - 2; i++) if (v(i) >= pk && v(i + 1) >= pk && v(i + 2) >= pk) { R = i; break; }
+  var R = null, dip = false; for (i = rpIdx(2022, 7); i <= last - 2; i++) if (v(i) && v(i) <= pk * 0.95) dip = true; else if (dip && v(i) >= pk && v(i + 1) >= pk && v(i + 2) >= pk) { R = i; break; }
   var b23 = v(rpIdx(2023, 12)), cur = v(last);
   return { A: A, R: R, pk: pk, cur: cur, vs: pk && cur ? (cur / pk - 1) * 100 : null, g: b23 && cur ? (cur / b23 - 1) * 100 : null,
     y21: v(rpIdx(2021, 12)) && v(rpIdx(2020, 12)) ? (v(rpIdx(2021, 12)) / v(rpIdx(2020, 12)) - 1) * 100 : null, ks: S.ks };
+}
+/* ── 권역별 경로: 구·시 하나하나의 '급등 시작'(전년 대비 +20% 3개월 연속 첫 달, 2016~2021) 순으로 줄 세운다 ── */
+var RP_CORR = {
+  seoul: [
+    ["동남권", "강남에서 동쪽으로", ["서울 강남구", "서울 서초구", "서울 송파구", "서울 강동구"]],
+    ["도심·서북권", "용산에서 서북쪽으로", ["서울 용산구", "서울 마포구", "서울 서대문구", "서울 은평구", "서울 종로구"]],
+    ["도심·동북권", "성동·광진에서 동북쪽으로", ["서울 성동구", "서울 광진구", "서울 중구", "서울 동대문구", "서울 성북구", "서울 중랑구", "서울 강북구", "서울 도봉구", "서울 노원구"]],
+    ["서남권", "양천·영등포에서 서남쪽으로", ["서울 양천구", "서울 영등포구", "서울 동작구", "서울 관악구", "서울 구로구", "서울 강서구", "서울 금천구"]]
+  ],
+  gg: [
+    ["경부 축", "분당 → 용인", ["경기 성남시 분당구", "경기 용인시 수지구", "경기 용인시 기흥구", "경기 용인시 처인구"]],
+    ["과천·안양 축", "과천 → 평촌 → 산본", ["경기 과천시", "경기 안양시 동안구", "경기 의왕시", "경기 군포시", "경기 안양시 만안구"]],
+    ["수원·화성 축", "광교 → 수원 → 동탄", ["경기 수원시 영통구", "경기 수원시 팔달구", "경기 수원시 장안구", "경기 수원시 권선구", "경기 화성시 동탄구"]],
+    ["서남부 축", "광명 → 시흥·안산", ["경기 광명시", "경기 부천시 원미구", "경기 시흥시", "경기 안산시 단원구", "경기 안산시 상록구"]],
+    ["동부 축", "하남 → 구리 → 남양주", ["경기 하남시", "경기 구리시", "경기 남양주시"]],
+    ["서북부 축", "고양 → 김포·파주", ["경기 고양시 일산동구", "경기 고양시 일산서구", "경기 고양시 덕양구", "경기 김포시", "경기 파주시"]]
+  ]
+};
+/* 튀는 값 원인 — 그때 기사·자료로 확인한 것만. 없으면 자동 진단만 보여 준다 */
+var RP_NOTES = {
+  "경기 하남시": { t: "미사강변도시 입주(2016)로 새 아파트 매매가 몰려 중위가가 계단처럼 뛴 것 — 시세 급등이라기보다 '팔린 단지 구성' 변화",
+    ev: ["2016.04 미사 푸르지오1차·동원로얄듀크 입주 앞두고 '2월부터 거래량 늘며 가격 상승' (이코노미스트)", "2016.08 '미사지구 새 아파트 입주 영향으로 기존 아파트 전셋값 하락', 하남 주간 전세 −0.82% (뉴스토마토)", "실거래: 2016.03 ㎡당 중위 1,437→1,732만(+21%, 두 달) · 2016.09 월 343건(직전 2년 중위의 약 2배) · 2017~18 전년 대비 +3~5%로 식음"] },
+  "경기 성남시 분당구": { t: "2018년 초 전국 상승률 1위권 — 경부 축의 출발점",
+    ev: ["2018.01~05 누적 +9.72%로 전국 1위, 1월 거래 1,287건 (뉴시스, 한국감정원 주간)", "신분당선 연장·GTX-A 착공 기대 · 실거래 급등이 24개월 중 12개월 지속"] },
+  "서울 양천구": { t: "목동 신시가지 재건축 연한 도래 + 강남 재건축 분양 성공 뒤 투자 수요가 목동으로 — 서남권에서 혼자 일찍 출발",
+    ev: ["2016.08 양천구 주간 +0.45%로 서울 25개 구 중 1위, 신시가지 2단지 65㎡ 6.5억→7.6억(3~6월) (아주경제)", "'강남 재건축 단지 분양 성공 뒤 대지지분 많은 목동으로 눈 돌려' — 2016년 말 1~6단지, 2018년 14개 단지 재건축 연한 충족 (아주경제)"] },
+  "경기 과천시": { t: "재건축 기대로 2018년 일찍 오른 것은 맞지만, 월 거래가 30건 안팎이라 시점·폭은 크게 흔들림",
+    ev: ["2018.05 '과천은 재건축 호재로 수혜' (뉴시스)", "실거래 월 중위 30건 — 단지 하나의 거래로 중위가가 움직임"] }
+};
+var RP_ODD = { blip: "일시적 급등", thin: "표본 적음", lead: "실제 선도" };
+function rpGu(nm, last) {
+  var S = rpSeries([nm], last, 15); if (!S) return null; var s = S.s, i;
+  var v = function (j) { return j >= 0 && j < s.length ? s[j] : null; };
+  var yoy = function (j) { return v(j) && v(j - 12) ? (v(j) / v(j - 12) - 1) * 100 : -99; };
+  var on = null; for (i = rpIdx(2016, 1); i <= rpIdx(2021, 12); i++) if (yoy(i) >= 20 && yoy(i + 1) >= 20 && yoy(i + 2) >= 20) { on = i; break; }
+  var lo = Infinity, lt = -1; for (i = rpIdx(2016, 1); i < rpIdx(2020, 1); i++) if (v(i) && v(i) < lo) { lo = v(i); lt = i; }
+  var hi = 0, ht = -1; for (i = rpIdx(2020, 1); i < rpIdx(2022, 7); i++) if (v(i) && v(i) > hi) { hi = v(i); ht = i; }
+  var R = null, dip = false; for (i = rpIdx(2022, 7); i <= last - 2; i++) if (v(i) && v(i) <= hi * 0.95) dip = true; else if (dip && v(i) >= hi && v(i + 1) >= hi && v(i + 2) >= hi) { R = i; break; }
+  var cur = v(last);
+  /* 진단용: 급등이 얼마나 이어졌나(24개월 중 +20% 달 수) · 18개월 안에 +8% 밑으로 식었나 · 식은 뒤 다시 급등한 달 · 월 거래 중위 */
+  var sus = 0, fade = false, on2 = null, nn = [], k = rpCode(nm), ss = MC.regions[k].s, o = ss.o || 0;
+  if (on != null) {
+    for (i = on; i < on + 24; i++) if (yoy(i) >= 20) sus++;
+    for (i = on + 3; i <= on + 18; i++) if (yoy(i) > -99 && yoy(i) < 8) { fade = true; break; }
+    if (fade) { var cool = false; for (i = on + 3; i <= Math.min(last - 2, rpIdx(2021, 12)); i++) { if (yoy(i) < 10) cool = true; else if (cool && yoy(i) >= 20 && yoy(i + 1) >= 20 && yoy(i + 2) >= 20) { on2 = i; break; } } }
+  }
+  for (i = rpIdx(2016, 1); i < rpIdx(2022, 1); i++) { var x = ss.n[i - o]; if (x) nn.push(x); }
+  nn.sort(function (a, b) { return a - b; });
+  return { full: nm, nm: nm.replace(/^(서울|경기) /, ""), on: on, sus: sus, fade: fade, on2: on2, nMed: nn.length ? nn[Math.floor(nn.length / 2)] : 0, lt: lt, ht: ht, rise: lt >= 0 && hi ? (hi / lo - 1) * 100 : null, R: R, vs: cur && hi ? (cur / hi - 1) * 100 : null };
+}
+function rpCorrData(w, last) {
+  return RP_CORR[w].map(function (c, ci) {
+    var g = c[2].map(function (n) { return rpCode(n) ? rpGu(n, last) : null; }).filter(Boolean);
+    /* 튀는 값: 같은 축 가운데 시점보다 18개월 넘게 앞서거나 늦은 곳 → 자동 진단 */
+    var ons = g.map(function (x) { return x.on; }).filter(function (x) { return x != null; }).sort(function (a, b) { return a - b; }), med = ons.length ? ons[Math.floor((ons.length - 1) / 2)] : null;
+    g.forEach(function (x) {
+      x.key = x.on;
+      if (x.on == null || med == null || Math.abs(x.on - med) < 18) return;
+      x.odd = { gap: x.on - med, type: x.nMed < 40 ? "thin" : (x.sus < 10 && x.fade) ? "blip" : "lead" };
+      if (x.odd.type === "blip" && x.on2 != null) x.key = x.on2;   /* 일시적 급등이면 다시 오른 달로 줄 세움 */
+      x.note = RP_NOTES[x.full] || null;
+    });
+    g.sort(function (a, b) { return (a.key == null ? 9999 : a.key) - (b.key == null ? 9999 : b.key); });
+    return { no: ci + 1, nm: c[0], sub: c[1], g: g, med: med };
+  }).filter(function (c) { return c.g.length; });
 }
 function rpData() {
   if (!rpOn()) return null;
@@ -82,7 +147,7 @@ function rpData() {
   });
   return out;
 }
-function rpShort(nm) { var x = nm.replace(/^(성남시|용인시|안양시|수원시|화성시|고양시|안산시) /, ""); return x.length > 2 ? x.replace(/(시|구)$/, "") : x; }
+function rpShort(nm) { var x = nm.replace(/^(성남시|용인시|안양시|수원시|화성시|고양시|안산시|부천시) /, ""); return x.length > 2 ? x.replace(/(시|구)$/, "") : x; }
 function rpPct(v) { return v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(1) + "%"; }
 function rpRecTxt(a) { return a.R != null ? rpYm(a.R) + " 회복" : "아직 " + rpPct(a.vs); }
 function rpCards() {
@@ -111,25 +176,47 @@ function rpCards() {
   C.push(base({ tag: "지난 상승기", q: "2017~2021년에도 같은 순서였다", body: chTable(["단계", "상승 시작", "2021 한 해"], tbl2(D.seoul, "서울").concat(tbl2(D.gg, "경기")), { cls: "wide" }),
     a: "서울이 2017년에 먼저 오르고, 경기 외곽은 2020년에야 시작 — 대신 마지막 해(2021)에 가장 크게",
     how: "상승 시작 = 전년 같은 달보다 +10% 가 3개월 이어진 첫 달 · 2021 한 해 = 2020.12 → 2021.12" }));
-  /* 4~5 단계별 구·시 상세 (묶음 행) */
+  /* 권역별 경로 — 구·시를 지난 상승기 '급등 시작' 순으로, 이번 회복과 나란히 */
   ["seoul", "gg"].forEach(function (w) {
-    var rows = [];
-    D[w].forEach(function (a) {
-      var gs = a.gu.slice().sort(function (x, y) { return (y.g || -99) - (x.g || -99); });
-      for (var c = 0; c < gs.length; c += 5) {
-        rows.push({ html: '<div class="chc-row chc-grp rp-grp"><div class="chc-gh"><b>' + a.no + ". " + escHtml(a.nm) + (c ? " <small>이어서</small>" : "<small>" + rpRecTxt(a) + "</small>") + "</b><em>" + (c ? "" : rpPct(a.g)) + "</em></div>" +
-          '<div class="chc-sr rp-hd"><span></span><span>23.12 이후</span><i>고점 대비</i></div>' +
-          gs.slice(c, c + 5).map(function (g) {
-            return '<div class="chc-sr"><span>' + escHtml(g.nm) + "</span><span>" + rpPct(g.g) + '</span><i class="' + (g.vs >= 0 ? "top" : "") + '">' + rpPct(g.vs) + "</i></div>";
+    var CD = rpCorrData(w, D.last), rows = [];
+    CD.forEach(function (c) {
+      var chain = c.g.map(function (g) { return escHtml(rpShort(g.nm)) + (g.odd ? "*" : ""); }).join(" → ");
+      for (var q = 0; q < c.g.length; q += 5) {
+        rows.push({ html: '<div class="chc-row chc-grp rp-grp rp-cor"><div class="chc-gh"><b>' + c.no + ". " + escHtml(c.nm) + (q ? " <small>이어서</small>" : "<small>" + escHtml(c.sub) + "</small>") + "</b></div>" +
+          (q ? "" : '<div class="rp-chain">' + chain + "</div>") +
+          '<div class="chc-sr rp-hd"><span></span><span>급등 시작</span><span>상승률</span><i>이번 회복</i></div>' +
+          c.g.slice(q, q + 5).map(function (g) {
+            return '<div class="chc-sr"><span>' + escHtml(g.nm) + (g.odd ? '<small class="rp-odd">*' + RP_ODD[g.odd.type] + "</small>" : "") + "</span><span>" + (g.key != null ? rpYm(g.key) : "–") + "</span><span>" + (g.rise != null ? "+" + Math.round(g.rise) + "%" : "–") + '</span><i class="' + (g.R != null || g.vs >= 0 ? "top" : "") + '">' + (g.R != null ? rpYm(g.R) : rpPct(g.vs)) + "</i></div>";
           }).join("") + "</div>" });
       }
     });
-    var allg = []; D[w].forEach(function (a) { allg = allg.concat(a.gu); });
-    var topg = allg.slice().sort(function (x, y) { return (y.g || -99) - (x.g || -99); })[0], below = allg.filter(function (g) { return g.vs < 0; }).map(function (g) { return rpShort(g.nm); });
-    var o = base({ a: "가장 많이 오른 곳 " + escHtml(topg.nm) + " " + rpPct(topg.g) + (below.length ? " · 아직 고점 아래 " + below.length + "곳(" + below.slice(0, 4).join("·") + (below.length > 4 ? " 등" : "") + ")" : ""), tag: w === "seoul" ? "서울 단계별" : "경기 단계별", q: (w === "seoul" ? "서울" : "경기") + " 단계별 상세", cnt: D[w].length + "단계",
-      how: "구·시 하나는 그달 팔린 단지에 따라 흔들림 — 단계 묶음 값으로 순서를 보고, 구별 값은 참고만" });
-    (typeof bfPack === "function" ? bfPack(o, rows, true, 2) : chPaged(o, rows, 2, true, 9)).forEach(function (c) { C.push(c); });
+    var odds = []; CD.forEach(function (c) { c.g.forEach(function (g) { if (g.odd) odds.push(g); }); });
+    var o = base({ tag: w === "seoul" ? "서울 권역별 경로" : "경기 축별 경로", q: (w === "seoul" ? "서울 권역별, 어디서 어디로" : "서울에서 경기로, 축별 경로"), cnt: CD.length + (w === "seoul" ? "개 권역" : "개 축"),
+      a: CD.map(function (c) { return c.g.slice(0, 3).map(function (g) { return rpShort(g.nm); }).join("→"); }).join(" / "),
+      how: "급등 시작 = 전년 같은 달보다 +20% 가 3개월 이어진 첫 달(2016~21) · 상승률 = 2016~19 저점 → 2020~22 고점(6개월 가중 ㎡당 중위) · 이번 회복 = 그 고점을 3개월 연속 넘은 달, 아직이면 고점 대비" });
+    if (odds.length) o.how = "* = 같은 축에서 시점이 18개월 넘게 튀는 곳(뒤 '튀는 값' 카드) · " + o.how;
+    bfPack(o, rows, true, 2).forEach(function (c) { C.push(c); });
   });
+  /* 튀는 값 진단 — 자동 진단(실거래) + 확인한 원인(기사·자료) */
+  var oddRows = [];
+  ["seoul", "gg"].forEach(function (w) {
+    rpCorrData(w, D.last).forEach(function (c) {
+      c.g.forEach(function (g) {
+        if (!g.odd) return;
+        var auto = "급등 시작 " + rpYm(g.on) + " — " + escHtml(c.nm) + " 가운데(" + rpYm(c.med) + ")보다 " + Math.abs(g.odd.gap) + "개월 " + (g.odd.gap < 0 ? "빠름" : "늦음") + " · 이후 24개월 중 +20% 지속 " + g.sus + "개월 · 월 거래 중위 " + g.nMed + "건" + (g.odd.type === "blip" && g.on2 != null ? " · 식었다가 " + rpYm(g.on2) + " 다시 급등 → 이 달로 줄 세움" : "");
+        var n = g.note;
+        oddRows.push({ html: '<div class="chc-row chc-grp rp-oddg"><div class="chc-gh"><b>' + escHtml(g.nm) + "<small>" + escHtml(c.nm) + '</small></b><em class="rp-t ' + g.odd.type + '">' + RP_ODD[g.odd.type] + "</em></div>" +
+          '<p class="rp-auto">' + auto + "</p>" +
+          (n ? '<p class="rp-why"><b>원인</b> ' + escHtml(n.t) + "</p>" + n.ev.map(function (e) { return '<p class="rp-ev">· ' + escHtml(e) + "</p>"; }).join("") : '<p class="rp-why"><b>원인</b> 기사 확인 전 — 자동 진단만 표시</p>') + "</div>" });
+      });
+    });
+  });
+  if (oddRows.length) {
+    var oo = base({ tag: "튀는 값", q: "혼자 튀는 숫자, 왜 그럴까", cnt: oddRows.length + "곳", src: "국토부 실거래 · 당시 보도 · 투자 권유 아님",
+      a: "같은 축보다 1년 반 넘게 앞서거나 늦은 곳 " + oddRows.length + "곳 — 실제 선도인지, 팔린 단지 구성 탓인지 구분",
+      how: "일시적 급등 = +20% 가 10개월 못 가고 18개월 안에 +8% 밑으로 식음(신축 입주·대단지 거래 쏠림 의심) · 표본 적음 = 월 거래 중위 40건 미만 · 실제 선도 = 오래 지속" });
+    bfPack(oo, oddRows, true, 2).forEach(function (c) { C.push(c); });
+  }
   /* 6 지수로 교차 확인 (KB) */
   var K = RP_REFS.kb;
   C.push(base({ a: "서울 " + K.seUpN + "개 구 전고점 위 · 아래는 " + K.seDn.map(function (x) { return x[0].replace(/구$/, ""); }).join("·") + " · 경기는 분당·과천·하남·수지가 위", tag: "지수로 확인", q: "KB 지수로 봐도 같은 그림", src: K.src + " · " + K.asOf + " · 투자 권유 아님", date: "KB " + K.asOf,
@@ -158,6 +245,9 @@ function rpCards() {
       ["다음 차례 ≠ 꼭 오른다", "공급(입주 물량)·일자리·교통이 약하면 순서가 와도 덜 오르거나 건너뜀", ""]
     ], true),
     how: "과거 흐름을 정리한 참고 자료입니다. 특정 지역 매수·매도 권유가 아닙니다." }));
+  /* 순서: 흐름 2장 → 권역·축별 경로 → 숫자 표 → 지수 → 기사 → 읽는 법 */
+  var W = function (t) { return /^확산 순서/.test(t) ? 0 : /권역별|축별|튀는 값/.test(t) ? 1 : /회복기|상승기/.test(t) ? 2 : 3; };
+  C = C.map(function (c, i) { return [W(String(c.tag)), i, c]; }).sort(function (x, y) { return x[0] - y[0] || x[1] - y[1]; }).map(function (x) { return x[2]; });
   return C;
 }
 function rpText() {
@@ -167,6 +257,10 @@ function rpText() {
   D.seoul.forEach(function (a) { L.push(a.no + ". " + a.nm + " — " + rpRecTxt(a) + " · 2023.12 이후 " + rpPct(a.g)); });
   L.push(""); L.push("■ 서울 → 경기");
   D.gg.forEach(function (a) { L.push(a.no + ". " + a.nm + " — " + rpRecTxt(a) + " · 2023.12 이후 " + rpPct(a.g)); });
+  L.push(""); L.push("■ 권역·축별 경로 (지난 상승기 급등 시작 순)");
+  ["seoul", "gg"].forEach(function (w) { rpCorrData(w, D.last).forEach(function (c) { L.push("· " + c.nm + ": " + c.g.map(function (g) { return rpShort(g.nm) + (g.key != null ? "(" + rpYm(g.key).slice(2) + (g.odd ? "*" : "") + ")" : ""); }).join(" → ")); }); });
+  var od = []; ["seoul", "gg"].forEach(function (w) { rpCorrData(w, D.last).forEach(function (c) { c.g.forEach(function (g) { if (g.odd) od.push(rpShort(g.nm) + " " + RP_ODD[g.odd.type] + (g.note ? " — " + g.note.t : "")); }); }); });
+  if (od.length) { L.push("* 튀는 값"); od.forEach(function (x) { L.push("  " + x); }); }
   L.push(""); L.push("■ 지난 상승기(2017~2021)도 같은 순서: 서울 " + (D.seoul[0].A != null ? rpYm(D.seoul[0].A) : "") + " 시작 → 경기 외곽 " + (D.gg[3] && D.gg[3].A != null ? rpYm(D.gg[3].A) : "") + " 시작, 마지막 해에 외곽이 가장 크게.");
   L.push("■ KB 지수(" + RP_REFS.kb.asOf + ")로도 서울 상급지·과천·분당은 전고점 위, 노도강·경기 외곽은 아직 아래.");
   L.push(""); L.push("순서는 경향일 뿐 법칙이 아닙니다. 규제·공급·교통에 따라 건너뛰기도 합니다.");

@@ -50,6 +50,9 @@ jobs:
         env:
           SCHOOLINFO_API_KEY: ${{ secrets.SCHOOLINFO_API_KEY }}   # 학교알리미 → 알리미 소식 → OpenAPI 에서 발급(무료)
         run: node scripts/school_build.js
+      - name: 데이터 점검 (합계·급변·범위·이상치 교차 검사 → data/validate.json)
+        if: always()
+        run: node scripts/validate.js
       - name: 수동 목록 확인 필요 → 이슈로 알림
         if: always()
         env:
@@ -64,7 +67,7 @@ jobs:
         run: |
           git config user.name "trackapt-bot"
           git config user.email "trackapt-bot@users.noreply.github.com"
-          for f in brief_data.json macro_data.json market_core.json data/highs data/brief_hist.json data/macro_codes.json data/macro_debug.json data/monthly data/market_core_base.json data/manual/_inbox.json school_data.json; do [ -e "$f" ] && git add "$f"; done
+          for f in brief_data.json macro_data.json market_core.json data/highs data/brief_hist.json data/macro_codes.json data/macro_debug.json data/monthly data/market_core_base.json data/manual/_inbox.json school_data.json data/seen.json data/validate.json; do [ -e "$f" ] && git add "$f"; done
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -m "brief: $(date -u -d '+9 hours' '+%Y-%m-%d %H:%M') KST 자동 갱신"
           # 수집하는 5~15분 사이에 다른 커밋(파일 업로드 등)이 올라왔으면 그 위에 얹어서 올린다

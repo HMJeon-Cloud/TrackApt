@@ -1744,6 +1744,16 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .rl-hist button{text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px}.rl-hist b{display:block;font-size:.88rem}.rl-hist small{color:var(--sub)}
 #rl-studio .rc-box{padding:0}
 #rl-studio .rc-grid{grid-template-columns:minmax(0,1fr) 380px minmax(0,1fr)}@media(max-width:1100px){#rl-studio .rc-grid{grid-template-columns:1fr}}
+/* v9.14 릴스 카드 — 데이터 고르기 · AI 범위 */
+.rc-mode{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.rc-mode>span{font-size:.78rem;font-weight:800;color:var(--sub);margin-right:2px}
+.rc-mode button small{display:block;font-size:.68rem;font-weight:600;opacity:.75}
+.rc-msel{border:1px solid var(--line);border-radius:8px;padding:5px 8px;max-width:100%}
+.rl-step{margin:12px 0;padding:10px;border:1px solid var(--line);border-radius:12px}
+.rl-step>b{font-size:.95rem}.rl-step small{color:var(--sub)}
+.rl-step textarea,.rl-step>input{width:100%;box-sizing:border-box;margin-top:6px;border:1px solid var(--line);border-radius:10px;padding:8px}
+.rl-grp{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:7px}.rl-grp em{font-style:normal;font-size:.78rem;font-weight:800;color:var(--sub);width:72px}
+.rl-chip input{display:none}.rl-chip span{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.82rem;font-weight:700;color:var(--sub);background:var(--panel);cursor:pointer}
+.rl-chip input:checked+span{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 </style>
 </head>
 <body>
@@ -1751,7 +1761,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.13</span>
+    <span class="ver">v9.14</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -6394,11 +6404,15 @@ function rcImgPrompt(P) {
   return L.join("\n");
 }
 /* ── 4) 스튜디오 화면 — 왼쪽 원본 데이터 · 가운데 카드 · 오른쪽 검증 ── */
+function rcModePref() { try { return localStorage.getItem("trackapt_rc_mode") || "exact"; } catch (e) { return "exact"; } }
+function rcModeSel(id) { var m = rcModePref(); return '<select id="' + id + '" class="rc-msel"><option value="exact"' + (m === "exact" ? " selected" : "") + '>배경만 AI (글·숫자는 앱 — 정확)</option><option value="ai"' + (m === "ai" ? " selected" : "") + '>전부 AI (글·문구까지 AI가 그림)</option></select>'; }
+function rcModeGet(id) { var e = document.getElementById(id), v = e ? e.value : rcModePref(); try { localStorage.setItem("trackapt_rc_mode", v); } catch (x) {} return v; }
 function rcOpen(src) {
   /* src = { topic, facts, basis, purpose, key, host? } */
-  RC.cur = { src: src, plan: null, bg: null, img: null, read: null, mode: (function () { try { return localStorage.getItem("trackapt_rc_mode") || "exact"; } catch (e) { return "exact"; } })(), busy: "", err: "" };
+  RC.cur = { src: src, plan: null, bg: null, img: null, read: null, mode: src.mode || rcModePref(), busy: "", err: "" };
   var host = src.host;
   if (!host) { host = document.createElement("div"); host.className = "rc-modal"; document.body.appendChild(host); host.addEventListener("click", function (ev) { if (ev.target === host) host.remove(); }); }
+  if (src.note) RC.cur.note = src.note;
   RC.host = host; rcPaint();
   if (src.auto !== false) rcMake();
 }
@@ -6428,7 +6442,7 @@ function rcPaint() {
       }
     } else card = rcCardHtml(P, c.bg, c.src.basis);
   }
-  h.innerHTML = '<div class="rc-box"><div class="rc-hd"><b>대표 카드 · ' + escHtml(c.src.topic) + '</b><div class="rc-mode"><button data-rcmode="exact" class="' + (c.mode === "exact" ? "on" : "") + '">정확 모드(추천)</button><button data-rcmode="ai" class="' + (c.mode === "ai" ? "on" : "") + '">AI 이미지 모드</button></div>' + (c.src.host ? "" : '<button data-rc="close">닫기</button>') + "</div>" +
+  h.innerHTML = '<div class="rc-box"><div class="rc-hd"><b>대표 카드 · ' + escHtml(c.src.topic) + '</b><div class="rc-mode"><span>AI 사용 범위</span><button data-rcmode="exact" class="' + (c.mode === "exact" ? "on" : "") + '">배경만 AI <small>글·숫자는 앱(정확)</small></button><button data-rcmode="ai" class="' + (c.mode === "ai" ? "on" : "") + '">전부 AI <small>글·문구까지 AI가 그림</small></button></div>' + (c.src.host ? "" : '<button data-rc="close">닫기</button>') + "</div>" +
     '<div class="rc-bar"><input id="rc-note" placeholder="추가 요청 (예: 대출 받는 사람 관점으로, 제목에 질문형)" value="' + escHtml(c.note || "") + '"><button data-rc="make">' + (P ? "새로 기획" : "만들기") + "</button>" + (P ? '<button data-rc="bg">' + (c.mode === "ai" ? "이미지 다시" : "배경 다시") + '</button><button data-rc="save">카드 저장(1080×1920)</button>' : "") + "</div>" +
     (c.busy ? '<p class="rc-busy">' + escHtml(c.busy) + "</p>" : "") + (c.err ? '<p class="rc-err">' + escHtml(c.err) + "</p>" : "") +
     (P ? '<div class="rc-sum ' + (allBad ? "bad" : "ok") + '">' + (allBad ? "확인 필요: 원문과 다른 숫자 " + allBad + "곳 (빨강)" : "AI가 쓴 숫자는 모두 원본 데이터에 있습니다 — 그래도 최종 확인은 직접 해 주세요") + "</div>" : "") +
@@ -6489,42 +6503,75 @@ document.addEventListener("change", function (ev) {
   else if (t.dataset.rcp) { var q = t.dataset.rcp.split(":"); RC.cur.plan.points[Number(q[0])][q[1]] = t.value; rcPaint(); rcStore(); }
 });
 /* ── 5) 입구: 지금 시장 · 채널 브리핑 ── */
-function rcFromBrief(sec) {
+function rcFromBrief(sec, mode) {
   var nm = (BF_SECS.filter(function (x) { return x[0] === sec; })[0] || [sec, sec])[1], L = BRIEF.last || {};
   var cards = rcBriefCards(sec); if (!cards.length) { alert("이 항목에 카드로 만들 자료가 없습니다."); return; }
-  rcOpen({ topic: (L.scopeNm || "") + " " + nm, facts: rcFactsFromCards(cards), basis: "국토부 실거래 · " + (cards[0].date || ""), purpose: "지금 시장 '" + nm + "' 상세 카드(게시판)로 유입" });
+  rcOpen({ topic: (L.scopeNm || "") + " " + nm, facts: rcFactsFromCards(cards), basis: "국토부 실거래 · " + (cards[0].date || ""), purpose: "지금 시장 '" + nm + "' 상세 카드(게시판)로 유입", mode: mode });
 }
-function rcFromChannel(tab) {
+function rcFromChannel(tab, mode) {
   var cards = rcChannelCards(tab); if (!cards.length) { alert("이 코너에 카드로 만들 자료가 없습니다."); return; }
   var nm = typeof chTabName === "function" ? chTabName(tab) : tab;
-  rcOpen({ topic: nm, facts: rcFactsFromCards(cards), basis: cards[0].date ? "기준 " + rcClean(cards[0].date) : "", purpose: "채널 브리핑 '" + nm + "' 상세 카드(게시판)로 유입" });
+  rcOpen({ topic: nm, facts: rcFactsFromCards(cards), basis: cards[0].date ? "기준 " + rcClean(cards[0].date) : "", purpose: "채널 브리핑 '" + nm + "' 상세 카드(게시판)로 유입", mode: mode });
 }
 function rcBriefBar() {
   var mk = document.querySelector(".bfmk"); if (!mk || document.getElementById("rc-bfbar")) return;
   var d = document.createElement("div"); d.id = "rc-bfbar"; d.className = "rc-entry";
-  d.innerHTML = '<b>릴스 대표 카드</b><span class="hint">항목 하나를 한 장으로 정리 → 게시판으로 유입 · 데이터와 나란히 검증</span><div class="chbtns"><select id="rc-bfsec">' + BF_SECS.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + "</option>"; }).join("") + '</select><button type="button" class="btn sm" id="rc-bfgo">대표 카드 만들기</button></div>';
+  d.innerHTML = '<b>릴스 대표 카드</b><span class="hint">항목 하나를 한 장으로 정리 → 게시판으로 유입 · 데이터와 나란히 검증</span><div class="chbtns"><select id="rc-bfsec">' + BF_SECS.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + "</option>"; }).join("") + '</select>' + rcModeSel("rc-bfmode") + '<button type="button" class="btn sm" id="rc-bfgo">대표 카드 만들기</button><a class="hint" href="#reel">여러 항목을 묶거나 내 글을 더하려면 → 릴스 카드 페이지</a></div>';
   mk.parentNode.insertBefore(d, mk.nextSibling);
-  d.querySelector("#rc-bfgo").addEventListener("click", function () { rcFromBrief(d.querySelector("#rc-bfsec").value); });
+  d.querySelector("#rc-bfgo").addEventListener("click", function () { rcFromBrief(d.querySelector("#rc-bfsec").value, rcModeGet("rc-bfmode")); });
 }
 function rcChannelBar() {
   var cards = document.getElementById("ch-cards"); if (!cards) return;
   var bar = document.getElementById("rc-chbar");
   if (!bar) { bar = document.createElement("div"); bar.id = "rc-chbar"; bar.className = "rc-entry"; cards.parentNode.insertBefore(bar, cards); }
-  bar.innerHTML = '<b>릴스 대표 카드</b><span class="hint">이 코너를 한 장으로 정리해 게시판으로 유입</span><div class="chbtns"><button type="button" class="btn sm" id="rc-chgo">‘' + escHtml(typeof chTabName === "function" ? chTabName(CH.tab) : CH.tab) + "’ 대표 카드 만들기</button></div>";
-  bar.querySelector("#rc-chgo").addEventListener("click", function () { rcFromChannel(CH.tab); });
+  bar.innerHTML = '<b>릴스 대표 카드</b><span class="hint">이 코너를 한 장으로 정리해 게시판으로 유입</span><div class="chbtns">' + rcModeSel("rc-chmode") + '<button type="button" class="btn sm" id="rc-chgo">‘' + escHtml(typeof chTabName === "function" ? chTabName(CH.tab) : CH.tab) + "’ 대표 카드 만들기</button></div>";
+  bar.querySelector("#rc-chgo").addEventListener("click", function () { rcFromChannel(CH.tab, rcModeGet("rc-chmode")); });
 }
 /* ── 6) 별도 페이지: 내 글로 카드 만들기 (#reel) ── */
+/* 앱 데이터 불러오기 — 지금 시장·채널 브리핑을 안 열었어도 여기서 준비 */
+function rcEnsure(kind, cb) {
+  if (kind === "none") { cb(true); return; }
+  var ok = function () { return kind === "brief" ? !!(typeof BRIEF !== "undefined" && BRIEF.last) : !!(typeof CH !== "undefined" && CH.data && !CH.data._err); };
+  if (ok()) { cb(true); return; }
+  try { if (kind === "brief" && typeof renderBrief === "function") renderBrief(); if (kind === "channel" && typeof renderChannel === "function") renderChannel(); } catch (e) {}
+  var n = 0, w = setInterval(function () { if (ok() || ++n > 40) { clearInterval(w); cb(ok()); } }, 250);
+}
+var RC_CH_SKIP = { school: 1, terms: 1 };
 function buildReel(sec) {
-  sec.innerHTML = '<div class="card"><h2>릴스 카드 만들기</h2><p class="hint">인스타 글, 정책 정리(예: 디딤돌대출), 유튜브·책에서 좋았던 내용을 붙여 넣으면 OpenAI가 한 장으로 정리합니다. 숫자·날짜는 넣은 글에 있는 것만 씁니다.</p>' +
-    '<div class="grid"><div class="field"><label>주제(카드 위 말머리)</label><input id="rl-topic" placeholder="예: 2026 디딤돌대출 금리"></div><div class="field"><label>목적</label><select id="rl-purpose"><option>릴스 한 장으로 핵심 + 게시판 유입</option><option>저장하고 싶은 꿀팁 정리</option><option>체크리스트(해야 할 일)</option><option>비교표(A vs B)</option></select></div></div>' +
-    '<div class="field"><label>내용</label><textarea id="rl-text" rows="10" placeholder="여기에 내용을 붙여 넣으세요"></textarea></div><div class="chbtns"><button type="button" class="btn" id="rl-go">한 장으로 만들기</button><span class="hint" id="rl-msg"></span></div></div>' +
+  var bfOpts = (typeof BF_SECS !== "undefined" ? BF_SECS : []).map(function (x) { return '<label class="rl-chip"><input type="checkbox" data-src="brief:' + x[0] + '"><span>' + x[1] + "</span></label>"; }).join("");
+  var chOpts = (typeof CH_TABS !== "undefined" ? CH_TABS : []).filter(function (x) { return !RC_CH_SKIP[x[0]]; }).map(function (x) { return '<label class="rl-chip"><input type="checkbox" data-src="ch:' + x[0] + '"><span>' + x[1] + "</span></label>"; }).join("");
+  sec.innerHTML = '<div class="card"><h2>릴스 카드 만들기</h2><p class="hint">① 앱 데이터를 고르거나 ② 내 글을 넣거나 ③ 둘 다 — 그리고 ‘어떻게 만들지’ 요청을 적으면 OpenAI가 한 장으로 정리합니다. 숫자·날짜는 고른 데이터와 넣은 글에 있는 것만 씁니다.</p>' +
+    '<div class="rl-step"><b>① 앱 데이터 고르기</b> <small>(선택)</small><div class="rl-grp"><em>지금 시장</em>' + bfOpts + '</div><div class="rl-grp"><em>채널 브리핑</em>' + chOpts + '</div><p class="hint">지금 시장 데이터는 그 화면에서 고른 범위(서울·경기 등)와 기준을 따릅니다.</p></div>' +
+    '<div class="rl-step"><b>② 내 글</b> <small>(선택 · 인스타 글, 디딤돌 정책, 유튜브·책 메모 등)</small><textarea id="rl-text" rows="7" placeholder="여기에 붙여 넣으세요"></textarea></div>' +
+    '<div class="rl-step"><b>③ 어떻게 만들까</b><input id="rl-req" placeholder="예: 대장아파트 데이터로 \'노도강은 아직?\' 궁금증 유발, 대출 받는 사람 관점으로"><div class="grid"><div class="field"><label>주제(말머리)</label><input id="rl-topic" placeholder="비우면 고른 데이터 이름"></div><div class="field"><label>목적</label><select id="rl-purpose"><option>릴스 한 장으로 핵심 + 게시판 유입</option><option>저장하고 싶은 꿀팁 정리</option><option>체크리스트(해야 할 일)</option><option>비교표(A vs B)</option></select></div><div class="field"><label>AI 사용 범위</label>' + rcModeSel("rl-mode") + "</div></div></div>" +
+    '<div class="chbtns"><button type="button" class="btn" id="rl-go">한 장으로 만들기</button><span class="hint" id="rl-msg"></span></div></div>' +
     '<div class="card" id="rl-studio" style="display:none"></div><div class="card"><h3>최근 만든 카드</h3><div id="rl-hist" class="rl-hist"><p class="hint">아직 없습니다.</p></div></div>';
   sec.querySelector("#rl-go").addEventListener("click", function () {
-    var txt = sec.querySelector("#rl-text").value.trim(), msg = sec.querySelector("#rl-msg");
-    if (txt.length < 20) { msg.textContent = "내용을 조금 더 넣어 주세요."; return; }
-    var st = sec.querySelector("#rl-studio"); st.style.display = "";
-    rcOpen({ topic: sec.querySelector("#rl-topic").value.trim() || "내 메모", facts: rcFactsFromText(txt), basis: "입력한 내용 정리", purpose: sec.querySelector("#rl-purpose").value, host: st });
-    st.scrollIntoView({ behavior: "smooth" });
+    var txt = sec.querySelector("#rl-text").value.trim(), msg = sec.querySelector("#rl-msg"), req = sec.querySelector("#rl-req").value.trim();
+    var picks = Array.prototype.filter.call(sec.querySelectorAll("[data-src]"), function (x) { return x.checked; }).map(function (x) { return x.dataset.src; });
+    if (!picks.length && txt.length < 20) { msg.textContent = "앱 데이터를 하나 이상 고르거나, 내 글을 넣어 주세요."; return; }
+    var needB = picks.some(function (p) { return /^brief:/.test(p); }), needC = picks.some(function (p) { return /^ch:/.test(p); });
+    msg.textContent = picks.length ? "데이터 준비 중…" : "";
+    var go = function () {
+      var facts = [], names = [], basis = [];
+      if (txt.length) facts = facts.concat(rcFactsFromText(txt).map(function (f) { f.text = "[내 글] " + f.text; return f; }));
+      var per = Math.max(8, Math.floor((80 - facts.length) / Math.max(1, picks.length)));
+      picks.forEach(function (p) {
+        var q = p.split(":"), cards = q[0] === "brief" ? rcBriefCards(q[1]) : rcChannelCards(q[1]);
+        var nm = q[0] === "brief" ? (BF_SECS.filter(function (x) { return x[0] === q[1]; })[0] || [0, q[1]])[1] : chTabName(q[1]);
+        if (!cards.length) return; names.push(nm);
+        if (cards[0].date) basis.push(nm + " " + rcClean(cards[0].date));
+        facts = facts.concat(rcFactsFromCards(cards, per).map(function (f) { f.text = "[" + nm + "] " + f.text; return f; }));
+      });
+      facts = facts.slice(0, 80).map(function (f, i) { f.id = "F" + (i + 1); return f; });
+      if (!facts.length) { msg.textContent = "고른 데이터가 아직 준비되지 않았습니다. 잠시 뒤 다시 눌러 주세요."; return; }
+      msg.textContent = "";
+      var st = sec.querySelector("#rl-studio"); st.style.display = "";
+      var topic = sec.querySelector("#rl-topic").value.trim() || (names.length ? (BRIEF.last && needB ? BRIEF.last.scopeNm + " " : "") + names.join("·") : "내 메모");
+      rcOpen({ topic: topic, facts: facts, basis: (basis.length ? basis.join(" · ") : "입력한 내용 정리"), purpose: sec.querySelector("#rl-purpose").value, host: st, mode: rcModeGet("rl-mode"), note: req });
+      st.scrollIntoView({ behavior: "smooth" });
+    };
+    rcEnsure(needB ? "brief" : "none", function () { rcEnsure(needC ? "channel" : "none", function () { go(); }); });
   });
 }
 function renderReel() {

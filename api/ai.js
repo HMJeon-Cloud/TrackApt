@@ -63,9 +63,9 @@ module.exports = async (req, res) => {
   if (!same(b.t, tokenOf(OWN))) return res.status(401).json({ ok: false, error: "주인 인증이 필요합니다" });
   try {
     if (b.mode === "plan") {
-      const facts = (b.facts || []).slice(0, 60).map((f) => f.id + ": " + String(f.text).slice(0, 300)).join("\n");
+      const facts = (b.facts || []).slice(0, 80).map((f) => f.id + ": " + String(f.text).slice(0, 300)).join("\n");
       if (!facts) throw new Error("facts 가 비었습니다");
-      const user = "주제: " + (b.topic || "") + "\n목적: " + (b.purpose || "게시판 상세 카드로 유입") + (b.note ? "\n추가 요청: " + b.note : "") +
+      const user = (b.note ? "[가장 중요한 요청] " + b.note + "\n" : "") + "주제: " + (b.topic || "") + "\n목적: " + (b.purpose || "게시판 상세 카드로 유입") + (b.note ? "\n추가 요청: " + b.note : "") +
         "\n\n[facts — 이 안의 숫자·날짜만 쓸 것]\n" + facts + "\n\n위 facts로 릴스 표지 한 장을 설계해 JSON으로 답하라. points.value 는 facts 원문을 그대로 복사.";
       const out = await withFallback(KEY, [{ role: "system", content: SYS }, { role: "user", content: user }], { type: "json_schema", name: "reel_card", strict: true, schema: PLAN_SCHEMA });
       return res.status(200).json({ ok: true, plan: JSON.parse(out.text), model: out.model });

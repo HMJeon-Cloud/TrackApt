@@ -1764,6 +1764,82 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .rc-ref button{position:absolute;top:1px;right:1px;width:18px;height:18px;border:0;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:12px;line-height:18px;padding:0}
 .rc-refs small{font-size:.75rem;color:var(--sub)}
 #rl-refbox .rc-refs{margin-top:6px}
+/* ══ v9.17 화면 정리 — 만들기 블록 · 카드 스튜디오 통일 ══ */
+/* 지금 시장 바로가기 */
+.bfjump{display:flex;gap:4px;overflow-x:auto;margin:10px 0 2px;padding-bottom:2px;scrollbar-width:none}
+.bfjump::-webkit-scrollbar{display:none}
+.bfjump a{flex:none;font-size:.8rem;font-weight:700;color:var(--sub);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;text-decoration:none}
+.bfjump a.mk{color:#fff;background:var(--ink);border-color:var(--ink)}
+/* 만들기 카드 공통 */
+.mk-card h2{display:flex;align-items:center;gap:8px}
+.mk-ico{font-style:normal;width:26px;height:26px;border-radius:8px;background:linear-gradient(180deg,#ffe27a,#ffb81c);color:#13204a;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+.mk-blk{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;background:var(--panel)}
+.mk-blk.bfmk{margin-top:12px;background:var(--panel)}
+.mk-hd{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+.mk-hd b{font-size:.98rem}.mk-hd span{font-size:.8rem;color:var(--sub)}
+.mk-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.mk-row select{border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-weight:700;background:var(--panel)}
+.mk-tag{font-weight:800;font-size:.85rem;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+.mk-link{display:inline-block;margin-top:8px;font-size:.8rem;color:var(--sub);text-decoration:none}
+.mk-link:hover{text-decoration:underline}
+.rc-entry{border:1px solid #e9d3a6;background:linear-gradient(180deg,#fffaf0,var(--panel))}
+details.ai-wrap>summary{cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:2px}
+details.ai-wrap>summary::-webkit-details-marker{display:none}
+details.ai-wrap>summary b:after{content:" ▾";color:var(--sub);font-size:.8em}
+details.ai-wrap[open]>summary b:after{content:" ▴"}
+details.ai-wrap>summary span{font-size:.8rem;color:var(--sub)}
+details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
+.ai-studio .ai-hd{display:none}
+@media(min-width:760px){.ai-studio{display:grid!important;grid-template-columns:1fr 1fr;column-gap:16px}.ai-studio>.hint,.ai-studio>p{grid-column:1/-1}}
+.ai-th{width:78px;height:98px}
+/* 카드 스튜디오 */
+.rc-modal{padding:12px}
+.rc-box{max-width:1280px;padding:16px}
+.rl-host .rc-box{padding:0;max-width:none}
+.rc-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.rc-hd small{display:block;font-size:.75rem;font-weight:800;color:#a8813b;letter-spacing:.02em}
+.rc-hd b{font-size:1.15rem;font-weight:900}
+.rc-x{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 14px;font-weight:700}
+.rc-flow{display:flex;list-style:none;margin:10px 0 12px;padding:0;gap:4px}
+.rc-flow li{flex:1;display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:800;color:var(--sub);background:var(--bg);border-radius:10px;padding:7px 10px}
+.rc-flow li i{font-style:normal;width:20px;height:20px;border-radius:50%;background:var(--line);color:var(--panel);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem}
+.rc-flow li.on{color:var(--ink)}.rc-flow li.on i{background:var(--ink)}
+.rc-setup{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:900px){.rc-setup{grid-template-columns:1fr 1fr}}
+.rc-s,.rc-result{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--panel)}
+.rc-result{margin-top:10px}
+.rc-s h5,.rc-result h5{margin:0 0 8px;font-size:.98rem;font-weight:900;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.rc-s h5 i,.rc-result h5 i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--panel);display:inline-flex;align-items:center;justify-content:center;font-size:.78rem}
+.rc-s h5 small,.rc-result h5 small{font-size:.75rem;font-weight:600;color:var(--sub)}
+.rc-lb{display:block;font-size:.8rem;font-weight:800;margin:10px 0 4px}
+.rc-lb small{font-weight:600;color:var(--sub)}
+.rc-s textarea,.rc-s input,.rc-s select{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:.88rem;background:var(--panel)}
+.rc-s textarea{resize:vertical;line-height:1.45}
+.rc-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rc-srcline{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:4px}
+.rc-srcline span{font-size:.8rem;font-weight:800}.rc-srcline b{font-size:1rem}.rc-srcline small{font-size:.75rem;color:var(--sub)}
+.rc-pick .rl-grp{margin-top:4px}.rc-pick .rl-grp em{width:auto;margin-right:4px}
+.rc-seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rc-seg button{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:8px 10px;text-align:left;color:var(--ink)}
+.rc-seg button b{display:block;font-size:.88rem}.rc-seg button small{display:block;font-size:.72rem;color:var(--sub)}
+.rc-seg button.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:var(--bg)}
+.rc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;align-items:center}
+.rc-go{min-width:140px;font-size:1rem}
+.rc-busy{display:flex;align-items:center;gap:8px;margin:10px 0 0}
+.rc-spin{width:14px;height:14px;border-radius:50%;border:2px solid #9cc0f5;border-top-color:#2f6fe4;animation:rcspin .8s linear infinite;display:inline-block}
+@keyframes rcspin{to{transform:rotate(360deg)}}
+.rc-refs{margin:0}
+.rc-refadd{padding:5px 10px}
+.rc-f.ex{background:#eef5ff}.rc-f.ex i{color:#2f6fe4}
+.rc-ck label{display:flex;flex-wrap:wrap;gap:4px}.rc-okt{color:#127a45}
+.rc-wait{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:360px;max-width:100%;height:420px;border:2px dashed var(--line);border-radius:16px;text-align:center;padding:16px;box-sizing:border-box}
+.rc-wait b{font-size:.95rem}.rc-wait span{font-size:.8rem;color:var(--sub)}
+.rc-grid{gap:12px}
+.rc-col h4{position:sticky;top:0;background:var(--panel);padding:2px 0 6px;z-index:1}
+@media(max-width:600px){.rc-row2,.rc-seg{grid-template-columns:1fr}.rc-flow li{font-size:.75rem;padding:6px}.rc-cardwrap .chc-reel{zoom:.86}}
+.rl-intro .desc{margin-bottom:0}
+@media(max-width:1000px){.rc-grid{display:flex!important;flex-direction:column}.rc-col.mid{order:-1}.rc-col:not(.mid){max-height:46vh}}
+.rc-cardwrap{width:100%}.rc-wait{width:100%!important;max-width:360px}@media(max-width:600px){.rc-wait{height:240px}}
 </style>
 </head>
 <body>
@@ -1771,7 +1847,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.16</span>
+    <span class="ver">v9.17</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2370,15 +2446,11 @@ function buildBrief(root) {
         '카드 이미지는 <b>채널 브리핑</b>에서 같은 범위·평형으로 만들 수 있습니다(v8.0부터 한곳에서만).</p>' +
       '<div class="seg" id="bf-scope"></div>' +
       '<div class="seg" id="bf-scope2" style="margin-top:6px;display:none"></div>' +
+      '<nav class="bfjump" id="bf-jump">' + [["bf-hero", "요약"], ["bf-issue", "이슈"], ["bf-hot", "거래"], ["bf-price", "값"], ["bf-high", "신고가"], ["bf-top", "최고가·인기"], ["bf-lead", "대장"], ["bf-pick", "후보"], ["bf-macro", "금리"], ["bf-make", "카드 만들기"]].map(function (x) { return '<a href="#" data-jump2="' + x[0] + '"' + (x[0] === "bf-make" ? ' class="mk"' : "") + ">" + x[1] + "</a>"; }).join("") + '</nav>' +
       '<div class="bfhero" id="bf-hero"></div>' +
       '<div class="status" id="bf-kpi" style="margin-top:12px"></div>' +
       '<p class="hint" id="bf-prog"></p>' +
-      '<div class="bfmk"><b>카드로 만들기</b><span class="hint">고른 섹션은 데이터가 많아도 전부 여러 장으로 나옵니다 · 위에서 고른 범위·각 섹션의 평형·기준을 그대로 씁니다</span>' +
-        '<div class="bfsel" id="bf-csel">' + BF_SECS.map(function (x) { return '<button type="button" data-sec="' + x[0] + '"' + (BF_DEF.indexOf(x[0]) >= 0 ? ' class="on"' : "") + ">" + x[1] + '<i class="bfcnt" data-cnt="' + x[0] + '"></i></button>'; }).join("") + "</div>" +
-        '<div class="chbtns"><button type="button" class="btn sm" id="bf-mkcards">카드 만들기</button><button type="button" class="btn sm ghost" id="bf-selall">전체 선택/해제</button><button type="button" class="btn sm ghost" id="bf-zip" style="display:none">카드 전부 ZIP 저장</button><span class="hint" id="bf-mknote"></span></div></div>' +
-      '<div class="chcards strip" id="bf-live" style="display:none;margin-top:12px"></div>' +
-      '<div id="bf-livetext" style="display:none;margin-top:10px"><div class="seg" id="bf-tmode"><button type="button" data-t="insta" class="on">인스타 글</button><button type="button" data-t="threads">스레드 글</button><button type="button" data-t="reels">릴스 대본</button></div>' +
-        '<textarea class="chpost" id="bf-text" rows="12" spellcheck="false" style="margin-top:8px"></textarea><div class="chbtns"><button type="button" class="btn sm" id="bf-copy">이 글 복사</button><span class="hint" id="bf-tlen"></span></div></div></div>' +
+      '</div>' +
     '<div class="card" id="bf-issue"><h2>이번 주 이슈</h2>' +
       '<p class="desc">직접 적어 둔 메모(brief_notes.json)와 구글 뉴스 검색 결과의 기사 제목입니다. 기사 내용은 확인하지 않았습니다.</p>' +
       '<div id="bf-notes"><p class="hint">메모를 여는 중…</p></div>' +
@@ -2418,7 +2490,15 @@ function buildBrief(root) {
     '<div class="card"><h2>금리·정책</h2>' +
       '<p class="desc">한국은행 기준금리·주담대 금리·국고채, 최신 부동산 대책, 이 범위를 지나는 다음 개통 노선, 정책대출 금리를 한 줄씩 요약합니다. ' +
         '금리는 매일 새벽 자동 수집(ECOS), 대책·교통·대출은 GitHub 의 data/manual 파일 + 자동 점검(확인 필요)입니다. 카드 8장은 채널 브리핑 → 금리·정책에 있습니다.</p>' +
-      '<div id="bf-macro"><p class="hint">불러오는 중…</p></div></div>';
+      '<div id="bf-macro"><p class="hint">불러오는 중…</p></div></div>' +
+    '<div class="card mk-card" id="bf-make"><h2><i class="mk-ico">✦</i>이 화면으로 카드 만들기</h2><p class="desc">위에서 고른 범위로 만듭니다. 게시판에는 상세 카드, 릴스에는 대표 카드 한 장.</p>' +
+      '<div class="bfmk mk-blk"><div class="mk-hd"><b>게시판용 상세 카드</b><span>고른 섹션을 데이터 전부 여러 장(4:5)으로 · 위 범위·평형 기준</span></div>' +
+        '<div class="bfsel" id="bf-csel">' + BF_SECS.map(function (x) { return '<button type="button" data-sec="' + x[0] + '"' + (BF_DEF.indexOf(x[0]) >= 0 ? ' class="on"' : "") + ">" + x[1] + '<i class="bfcnt" data-cnt="' + x[0] + '"></i></button>'; }).join("") + "</div>" +
+        '<div class="chbtns"><button type="button" class="btn sm" id="bf-mkcards">카드 만들기</button><button type="button" class="btn sm ghost" id="bf-selall">전체 선택/해제</button><button type="button" class="btn sm ghost" id="bf-zip" style="display:none">카드 전부 ZIP 저장</button><span class="hint" id="bf-mknote"></span></div></div>' +
+      '<div class="chcards strip" id="bf-live" style="display:none;margin-top:12px"></div>' +
+      '<div id="bf-livetext" style="display:none;margin-top:10px"><div class="seg" id="bf-tmode"><button type="button" data-t="insta" class="on">인스타 글</button><button type="button" data-t="threads">스레드 글</button><button type="button" data-t="reels">릴스 대본</button></div>' +
+        '<textarea class="chpost" id="bf-text" rows="12" spellcheck="false" style="margin-top:8px"></textarea><div class="chbtns"><button type="button" class="btn sm" id="bf-copy">이 글 복사</button><span class="hint" id="bf-tlen"></span></div></div>' +
+      '<div id="bf-rcslot"></div></div>';
 }
 /* 범위 — 큰 묶음(위 줄) + 세부(아래 줄). 코드 앞 두 자리와 시·군·구 이름으로 가른다.
    서울 4권역은 한강·도심 기준의 관행적 묶음이고, 경기 북부는 한강 이북 11개 시·군이다. */
@@ -2538,6 +2618,11 @@ function renderBrief() {
       setTimeout(function () { renderBriefLiveCards(); el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 40);
     });
     if (typeof rcBriefBar === "function") rcBriefBar();
+    var bfj = document.getElementById("bf-jump"); if (bfj && !bfj._on) { bfj._on = 1; bfj.addEventListener("click", function (ev) {
+      var a2 = ev.target.closest("[data-jump2]"); if (!a2) return; ev.preventDefault();
+      var el = document.getElementById(a2.dataset.jump2); if (!el) return; var card = el.closest(".card") || el;
+      window.scrollTo({ top: card.getBoundingClientRect().top + window.pageYOffset - 70, behavior: "smooth" });
+    }); }
     document.getElementById("bf-csel").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-sec]"); if (b) b.classList.toggle("on"); });
     document.getElementById("bf-selall").addEventListener("click", function () { var bs = document.querySelectorAll("#bf-csel button"), any = Array.prototype.some.call(bs, function (b) { return !b.classList.contains("on"); }); Array.prototype.forEach.call(bs, function (b) { b.classList.toggle("on", any); }); });
     document.getElementById("bf-tmode").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-t]"); if (!b) return; BRIEF.tmode = b.dataset.t; Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); }); bfShowText(); });
@@ -3189,7 +3274,10 @@ function buildChannel(root) {
       '<div class="chbtns" style="margin:8px 0 0"><button type="button" class="btn sm" id="ch-copy">이 글 복사</button>' +
         '<button type="button" class="btn sm ghost" id="ch-tags">해시태그만</button>' +
         '<button type="button" class="btn sm ghost" id="ch-posted">올림 표시</button>' +
-        '<span class="hint" id="ch-tlen"></span><span class="hint" id="ch-copied"></span></div></div>';
+        '<span class="hint" id="ch-tlen"></span><span class="hint" id="ch-copied"></span></div></div>' +
+    '<div class="card chstep mk-card" id="ch-step3"><h2><i class="chstepno">3</i>릴스 대표 카드</h2><p class="desc">올린 상세 카드로 사람들을 데려올 9:16 한 장. 만들기 창에서 재료 → 요청 → 결과·검증 순서로 진행합니다.</p>' +
+      '<div id="ch-rcslot"></div>' +
+      '<details class="mk-blk ai-wrap" id="ch-aiwrap" style="display:none"><summary><b>AI 배경 이미지</b><span>확산 탭 인포그래픽의 배경·지도 장식·아파트 그림 (선택)</span></summary><div id="ch-aislot"></div></details></div>';
   root.querySelector("#ch-ops").addEventListener("click", function (ev) {
     var b = ev.target.closest("button[data-ch]"); if (!b) return;
     CH.tab = b.dataset.ch; CH.tabUser = true;
@@ -4080,7 +4168,9 @@ function paintChannel() {
   if (typeof ifFitLater === "function") ifFitLater(document.getElementById("ch-cards"));
   if (typeof aiAfterPaint === "function") {
     var cardsEl = document.getElementById("ch-cards"), stu = document.getElementById("ai-studio");
-    if (!stu && cardsEl) { stu = document.createElement("div"); stu.id = "ai-studio"; stu.className = "ai-studio"; cardsEl.insertAdjacentElement("afterend", stu); }
+    var aislot = document.getElementById("ch-aislot"), aiwrap = document.getElementById("ch-aiwrap");
+    if (!stu && aislot) { stu = document.createElement("div"); stu.id = "ai-studio"; stu.className = "ai-studio"; aislot.appendChild(stu); }
+    if (aiwrap) aiwrap.style.display = (CH.tab === "ripple" || CH.tab === "ripple2") ? "" : "none";
     if (typeof rcChannelBar === "function") rcChannelBar();
     if (typeof AI !== "undefined" && !AI.loaded) aiLoad(function () { if (CH.tab === "ripple" || CH.tab === "ripple2") paintChannel(); else aiAfterPaint(CH.tab); });
     else aiAfterPaint(CH.tab);
@@ -6336,7 +6426,7 @@ function rcPost(url, body) {
   return fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
     .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.ok) throw new Error((j && j.error) || ("응답 " + r.status)); return j; }, function () { throw new Error("응답 " + r.status + (r.status === 504 ? " (시간 초과 — 다시 시도)" : "")); }); });
 }
-function rcClean(h) { var d = document.createElement("div"); d.innerHTML = String(h || "").replace(/<br\s*\/?>/gi, " "); return (d.textContent || "").replace(/\s+/g, " ").trim(); }
+function rcClean(h) { var d = document.createElement("textarea"); d.innerHTML = String(h || "").replace(/<\/(b|small|span|em|i|div|p|u|strong)>/gi, "</$1> ").replace(/<[^>]+>/g, " "); return (d.value || "").replace(/\s+([·,)])/g, "$1").replace(/\s+/g, " ").trim(); }
 /* ── 1) 원본 데이터 모으기: 카드 객체(q·a·body·date·src) → 한 줄짜리 사실 목록 ── */
 function rcFactsFromCards(cards, max) {
   var F = [], seen = {}, n = 0;
@@ -6414,7 +6504,10 @@ function rcImgPrompt(P) {
   return L.join("\n");
 }
 /* ── 4) 스튜디오 화면 — 왼쪽 원본 데이터 · 가운데 카드 · 오른쪽 검증 ── */
-/* 참고 이미지 — 긴 변 1024px JPEG 로 줄여 보낸다(최대 3장) */
+/* ══ v9.17 카드 스튜디오 — 대표 카드(지금 시장·채널 브리핑)와 릴스 카드 페이지가 같은 화면을 쓴다 ══
+   ① 재료: 원본 데이터(자동/고르기) + 참고 내용(직접 입력) + 참고 이미지
+   ② 요청: 주제·목적·의견·AI 사용 범위 → [만들기]
+   ③ 결과·검증: 원본 데이터 | 카드 | 숫자 검증·고치기 */
 function rcShrink(file) {
   return new Promise(function (res, rej) {
     var fr = new FileReader(); fr.onload = function () { var im = new Image(); im.onload = function () { var k = Math.min(1, 1024 / Math.max(im.width, im.height)), cv = document.createElement("canvas"); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k); var g = cv.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(im, 0, 0, cv.width, cv.height); res(cv.toDataURL("image/jpeg", 0.85)); }; im.onerror = rej; im.src = fr.result; }; fr.onerror = rej; fr.readAsDataURL(file);
@@ -6425,63 +6518,88 @@ function rcAddRefs(list, files, done) {
   if (!fs.length) { done(); return; }
   Promise.all(fs.map(rcShrink)).then(function (us) { us.forEach(function (u) { list.push(u); }); done(); }, done);
 }
-function rcRefsHtml(list, scope) {
-  return '<div class="rc-refs" data-refscope="' + scope + '"><label class="rc-refadd">＋ 참고 이미지<input type="file" accept="image/*" multiple data-refin="' + scope + '"></label>' +
-    list.map(function (u, i) { return '<span class="rc-ref"><img src="' + u + '"><button type="button" data-refdel="' + scope + ':' + i + '">×</button></span>'; }).join("") +
-    '<small>' + (list.length ? list.length + "/3장 · 모양·구성·분위기만 참고(이미지 속 숫자·글은 안 씀)" : "선택 · 붙여넣기(Ctrl+V)도 됩니다 · 최대 3장") + "</small></div>";
+function rcRefsHtml(list) {
+  return '<div class="rc-refs"><label class="rc-refadd">＋ 이미지 추가<input type="file" accept="image/*" multiple data-refin="rc"></label>' +
+    list.map(function (u, i) { return '<span class="rc-ref"><img src="' + u + '"><button type="button" data-refdel="rc:' + i + '">×</button></span>'; }).join("") +
+    '<small>' + (list.length ? list.length + "/3장" : "최대 3장 · 붙여넣기(Ctrl+V) 가능") + "</small></div>";
 }
 function rcModePref() { try { return localStorage.getItem("trackapt_rc_mode") || "exact"; } catch (e) { return "exact"; } }
-function rcModeSel(id) { var m = rcModePref(); return '<select id="' + id + '" class="rc-msel"><option value="exact"' + (m === "exact" ? " selected" : "") + '>배경만 AI (글·숫자는 앱 — 정확)</option><option value="ai"' + (m === "ai" ? " selected" : "") + '>전부 AI (글·문구까지 AI가 그림)</option></select>'; }
-function rcModeGet(id) { var e = document.getElementById(id), v = e ? e.value : rcModePref(); try { localStorage.setItem("trackapt_rc_mode", v); } catch (x) {} return v; }
+var RC_PURPOSE = ["릴스 한 장으로 핵심 + 게시판 유입", "저장하고 싶은 꿀팁 정리", "체크리스트(해야 할 일)", "비교표(A vs B)"];
+/* 원본 데이터 + 참고 내용 = 이번에 쓸 근거 전체 */
+function rcAllFacts(c) {
+  var base = (c.src.facts || []).slice(), extra = c.extra ? rcFactsFromText(c.extra).map(function (f) { return { id: "", text: "[참고 내용] " + f.text }; }) : [];
+  return base.concat(extra).slice(0, 80).map(function (f, i) { return { id: "F" + (i + 1), text: f.text }; });
+}
 function rcOpen(src) {
-  /* src = { topic, facts, basis, purpose, key, host? } */
-  RC.cur = { src: src, plan: null, bg: null, img: null, read: null, mode: src.mode || rcModePref(), busy: "", err: "" };
+  /* src = { topic, facts, basis, purpose, host?, picker?, note?, refs?, mode? } */
   var host = src.host;
-  if (!host) { host = document.createElement("div"); host.className = "rc-modal"; document.body.appendChild(host); host.addEventListener("click", function (ev) { if (ev.target === host) host.remove(); }); }
-  if (src.note) RC.cur.note = src.note;
-  RC.cur.refs = (src.refs || []).slice();
-  RC.host = host; rcPaint();
-  /* v9.15: 창만 열고 기다린다 — 의견을 적고 [만들기]를 눌러야 OpenAI 호출 */
-  if (src.go) rcMake(); else setTimeout(function () { var n = host.querySelector("#rc-note"); if (n) n.focus(); }, 50);
+  if (!host) { host = document.createElement("div"); host.className = "rc-modal"; document.body.appendChild(host); host.addEventListener("click", function (ev) { if (ev.target === host) { host.remove(); RC.host = null; } }); }
+  RC.cur = { src: src, plan: null, bg: null, img: null, read: null, mode: src.mode || rcModePref(), busy: "", err: "", note: src.note || "", extra: src.extra || "", refs: (src.refs || []).slice(), topic: src.topic || "", purpose: src.purpose && RC_PURPOSE.indexOf(src.purpose) >= 0 ? src.purpose : RC_PURPOSE[0], purposeHint: src.purpose || "" };
+  host._rc = RC.cur; RC.host = host; rcPaint();
+  if (src.go) rcMake();
+}
+function rcPickerHtml() {
+  var sel = (RC.cur && RC.cur.picks) || [];
+  var chip = function (key, nm) { return '<label class="rl-chip"><input type="checkbox" data-src="' + key + '"' + (sel.indexOf(key) >= 0 ? " checked" : "") + "><span>" + nm + "</span></label>"; };
+  return '<div class="rc-pick"><div class="rl-grp"><em>지금 시장</em>' + (typeof BF_SECS !== "undefined" ? BF_SECS : []).map(function (x) { return chip("brief:" + x[0], x[1]); }).join("") + '</div>' +
+    '<div class="rl-grp"><em>채널 브리핑</em>' + (typeof CH_TABS !== "undefined" ? CH_TABS : []).filter(function (x) { return !RC_CH_SKIP[x[0]]; }).map(function (x) { return chip("ch:" + x[0], CH_TAB_SHORT[x[0]] || x[1]); }).join("") + "</div></div>";
 }
 function rcPaint() {
   var c = RC.cur, h = RC.host; if (!c || !h) return;
-  var set = rcFactNums(c.src.facts), P = c.plan, used = {};
+  var F = rcAllFacts(c), set = rcFactNums(F), P = c.plan, used = {};
+  c.facts = F;
   if (P) (P.points || []).forEach(function (p) { used[p.fact] = 1; });
-  var factsHtml = c.src.facts.map(function (f) { return '<div class="rc-f' + (used[f.id] ? " on" : "") + '"><i>' + f.id + "</i><span>" + escHtml(f.text) + "</span></div>"; }).join("");
+  var factsHtml = F.length ? F.map(function (f) { return '<div class="rc-f' + (used[f.id] ? " on" : "") + (/^\[참고 내용\]/.test(f.text) ? " ex" : "") + '"><i>' + f.id + "</i><span>" + escHtml(f.text) + "</span></div>"; }).join("") : '<p class="hint">아직 재료가 없습니다 — ①에서 데이터를 고르거나 참고 내용을 넣으세요.</p>';
   var card = "", checks = "", allBad = 0;
   if (P) {
     var fields = [["kicker", "말머리"], ["hook", "제목"], ["sub", "부제"], ["cta", "유도 문구"]];
-    checks = fields.map(function (f) { var bad = rcCheckText(P[f[0]], set); allBad += bad.length; return '<div class="rc-ck' + (bad.length ? " bad" : "") + '"><label>' + f[1] + '</label><input data-rcf="' + f[0] + '" value="' + escHtml(P[f[0]]) + '"><small>' + (bad.length ? "원문에 없는 숫자: " + bad.join(", ") : "숫자 확인됨") + "</small></div>"; }).join("") +
+    checks = fields.map(function (f) { var bad = rcCheckText(P[f[0]], set); allBad += bad.length; return '<div class="rc-ck' + (bad.length ? " bad" : "") + '"><label>' + f[1] + (bad.length ? ' <b class="rc-badt">· 원문에 없는 숫자 ' + bad.join(", ") + "</b>" : "") + '</label><input data-rcf="' + f[0] + '" value="' + escHtml(P[f[0]]) + '"></div>'; }).join("") +
       (P.points || []).map(function (p, i) {
-        var fx = c.src.facts.filter(function (f) { return f.id === p.fact; })[0], own = fx ? rcFactNums([fx]) : {};
-        /* 값(value)의 숫자는 '근거로 댄 그 줄'에 있어야 한다 — 다른 줄 숫자를 끌어와도 빨강 */
+        var fx = F.filter(function (f) { return f.id === p.fact; })[0], own = fx ? rcFactNums([fx]) : {};
         var bad = rcCheckText(p.value, own).concat(rcCheckText(p.note + " " + p.label, set)); if (!fx) bad.push("근거 없음"); allBad += bad.length;
-        return '<div class="rc-ck pt' + (bad.length ? " bad" : "") + '"><label>' + (i + 1) + ". 항목 · 근거 " + escHtml(p.fact) + '</label><div class="rc-3"><input data-rcp="' + i + ':label" value="' + escHtml(p.label) + '"><input data-rcp="' + i + ':value" value="' + escHtml(p.value) + '"><input data-rcp="' + i + ':note" value="' + escHtml(p.note) + '"></div>' +
-          '<small class="rc-src">원본: ' + (fx ? rcMark(fx.text, set) : '<b class="rc-badt">근거 id 없음</b>') + "</small>" + (bad.length ? '<small class="rc-badt">근거 줄과 다른 숫자: ' + bad.join(", ") + "</small>" : '<small>값이 근거 줄과 일치</small>') + "</div>";
+        return '<div class="rc-ck pt' + (bad.length ? " bad" : "") + '"><label>항목 ' + (i + 1) + " · 근거 " + escHtml(p.fact) + (bad.length ? ' <b class="rc-badt">· 다른 숫자 ' + bad.join(", ") + "</b>" : ' <b class="rc-okt">· 일치</b>') + '</label><div class="rc-3"><input data-rcp="' + i + ':label" value="' + escHtml(p.label) + '" title="항목"><input data-rcp="' + i + ':value" value="' + escHtml(p.value) + '" title="값"><input data-rcp="' + i + ':note" value="' + escHtml(p.note) + '" title="보조 설명"></div>' +
+          '<small class="rc-src">' + (fx ? rcMark(fx.text, set) : '<b class="rc-badt">근거 id 없음</b>') + "</small></div>";
       }).join("");
     if (c.mode === "ai" && c.img) {
       card = '<img class="rc-aiimg" src="' + c.img + '">';
       if (c.read) {
         var readTxt = rcNorm(c.read.join(" ")), exp = [], miss = [];
         [P.kicker, P.hook, P.sub, P.cta].concat((P.points || []).map(function (p) { return p.value + " " + p.note; })).forEach(function (s) { rcNumTokens(s).forEach(function (x) { exp.push(x); if (readTxt.indexOf(x.replace(/^-/, "")) < 0) miss.push(x); }); });
-        checks = '<div class="rc-read' + (miss.length ? " bad" : "") + '"><b>이미지에서 읽은 글자로 대조</b><p>' + (miss.length ? "이미지에 없거나 다르게 찍힌 숫자: <u class=\"rc-bad\">" + miss.join(", ") + "</u>" : "기대한 숫자 " + exp.length + "개가 모두 이미지에 있습니다") + '</p><details><summary>읽은 글자 전체</summary><pre>' + escHtml(c.read.join("\n")) + "</pre></details></div>" + checks;
+        checks = '<div class="rc-read' + (miss.length ? " bad" : "") + '"><b>이미지 글자 대조</b><p>' + (miss.length ? "이미지에 없거나 다르게 찍힌 숫자: <u class=\"rc-bad\">" + miss.join(", ") + "</u>" : "기대한 숫자 " + exp.length + "개 모두 이미지에 있음") + '</p><details><summary>읽은 글자 전체</summary><pre>' + escHtml(c.read.join("\n")) + "</pre></details></div>" + checks;
         allBad += miss.length;
       }
     } else card = rcCardHtml(P, c.bg, c.src.basis);
   }
-  h.innerHTML = '<div class="rc-box"><div class="rc-hd"><b>대표 카드 · ' + escHtml(c.src.topic) + '</b><div class="rc-mode"><span>AI 사용 범위</span><button data-rcmode="exact" class="' + (c.mode === "exact" ? "on" : "") + '">배경만 AI <small>글·숫자는 앱(정확)</small></button><button data-rcmode="ai" class="' + (c.mode === "ai" ? "on" : "") + '">전부 AI <small>글·문구까지 AI가 그림</small></button></div>' + (c.src.host ? "" : '<button data-rc="close">닫기</button>') + "</div>" +
-    '<div class="rc-bar"><input id="rc-note" placeholder="원하는 카드 형태·의견 (비우면 기본으로) — 예: 질문형 제목, 대출 받는 사람 관점, 순위 대신 체크리스트" value="' + escHtml(c.note || "") + '"><button data-rc="make">' + (P ? "다시 만들기" : "만들기") + "</button>" + (P ? '<button data-rc="bg">' + (c.mode === "ai" ? (c.img ? "이미지 다시" : "이 범위로 그리기") : (c.bg ? "배경 다시" : "배경 그리기")) + '</button><button data-rc="save">카드 저장(1080×1920)</button>' : "") + "</div>" +
-    rcRefsHtml(c.refs || [], "rc") +
-    (c.busy ? '<p class="rc-busy">' + escHtml(c.busy) + "</p>" : "") + (c.err ? '<p class="rc-err">' + escHtml(c.err) + "</p>" : "") +
-    (P ? '<div class="rc-sum ' + (allBad ? "bad" : "ok") + '">' + (allBad ? "확인 필요: 원문과 다른 숫자 " + allBad + "곳 (빨강)" : "AI가 쓴 숫자는 모두 원본 데이터에 있습니다 — 그래도 최종 확인은 직접 해 주세요") + "</div>" : "") +
-    '<div class="rc-grid"><div class="rc-col"><h4>원본 데이터 <small>' + c.src.facts.length + "개 · 금색 = 카드에 쓰인 근거</small></h4>" + factsHtml + '</div><div class="rc-col mid"><h4>카드</h4><div class="rc-cardwrap">' + (card || '<p class="hint rc-wait">위 칸에 원하는 카드 형태·의견을 적고 <b>[만들기]</b>를 누르세요.<br>비워 두고 누르면 기본 구성으로 만듭니다.<br>왼쪽은 이 카드에 쓸 원본 데이터입니다.</p>') + '</div></div><div class="rc-col"><h4>검증 · 고치기 <small>칸을 고치면 바로 다시 그림</small></h4>' + (checks || "") + "</div></div></div>";
+  var stage = c.busy ? 3 : P ? 3 : 2;
+  var seg = function (v, t, s2) { return '<button type="button" data-rcmode="' + v + '" class="' + (c.mode === v ? "on" : "") + '"><b>' + t + "</b><small>" + s2 + "</small></button>"; };
+  h.innerHTML = '<div class="rc-box">' +
+    '<div class="rc-hd"><div><small>' + (c.src.picker ? "릴스 카드 만들기" : "릴스 대표 카드") + "</small><b>" + escHtml(c.topic || "새 카드") + "</b></div>" + (c.src.host ? "" : '<button type="button" class="rc-x" data-rc="close">닫기</button>') + "</div>" +
+    '<ol class="rc-flow"><li class="' + (stage >= 1 ? "on" : "") + '"><i>1</i>재료</li><li class="' + (stage >= 2 ? "on" : "") + '"><i>2</i>요청</li><li class="' + (stage >= 3 ? "on" : "") + '"><i>3</i>결과·검증</li></ol>' +
+    '<div class="rc-setup"><section class="rc-s"><h5><i>1</i>재료 <small>카드에 쓸 사실 — 숫자는 여기 있는 것만 씁니다</small></h5>' +
+      (c.src.picker ? '<label class="rc-lb">앱 데이터 고르기 <small>여러 개 가능 · 지금 시장은 그 화면에서 고른 범위 기준</small></label>' + rcPickerHtml() : "") +
+      '<div class="rc-srcline"><span>원본 데이터</span><b>' + (c.src.facts || []).length + '줄</b><small>' + (c.picking ? "불러오는 중…" : escHtml(c.src.basis || "")) + "</small></div>" +
+      '<label class="rc-lb" for="rc-extra">참고 내용 <small>선택 · 원본 데이터 외에 넣을 사실·문장 (인스타 글, 정책 내용, 유튜브·책 메모 등)</small></label>' +
+      '<textarea id="rc-extra" rows="' + (c.src.picker ? 5 : 3) + '" placeholder="예) 디딤돌대출 금리 연 2.85%~4.15% / 대출한도 최대 2.5억원 — 여기 적은 숫자도 카드에 쓸 수 있습니다">' + escHtml(c.extra || "") + "</textarea>" +
+      '<label class="rc-lb">참고 이미지 <small>선택 · 모양·구성·분위기만 참고(이미지 속 숫자·글은 안 씀)</small></label>' + rcRefsHtml(c.refs || []) + "</section>" +
+    '<section class="rc-s"><h5><i>2</i>요청 <small>비워 두면 기본 구성으로 만듭니다</small></h5>' +
+      '<div class="rc-row2"><div><label class="rc-lb" for="rc-topic">주제(말머리)</label><input id="rc-topic" value="' + escHtml(c.topic || "") + '" placeholder="예: 서울 대장아파트"></div><div><label class="rc-lb" for="rc-purpose">목적</label><select id="rc-purpose">' + RC_PURPOSE.map(function (x) { return "<option" + (x === c.purpose ? " selected" : "") + ">" + x + "</option>"; }).join("") + "</select></div></div>" +
+      '<label class="rc-lb" for="rc-note">원하는 카드 형태·의견</label><textarea id="rc-note" rows="2" placeholder="예) 질문형 제목, 대출 받는 사람 관점, 순위 대신 체크리스트 (Ctrl+Enter = 만들기)">' + escHtml(c.note || "") + "</textarea>" +
+      '<label class="rc-lb">AI 사용 범위</label><div class="rc-seg">' + seg("exact", "배경만 AI", "글·숫자는 앱이 그대로(정확)") + seg("ai", "전부 AI", "글·문구까지 AI가 그림") + "</div>" +
+      '<div class="rc-actions"><button type="button" class="btn rc-go" data-rc="make"' + (c.busy ? " disabled" : "") + ">" + (P ? "다시 만들기" : "만들기") + "</button>" +
+        (P ? '<button type="button" class="btn ghost sm" data-rc="bg"' + (c.busy ? " disabled" : "") + ">" + (c.mode === "ai" ? (c.img ? "이미지만 다시" : "이 범위로 그리기") : (c.bg ? "배경만 다시" : "배경 그리기")) + '</button><button type="button" class="btn ghost sm" data-rc="save">저장 1080×1920</button>' : "") + "</div>" +
+      (c.busy ? '<p class="rc-busy"><i class="rc-spin"></i>' + escHtml(c.busy) + "</p>" : "") + (c.err ? '<p class="rc-err">' + escHtml(c.err) + "</p>" : "") + "</section></div>" +
+    '<section class="rc-result"><h5><i>3</i>결과 · 검증 <small>왼쪽 재료와 가운데 카드, 오른쪽 숫자 검사를 함께 보세요</small></h5>' +
+      (P ? '<div class="rc-sum ' + (allBad ? "bad" : "ok") + '">' + (allBad ? "확인 필요 — 원문과 다른 숫자 " + allBad + "곳 (빨강)" : "AI가 쓴 숫자는 모두 재료에 있습니다 · 문맥(순위·대상)은 직접 확인해 주세요") + "</div>" : "") +
+      '<div class="rc-grid"><div class="rc-col"><h4>재료 <small>' + F.length + "줄 · 금색 = 카드에 쓰임 · 파랑 = 참고 내용</small></h4>" + factsHtml + '</div><div class="rc-col mid"><h4>카드</h4><div class="rc-cardwrap">' + (card || '<div class="rc-wait"><b>②에서 [만들기]를 누르면 여기에 카드가 나옵니다</b><span>의견을 비워 두면 기본 구성으로 만듭니다</span></div>') + '</div></div><div class="rc-col"><h4>검증 · 고치기 <small>칸을 고치면 카드가 바로 바뀝니다</small></h4>' + (checks || '<p class="hint">만든 뒤 항목마다 근거 원문과 숫자 일치를 보여 줍니다.</p>') + "</div></div></section></div>";
   var cw = h.querySelector(".rc-cardwrap .chc-reel"); if (cw) rcFit(cw);
 }
 function rcMake() {
-  var c = RC.cur; c.busy = "OpenAI가 한 장으로 설계하는 중…"; c.err = ""; rcPaint();
-  rcPost("/api/ai", { mode: "plan", facts: c.src.facts, topic: c.src.topic, purpose: c.src.purpose || "릴스 한 장으로 핵심을 보여 주고 게시판 상세 카드로 유입", note: c.note || "", refs: c.refs || [] }).then(function (j) {
+  var c = RC.cur, F = rcAllFacts(c);
+  if (!F.length) { c.err = "재료가 없습니다 — 데이터를 고르거나 참고 내용을 넣어 주세요."; rcPaint(); return; }
+  c.facts = F; c.busy = "OpenAI가 한 장으로 설계하는 중…"; c.err = ""; rcPaint();
+  rcPost("/api/ai", { mode: "plan", facts: F, topic: c.topic, purpose: c.purpose + (c.purposeHint && c.purposeHint !== c.purpose ? " · " + c.purposeHint : ""), note: c.note || "", refs: c.refs || [] }).then(function (j) {
     c.plan = j.plan; c.model = j.model; c.busy = ""; rcPaint(); rcArt();
+    var r = RC.host && RC.host.querySelector(".rc-result"); if (r) r.scrollIntoView({ behavior: "smooth", block: "start" });
   }, function (e) { c.busy = ""; c.err = "설계 실패: " + (e.message || e); rcPaint(); });
 }
 function rcArt() {
@@ -6508,11 +6626,11 @@ function rcRefBody(body, refs, bgOnly) {
 }
 function rcStore() {
   var c = RC.cur; if (!c || !c.plan || typeof aiDb !== "function") return;
-  var k = "rc:" + (c.id || (c.id = Date.now())), v = { topic: c.src.topic, facts: c.src.facts, basis: c.src.basis, plan: c.plan, bg: c.bg, img: c.img, read: c.read, mode: c.mode, at: Date.now() };
+  var k = "rc:" + (c.id || (c.id = Date.now())), v = { topic: c.topic, facts: c.facts, extra: c.extra, note: c.note, basis: c.src.basis, plan: c.plan, bg: c.bg, img: c.img, read: c.read, mode: c.mode, at: Date.now() };
   aiDb(function (db) { if (!db) return; try { db.transaction("img", "readwrite").objectStore("img").put(v, k); } catch (e) {} });
 }
 function rcSave() {
-  var c = RC.cur, nm = "릴스_" + c.src.topic.replace(/[\\/:*?"<>|\s]+/g, "_");
+  var c = RC.cur, nm = "릴스_" + (c.topic || "카드").replace(/[\\/:*?"<>|\s]+/g, "_");
   function dl(u) { fetch(u).then(function (r) { return r.blob(); }).then(function (b) { var a = document.createElement("a"), href = URL.createObjectURL(b); a.download = nm + ".png"; a.href = href; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(href); }, 5000); }); }
   if (c.mode === "ai" && c.img) {
     var im = new Image(); im.onload = function () { var cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920; var g = cv.getContext("2d"); g.fillStyle = "#0a1430"; g.fillRect(0, 0, 1080, 1920); var s = Math.min(1080 / im.width, 1920 / im.height), w = im.width * s, h = im.height * s; g.drawImage(im, (1080 - w) / 2, (1920 - h) / 2, w, h); dl(cv.toDataURL("image/png")); }; im.src = c.img; return;
@@ -6522,49 +6640,65 @@ function rcSave() {
   var cl = card.cloneNode(true); host.appendChild(cl); document.body.appendChild(host);
   html2canvas(cl, { backgroundColor: "#0a1430", scale: 3, useCORS: true, width: 360, height: 640 }).then(function (cv) { host.remove(); dl(cv.toDataURL("image/png")); }, function () { host.remove(); });
 }
+
+/* ── 이벤트 ── */
 document.addEventListener("click", function (ev) {
   var t = ev.target; if (!t || !t.closest || !RC.cur || !RC.host || !RC.host.contains(t)) return;
-  var b = t.closest("[data-rc]"), m = t.closest("[data-rcmode]");
+  var b = t.closest("[data-rc]"), m = t.closest("[data-rcmode]"), d = t.closest("[data-refdel]");
   if (m) { RC.cur.mode = m.dataset.rcmode; try { localStorage.setItem("trackapt_rc_mode", RC.cur.mode); } catch (e) {} rcPaint(); return; }
+  if (d) { RC.cur.refs.splice(Number(d.dataset.refdel.split(":")[1]), 1); rcPaint(); return; }
   if (!b) return;
   var a = b.dataset.rc;
-  if (a === "close") { RC.host.remove(); RC.host = null; }
-  else if (a === "make") { var n = RC.host.querySelector("#rc-note"); RC.cur.note = n ? n.value : ""; rcMake(); }
+  if (a === "close") { RC.host.remove(); RC.host = null; rcRestoreReel(); }
+  else if (a === "make") rcMake();
   else if (a === "bg") rcArt();
   else if (a === "save") rcSave();
 });
-document.addEventListener("change", function (ev) {
-  var t = ev.target; if (!RC.cur || !RC.cur.plan || !RC.host || !RC.host.contains(t)) return;
-  if (t.dataset.rcf) { RC.cur.plan[t.dataset.rcf] = t.value; rcPaint(); rcStore(); }
-  else if (t.dataset.rcp) { var q = t.dataset.rcp.split(":"); RC.cur.plan.points[Number(q[0])][q[1]] = t.value; rcPaint(); rcStore(); }
+document.addEventListener("input", function (ev) {
+  var t = ev.target; if (!RC.cur || !RC.host || !RC.host.contains(t)) return;
+  if (t.id === "rc-extra") { RC.cur.extra = t.value; var n = RC.host.querySelector(".rc-col h4 small"); if (n) n.textContent = rcAllFacts(RC.cur).length + "줄 · [만들기] 때 반영"; }
+  else if (t.id === "rc-note") RC.cur.note = t.value;
+  else if (t.id === "rc-topic") { RC.cur.topic = t.value; var hb = RC.host.querySelector(".rc-hd b"); if (hb) hb.textContent = t.value || "새 카드"; }
 });
-/* ── 5) 입구: 지금 시장 · 채널 브리핑 ── */
-function rcFromBrief(sec, mode) {
+document.addEventListener("change", function (ev) {
+  var t = ev.target; if (!RC.cur || !RC.host || !RC.host.contains(t)) return;
+  if (t.id === "rc-purpose") RC.cur.purpose = t.value;
+  else if (t.dataset && t.dataset.refin) rcAddRefs(RC.cur.refs, t.files, rcPaint);
+  else if (t.dataset && t.dataset.src) rcPickRefresh();
+  else if (RC.cur.plan && t.dataset.rcf) { RC.cur.plan[t.dataset.rcf] = t.value; rcPaint(); rcStore(); }
+  else if (RC.cur.plan && t.dataset.rcp) { var q = t.dataset.rcp.split(":"); RC.cur.plan.points[Number(q[0])][q[1]] = t.value; rcPaint(); rcStore(); }
+});
+document.addEventListener("keydown", function (ev) { if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey) && RC.cur && RC.host && RC.host.contains(ev.target) && /rc-note|rc-extra|rc-topic/.test(ev.target.id)) { ev.preventDefault(); rcMake(); } });
+document.addEventListener("paste", function (ev) {
+  if (!RC.cur || !RC.host || !document.body.contains(RC.host) || !RC.host.offsetParent && !RC.host.classList.contains("rc-modal")) return;
+  var fs = Array.prototype.map.call((ev.clipboardData && ev.clipboardData.items) || [], function (i) { return i.kind === "file" ? i.getAsFile() : null; }).filter(Boolean);
+  if (!fs.length) return; ev.preventDefault(); rcAddRefs(RC.cur.refs, fs, rcPaint);
+});
+/* ── 입구: 지금 시장 · 채널 브리핑 (창으로 열림) ── */
+function rcFromBrief(sec) {
   var nm = (BF_SECS.filter(function (x) { return x[0] === sec; })[0] || [sec, sec])[1], L = BRIEF.last || {};
   var cards = rcBriefCards(sec); if (!cards.length) { alert("이 항목에 카드로 만들 자료가 없습니다."); return; }
-  rcOpen({ topic: (L.scopeNm || "") + " " + nm, facts: rcFactsFromCards(cards), basis: "국토부 실거래 · " + (cards[0].date || ""), purpose: "지금 시장 '" + nm + "' 상세 카드(게시판)로 유입", mode: mode });
+  rcOpen({ topic: ((L.scopeNm || "") + " " + nm).trim(), facts: rcFactsFromCards(cards), basis: "국토부 실거래 · " + rcClean(cards[0].date || ""), purpose: "지금 시장 '" + nm + "' 상세 카드(게시판)로 유입" });
 }
-function rcFromChannel(tab, mode) {
+function rcFromChannel(tab) {
   var cards = rcChannelCards(tab); if (!cards.length) { alert("이 코너에 카드로 만들 자료가 없습니다."); return; }
   var nm = typeof chTabName === "function" ? chTabName(tab) : tab;
-  rcOpen({ topic: nm, facts: rcFactsFromCards(cards), basis: cards[0].date ? "기준 " + rcClean(cards[0].date) : "", purpose: "채널 브리핑 '" + nm + "' 상세 카드(게시판)로 유입", mode: mode });
+  rcOpen({ topic: nm, facts: rcFactsFromCards(cards), basis: cards[0].date ? "기준 " + rcClean(cards[0].date) : "", purpose: "채널 브리핑 '" + nm + "' 상세 카드(게시판)로 유입" });
+}
+function rcEntryHtml(id, sel, label) {
+  return '<div class="mk-blk rc-entry" id="' + id + '"><div class="mk-hd"><b>릴스 대표 카드</b><span>항목 하나를 9:16 한 장으로 — 게시판 상세 카드로 유입</span></div><div class="mk-row">' + sel + '<button type="button" class="btn sm" data-rcgo="1">' + label + '</button></div><a class="mk-link" href="#reel">여러 항목을 묶거나 내 글로 만들려면 → 릴스 카드 화면</a></div>';
 }
 function rcBriefBar() {
-  var mk = document.querySelector(".bfmk"); if (!mk || document.getElementById("rc-bfbar")) return;
-  var d = document.createElement("div"); d.id = "rc-bfbar"; d.className = "rc-entry";
-  d.innerHTML = '<b>릴스 대표 카드</b><span class="hint">항목 하나를 한 장으로 정리 → 게시판으로 유입 · 데이터와 나란히 검증</span><div class="chbtns"><select id="rc-bfsec">' + BF_SECS.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + "</option>"; }).join("") + '</select>' + rcModeSel("rc-bfmode") + '<button type="button" class="btn sm" id="rc-bfgo">대표 카드 만들기</button><a class="hint" href="#reel">여러 항목을 묶거나 내 글을 더하려면 → 릴스 카드 페이지</a></div>';
-  mk.parentNode.insertBefore(d, mk.nextSibling);
-  d.querySelector("#rc-bfgo").addEventListener("click", function () { rcFromBrief(d.querySelector("#rc-bfsec").value, rcModeGet("rc-bfmode")); });
+  var slot = document.getElementById("bf-rcslot"); if (!slot || slot.firstChild) return;
+  slot.innerHTML = rcEntryHtml("rc-bfbar", '<select id="rc-bfsec">' + BF_SECS.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + "</option>"; }).join("") + "</select>", "대표 카드 만들기");
+  slot.querySelector("[data-rcgo]").addEventListener("click", function () { rcFromBrief(slot.querySelector("#rc-bfsec").value); });
 }
 function rcChannelBar() {
-  var cards = document.getElementById("ch-cards"); if (!cards) return;
-  var bar = document.getElementById("rc-chbar");
-  if (!bar) { bar = document.createElement("div"); bar.id = "rc-chbar"; bar.className = "rc-entry"; cards.parentNode.insertBefore(bar, cards); }
-  bar.innerHTML = '<b>릴스 대표 카드</b><span class="hint">이 코너를 한 장으로 정리해 게시판으로 유입</span><div class="chbtns">' + rcModeSel("rc-chmode") + '<button type="button" class="btn sm" id="rc-chgo">‘' + escHtml(typeof chTabName === "function" ? chTabName(CH.tab) : CH.tab) + "’ 대표 카드 만들기</button></div>";
-  bar.querySelector("#rc-chgo").addEventListener("click", function () { rcFromChannel(CH.tab, rcModeGet("rc-chmode")); });
+  var slot = document.getElementById("ch-rcslot"); if (!slot) return;
+  slot.innerHTML = rcEntryHtml("rc-chbar", '<span class="mk-tag">' + escHtml(typeof chTabName === "function" ? chTabName(CH.tab) : CH.tab) + "</span>", "이 코너로 대표 카드 만들기");
+  slot.querySelector("[data-rcgo]").addEventListener("click", function () { rcFromChannel(CH.tab); });
 }
-/* ── 6) 별도 페이지: 내 글로 카드 만들기 (#reel) ── */
-/* 앱 데이터 불러오기 — 지금 시장·채널 브리핑을 안 열었어도 여기서 준비 */
+/* ── 릴스 카드 화면(#reel) — 같은 스튜디오 + 데이터 고르기 ── */
 function rcEnsure(kind, cb) {
   if (kind === "none") { cb(true); return; }
   var ok = function () { return kind === "brief" ? !!(typeof BRIEF !== "undefined" && BRIEF.last) : !!(typeof CH !== "undefined" && CH.data && !CH.data._err); };
@@ -6573,45 +6707,33 @@ function rcEnsure(kind, cb) {
   var n = 0, w = setInterval(function () { if (ok() || ++n > 40) { clearInterval(w); cb(ok()); } }, 250);
 }
 var RC_CH_SKIP = { school: 1, terms: 1 };
-function buildReel(sec) {
-  var bfOpts = (typeof BF_SECS !== "undefined" ? BF_SECS : []).map(function (x) { return '<label class="rl-chip"><input type="checkbox" data-src="brief:' + x[0] + '"><span>' + x[1] + "</span></label>"; }).join("");
-  var chOpts = (typeof CH_TABS !== "undefined" ? CH_TABS : []).filter(function (x) { return !RC_CH_SKIP[x[0]]; }).map(function (x) { return '<label class="rl-chip"><input type="checkbox" data-src="ch:' + x[0] + '"><span>' + x[1] + "</span></label>"; }).join("");
-  sec.innerHTML = '<div class="card"><h2>릴스 카드 만들기</h2><p class="hint">① 앱 데이터를 고르거나 ② 내 글을 넣거나 ③ 둘 다 — 그리고 ‘어떻게 만들지’ 요청을 적으면 OpenAI가 한 장으로 정리합니다. 숫자·날짜는 고른 데이터와 넣은 글에 있는 것만 씁니다.</p>' +
-    '<div class="rl-step"><b>① 앱 데이터 고르기</b> <small>(선택)</small><div class="rl-grp"><em>지금 시장</em>' + bfOpts + '</div><div class="rl-grp"><em>채널 브리핑</em>' + chOpts + '</div><p class="hint">지금 시장 데이터는 그 화면에서 고른 범위(서울·경기 등)와 기준을 따릅니다.</p></div>' +
-    '<div class="rl-step"><b>② 내 글</b> <small>(선택 · 인스타 글, 디딤돌 정책, 유튜브·책 메모 등)</small><textarea id="rl-text" rows="7" placeholder="여기에 붙여 넣으세요"></textarea></div>' +
-    '<div class="rl-step"><b>③ 어떻게 만들까</b><div id="rl-refbox"></div><input id="rl-req" placeholder="예: 대장아파트 데이터로 \'노도강은 아직?\' 궁금증 유발, 대출 받는 사람 관점으로"><div class="grid"><div class="field"><label>주제(말머리)</label><input id="rl-topic" placeholder="비우면 고른 데이터 이름"></div><div class="field"><label>목적</label><select id="rl-purpose"><option>릴스 한 장으로 핵심 + 게시판 유입</option><option>저장하고 싶은 꿀팁 정리</option><option>체크리스트(해야 할 일)</option><option>비교표(A vs B)</option></select></div><div class="field"><label>AI 사용 범위</label>' + rcModeSel("rl-mode") + "</div></div></div>" +
-    '<div class="chbtns"><button type="button" class="btn" id="rl-go">한 장으로 만들기</button><span class="hint" id="rl-msg"></span></div></div>' +
-    '<div class="card" id="rl-studio" style="display:none"></div><div class="card"><h3>최근 만든 카드</h3><div id="rl-hist" class="rl-hist"><p class="hint">아직 없습니다.</p></div></div>';
-  rlRefsPaint();
-  sec.querySelector("#rl-go").addEventListener("click", function () {
-    var txt = sec.querySelector("#rl-text").value.trim(), msg = sec.querySelector("#rl-msg"), req = sec.querySelector("#rl-req").value.trim();
-    var picks = Array.prototype.filter.call(sec.querySelectorAll("[data-src]"), function (x) { return x.checked; }).map(function (x) { return x.dataset.src; });
-    if (!picks.length && txt.length < 20) { msg.textContent = "앱 데이터를 하나 이상 고르거나, 내 글을 넣어 주세요."; return; }
-    var needB = picks.some(function (p) { return /^brief:/.test(p); }), needC = picks.some(function (p) { return /^ch:/.test(p); });
-    msg.textContent = picks.length ? "데이터 준비 중…" : "";
-    var go = function () {
-      var facts = [], names = [], basis = [];
-      if (txt.length) facts = facts.concat(rcFactsFromText(txt).map(function (f) { f.text = "[내 글] " + f.text; return f; }));
-      var per = Math.max(8, Math.floor((80 - facts.length) / Math.max(1, picks.length)));
-      picks.forEach(function (p) {
-        var q = p.split(":"), cards = q[0] === "brief" ? rcBriefCards(q[1]) : rcChannelCards(q[1]);
-        var nm = q[0] === "brief" ? (BF_SECS.filter(function (x) { return x[0] === q[1]; })[0] || [0, q[1]])[1] : chTabName(q[1]);
-        if (!cards.length) return; names.push(nm);
-        if (cards[0].date) basis.push(nm + " " + rcClean(cards[0].date));
-        facts = facts.concat(rcFactsFromCards(cards, per).map(function (f) { f.text = "[" + nm + "] " + f.text; return f; }));
-      });
-      facts = facts.slice(0, 80).map(function (f, i) { f.id = "F" + (i + 1); return f; });
-      if (!facts.length) { msg.textContent = "고른 데이터가 아직 준비되지 않았습니다. 잠시 뒤 다시 눌러 주세요."; return; }
-      msg.textContent = "";
-      var st = sec.querySelector("#rl-studio"); st.style.display = "";
-      var topic = sec.querySelector("#rl-topic").value.trim() || (names.length ? (BRIEF.last && needB ? BRIEF.last.scopeNm + " " : "") + names.join("·") : "내 메모");
-      rcOpen({ topic: topic, facts: facts, basis: (basis.length ? basis.join(" · ") : "입력한 내용 정리"), purpose: sec.querySelector("#rl-purpose").value, host: st, mode: rcModeGet("rl-mode"), note: req, refs: RL_REFS.slice(), go: true });
-      st.scrollIntoView({ behavior: "smooth" });
-    };
-    rcEnsure(needB ? "brief" : "none", function () { rcEnsure(needC ? "channel" : "none", function () { go(); }); });
-  });
+function rcPickRefresh() {
+  var c = RC.cur, h = RC.host; if (!c || !h) return;
+  c.picks = Array.prototype.filter.call(h.querySelectorAll("[data-src]"), function (x) { return x.checked; }).map(function (x) { return x.dataset.src; });
+  var needB = c.picks.some(function (p) { return /^brief:/.test(p); }), needC = c.picks.some(function (p) { return /^ch:/.test(p); });
+  c.picking = true; rcPaint();
+  rcEnsure(needB ? "brief" : "none", function () { rcEnsure(needC ? "channel" : "none", function () {
+    var facts = [], names = [], basis = [], per = Math.max(8, Math.floor(70 / Math.max(1, c.picks.length)));
+    c.picks.forEach(function (p) {
+      var q = p.split(":"), cards = q[0] === "brief" ? rcBriefCards(q[1]) : rcChannelCards(q[1]);
+      var nm = q[0] === "brief" ? (BF_SECS.filter(function (x) { return x[0] === q[1]; })[0] || [0, q[1]])[1] : chTabName(q[1]);
+      if (!cards.length) return; names.push(nm); if (cards[0].date) basis.push(nm + " " + rcClean(cards[0].date));
+      facts = facts.concat(rcFactsFromCards(cards, per).map(function (f) { f.text = "[" + nm + "] " + f.text; return f; }));
+    });
+    c.src.facts = facts; c.src.basis = basis.join(" · ");
+    if (!c.topicTouched) c.topic = names.length ? ((needB && BRIEF.last ? BRIEF.last.scopeNm + " " : "") + names.join("·")) : "";
+    c.picking = false; rcPaint();
+  }); });
 }
+function buildReel(sec) {
+  sec.innerHTML = '<div class="card rl-intro"><h2>릴스 카드</h2><p class="desc">앱 데이터와 내가 넣은 참고 내용으로 9:16 한 장 카드를 만듭니다. 지금 시장·채널 브리핑의 ‘대표 카드’와 같은 화면입니다 — <b>① 재료 → ② 요청 → ③ 결과·검증</b> 순서로 진행하세요.</p></div>' +
+    '<div class="card rl-host" id="rl-studio"></div><div class="card"><h3>최근 만든 카드 <small class="hint">이 기기에 저장 · 눌러서 다시 열기</small></h3><div id="rl-hist" class="rl-hist"><p class="hint">아직 없습니다.</p></div></div>';
+}
+function rcRestoreReel() { var st = document.getElementById("rl-studio"); if (st && st._rc && st.offsetParent) { RC.cur = st._rc; RC.host = st; } }
 function renderReel() {
+  var st = document.getElementById("rl-studio"); if (!st) return;
+  if (st._rc) { RC.cur = st._rc; RC.host = st; rcPaint(); }
+  else rcOpen({ topic: "", facts: [], basis: "", host: st, picker: true });
   var box = document.getElementById("rl-hist"); if (!box || typeof aiDb !== "function") return;
   aiDb(function (db) {
     if (!db) return; var out = [];
@@ -6620,33 +6742,14 @@ function renderReel() {
       out.sort(function (a, b) { return b[1].at - a[1].at; }); out = out.slice(0, 12);
       box.innerHTML = out.length ? out.map(function (x) { var v = x[1]; return '<button type="button" data-rlk="' + x[0] + '"><b>' + escHtml(v.plan && v.plan.hook || v.topic) + "</b><small>" + escHtml(v.topic) + " · " + new Date(v.at).toLocaleDateString() + "</small></button>"; }).join("") : '<p class="hint">아직 없습니다.</p>';
       Array.prototype.forEach.call(box.querySelectorAll("[data-rlk]"), function (b) { b.addEventListener("click", function () {
-        var v = out.filter(function (x) { return x[0] === b.dataset.rlk; })[0][1], st = document.getElementById("rl-studio"); st.style.display = "";
-        rcOpen({ topic: v.topic, facts: v.facts, basis: v.basis, host: st, auto: false }); RC.cur.plan = v.plan; RC.cur.bg = v.bg; RC.cur.img = v.img; RC.cur.read = v.read; RC.cur.mode = v.mode || "exact"; RC.cur.id = Number(b.dataset.rlk.slice(3)); rcPaint(); st.scrollIntoView({ behavior: "smooth" });
+        var v = out.filter(function (x) { return x[0] === b.dataset.rlk; })[0][1];
+        rcOpen({ topic: v.topic, facts: v.facts, basis: v.basis, host: st, picker: true, note: v.note, mode: v.mode });
+        RC.cur.plan = v.plan; RC.cur.bg = v.bg; RC.cur.img = v.img; RC.cur.read = v.read; RC.cur.id = Number(b.dataset.rlk.slice(3)); rcPaint(); st.scrollIntoView({ behavior: "smooth" });
       }); });
     }
   });
 }
-document.addEventListener("keydown", function (ev) { if (ev.key === "Enter" && ev.target && ev.target.id === "rc-note" && RC.cur) { ev.preventDefault(); RC.cur.note = ev.target.value; rcMake(); } });
-document.addEventListener("change", function (ev) {
-  var t = ev.target; if (!t || !t.dataset || !t.dataset.refin) return;
-  var scope = t.dataset.refin, list = scope === "rc" ? (RC.cur && (RC.cur.refs = RC.cur.refs || [])) : (RL_REFS);
-  if (!list) return;
-  rcAddRefs(list, t.files, function () { if (scope === "rc") rcPaint(); else rlRefsPaint(); });
-});
-document.addEventListener("click", function (ev) {
-  var b = ev.target && ev.target.closest && ev.target.closest("[data-refdel]"); if (!b) return;
-  var q = b.dataset.refdel.split(":"), list = q[0] === "rc" ? (RC.cur && RC.cur.refs) : RL_REFS; if (!list) return;
-  list.splice(Number(q[1]), 1); if (q[0] === "rc") rcPaint(); else rlRefsPaint();
-});
-document.addEventListener("paste", function (ev) {
-  var fs = Array.prototype.map.call((ev.clipboardData && ev.clipboardData.items) || [], function (i) { return i.kind === "file" ? i.getAsFile() : null; }).filter(Boolean);
-  if (!fs.length) return;
-  var inRc = RC.host && document.body.contains(RC.host) && RC.cur, rl = document.getElementById("rl-refbox"), onReel = rl && rl.offsetParent;
-  if (inRc && (!onReel || RC.host.contains(document.activeElement) || RC.host.classList.contains("rc-modal"))) { ev.preventDefault(); rcAddRefs(RC.cur.refs = RC.cur.refs || [], fs, rcPaint); }
-  else if (onReel) { ev.preventDefault(); rcAddRefs(RL_REFS, fs, rlRefsPaint); }
-});
-var RL_REFS = [];
-function rlRefsPaint() { var box = document.getElementById("rl-refbox"); if (box) box.innerHTML = rcRefsHtml(RL_REFS, "rl"); }
+document.addEventListener("input", function (ev) { if (ev.target && ev.target.id === "rc-topic" && RC.cur) RC.cur.topicTouched = true; });
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

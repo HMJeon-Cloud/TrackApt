@@ -28,7 +28,8 @@ async function openaiWith(body, key, model) {
     const p = dataUrlParts(body.image); if (!p) throw new Error("보정할 이미지가 없습니다");
     const fd = new FormData();
     fd.append("model", model); fd.append("prompt", body.prompt); fd.append("size", size);
-    fd.append("image", new Blob([Buffer.from(p.b64, "base64")], { type: p.mime }), "src." + (p.mime.split("/")[1] || "png"));
+    const imgs = [body.image].concat(body.refs || []).map(dataUrlParts).filter(Boolean).slice(0, 4);
+    imgs.forEach((q, i) => fd.append(imgs.length > 1 ? "image[]" : "image", new Blob([Buffer.from(q.b64, "base64")], { type: q.mime }), "src" + i + "." + (q.mime.split("/")[1] || "png")));
     if (body.transparent) fd.append("background", "transparent");
     else if (/^gpt-image/.test(model)) { fd.append("output_format", "jpeg"); fd.append("output_compression", "85"); }
     r = await fetch("https://api.openai.com/v1/images/edits", { method: "POST", headers: { Authorization: "Bearer " + key }, body: fd });
@@ -49,8 +50,7 @@ async function gemini(body, key) {
   const model = process.env.GEMINI_IMG_MODEL || "gemini-2.5-flash-image";
   const ratio = { "1024x1536": "2:3 세로", "1024x1024": "1:1 정사각형", "1536x1024": "3:2 가로" }[body.size] || "세로";
   const parts = [{ text: body.prompt + "\nAspect ratio: " + ratio + (body.transparent ? ". Plain pure white background, isolated object." : "") }];
-  const p = body.mode === "edit" ? dataUrlParts(body.image) : null;
-  if (p) parts.push({ inline_data: { mime_type: p.mime, data: p.b64 } });
+  [body.mode === "edit" ? body.image : null].concat(body.refs || []).map(dataUrlParts).filter(Boolean).slice(0, 4).forEach((p) => parts.push({ inline_data: { mime_type: p.mime, data: p.b64 } }));
   const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseModalities: ["IMAGE"] } }) });

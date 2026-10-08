@@ -1654,6 +1654,96 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 .chc-info .if-tl-r>span:first-child{display:block;line-height:25px}
 .chc-info .if-tl-r>span:first-child i{display:inline-block;margin-right:4px;vertical-align:middle}
 .chc-info .if-2box>div,.chc-info .if-tiles>div{min-width:0}
+/* v9.12 AI 이미지 스튜디오 */
+.ai-studio{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.ai-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+.ai-hd b{font-size:1rem}.ai-hd label{font-size:.85rem;font-weight:600;color:var(--sub)}
+.ai-row{display:grid;grid-template-columns:1fr;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.ai-nm{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.ai-nm b{font-size:.92rem}
+.ai-nm small{flex-basis:100%;font-size:.78rem;color:var(--sub)}.ai-nm .ai-er{color:#e5484d}
+.ai-b{font-style:normal;font-size:.74rem;font-weight:800;border-radius:999px;padding:2px 8px;background:#eef1f5;color:#6b7684}
+.ai-b.run{background:#e8f3ff;color:#2f6fe4}.ai-b.new{background:#fff3d6;color:#b06c00}.ai-b.on{background:#e6f7ee;color:#18a058}.ai-b.err{background:#ffecec;color:#e5484d}
+.ai-cmp{display:flex;align-items:center;gap:8px}.ai-cmp>div{text-align:center}.ai-cmp small{display:block;font-size:.72rem;color:var(--sub);margin-bottom:2px}.ai-cmp i{font-style:normal;color:var(--sub)}
+.ai-th{width:96px;height:120px;border-radius:10px;overflow:hidden;background:#1b2340;display:flex;align-items:center;justify-content:center}
+.ai-th img{width:100%;height:100%;object-fit:cover}.ai-th span{font-size:.72rem;color:#9aa5b5}
+.ai-btns{display:flex;flex-wrap:wrap;gap:5px}.ai-btns button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 10px;font-size:.8rem;font-weight:700;color:var(--ink)}
+.ai-btns button:disabled{opacity:.4}
+.ai-modal{position:fixed;inset:0;background:rgba(5,10,25,.72);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px}
+.ai-mbox{background:var(--panel);border-radius:16px;padding:12px;max-width:820px;width:100%;max-height:96vh;overflow:auto}
+.ai-mbox>b{display:block;margin-bottom:8px}
+.ai-mcmp{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ai-mcmp>div{text-align:center;min-width:0}.ai-mcmp small{display:block;font-weight:800;color:var(--sub);margin-bottom:4px}
+.ai-card{display:flex;justify-content:center;overflow:hidden}.ai-card .chcard{zoom:.92}
+@media(max-width:600px){.ai-card .chcard{zoom:.46}}
+.ai-big{width:100%;max-width:380px;border-radius:12px}
+.ai-wait{padding:60px 10px;color:var(--sub);font-weight:700}
+.ai-mbtns{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-top:10px}.ai-mbtns button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;font-weight:700}
+.ai-mbtns button[data-m="apply"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.chcardWrap.ai-has{position:relative}
+.ai-cardov{position:absolute;left:0;top:0;width:360px;height:450px;z-index:3;border-radius:18px;overflow:hidden;background:#0a1430}
+.chcards.strip .ai-cardov{zoom:.7}@media(min-width:700px){.chcards.strip .ai-cardov{zoom:.82}}
+.ai-cardov img{width:100%;height:100%;object-fit:contain}
+.ai-cardov em{position:absolute;top:8px;right:8px;font-style:normal;font-size:11px;font-weight:800;background:#ffd84d;color:#13204a;border-radius:999px;padding:2px 8px}
+/* ══ v9.13 릴스 대표 카드 ══ */
+.chcard.chc-reel{width:360px;height:640px;padding:0;flex:none}
+.chc-reel .rc-shade{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(8,14,36,.82) 0%,rgba(8,14,36,.55) 30%,rgba(8,14,36,.72) 60%,rgba(8,14,36,.94) 100%)}
+.chc-reel .rc-in{position:relative;z-index:1;height:100%;box-sizing:border-box;padding:30px 20px 14px;display:flex;flex-direction:column;gap:10px;color:#fff;word-break:keep-all}
+.chc-reel .rc-kick{align-self:flex-start;background:linear-gradient(180deg,#ffe27a,#ffb81c);color:#13204a;font-weight:900;font-size:13px;border-radius:999px;padding:5px 13px;box-shadow:0 3px 0 #b97a00}
+.chc-reel h2{margin:2px 0 0;font-size:35px;line-height:1.18;font-weight:900;letter-spacing:-.05em;text-shadow:0 3px 12px rgba(0,0,0,.5);overflow:hidden}
+.chc-reel .rc-sub{margin:0;font-size:15px;font-weight:700;color:#ffe27a;line-height:1.35}
+.chc-reel .rc-rank,.chc-reel .rc-steps,.chc-reel .rc-check{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.chc-reel .rc-rank>div,.chc-reel .rc-steps>div,.chc-reel .rc-check>div{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:9px;background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.3);border-left:4px solid var(--c,#ffd84d);border-radius:14px;padding:9px 11px;box-shadow:0 8px 18px rgba(0,0,0,.3)}
+.chc-reel .rc-rank i,.chc-reel .rc-steps i{font-style:normal;width:30px;height:30px;border-radius:50%;background:var(--c);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.chc-reel .rc-rank b,.chc-reel .rc-steps b,.chc-reel .rc-check b{display:block;font-size:16.5px;font-weight:900;white-space:nowrap;overflow:hidden}
+.chc-reel small{display:block;font-size:11.5px;color:rgba(230,236,255,.75);margin-top:1px;line-height:1.3}
+.chc-reel .rc-rank em,.chc-reel .rc-steps em{font-style:normal;font-size:21px;font-weight:900;color:#fff;text-shadow:0 0 14px var(--c);white-space:nowrap;max-width:140px;overflow:hidden;text-align:right}
+.chc-reel .rc-arr{text-align:center;font-size:10px;color:#ffd84d;margin:-4px 0}
+.chc-reel .rc-check>div{grid-template-columns:24px 1fr}
+.chc-reel .rc-check i{font-style:normal;color:#22c55e;font-weight:900;font-size:18px}
+.chc-reel .rc-check em{font-style:normal;color:#ffe27a}
+.chc-reel .rc-stat{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.chc-reel .rc-stat>div{background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.18);border-bottom:4px solid var(--c);border-radius:14px;padding:10px;text-align:center;box-shadow:0 8px 18px rgba(0,0,0,.3)}
+.chc-reel .rc-stat span{display:block;font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden}
+.chc-reel .rc-stat b{display:block;font-size:26px;font-weight:900;text-shadow:0 0 14px var(--c);white-space:nowrap;overflow:hidden}
+.chc-reel .rc-cta{margin-top:auto;background:linear-gradient(90deg,#ffd84d,#ffa62b);color:#13204a;border-radius:16px;padding:10px 14px;box-shadow:0 4px 0 #b97a00,0 10px 22px rgba(0,0,0,.35)}
+.chc-reel .rc-cta b{display:block;font-size:16px;font-weight:900}
+.chc-reel .rc-cta span{display:block;font-size:11.5px;font-weight:800;opacity:.85}
+.chc-reel .rc-foot{display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:rgba(230,236,255,.6)}
+.chc-reel .rc-foot b{color:#fff;font-size:12px}
+/* 스튜디오 */
+.rc-modal{position:fixed;inset:0;z-index:9998;background:rgba(5,10,25,.75);overflow:auto;padding:10px}
+.rc-box{background:var(--panel);border-radius:16px;padding:12px;max-width:1240px;margin:0 auto}
+.rc-hd{display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:space-between}
+.rc-hd>b{font-size:1.05rem}
+.rc-mode button,.rc-hd>button,.rc-bar button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.85rem;color:var(--ink)}
+.rc-mode button.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.rc-bar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.rc-bar input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+.rc-bar button[data-rc="make"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.rc-busy{font-weight:700;color:#2f6fe4}.rc-err{font-weight:700;color:#e5484d}
+.rc-sum{border-radius:10px;padding:7px 11px;font-weight:800;font-size:.9rem;margin-bottom:8px}.rc-sum.ok{background:#e6f7ee;color:#127a45}.rc-sum.bad{background:#ffecec;color:#c62828}
+.rc-grid{display:grid;grid-template-columns:1fr 380px 1fr;gap:10px;align-items:start}
+@media(max-width:1000px){.rc-grid{grid-template-columns:1fr}}
+.rc-col{min-width:0}.rc-col h4{margin:0 0 6px;font-size:.92rem}.rc-col h4 small{font-weight:600;color:var(--sub);font-size:.75rem}
+.rc-col:not(.mid){max-height:76vh;overflow:auto}
+.rc-f{display:grid;grid-template-columns:30px 1fr;gap:6px;font-size:.8rem;padding:4px 6px;border-radius:8px;border-bottom:1px dashed var(--line)}
+.rc-f i{font-style:normal;font-weight:800;color:var(--sub)}.rc-f.on{background:#fff3d6}.rc-f.on i{color:#b06c00}
+.rc-cardwrap{display:flex;justify-content:center}
+.rc-aiimg{width:360px;max-width:100%;border-radius:16px}
+.rc-ck{border:1px solid var(--line);border-radius:10px;padding:7px;margin-bottom:6px}.rc-ck.bad{border-color:#e5484d;background:#fff6f6}
+.rc-ck label{display:block;font-size:.75rem;font-weight:800;color:var(--sub);margin-bottom:3px}
+.rc-ck input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:.85rem}
+.rc-ck small{display:block;font-size:.75rem;color:var(--sub);margin-top:3px}
+.rc-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+.rc-src{color:var(--ink)!important}
+.rc-ok{text-decoration:none;background:#e6f7ee;color:#127a45;border-radius:3px;padding:0 2px}.rc-bad{text-decoration:none;background:#ffe0e0;color:#c62828;border-radius:3px;padding:0 2px;font-weight:800}
+.rc-badt{color:#c62828!important;font-weight:800}
+.rc-read{border:1px solid #9cc0f5;background:#f2f7ff;border-radius:10px;padding:8px;margin-bottom:8px}.rc-read.bad{border-color:#e5484d;background:#fff6f6}.rc-read p{margin:4px 0;font-size:.85rem}.rc-read pre{white-space:pre-wrap;font-size:.75rem}
+.rc-entry{margin:10px 0;padding:10px 12px;border:1px dashed #c9a35c;border-radius:12px;background:var(--bg)}
+.rc-entry>b{display:block}.rc-entry .hint{display:block;margin-bottom:6px}
+.rc-entry select{border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.rl-hist{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.rl-hist button{text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px}.rl-hist b{display:block;font-size:.88rem}.rl-hist small{color:var(--sub)}
+#rl-studio .rc-box{padding:0}
+#rl-studio .rc-grid{grid-template-columns:minmax(0,1fr) 380px minmax(0,1fr)}@media(max-width:1100px){#rl-studio .rc-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -1661,7 +1751,7 @@ details.faq[open] summary{border-bottom-color:var(--bg)}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.11</span>
+    <span class="ver">v9.13</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -1745,6 +1835,7 @@ var GROUPS = [
     { id: "browse",  name: "둘러보기",    build: buildBrowse },
     { id: "brief",   name: "지금 시장", cat: "price",  ic: "📰", d: "최근 30일 실거래로 본 지금", build: buildBrief },
     { id: "channel", name: "채널 브리핑", cat: "price", ic: "📣", d: "채널에 올릴 오늘의 글·카드 이미지", build: buildChannel },
+    { id: "reel", name: "릴스 카드", cat: "price", ic: "🎬", d: "내 글·정책 내용을 한 장 카드로", build: buildReel },
     { id: "market",  name: "시장 흐름",   cat: "price",  ic: "📈", d: "연도별 상승률과 지수 흐름", build: buildMarket },
     { id: "vol",     name: "거래량",      cat: "price",  ic: "📊", d: "손바뀜으로 보는 지금 국면", build: buildVol },
     { id: "quad",    name: "매매·전세 흐름", cat: "price", ic: "🧭", d: "지역별 매매·전세 4분면", build: buildQuad },
@@ -1867,6 +1958,7 @@ function showTab(id) {
   if (id === "home") renderHomeData();
   if (id === "brief" && DB) renderBrief();
   if (id === "channel" && DB) renderChannel();
+  if (id === "reel") renderReel();
   if (id === "school" && DB) renderSchool();
   if (!DB) return;
   if (id === "market") renderMarket();
@@ -2425,6 +2517,7 @@ function renderBrief() {
       var nt = document.getElementById("bf-mknote"); if (nt) nt.textContent = "카드 만드는 중… (데이터가 많으면 몇 초 걸립니다)";
       setTimeout(function () { renderBriefLiveCards(); el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 40);
     });
+    if (typeof rcBriefBar === "function") rcBriefBar();
     document.getElementById("bf-csel").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-sec]"); if (b) b.classList.toggle("on"); });
     document.getElementById("bf-selall").addEventListener("click", function () { var bs = document.querySelectorAll("#bf-csel button"), any = Array.prototype.some.call(bs, function (b) { return !b.classList.contains("on"); }); Array.prototype.forEach.call(bs, function (b) { b.classList.toggle("on", any); }); });
     document.getElementById("bf-tmode").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-t]"); if (!b) return; BRIEF.tmode = b.dataset.t; Array.prototype.forEach.call(ev.currentTarget.children, function (x) { x.classList.toggle("on", x === b); }); bfShowText(); });
@@ -3965,6 +4058,13 @@ function paintChannel() {
   chNumberCards(document.getElementById("ch-cards"));
   chFitLater(document.getElementById("ch-cards"));
   if (typeof ifFitLater === "function") ifFitLater(document.getElementById("ch-cards"));
+  if (typeof aiAfterPaint === "function") {
+    var cardsEl = document.getElementById("ch-cards"), stu = document.getElementById("ai-studio");
+    if (!stu && cardsEl) { stu = document.createElement("div"); stu.id = "ai-studio"; stu.className = "ai-studio"; cardsEl.insertAdjacentElement("afterend", stu); }
+    if (typeof rcChannelBar === "function") rcChannelBar();
+    if (typeof AI !== "undefined" && !AI.loaded) aiLoad(function () { if (CH.tab === "ripple" || CH.tab === "ripple2") paintChannel(); else aiAfterPaint(CH.tab); });
+    else aiAfterPaint(CH.tab);
+  }
   if (typeof ifImgLoad === "function" && (CH.tab === "ripple" || CH.tab === "ripple2")) ifImgLoad(function () { if (Object.keys(IF_IMG_OK).length && (CH.tab === "ripple" || CH.tab === "ripple2")) paintChannel(); });
 }
 
@@ -4529,7 +4629,7 @@ function mcText() {
    잠금 해제: 주소 끝에 #owner 를 붙여 열고 비밀번호 입력 → /api/owner 가 Vercel 환경변수 OWNER_KEY 와 비교해
    맞으면 토큰을 준다. 토큰은 이 기기(브라우저)에만 저장되고, 앱이 열릴 때마다 서버에 다시 확인한다.
    잠겨 있으면 두 화면은 메뉴·홈·둘러보기·주소(#brief, #channel) 어디에서도 열리지 않는다. */
-var OWNER_LS = "trackapt_owner_v1", OWNER_TABS = ["brief", "channel"];
+var OWNER_LS = "trackapt_owner_v1", OWNER_TABS = ["brief", "channel", "reel"];
 var OWNER = (function () { try { return !!localStorage.getItem(OWNER_LS); } catch (e) { return false; } })();
 if (!OWNER) {
   GROUPS.forEach(function (g) { g.tabs = g.tabs.filter(function (t) { return OWNER_TABS.indexOf(t.id) < 0; }); });
@@ -4731,7 +4831,9 @@ function chSaveAllZip(root, tab) {
     if (i >= wraps.length) return Promise.resolve();
     var w = wraps[i], card = w.querySelector(".chcard"), btn = w.querySelector("[data-chsave]"), nm = (btn ? btn.dataset.chsave : "card").replace(/^채널_/, "").replace(/[\\/:*?"<>|]/g, "-");
     progOpen("이미지 만드는 중 " + (i + 1) + "/" + wraps.length, (i + 1) / wraps.length);
-    return chCardCanvas(card).then(function (cv) {
+    var aik = w.getAttribute("data-aicard"), ais = aik && typeof AI !== "undefined" && AI.st[aik];
+    var mk = ais && ais.cur ? aiCardPng(ais.cur).then(function (u) { return new Promise(function (res) { var im = new Image(); im.onload = function () { var cv = document.createElement("canvas"); cv.width = im.width; cv.height = im.height; cv.getContext("2d").drawImage(im, 0, 0); res(cv); }; im.src = u; }); }) : chCardCanvas(card);
+    return mk.then(function (cv) {
       return new Promise(function (res) { cv.toBlob(function (b) { return b.arrayBuffer().then(function (ab) { files.push({ name: ("0" + (i + 1)).slice(-2) + "_" + nm + ".png", data: new Uint8Array(ab) }); i++; res(); }); }, "image/png"); });
     }).then(next);
   }
@@ -5776,7 +5878,12 @@ function ifImgLoad(cb) {
   var keys = Object.keys(IF_IMG), left = keys.length;
   keys.forEach(function (k) { var im = new Image(); im.onload = function () { IF_IMG_OK[k] = true; if (--left === 0 && cb) cb(); }; im.onerror = function () { if (--left === 0 && cb) cb(); }; im.src = IF_IMG[k] + "?v=" + Math.floor(Date.now() / 864e5); });
 }
-function ifImg(k) { return IF_IMG_OK[k] ? IF_IMG[k] + "?v=" + Math.floor(Date.now() / 864e5) : null; }
+function ifImg(k) {
+  var a = typeof aiImgFor === "function" ? aiImgFor(k) : null;
+  if (typeof IF_OVR !== "undefined" && IF_OVR && Object.prototype.hasOwnProperty.call(IF_OVR, k)) return a;   /* 비교 화면: 지정한 것만 */
+  if (a) return a;
+  return IF_IMG_OK[k] ? IF_IMG[k] + "?v=" + Math.floor(Date.now() / 864e5) : null;
+}
 function ifBg(k, seed) { var u = ifImg(k); return u ? '<div class="if-photo" style="background-image:url(' + u + ')"></div><div class="if-shade"></div>' : ifSky(seed); }
 function ifSky(seed) {
   var r = seed || 7, rnd = function () { r = (r * 9301 + 49297) % 233280; return r / 233280; };
@@ -5981,6 +6088,460 @@ function ifFit(root) {
   });
 }
 function ifFitLater(root) { if (!root) return; ifFit(root); setTimeout(function () { ifFit(root); }, 450); if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ifFit(root); }); }
+
+/* ══ v9.12 AI 이미지 스튜디오 — 카드를 만들 때 배경·지도 장식·아파트 그림을 AI로 자동 생성, 다시 만들기·보정·수정 전/후 비교 ══
+   서버: /api/img (Vercel 환경변수 OPENAI_API_KEY 또는 GEMINI_API_KEY, 주인 토큰 확인). 키는 index.html 에 없다.
+   저장: 이 기기 브라우저(IndexedDB 'trackapt_ai') — 자리마다 {cur, prev, prompt, use, fresh, at}
+   숫자·지명·지도 경계는 AI가 건드리지 않는다(배경·장식만). '카드 전체 AI'는 실험 기능 — 수정 전/후를 나란히 보여 주고 주인이 확인한다. */
+var AI = { st: {}, cfg: null, busy: {}, err: {}, loaded: false, q: [], running: 0 };
+var AI_NO_TEXT = " Absolutely no text, no letters, no numbers, no logos, no watermark.";
+var AI_SLOTS = {
+  cover: { nm: "표지 배경", size: "1024x1536", p: function (tab) { return "Cinematic ultra-realistic photo of the Seoul skyline at dusk seen across the Han River, " + (tab === "ripple2" ? "modern luxury high-rise apartment towers glowing in the foreground, " : "city lights spreading outward from a dense glowing center, ") + "warm sunset near the horizon fading to deep navy sky, calm river reflections, large empty dark sky in the upper half for a headline, vertical composition." + AI_NO_TEXT; } },
+  outro: { nm: "마무리 배경", size: "1024x1536", p: function () { return "Night aerial view of Korean apartment complexes and city lights, deep navy and violet tones, soft bokeh, darker empty center area, vertical composition, photorealistic." + AI_NO_TEXT; } },
+  panel: { nm: "내용 카드 배경", size: "1024x1536", p: function () { return "Abstract dark navy background with soft out-of-focus city lights and subtle blue-violet glow gradients, minimal and calm, vertical." + AI_NO_TEXT; } },
+  map: { nm: "지도 뒤 장식", size: "1024x1024", p: function () { return "Top-down dark satellite-style night texture of a large metropolitan area with faint glowing road networks and a river, very dark and subtle, no borders." + AI_NO_TEXT; } },
+  lead: { nm: "대장아파트 그림", size: "1024x1024", transparent: true, tabs: ["ripple2"], p: function () { return "3D isometric illustration of a single modern luxury high-rise apartment tower, glossy blue glass facade, warm lit windows, soft contact shadow, isolated object on a transparent background, clean premium game-asset style." + AI_NO_TEXT; } },
+  mid: { nm: "보통 아파트 그림", size: "1024x1024", transparent: true, tabs: ["ripple2"], p: function () { return "3D isometric illustration of a single older mid-rise Korean apartment block, muted gray-beige concrete, simple windows, soft contact shadow, isolated object on a transparent background, same premium game-asset style as a luxury tower." + AI_NO_TEXT; } }
+};
+var AI_CARD_PROMPT = "Redesign this Korean real-estate infographic card into a premium, glossy, slightly 3D style: deep navy-to-violet background, glass panels, soft glow, crisp shadows. KEEP THE SAME LAYOUT. Every Korean word, every number, percentage and date must stay EXACTLY identical to the original — do not add, remove, translate or change any text. Keep the map shapes, colors and their meaning. Vertical card.";
+function aiTok() { try { return localStorage.getItem(OWNER_LS) || ""; } catch (e) { return ""; } }
+function aiKey(tab, slot) { return tab + ":" + slot; }
+function aiAuto() { try { return localStorage.getItem("trackapt_ai_auto") !== "0"; } catch (e) { return true; } }
+/* ── 저장소(IndexedDB) ── */
+function aiDb(cb) {
+  try { var r = indexedDB.open("trackapt_ai", 1); r.onupgradeneeded = function () { r.result.createObjectStore("img"); }; r.onsuccess = function () { cb(r.result); }; r.onerror = function () { cb(null); }; } catch (e) { cb(null); }
+}
+function aiLoad(cb) {
+  if (AI.loaded) { if (cb) cb(); return; }
+  aiDb(function (db) {
+    if (!db) { AI.loaded = true; if (cb) cb(); return; }
+    try {
+      var tx = db.transaction("img", "readonly"), os = tx.objectStore("img"), rq = os.openCursor();
+      rq.onsuccess = function () { var c = rq.result; if (c) { AI.st[c.key] = c.value; c["continue"](); } else { AI.loaded = true; if (cb) cb(); } };
+      rq.onerror = function () { AI.loaded = true; if (cb) cb(); };
+    } catch (e) { AI.loaded = true; if (cb) cb(); }
+  });
+}
+function aiSave(k) { var v = AI.st[k]; aiDb(function (db) { if (!db) return; try { var tx = db.transaction("img", "readwrite"); if (v) tx.objectStore("img").put(v, k); else tx.objectStore("img")["delete"](k); } catch (e) {} }); }
+/* ── 서버 설정 확인 ── */
+function aiCfg(cb) {
+  if (AI.cfg) { cb(AI.cfg); return; }
+  fetch("/api/img", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (j) { AI.cfg = j || { ok: false }; cb(AI.cfg); }, function () { AI.cfg = { ok: false, err: "net" }; cb(AI.cfg); });
+}
+/* ── 만들기·보정 ── */
+function aiCall(body) {
+  body.t = aiTok();
+  return fetch("/api/img", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+    .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.ok) throw new Error((j && j.error) || ("응답 " + r.status)); return j; }, function () { throw new Error("응답 " + r.status + (r.status === 504 ? " (시간 초과 — 다시 시도)" : "")); }); });
+}
+function aiRun(tab, slot, opt) {
+  opt = opt || {};
+  var k = aiKey(tab, slot), S = AI_SLOTS[slot], cur = AI.st[k] || {};
+  if (AI.busy[k]) return;
+  var prompt = opt.edit ? (opt.edit + ". Keep the same style and composition." + AI_NO_TEXT) : (cur.prompt || S.p(tab));
+  var body = { mode: opt.edit && cur.cur ? "edit" : "gen", prompt: prompt, size: S.size, transparent: !!S.transparent };
+  if (body.mode === "edit") body.image = cur.cur;
+  AI.busy[k] = 1; delete AI.err[k]; aiPaintStudio(tab);
+  aiCall(body).then(function (j) {
+    var n = { cur: j.image, prev: cur.cur || null, prompt: cur.prompt || null, use: true, fresh: true, at: Date.now(), model: j.model, how: body.mode === "edit" ? "보정: " + opt.edit : "새로 만듦" };
+    AI.st[k] = n; aiSave(k);
+  }, function (e) { AI.err[k] = String(e.message || e); }).then(function () { delete AI.busy[k]; aiRepaint(tab); });
+}
+/* 카드를 만들 때 비어 있는 자리는 자동으로 하나씩 만든다 */
+function aiAutoFill(tab) {
+  if (!aiAuto() || !AI.cfg || !AI.cfg.ok || !aiTok()) return;
+  Object.keys(AI_SLOTS).forEach(function (slot) {
+    var S = AI_SLOTS[slot]; if (S.tabs && S.tabs.indexOf(tab) < 0) return;
+    var k = aiKey(tab, slot); if (AI.st[k] || AI.busy[k] || AI.err[k] || AI.q.indexOf(k) >= 0) return;
+    AI.q.push(k);
+  });
+  aiPump(tab);
+}
+function aiPump(tab) {
+  while (AI.running < 2 && AI.q.length) {
+    var k = AI.q.shift(), slot = k.split(":")[1]; AI.running++;
+    (function (slot) {
+      var k2 = aiKey(tab, slot), done = function () { AI.running--; aiPump(tab); };
+      var w = setInterval(function () { if (!AI.busy[k2]) { clearInterval(w); done(); } }, 500);
+      aiRun(tab, slot);
+    })(slot);
+  }
+}
+/* 카드에서 쓰는 이미지 — 비교 화면은 IF_OVR 로 잠시 바꿔 끼운다 */
+var IF_OVR = null;
+function aiImgFor(k) {
+  if (IF_OVR && Object.prototype.hasOwnProperty.call(IF_OVR, k)) return IF_OVR[k];
+  var tab = typeof CH !== "undefined" ? CH.tab : "", s = AI.st[aiKey(tab, k)];
+  return s && s.cur && s.use ? s.cur : null;
+}
+function aiRepaint(tab) { if (typeof CH !== "undefined" && CH.tab === tab && typeof paintChannel === "function") paintChannel(); else aiPaintStudio(tab); }
+/* ── 스튜디오(카드 아래) ── */
+function aiThumb(u, label) { return '<div class="ai-th">' + (u ? '<img src="' + u + '">' : '<span>' + label + "</span>") + "</div>"; }
+function aiPaintStudio(tab) {
+  var box = document.getElementById("ai-studio"); if (!box) return;
+  if (tab !== "ripple" && tab !== "ripple2") { box.style.display = "none"; return; }
+  box.style.display = "";
+  var c = AI.cfg, head;
+  if (!aiTok()) head = '<p class="hint">주인 잠금 해제 후 쓸 수 있습니다.</p>';
+  else if (!c) head = '<p class="hint">AI 설정 확인 중…</p>';
+  else if (!c.ok) head = '<p class="hint">AI 이미지 서버가 준비되지 않았습니다 — Vercel 환경변수에 <b>OPENAI_API_KEY</b>(또는 GEMINI_API_KEY)를 넣고 Redeploy 하세요. 그 전에는 앱이 그린 그림을 씁니다.</p>';
+  else head = '<p class="hint">' + escHtml(c.provider + " · " + c.model) + ' · 카드를 만들 때 빈 자리는 자동 생성 · 결과는 이 기기에 저장</p>';
+  var rows = Object.keys(AI_SLOTS).filter(function (s) { var S = AI_SLOTS[s]; return !S.tabs || S.tabs.indexOf(tab) >= 0; }).map(function (slot) {
+    var S = AI_SLOTS[slot], k = aiKey(tab, slot), st = AI.st[k] || {}, busy = AI.busy[k], er = AI.err[k];
+    var badge = busy ? '<em class="ai-b run">만드는 중…</em>' : er ? '<em class="ai-b err">실패</em>' : st.cur ? (st.fresh ? '<em class="ai-b new">새 결과 · 확인해 주세요</em>' : st.use ? '<em class="ai-b on">적용 중</em>' : '<em class="ai-b off">기본 그림 사용 중</em>') : '<em class="ai-b off">아직 없음</em>';
+    return '<div class="ai-row" data-slot="' + slot + '"><div class="ai-nm"><b>' + S.nm + "</b>" + badge + (st.how ? "<small>" + escHtml(st.how) + "</small>" : "") + (er ? '<small class="ai-er">' + escHtml(er) + "</small>" : "") + "</div>" +
+      '<div class="ai-cmp"><div><small>수정 전</small>' + aiThumb(st.prev, "기본 그림") + '</div><i>→</i><div><small>수정 후</small>' + aiThumb(st.cur, busy ? "…" : "없음") + "</div></div>" +
+      '<div class="ai-btns"><button type="button" data-ai="gen">' + (st.cur ? "다시 만들기" : "만들기") + '</button><button type="button" data-ai="edit"' + (st.cur ? "" : " disabled") + '>보정…</button><button type="button" data-ai="card"' + (st.cur ? "" : " disabled") + '>카드로 비교</button>' +
+      (st.cur ? '<button type="button" data-ai="ok">' + (st.fresh ? "확인 · 적용" : st.use ? "기본 그림으로" : "다시 적용") + "</button>" : "") + (st.prev ? '<button type="button" data-ai="undo">수정 전으로</button>' : "") + '<button type="button" data-ai="prompt">프롬프트</button></div></div>';
+  }).join("");
+  box.innerHTML = '<div class="ai-hd"><b>AI 이미지</b><label><input type="checkbox" id="ai-auto"' + (aiAuto() ? " checked" : "") + "> 카드 만들 때 자동 생성</label></div>" + head + rows +
+    '<p class="hint">카드 한 장을 통째로 AI로 다시 그리려면 카드 아래 <b>‘AI로 다시 그리기’</b> — 숫자·글자가 바뀔 수 있어 수정 전/후를 나란히 보여 줍니다.</p>';
+}
+/* ── 비교 창 ── */
+function aiModal(title, before, after, btns) {
+  var m = document.createElement("div"); m.className = "ai-modal";
+  m.innerHTML = '<div class="ai-mbox"><b>' + title + '</b><div class="ai-mcmp"><div><small>수정 전</small>' + before + '</div><div><small>수정 후</small>' + after + '</div></div><div class="ai-mbtns">' + btns + '<button type="button" data-m="close">닫기</button></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener("click", function (ev) { if (ev.target === m || (ev.target.dataset && ev.target.dataset.m === "close")) m.remove(); });
+  return m;
+}
+var AI_SLOT_CARD = { cover: 0, outro: -1, panel: 1, map: 1, lead: 4, mid: 4 };
+function aiCardHtml(tab, idx, ovr) {
+  IF_OVR = ovr; var d; try { d = ifDeckFor(tab); } finally { IF_OVR = null; }
+  var i = idx < 0 ? d.length + idx : idx; return d[i] || "";
+}
+function aiCompareSlot(tab, slot) {
+  var k = aiKey(tab, slot), st = AI.st[k] || {}, o1 = {}, o2 = {}; o1[slot] = st.prev || null; o2[slot] = st.cur || null;
+  var idx = AI_SLOT_CARD[slot], b = aiCardHtml(tab, idx, o1), a = aiCardHtml(tab, idx, o2);
+  var m = aiModal(AI_SLOTS[slot].nm + " — 카드로 비교", '<div class="ai-card">' + b + "</div>", '<div class="ai-card">' + a + "</div>", '<button type="button" data-m="apply">수정 후 적용</button><button type="button" data-m="back">수정 전 사용</button>');
+  if (typeof ifFit === "function") ifFit(m);
+  m.querySelector('[data-m="apply"]').addEventListener("click", function () { st.use = true; st.fresh = false; aiSave(k); m.remove(); aiRepaint(tab); });
+  m.querySelector('[data-m="back"]').addEventListener("click", function () { if (st.prev) { var t = st.cur; st.cur = st.prev; st.prev = t; st.use = true; } else st.use = false; st.fresh = false; aiSave(k); m.remove(); aiRepaint(tab); });
+}
+/* ── 카드 전체 AI(실험) ── */
+function aiCardKey(tab, i) { return aiKey(tab, "card" + i); }
+function aiShot(card) {
+  var host = document.createElement("div"); host.style.cssText = "position:absolute;left:0;top:" + (window.pageYOffset || 0) + "px;z-index:-1;pointer-events:none;width:360px";
+  var clone = card.cloneNode(true); clone.classList.add("chfixed"); host.appendChild(clone); document.body.appendChild(host);
+  return html2canvas(clone, { backgroundColor: "#0a1430", scale: 2.5, useCORS: true, width: 360, height: 450 }).then(function (cv) { host.remove(); return cv.toDataURL("image/jpeg", 0.88); }, function (e) { host.remove(); throw e; });
+}
+function aiCardRun(tab, i, card, edit) {
+  var k = aiCardKey(tab, i), st = AI.st[k] || {};
+  var go = function (src) {
+    var m = aiModal("카드 " + (i + 1) + " — AI로 다시 그리는 중…", '<img class="ai-big" src="' + src + '">', '<div class="ai-wait">만드는 중… (30초~1분)</div>', "");
+    aiCall({ mode: "edit", image: edit && st.cur ? st.cur : src, prompt: edit ? (edit + ". Keep every Korean word and number exactly identical.") : AI_CARD_PROMPT, size: "1024x1536" }).then(function (j) {
+      m.remove();
+      var res = j.image, m2 = aiModal("카드 " + (i + 1) + " — 수정 전 / 수정 후 (숫자·글자를 꼭 확인하세요)", '<img class="ai-big" src="' + src + '">', '<img class="ai-big" src="' + res + '">',
+        '<button type="button" data-m="apply">이 카드에 적용</button><button type="button" data-m="again">다시 만들기</button><button type="button" data-m="fix">보정…</button>');
+      m2.querySelector('[data-m="apply"]').addEventListener("click", function () { AI.st[k] = { cur: res, prev: st.cur || null, src: src, use: true, at: Date.now(), how: edit ? "보정: " + edit : "카드 전체 AI" }; aiSave(k); m2.remove(); aiRepaint(tab); });
+      m2.querySelector('[data-m="again"]').addEventListener("click", function () { m2.remove(); aiCardRun(tab, i, card); });
+      m2.querySelector('[data-m="fix"]').addEventListener("click", function () { var t = prompt("어떻게 고칠까요? (예: 제목 글씨를 더 크게, 배경을 더 밝게)"); if (t) { AI.st[k] = { cur: res, prev: st.cur || null, src: src, use: false, at: Date.now() }; st = AI.st[k]; m2.remove(); aiCardRun(tab, i, card, t); } });
+    }, function (e) { m.querySelector(".ai-wait").textContent = "실패: " + (e.message || e); });
+  };
+  if (st.src && edit) go(st.src); else aiShot(card).then(go, function (e) { alert("카드를 이미지로 만들지 못했습니다: " + e.message); });
+}
+/* 카드 묶음을 그린 뒤: 카드마다 'AI로 다시 그리기' 버튼과 적용된 AI 카드 표시 */
+function aiDecorate(tab) {
+  var wraps = document.querySelectorAll("#ch-cards .chcardWrap"), can = AI.cfg && AI.cfg.ok && aiTok();
+  Array.prototype.forEach.call(wraps, function (w, i) {
+    var k = aiCardKey(tab, i), st = AI.st[k];
+    if (st && st.cur && st.use) {
+      w.classList.add("ai-has"); w.setAttribute("data-aicard", k);
+      var ov = document.createElement("div"); ov.className = "ai-cardov"; ov.innerHTML = '<img src="' + st.cur + '"><em>AI 카드</em>'; w.insertBefore(ov, w.firstChild);
+    }
+    if (can) {
+      var b = document.createElement("button"); b.type = "button"; b.className = "btn sm ghost"; b.textContent = st && st.cur ? "AI 카드 관리" : "AI로 다시 그리기"; b.setAttribute("data-aicardbtn", i); w.appendChild(b);
+    }
+  });
+}
+function aiCardMenu(tab, i, w) {
+  var k = aiCardKey(tab, i), st = AI.st[k], card = w.querySelector(".chcard");
+  if (!st || !st.cur) { aiCardRun(tab, i, card); return; }
+  var m = aiModal("카드 " + (i + 1) + " — 지금 상태", '<img class="ai-big" src="' + (st.src || "") + '">', '<img class="ai-big" src="' + st.cur + '">',
+    '<button type="button" data-m="toggle">' + (st.use ? "원래 카드 쓰기" : "AI 카드 쓰기") + '</button><button type="button" data-m="again">다시 만들기</button><button type="button" data-m="fix">보정…</button>' + (st.prev ? '<button type="button" data-m="undo">이전 AI 카드로</button>' : "") + '<button type="button" data-m="del">AI 카드 지우기</button>');
+  m.querySelector('[data-m="toggle"]').addEventListener("click", function () { st.use = !st.use; aiSave(k); m.remove(); aiRepaint(tab); });
+  m.querySelector('[data-m="again"]').addEventListener("click", function () { m.remove(); st.use = false; aiRepaint(tab); setTimeout(function () { var w2 = document.querySelectorAll("#ch-cards .chcardWrap")[i]; aiCardRun(tab, i, w2.querySelector(".chcard")); }, 300); });
+  m.querySelector('[data-m="fix"]').addEventListener("click", function () { var t = prompt("어떻게 고칠까요?"); if (t) { m.remove(); aiCardRun(tab, i, card, t); } });
+  var u = m.querySelector('[data-m="undo"]'); if (u) u.addEventListener("click", function () { var t = st.cur; st.cur = st.prev; st.prev = t; aiSave(k); m.remove(); aiRepaint(tab); });
+  m.querySelector('[data-m="del"]').addEventListener("click", function () { delete AI.st[k]; aiSave(k); m.remove(); aiRepaint(tab); });
+}
+/* AI 카드를 1080×1350 이미지로 — 비율이 달라도 글자가 잘리지 않게 '맞춤'(남는 곳은 남색) */
+function aiCardPng(u) {
+  return new Promise(function (res, rej) {
+    var im = new Image(); im.onload = function () { var cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1350; var g = cv.getContext("2d"); g.fillStyle = "#0a1430"; g.fillRect(0, 0, 1080, 1350); var s = Math.min(1080 / im.width, 1350 / im.height), w = im.width * s, h = im.height * s; g.drawImage(im, (1080 - w) / 2, (1350 - h) / 2, w, h); res(cv.toDataURL("image/png")); }; im.onerror = rej; im.src = u;
+  });
+}
+function aiAfterPaint(tab) {
+  if (tab !== "ripple" && tab !== "ripple2") { aiPaintStudio(tab); return; }
+  aiDecorate(tab); aiPaintStudio(tab);
+  aiCfg(function () { aiPaintStudio(tab); if (!document.querySelector("[data-aicardbtn]")) aiDecorate2(tab); aiAutoFill(tab); });
+}
+function aiDecorate2(tab) { if (AI.cfg && AI.cfg.ok && aiTok()) { Array.prototype.forEach.call(document.querySelectorAll("#ch-cards .chcardWrap"), function (w, i) { if (w.querySelector("[data-aicardbtn]")) return; var b = document.createElement("button"); b.type = "button"; b.className = "btn sm ghost"; b.textContent = "AI로 다시 그리기"; b.setAttribute("data-aicardbtn", i); w.appendChild(b); }); } }
+/* 버튼 */
+document.addEventListener("change", function (ev) { if (ev.target && ev.target.id === "ai-auto") { try { localStorage.setItem("trackapt_ai_auto", ev.target.checked ? "1" : "0"); } catch (e) {} if (ev.target.checked && typeof CH !== "undefined") aiAutoFill(CH.tab); } });
+document.addEventListener("click", function (ev) {
+  var t = ev.target; if (!t || !t.closest || typeof CH === "undefined") return;
+  var tab = CH.tab, b = t.closest("[data-ai]");
+  if (b) {
+    var slot = b.closest(".ai-row").dataset.slot, k = aiKey(tab, slot), st = AI.st[k] || {}, a = b.dataset.ai;
+    if (a === "gen") aiRun(tab, slot);
+    else if (a === "edit") { var x = prompt("어떻게 고칠까요? (예: 더 밝게, 노을을 더 붉게, 건물을 더 높게)"); if (x) aiRun(tab, slot, { edit: x }); }
+    else if (a === "card") aiCompareSlot(tab, slot);
+    else if (a === "ok") { if (st.fresh) { st.fresh = false; st.use = true; } else st.use = !st.use; aiSave(k); aiRepaint(tab); }
+    else if (a === "undo") { var tmp = st.cur; st.cur = st.prev; st.prev = tmp; st.use = true; st.fresh = false; aiSave(k); aiRepaint(tab); }
+    else if (a === "prompt") { var p = prompt("이 자리를 만들 때 쓰는 프롬프트 (비우면 기본값)", st.prompt || AI_SLOTS[slot].p(tab)); if (p !== null) { st.prompt = p.trim() && p.trim() !== AI_SLOTS[slot].p(tab) ? p.trim() : null; AI.st[k] = st; if (!st.cur) { delete st.use; } aiSave(k); aiPaintStudio(tab); } }
+    return;
+  }
+  var cb = t.closest("[data-aicardbtn]");
+  if (cb) { aiCardMenu(tab, Number(cb.getAttribute("data-aicardbtn")), cb.closest(".chcardWrap")); return; }
+  /* AI 카드가 적용된 카드의 '이미지 저장'은 AI 카드를 내려받는다 */
+  var sv = t.closest("[data-chsave]"), w = sv && sv.closest("[data-aicard]");
+  if (sv && w) {
+    ev.stopImmediatePropagation(); ev.preventDefault();
+    var st2 = AI.st[w.getAttribute("data-aicard")];
+    aiCardPng(st2.cur).then(function (u) { return fetch(u).then(function (r) { return r.blob(); }); }).then(function (bl) { var a2 = document.createElement("a"), href = URL.createObjectURL(bl); a2.download = sv.dataset.chsave + "_AI.png"; a2.href = href; document.body.appendChild(a2); a2.click(); a2.remove(); setTimeout(function () { URL.revokeObjectURL(href); }, 5000); });
+  }
+}, true);
+
+/* ══ v9.13 릴스 대표 카드 — 항목별로 '한 장 정리' + 내 글로 카드 만들기 ══
+   흐름: 원본 데이터(facts) 모으기 → OpenAI 글 설계(/api/ai plan, 숫자는 원문 복사만) → 카드 그리기 → 데이터 vs 카드 한 화면 검증
+   그리기 2가지
+     · 정확 모드(기본): 글자·숫자는 앱이 그대로 그림(틀릴 수 없음) + 배경만 AI 이미지(/api/img)
+     · AI 이미지 모드: 카드 전체를 이미지 모델이 그림 → 이미지에 찍힌 글자를 다시 읽어(/api/ai read) 원본과 대조
+   검증: AI가 쓴 모든 숫자가 facts 원문에 있는지 자동 표시(빨강 = 원문에 없음). 최종 확인은 주인이 한다. */
+var RC = { cfg: null, cur: null, hist: [] };
+function rcTok() { try { return localStorage.getItem(OWNER_LS) || ""; } catch (e) { return ""; } }
+function rcPost(url, body) {
+  body.t = rcTok();
+  return fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+    .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.ok) throw new Error((j && j.error) || ("응답 " + r.status)); return j; }, function () { throw new Error("응답 " + r.status + (r.status === 504 ? " (시간 초과 — 다시 시도)" : "")); }); });
+}
+function rcClean(h) { var d = document.createElement("div"); d.innerHTML = String(h || "").replace(/<br\s*\/?>/gi, " "); return (d.textContent || "").replace(/\s+/g, " ").trim(); }
+/* ── 1) 원본 데이터 모으기: 카드 객체(q·a·body·date·src) → 한 줄짜리 사실 목록 ── */
+function rcFactsFromCards(cards, max) {
+  var F = [], seen = {}, n = 0;
+  function add(t) { t = rcClean(t); if (!t || t.length < 2 || seen[t]) return; seen[t] = 1; F.push({ id: "F" + (++n), text: t.slice(0, 300) }); }
+  (cards || []).forEach(function (o) {
+    if (!o || F.length >= (max || 60)) return;
+    var tag = rcClean(o.tag).replace(/\s\d+\/\d+$/, "");
+    add(tag + " — " + rcClean(o.q)); if (o.a) add(tag + " · " + rcClean(o.a));
+    var d = document.createElement("div"); d.innerHTML = o.body || ""; var k = 0;
+    Array.prototype.forEach.call(d.querySelectorAll(".chc-row"), function (r) {
+      if (k++ >= 12) return;
+      if (r.classList.contains("chc-grp")) { var h = r.querySelector(".chc-gh"); var subs = Array.prototype.map.call(r.querySelectorAll(".chc-sr"), function (x) { return Array.prototype.map.call(x.children, function (c) { return rcClean(c.innerHTML); }).filter(Boolean).join(" "); }).join(" / "); add(tag + " · " + rcClean(h ? h.innerHTML : "") + " : " + subs); return; }
+      var b = r.querySelector("b"), s = r.querySelector("small"), v = r.querySelector(":scope > span");
+      add(tag + " · " + [b && rcClean(b.innerHTML), s && rcClean(s.innerHTML), v && rcClean(v.innerHTML)].filter(Boolean).join(" — "));
+    });
+    Array.prototype.forEach.call(d.querySelectorAll(".chc-tr:not(.h)"), function (r) { if (k++ >= 14) return; add(tag + " · " + Array.prototype.map.call(r.children, function (c) { return rcClean(c.innerHTML); }).join(" | ")); });
+    var hd = d.querySelector(".chc-tr.h"); if (hd) add(tag + " 표 머리: " + Array.prototype.map.call(hd.children, function (c) { return rcClean(c.innerHTML); }).join(" | "));
+    Array.prototype.forEach.call(d.querySelectorAll(".chc-bi"), function (r) { if (k++ >= 10) return; add(tag + " · " + rcClean(r.innerHTML)); });
+    Array.prototype.forEach.call(d.querySelectorAll(".chc-kpis>div"), function (r) { add(tag + " · " + rcClean(r.innerHTML)); });
+    if (o.date) add(tag + " 기준: " + rcClean(o.date) + (o.src ? " · 출처: " + rcClean(o.src) : ""));
+  });
+  return F;
+}
+function rcBriefCards(sec) {
+  if (typeof bfLiveCardList !== "function" || !BRIEF.last) return [];
+  var keep = bfSelected; bfSelected = function () { return [sec]; };
+  try { return bfLiveCardList({}).map(function (c) { return c[1]; }); } catch (e) { return []; } finally { bfSelected = keep; }
+}
+function rcChannelCards(tab) {
+  if (typeof chCardsFor !== "function") return [];
+  var keepCap = CH.cap; CH.cap = [];
+  try { chCardsFor(tab); return CH.cap.slice(); } catch (e) { return []; } finally { CH.cap = keepCap; }
+}
+function rcFactsFromText(txt) {
+  var lines = String(txt || "").split(/\n+/).map(function (s) { return s.trim(); }).filter(Boolean), F = [];
+  lines.forEach(function (l) { (l.length > 220 ? l.split(/(?<=[.!?다요])\s+/) : [l]).forEach(function (p) { p = p.trim(); if (p) F.push({ id: "F" + (F.length + 1), text: p.slice(0, 300) }); }); });
+  return F.slice(0, 60);
+}
+/* ── 2) 숫자 검증 — AI가 쓴 숫자가 facts 원문에 있나 ── */
+function rcNorm(s) { return String(s || "").replace(/[−–]/g, "-").replace(/,/g, "").replace(/\s+/g, ""); }
+function rcNumTokens(s) { return (rcNorm(s).match(/-?\d+(\.\d+)?/g) || []).filter(function (x) { return x.replace("-", "").length > 0; }); }
+function rcFactNums(F) { var set = {}; F.forEach(function (f) { rcNumTokens(f.text).forEach(function (x) { set[x] = 1; set[x.replace(/^-/, "")] = 1; }); }); return set; }
+function rcCheckText(s, set) {
+  var bad = []; rcNumTokens(s).forEach(function (x) { var y = x.replace(/^-/, ""); if (!set[x] && !set[y]) bad.push(x); }); return bad;
+}
+function rcMark(s, set) {
+  var e = escHtml(s); return e.replace(/[−\-]?\d[\d,]*(\.\d+)?/g, function (m) { var x = rcNorm(m), y = x.replace(/^-/, ""); return set[x] || set[y] ? '<u class="rc-ok">' + m + "</u>" : '<u class="rc-bad">' + m + "</u>"; });
+}
+/* ── 3) 카드 그리기(정확 모드) — 360×640 (저장 1080×1920) ── */
+function rcFit(el) {
+  Array.prototype.forEach.call(el.querySelectorAll("[data-fit]"), function (x) {
+    var max = Number(x.dataset.fit), fs = parseFloat(getComputedStyle(x).fontSize); x.style.fontSize = "";
+    fs = parseFloat(getComputedStyle(x).fontSize);
+    var lim = Number(x.dataset.lines || 1), lh = fs * 1.18, k = 1;
+    while (k > 0.6 && (x.scrollWidth > x.clientWidth + 1 || x.scrollHeight > lh * k * lim + 4)) { k -= 0.04; x.style.fontSize = (fs * k).toFixed(1) + "px"; }
+  });
+}
+function rcCardHtml(P, bg, basis) {
+  var pts = (P.points || []).slice(0, 5), lay = P.layout || "rank", col = ["#ff4d5e", "#ffa62b", "#22c55e", "#3b8bff", "#a76bff"], body;
+  if (lay === "stat" && pts.length <= 4) body = '<div class="rc-stat">' + pts.map(function (p, i) { return '<div style="--c:' + col[i] + '"><span data-fit="1">' + escHtml(p.label) + '</span><b data-fit="1">' + escHtml(p.value) + "</b><small>" + escHtml(p.note) + "</small></div>"; }).join("") + "</div>";
+  else if (lay === "steps") body = '<div class="rc-steps">' + pts.map(function (p, i) { return '<div style="--c:' + col[i] + '"><i>' + (i + 1) + '</i><div><b data-fit="1">' + escHtml(p.label) + '</b><small>' + escHtml(p.note) + '</small></div><em data-fit="1">' + escHtml(p.value) + "</em></div>" + (i < pts.length - 1 ? '<span class="rc-arr">▼</span>' : ""); }).join("") + "</div>";
+  else if (lay === "checklist") body = '<div class="rc-check">' + pts.map(function (p) { return '<div><i>✓</i><div><b data-fit="1">' + escHtml(p.label) + " <em>" + escHtml(p.value) + "</em></b><small>" + escHtml(p.note) + "</small></div></div>"; }).join("") + "</div>";
+  else body = '<div class="rc-rank">' + pts.map(function (p, i) { return '<div style="--c:' + col[i] + '"><i>' + (i + 1) + '</i><div><b data-fit="1">' + escHtml(p.label) + "</b><small>" + escHtml(p.note) + '</small></div><em data-fit="1">' + escHtml(p.value) + "</em></div>"; }).join("") + "</div>";
+  return '<div class="chcard chc-info chc-reel">' + (bg ? '<div class="if-photo" style="background-image:url(' + bg + ')"></div><div class="rc-shade"></div>' : (typeof ifSky === "function" ? ifSky(17) : "")) +
+    '<div class="rc-in"><span class="rc-kick">' + escHtml(P.kicker) + '</span><h2 data-fit="1" data-lines="2">' + escHtml(P.hook) + '</h2><p class="rc-sub">' + escHtml(P.sub) + "</p>" + body +
+    '<div class="rc-cta"><b>' + escHtml(P.cta) + '</b><span>프로필 링크 · 게시판에서 전체 보기 ›</span></div><div class="rc-foot"><span>' + escHtml(basis || "") + " · 투자 권유 아님</span><b>@uphill.lab</b></div></div></div>";
+}
+/* AI 이미지 모드 프롬프트 — 넣을 글자를 그대로 못박는다 */
+function rcImgPrompt(P) {
+  var L = ["Design a premium vertical 9:16 Korean social-media infographic card for a real-estate channel. Deep navy-to-violet glossy 3D style, glass panels, soft glow, high readability, large bold Korean typography.",
+    "Render ONLY the following Korean texts, each EXACTLY as written (same digits, symbols and units). Do not add any other text or numbers.",
+    "Top small tag: 「" + P.kicker + "」", "Big headline: 「" + P.hook + "」", "Subtitle: 「" + P.sub + "」"];
+  (P.points || []).forEach(function (p, i) { L.push("Item " + (i + 1) + ": 「" + p.label + "」 value 「" + p.value + "」 small note 「" + p.note + "」"); });
+  L.push("Bottom call-to-action bar: 「" + P.cta + "」", "Small brand at bottom right: 「@uphill.lab」", "Background scene: " + (P.visual || "Seoul skyline at night"));
+  return L.join("\n");
+}
+/* ── 4) 스튜디오 화면 — 왼쪽 원본 데이터 · 가운데 카드 · 오른쪽 검증 ── */
+function rcOpen(src) {
+  /* src = { topic, facts, basis, purpose, key, host? } */
+  RC.cur = { src: src, plan: null, bg: null, img: null, read: null, mode: (function () { try { return localStorage.getItem("trackapt_rc_mode") || "exact"; } catch (e) { return "exact"; } })(), busy: "", err: "" };
+  var host = src.host;
+  if (!host) { host = document.createElement("div"); host.className = "rc-modal"; document.body.appendChild(host); host.addEventListener("click", function (ev) { if (ev.target === host) host.remove(); }); }
+  RC.host = host; rcPaint();
+  if (src.auto !== false) rcMake();
+}
+function rcPaint() {
+  var c = RC.cur, h = RC.host; if (!c || !h) return;
+  var set = rcFactNums(c.src.facts), P = c.plan, used = {};
+  if (P) (P.points || []).forEach(function (p) { used[p.fact] = 1; });
+  var factsHtml = c.src.facts.map(function (f) { return '<div class="rc-f' + (used[f.id] ? " on" : "") + '"><i>' + f.id + "</i><span>" + escHtml(f.text) + "</span></div>"; }).join("");
+  var card = "", checks = "", allBad = 0;
+  if (P) {
+    var fields = [["kicker", "말머리"], ["hook", "제목"], ["sub", "부제"], ["cta", "유도 문구"]];
+    checks = fields.map(function (f) { var bad = rcCheckText(P[f[0]], set); allBad += bad.length; return '<div class="rc-ck' + (bad.length ? " bad" : "") + '"><label>' + f[1] + '</label><input data-rcf="' + f[0] + '" value="' + escHtml(P[f[0]]) + '"><small>' + (bad.length ? "원문에 없는 숫자: " + bad.join(", ") : "숫자 확인됨") + "</small></div>"; }).join("") +
+      (P.points || []).map(function (p, i) {
+        var fx = c.src.facts.filter(function (f) { return f.id === p.fact; })[0], own = fx ? rcFactNums([fx]) : {};
+        /* 값(value)의 숫자는 '근거로 댄 그 줄'에 있어야 한다 — 다른 줄 숫자를 끌어와도 빨강 */
+        var bad = rcCheckText(p.value, own).concat(rcCheckText(p.note + " " + p.label, set)); if (!fx) bad.push("근거 없음"); allBad += bad.length;
+        return '<div class="rc-ck pt' + (bad.length ? " bad" : "") + '"><label>' + (i + 1) + ". 항목 · 근거 " + escHtml(p.fact) + '</label><div class="rc-3"><input data-rcp="' + i + ':label" value="' + escHtml(p.label) + '"><input data-rcp="' + i + ':value" value="' + escHtml(p.value) + '"><input data-rcp="' + i + ':note" value="' + escHtml(p.note) + '"></div>' +
+          '<small class="rc-src">원본: ' + (fx ? rcMark(fx.text, set) : '<b class="rc-badt">근거 id 없음</b>') + "</small>" + (bad.length ? '<small class="rc-badt">근거 줄과 다른 숫자: ' + bad.join(", ") + "</small>" : '<small>값이 근거 줄과 일치</small>') + "</div>";
+      }).join("");
+    if (c.mode === "ai" && c.img) {
+      card = '<img class="rc-aiimg" src="' + c.img + '">';
+      if (c.read) {
+        var readTxt = rcNorm(c.read.join(" ")), exp = [], miss = [];
+        [P.kicker, P.hook, P.sub, P.cta].concat((P.points || []).map(function (p) { return p.value + " " + p.note; })).forEach(function (s) { rcNumTokens(s).forEach(function (x) { exp.push(x); if (readTxt.indexOf(x.replace(/^-/, "")) < 0) miss.push(x); }); });
+        checks = '<div class="rc-read' + (miss.length ? " bad" : "") + '"><b>이미지에서 읽은 글자로 대조</b><p>' + (miss.length ? "이미지에 없거나 다르게 찍힌 숫자: <u class=\"rc-bad\">" + miss.join(", ") + "</u>" : "기대한 숫자 " + exp.length + "개가 모두 이미지에 있습니다") + '</p><details><summary>읽은 글자 전체</summary><pre>' + escHtml(c.read.join("\n")) + "</pre></details></div>" + checks;
+        allBad += miss.length;
+      }
+    } else card = rcCardHtml(P, c.bg, c.src.basis);
+  }
+  h.innerHTML = '<div class="rc-box"><div class="rc-hd"><b>대표 카드 · ' + escHtml(c.src.topic) + '</b><div class="rc-mode"><button data-rcmode="exact" class="' + (c.mode === "exact" ? "on" : "") + '">정확 모드(추천)</button><button data-rcmode="ai" class="' + (c.mode === "ai" ? "on" : "") + '">AI 이미지 모드</button></div>' + (c.src.host ? "" : '<button data-rc="close">닫기</button>') + "</div>" +
+    '<div class="rc-bar"><input id="rc-note" placeholder="추가 요청 (예: 대출 받는 사람 관점으로, 제목에 질문형)" value="' + escHtml(c.note || "") + '"><button data-rc="make">' + (P ? "새로 기획" : "만들기") + "</button>" + (P ? '<button data-rc="bg">' + (c.mode === "ai" ? "이미지 다시" : "배경 다시") + '</button><button data-rc="save">카드 저장(1080×1920)</button>' : "") + "</div>" +
+    (c.busy ? '<p class="rc-busy">' + escHtml(c.busy) + "</p>" : "") + (c.err ? '<p class="rc-err">' + escHtml(c.err) + "</p>" : "") +
+    (P ? '<div class="rc-sum ' + (allBad ? "bad" : "ok") + '">' + (allBad ? "확인 필요: 원문과 다른 숫자 " + allBad + "곳 (빨강)" : "AI가 쓴 숫자는 모두 원본 데이터에 있습니다 — 그래도 최종 확인은 직접 해 주세요") + "</div>" : "") +
+    '<div class="rc-grid"><div class="rc-col"><h4>원본 데이터 <small>' + c.src.facts.length + "개 · 금색 = 카드에 쓰인 근거</small></h4>" + factsHtml + '</div><div class="rc-col mid"><h4>카드</h4><div class="rc-cardwrap">' + (card || '<p class="hint">만들기를 누르면 OpenAI가 한 장으로 설계합니다.</p>') + '</div></div><div class="rc-col"><h4>검증 · 고치기 <small>칸을 고치면 바로 다시 그림</small></h4>' + (checks || "") + "</div></div></div>";
+  var cw = h.querySelector(".rc-cardwrap .chc-reel"); if (cw) rcFit(cw);
+}
+function rcMake() {
+  var c = RC.cur; c.busy = "OpenAI가 한 장으로 설계하는 중…"; c.err = ""; rcPaint();
+  rcPost("/api/ai", { mode: "plan", facts: c.src.facts, topic: c.src.topic, purpose: c.src.purpose || "릴스 한 장으로 핵심을 보여 주고 게시판 상세 카드로 유입", note: c.note || "" }).then(function (j) {
+    c.plan = j.plan; c.model = j.model; c.busy = ""; rcPaint(); rcArt();
+  }, function (e) { c.busy = ""; c.err = "설계 실패: " + (e.message || e); rcPaint(); });
+}
+function rcArt() {
+  var c = RC.cur, P = c.plan; if (!P) return;
+  if (c.mode === "ai") {
+    c.busy = "AI가 카드 전체를 그리는 중… (30초~1분)"; c.img = null; c.read = null; rcPaint();
+    rcPost("/api/img", { mode: "gen", prompt: rcImgPrompt(P), size: "1024x1536" }).then(function (j) {
+      c.img = j.image; c.busy = "이미지에 찍힌 글자를 읽어 원본과 대조하는 중…"; rcPaint();
+      return rcPost("/api/ai", { mode: "read", image: j.image }).then(function (r) { c.read = r.texts; });
+    }).then(function () { c.busy = ""; rcPaint(); rcStore(); }, function (e) { c.busy = ""; c.err = "실패: " + (e.message || e); rcPaint(); });
+  } else {
+    c.busy = "배경 이미지 만드는 중…"; rcPaint();
+    rcPost("/api/img", { mode: "gen", prompt: (P.visual || "Seoul skyline at night") + ". Cinematic, dark navy tones, soft city lights, lots of dark empty space for text, vertical." + (typeof AI_NO_TEXT !== "undefined" ? AI_NO_TEXT : " No text."), size: "1024x1536" })
+      .then(function (j) { c.bg = j.image; }, function (e) { c.err = "배경 실패(그림 배경으로 대신): " + (e.message || e); })
+      .then(function () { c.busy = ""; rcPaint(); rcStore(); });
+  }
+}
+function rcStore() {
+  var c = RC.cur; if (!c || !c.plan || typeof aiDb !== "function") return;
+  var k = "rc:" + (c.id || (c.id = Date.now())), v = { topic: c.src.topic, facts: c.src.facts, basis: c.src.basis, plan: c.plan, bg: c.bg, img: c.img, read: c.read, mode: c.mode, at: Date.now() };
+  aiDb(function (db) { if (!db) return; try { db.transaction("img", "readwrite").objectStore("img").put(v, k); } catch (e) {} });
+}
+function rcSave() {
+  var c = RC.cur, nm = "릴스_" + c.src.topic.replace(/[\\/:*?"<>|\s]+/g, "_");
+  function dl(u) { fetch(u).then(function (r) { return r.blob(); }).then(function (b) { var a = document.createElement("a"), href = URL.createObjectURL(b); a.download = nm + ".png"; a.href = href; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(href); }, 5000); }); }
+  if (c.mode === "ai" && c.img) {
+    var im = new Image(); im.onload = function () { var cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1920; var g = cv.getContext("2d"); g.fillStyle = "#0a1430"; g.fillRect(0, 0, 1080, 1920); var s = Math.min(1080 / im.width, 1920 / im.height), w = im.width * s, h = im.height * s; g.drawImage(im, (1080 - w) / 2, (1920 - h) / 2, w, h); dl(cv.toDataURL("image/png")); }; im.src = c.img; return;
+  }
+  var card = RC.host.querySelector(".chc-reel"); if (!card) return;
+  var host = document.createElement("div"); host.style.cssText = "position:absolute;left:0;top:" + (window.pageYOffset || 0) + "px;z-index:-1;width:360px";
+  var cl = card.cloneNode(true); host.appendChild(cl); document.body.appendChild(host);
+  html2canvas(cl, { backgroundColor: "#0a1430", scale: 3, useCORS: true, width: 360, height: 640 }).then(function (cv) { host.remove(); dl(cv.toDataURL("image/png")); }, function () { host.remove(); });
+}
+document.addEventListener("click", function (ev) {
+  var t = ev.target; if (!t || !t.closest || !RC.cur || !RC.host || !RC.host.contains(t)) return;
+  var b = t.closest("[data-rc]"), m = t.closest("[data-rcmode]");
+  if (m) { RC.cur.mode = m.dataset.rcmode; try { localStorage.setItem("trackapt_rc_mode", RC.cur.mode); } catch (e) {} rcPaint(); if (RC.cur.plan && (RC.cur.mode === "ai" ? !RC.cur.img : !RC.cur.bg)) rcArt(); return; }
+  if (!b) return;
+  var a = b.dataset.rc;
+  if (a === "close") { RC.host.remove(); RC.host = null; }
+  else if (a === "make") { var n = RC.host.querySelector("#rc-note"); RC.cur.note = n ? n.value : ""; rcMake(); }
+  else if (a === "bg") rcArt();
+  else if (a === "save") rcSave();
+});
+document.addEventListener("change", function (ev) {
+  var t = ev.target; if (!RC.cur || !RC.cur.plan || !RC.host || !RC.host.contains(t)) return;
+  if (t.dataset.rcf) { RC.cur.plan[t.dataset.rcf] = t.value; rcPaint(); rcStore(); }
+  else if (t.dataset.rcp) { var q = t.dataset.rcp.split(":"); RC.cur.plan.points[Number(q[0])][q[1]] = t.value; rcPaint(); rcStore(); }
+});
+/* ── 5) 입구: 지금 시장 · 채널 브리핑 ── */
+function rcFromBrief(sec) {
+  var nm = (BF_SECS.filter(function (x) { return x[0] === sec; })[0] || [sec, sec])[1], L = BRIEF.last || {};
+  var cards = rcBriefCards(sec); if (!cards.length) { alert("이 항목에 카드로 만들 자료가 없습니다."); return; }
+  rcOpen({ topic: (L.scopeNm || "") + " " + nm, facts: rcFactsFromCards(cards), basis: "국토부 실거래 · " + (cards[0].date || ""), purpose: "지금 시장 '" + nm + "' 상세 카드(게시판)로 유입" });
+}
+function rcFromChannel(tab) {
+  var cards = rcChannelCards(tab); if (!cards.length) { alert("이 코너에 카드로 만들 자료가 없습니다."); return; }
+  var nm = typeof chTabName === "function" ? chTabName(tab) : tab;
+  rcOpen({ topic: nm, facts: rcFactsFromCards(cards), basis: cards[0].date ? "기준 " + rcClean(cards[0].date) : "", purpose: "채널 브리핑 '" + nm + "' 상세 카드(게시판)로 유입" });
+}
+function rcBriefBar() {
+  var mk = document.querySelector(".bfmk"); if (!mk || document.getElementById("rc-bfbar")) return;
+  var d = document.createElement("div"); d.id = "rc-bfbar"; d.className = "rc-entry";
+  d.innerHTML = '<b>릴스 대표 카드</b><span class="hint">항목 하나를 한 장으로 정리 → 게시판으로 유입 · 데이터와 나란히 검증</span><div class="chbtns"><select id="rc-bfsec">' + BF_SECS.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + "</option>"; }).join("") + '</select><button type="button" class="btn sm" id="rc-bfgo">대표 카드 만들기</button></div>';
+  mk.parentNode.insertBefore(d, mk.nextSibling);
+  d.querySelector("#rc-bfgo").addEventListener("click", function () { rcFromBrief(d.querySelector("#rc-bfsec").value); });
+}
+function rcChannelBar() {
+  var cards = document.getElementById("ch-cards"); if (!cards) return;
+  var bar = document.getElementById("rc-chbar");
+  if (!bar) { bar = document.createElement("div"); bar.id = "rc-chbar"; bar.className = "rc-entry"; cards.parentNode.insertBefore(bar, cards); }
+  bar.innerHTML = '<b>릴스 대표 카드</b><span class="hint">이 코너를 한 장으로 정리해 게시판으로 유입</span><div class="chbtns"><button type="button" class="btn sm" id="rc-chgo">‘' + escHtml(typeof chTabName === "function" ? chTabName(CH.tab) : CH.tab) + "’ 대표 카드 만들기</button></div>";
+  bar.querySelector("#rc-chgo").addEventListener("click", function () { rcFromChannel(CH.tab); });
+}
+/* ── 6) 별도 페이지: 내 글로 카드 만들기 (#reel) ── */
+function buildReel(sec) {
+  sec.innerHTML = '<div class="card"><h2>릴스 카드 만들기</h2><p class="hint">인스타 글, 정책 정리(예: 디딤돌대출), 유튜브·책에서 좋았던 내용을 붙여 넣으면 OpenAI가 한 장으로 정리합니다. 숫자·날짜는 넣은 글에 있는 것만 씁니다.</p>' +
+    '<div class="grid"><div class="field"><label>주제(카드 위 말머리)</label><input id="rl-topic" placeholder="예: 2026 디딤돌대출 금리"></div><div class="field"><label>목적</label><select id="rl-purpose"><option>릴스 한 장으로 핵심 + 게시판 유입</option><option>저장하고 싶은 꿀팁 정리</option><option>체크리스트(해야 할 일)</option><option>비교표(A vs B)</option></select></div></div>' +
+    '<div class="field"><label>내용</label><textarea id="rl-text" rows="10" placeholder="여기에 내용을 붙여 넣으세요"></textarea></div><div class="chbtns"><button type="button" class="btn" id="rl-go">한 장으로 만들기</button><span class="hint" id="rl-msg"></span></div></div>' +
+    '<div class="card" id="rl-studio" style="display:none"></div><div class="card"><h3>최근 만든 카드</h3><div id="rl-hist" class="rl-hist"><p class="hint">아직 없습니다.</p></div></div>';
+  sec.querySelector("#rl-go").addEventListener("click", function () {
+    var txt = sec.querySelector("#rl-text").value.trim(), msg = sec.querySelector("#rl-msg");
+    if (txt.length < 20) { msg.textContent = "내용을 조금 더 넣어 주세요."; return; }
+    var st = sec.querySelector("#rl-studio"); st.style.display = "";
+    rcOpen({ topic: sec.querySelector("#rl-topic").value.trim() || "내 메모", facts: rcFactsFromText(txt), basis: "입력한 내용 정리", purpose: sec.querySelector("#rl-purpose").value, host: st });
+    st.scrollIntoView({ behavior: "smooth" });
+  });
+}
+function renderReel() {
+  var box = document.getElementById("rl-hist"); if (!box || typeof aiDb !== "function") return;
+  aiDb(function (db) {
+    if (!db) return; var out = [];
+    try { var rq = db.transaction("img", "readonly").objectStore("img").openCursor(); rq.onsuccess = function () { var c = rq.result; if (c) { if (/^rc:/.test(c.key)) out.push([c.key, c.value]); c["continue"](); } else show(); }; } catch (e) {}
+    function show() {
+      out.sort(function (a, b) { return b[1].at - a[1].at; }); out = out.slice(0, 12);
+      box.innerHTML = out.length ? out.map(function (x) { var v = x[1]; return '<button type="button" data-rlk="' + x[0] + '"><b>' + escHtml(v.plan && v.plan.hook || v.topic) + "</b><small>" + escHtml(v.topic) + " · " + new Date(v.at).toLocaleDateString() + "</small></button>"; }).join("") : '<p class="hint">아직 없습니다.</p>';
+      Array.prototype.forEach.call(box.querySelectorAll("[data-rlk]"), function (b) { b.addEventListener("click", function () {
+        var v = out.filter(function (x) { return x[0] === b.dataset.rlk; })[0][1], st = document.getElementById("rl-studio"); st.style.display = "";
+        rcOpen({ topic: v.topic, facts: v.facts, basis: v.basis, host: st, auto: false }); RC.cur.plan = v.plan; RC.cur.bg = v.bg; RC.cur.img = v.img; RC.cur.read = v.read; RC.cur.mode = v.mode || "exact"; RC.cur.id = Number(b.dataset.rlk.slice(3)); rcPaint(); st.scrollIntoView({ behavior: "smooth" });
+      }); });
+    }
+  });
+}
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

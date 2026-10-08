@@ -1840,6 +1840,34 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .rl-intro .desc{margin-bottom:0}
 @media(max-width:1000px){.rc-grid{display:flex!important;flex-direction:column}.rc-col.mid{order:-1}.rc-col:not(.mid){max-height:46vh}}
 .rc-cardwrap{width:100%}.rc-wait{width:100%!important;max-width:360px}@media(max-width:600px){.rc-wait{height:240px}}
+/* v9.18 릴스 카드 화면 — 결과·검증을 넓게 (본문 860px 밖으로) + 좁을 때 자동 배치 */
+@media(min-width:1000px){
+  #tab-reel .rl-host{width:min(1280px,calc(100vw - 48px));position:relative;left:50%;transform:translateX(-50%);box-sizing:border-box}
+}
+.rc-result{container-type:inline-size}
+.rc-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px minmax(0,1.15fr)}
+/* 결과 칸이 좁으면: 카드 | 검증 2열, 재료는 아래 전체 폭 */
+@container (max-width:1050px){
+  .rc-grid{grid-template-columns:380px minmax(0,1fr)!important;display:grid!important}
+  .rc-grid .rc-col.mid{order:-1;grid-column:1}
+  .rc-grid .rc-col:last-child{grid-column:2;max-height:none}
+  .rc-grid .rc-col:first-child{grid-column:1/-1;order:2;max-height:44vh}
+}
+@container (max-width:680px){
+  .rc-grid{display:flex!important;flex-direction:column}
+  .rc-grid .rc-col.mid{order:-1}
+  .rc-grid .rc-col:last-child{order:0}
+  .rc-grid .rc-col:first-child{order:1}
+}
+/* 검증 칸: 항목·값·설명을 세로로(잘림 없이) */
+.rc-ck .rc-3{grid-template-columns:1fr}
+.rc-ck .rc-3 input{font-size:.85rem}
+.rc-ck .rc-3 input[data-rcp$=":value"]{font-weight:800}
+.rc-ck input{text-overflow:clip}
+.rc-in3{display:grid;grid-template-columns:34px 1fr;align-items:center;gap:6px;margin:0}
+.rc-in3 span{font-size:.72rem;font-weight:800;color:var(--sub)}
+.rc-ck .rc-3{display:grid;gap:4px}
+.rc-ck label.rc-in3{display:grid;grid-template-columns:34px 1fr;margin:0}
 </style>
 </head>
 <body>
@@ -1847,7 +1875,7 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.17</span>
+    <span class="ver">v9.18</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -6426,7 +6454,7 @@ function rcPost(url, body) {
   return fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
     .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.ok) throw new Error((j && j.error) || ("응답 " + r.status)); return j; }, function () { throw new Error("응답 " + r.status + (r.status === 504 ? " (시간 초과 — 다시 시도)" : "")); }); });
 }
-function rcClean(h) { var d = document.createElement("textarea"); d.innerHTML = String(h || "").replace(/<\/(b|small|span|em|i|div|p|u|strong)>/gi, "</$1> ").replace(/<[^>]+>/g, " "); return (d.value || "").replace(/\s+([·,)])/g, "$1").replace(/\s+/g, " ").trim(); }
+function rcClean(h) { var d = document.createElement("textarea"); d.innerHTML = String(h || "").replace(/<\/(b|small|span|em|i|div|p|u|strong)>/gi, "</$1> ").replace(/<[^>]+>/g, " "); return (d.value || "").replace(/\s+([,)])/g, "$1").replace(/\s+/g, " ").trim(); }
 /* ── 1) 원본 데이터 모으기: 카드 객체(q·a·body·date·src) → 한 줄짜리 사실 목록 ── */
 function rcFactsFromCards(cards, max) {
   var F = [], seen = {}, n = 0;
@@ -6557,7 +6585,7 @@ function rcPaint() {
       (P.points || []).map(function (p, i) {
         var fx = F.filter(function (f) { return f.id === p.fact; })[0], own = fx ? rcFactNums([fx]) : {};
         var bad = rcCheckText(p.value, own).concat(rcCheckText(p.note + " " + p.label, set)); if (!fx) bad.push("근거 없음"); allBad += bad.length;
-        return '<div class="rc-ck pt' + (bad.length ? " bad" : "") + '"><label>항목 ' + (i + 1) + " · 근거 " + escHtml(p.fact) + (bad.length ? ' <b class="rc-badt">· 다른 숫자 ' + bad.join(", ") + "</b>" : ' <b class="rc-okt">· 일치</b>') + '</label><div class="rc-3"><input data-rcp="' + i + ':label" value="' + escHtml(p.label) + '" title="항목"><input data-rcp="' + i + ':value" value="' + escHtml(p.value) + '" title="값"><input data-rcp="' + i + ':note" value="' + escHtml(p.note) + '" title="보조 설명"></div>' +
+        return '<div class="rc-ck pt' + (bad.length ? " bad" : "") + '"><label>항목 ' + (i + 1) + " · 근거 " + escHtml(p.fact) + (bad.length ? ' <b class="rc-badt">· 다른 숫자 ' + bad.join(", ") + "</b>" : ' <b class="rc-okt">· 일치</b>') + '</label><div class="rc-3"><label class="rc-in3"><span>항목</span><input data-rcp="' + i + ':label" value="' + escHtml(p.label) + '"></label><label class="rc-in3"><span>값</span><input data-rcp="' + i + ':value" value="' + escHtml(p.value) + '"></label><label class="rc-in3"><span>설명</span><input data-rcp="' + i + ':note" value="' + escHtml(p.note) + '"></label></div>' +
           '<small class="rc-src">' + (fx ? rcMark(fx.text, set) : '<b class="rc-badt">근거 id 없음</b>') + "</small></div>";
       }).join("");
     if (c.mode === "ai" && c.img) {

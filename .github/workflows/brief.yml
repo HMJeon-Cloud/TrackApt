@@ -39,6 +39,13 @@ jobs:
           KOSIS_KEY: ${{ secrets.KOSIS_KEY }}   # 통계청 KOSIS Open API 키
           INBOX_NOTE: ${{ runner.temp }}/trackapt_inbox_new.md
         run: node scripts/macro_build.js
+      - name: 오늘 한 장 보조 지표 (미분양·가격지수·청약) 만들기
+        if: always()
+        env:
+          KOSIS_KEY: ${{ secrets.KOSIS_KEY }}         # 통계청 KOSIS (미분양·부동산원 월간 지수)
+          RONE_KEY: ${{ secrets.RONE_KEY }}           # 선택: 한국부동산원 R-ONE Open API (주간 지수)
+          DATA_GO_KEY: ${{ secrets.DATA_GO_KEY }}     # 선택: 공공데이터포털 청약홈 분양정보 API
+        run: node scripts/daily_build.js
       - name: 학군 공시 엑셀(.xls) → CSV (학교알리미 학교별 다운로드 파일)
         if: always()
         run: |
@@ -67,7 +74,7 @@ jobs:
         run: |
           git config user.name "trackapt-bot"
           git config user.email "trackapt-bot@users.noreply.github.com"
-          for f in brief_data.json macro_data.json market_core.json data/highs data/brief_hist.json data/macro_codes.json data/macro_debug.json data/monthly data/market_core_base.json data/manual/_inbox.json school_data.json data/seen.json data/validate.json; do [ -e "$f" ] && git add "$f"; done
+          for f in brief_data.json macro_data.json market_core.json data/highs data/brief_hist.json data/macro_codes.json data/macro_debug.json data/monthly data/market_core_base.json data/manual/_inbox.json school_data.json data/seen.json data/validate.json daily_data.json data/daily_codes.json data/daily_debug.json; do [ -e "$f" ] && git add "$f"; done
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -m "brief: $(date -u -d '+9 hours' '+%Y-%m-%d %H:%M') KST 자동 갱신"
           # 수집하는 5~15분 사이에 다른 커밋(파일 업로드 등)이 올라왔으면 그 위에 얹어서 올린다

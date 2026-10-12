@@ -1936,6 +1936,17 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .sb-kinds{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:8px}.sb-kinds small{color:var(--muted,#6b7684);margin-right:4px;font-size:12px}
 .sb-kinds button{border:1px solid var(--line,#dfe3ea);background:var(--card,#fff);color:#8a8f9c;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700;cursor:pointer}.sb-kinds button.on{background:#eef2f9;color:#16294a;border-color:#c9d3e6}.sb-kinds button.ghost{color:#3182f6}
 #sb-csel select{max-width:100%;font-size:13px;padding:6px 8px;border:1px solid var(--line,#dfe3ea);border-radius:8px;background:var(--card,#fff);color:inherit}
+.sb-pick{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted,#6b7684);margin-right:2px}
+.sb-item.picked{background:#f6f9ff;margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:10px}
+.sb-guide{margin-top:8px;font-size:12.5px;background:#fbfaf7;border:1px solid #efe9dc;border-radius:10px;padding:8px 10px}.sb-guide summary{cursor:pointer;font-weight:700;color:#16294a}
+.sb-guide ul{margin:8px 0 0;padding-left:18px}.sb-guide li{margin:3px 0;line-height:1.45}
+.sb-spd{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.sb-spd span{background:#eef2f9;border-radius:999px;padding:2px 9px;font-size:12px}.sb-spd b{color:#16294a}
+.sb-terms{margin-top:8px;border:1px solid #e3e8f3;border-radius:10px;padding:8px 10px;background:#f8faff;font-size:12.5px}
+.sb-th{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}.sb-th b{color:#16294a}.sb-th small{color:var(--muted,#6b7684)}.sb-th .btn{margin-left:auto}
+.sb-prior{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.sb-prior span{background:#fff;border:1px solid #e3e8f3;border-radius:8px;padding:3px 8px;display:inline-flex;flex-direction:column;line-height:1.25}.sb-prior em{font-style:normal;color:var(--muted,#6b7684);font-size:11px}.sb-prior small{color:#e5484d;font-size:11px}
+.sb-tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 12px;margin-top:6px}.sb-tgrid>div{display:flex;gap:6px;align-items:baseline}.sb-tgrid span{color:var(--muted,#6b7684);min-width:72px;flex:none}.sb-tgrid b{font-weight:600;color:#1b2235}
+.sb-ned{margin-top:8px;border-top:1px dashed #d7deeb;padding-top:8px}.sb-ntxt{width:100%;min-height:90px;font-size:12.5px;padding:8px;border:1px solid var(--line,#dfe3ea);border-radius:8px;box-sizing:border-box;font-family:inherit}
+.sb-nf{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px 10px;margin:8px 0}.sb-nf label{display:grid;grid-template-columns:72px 1fr;align-items:center;gap:6px;font-size:12px;color:var(--muted,#6b7684)}.sb-nf input{font-size:12.5px;padding:5px 7px;border:1px solid var(--line,#dfe3ea);border-radius:6px;min-width:0}
 </style>
 </head>
 <body>
@@ -6863,7 +6874,7 @@ var DY_TOPICS = [["all", "전체 한 장"], ["deal", "실거래"], ["rate", "금
 function dyLoad(cb) {
   if (DY.loaded) { cb && cb(); return; }
   function j(u) { return fetch(u, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; })["catch"](function () { return null; }); }
-  Promise.all([j("daily_data.json"), j("data/manual/terms.json")]).then(function (v) { DY.data = v[0]; DY.terms = (v[1] && v[1].terms) || null; DY.loaded = true; cb && cb(); });
+  Promise.all([j("daily_data.json"), j("data/manual/terms.json"), j("data/manual/subs_guide.json"), j("data/manual/subs_notes.json")]).then(function (v) { DY.data = v[0]; DY.terms = (v[1] && v[1].terms) || null; DY.guide = v[2] || null; DY.notes = (v[3] && v[3].notes) || {}; DY.loaded = true; cb && cb(); });
 }
 /* ── 공통 ── */
 function dyPlain(h) { return chClean(String(h).replace(/<small>/g, " (").replace(/<\/small>/g, ")").replace(/<u>/g, "").replace(/<\/u>/g, ". ").replace(/<\/?(b|em|i)[^>]*>/g, " ")); }
@@ -7090,7 +7101,8 @@ document.addEventListener("click", function (e) {
 /* ══ v9.20 청약 — 일정 미리 보기 화면(#subs) + 오늘 한 장 '청약 한 장' + 릴스 대표 카드 재료 ══
    자료: daily_data.json → subs.items (청약홈 APT 분양 공고 + 무순위·잔여세대, 주택형별 분양가, 경쟁률). 새벽 3시 갱신.
    일정 종류: 공고 → 특별공급 → 1순위 → 2순위 → 접수 마감 → 당첨자 발표 → 계약. 날짜는 청약홈 공고 그대로(변경될 수 있어 '공고 보기' 링크를 항상 붙인다). */
-var SB = { area: "all", kind: "all", rent: false, kinds: null, card: { mode: "week", off: 0, day: null, item: null } };
+var SB = { area: "all", kind: "all", rent: false, kinds: null, picks: [], card: { mode: "week", off: 0, day: null, item: null } };
+function sbPicked() { var P = SB.picks; return sbItems().filter(function (it) { return P.indexOf(String(it.no)) >= 0; }); }
 var SB_KINDS = ["공고", "특별공급", "1순위", "2순위", "접수 시작", "접수 마감", "당첨자 발표", "계약 시작", "무순위 접수"];
 function sbKindOn(k) { return !SB.kinds || SB.kinds.indexOf(k) >= 0; }
 var SB_AREA = [["all", "전체"], ["서울", "서울"], ["경기", "경기"], ["인천", "인천"], ["etc", "그 외"]];
@@ -7132,7 +7144,7 @@ function sbEvents(list, fromN, toN) {
   return out;
 }
 function sbPrice(it) { if (!it.pMax) return ""; return it.p84 ? "84㎡ " + eok(it.p84) : eok(it.pMin) + (it.pMax !== it.pMin ? "~" + eok(it.pMax) : ""); }
-function sbFlags(it) { var f = []; if (it.cap) f.push("분양가상한제"); if (it.hot) f.push("규제지역"); if (it.pub) f.push("공공택지"); if (it.kind === "rem") f.push(it.sub || "무순위"); if (it.rent && /임대/.test(it.rent)) f.push(it.rent); return f; }
+function sbFlags(it) { var f = []; if (it.dtl) f.push(it.dtl); if (it.cap) f.push("분양가상한제"); if (it.hot) f.push("투기과열지구"); if (it.adj) f.push("조정대상지역"); if (it.redev) f.push("정비사업"); if (it.pub) f.push("공공택지"); if (it.kind === "rem") f.push(it.sub || "무순위"); if (it.rent && /임대/.test(it.rent)) f.push(it.rent); return f; }
 function sbShort(it) { return String(it.area || "").replace(/특별시|광역시|특별자치/g, "") + " " + String(it.addr || "").replace(/^(서울|경기|인천|부산|대구|광주|대전|울산|세종|강원|충청|전라|경상|제주)\S*\s*/, "").split(" ").slice(0, 2).join(" "); }
 
 /* ── 화면 ── */
@@ -7146,13 +7158,23 @@ function buildSubs(sec) {
     '<div class="card"><h3>단지별 상세</h3><div id="sb-list"></div></div>' +
     '<div class="card"><h3>최근 경쟁률</h3><div id="sb-rate"></div></div>' +
     '<div class="card mk-card" id="sb-make"><h3>카드 만들기</h3><p class="desc">범위를 고르면 그 범위의 청약 한 장(1080×1350)이 아래에 그려집니다. 위의 지역·종류·일정 종류 조건이 그대로 적용됩니다. 주인은 같은 재료로 릴스 대표 카드(AI)도 만들 수 있습니다.</p>' +
-      '<div class="seg" id="sb-cmode">' + [["item", "건별"], ["day", "일별"], ["week", "주별"], ["month", "월별"], ["overview", "요약"]].map(function (m) { return '<button type="button" data-sbcm="' + m[0] + '"' + (m[0] === SB.card.mode ? ' class="on"' : "") + ">" + m[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="seg" id="sb-cmode">' + [["picked", "선택한 단지"], ["item", "건별"], ["day", "일별"], ["week", "주별"], ["month", "월별"], ["overview", "요약"]].map(function (m) { return '<button type="button" data-sbcm="' + m[0] + '"' + (m[0] === SB.card.mode ? ' class="on"' : "") + ">" + m[1] + "</button>"; }).join("") + "</div>" +
       '<div class="mk-row" id="sb-csel" style="margin-top:6px"></div>' +
       '<div class="chcards strip" id="sb-cards"></div><div id="sb-rcslot"></div></div>';
   sec.addEventListener("click", function (ev) {
     var a = ev.target.closest("[data-sba]"), k = ev.target.closest("[data-sbk]"), sv = ev.target.closest("[data-chsave]"), more = ev.target.closest("[data-sbmore]"), ke = ev.target.closest("[data-sbe]"), cm = ev.target.closest("[data-sbcm]");
     if (ke) { var kk = ke.dataset.sbe; if (kk === "*") SB.kinds = null; else { var cur = SB.kinds || SB_KINDS.slice(); var ix = cur.indexOf(kk); if (ix >= 0) cur.splice(ix, 1); else cur.push(kk); SB.kinds = cur.length === SB_KINDS.length ? null : cur; } sbPaint(); }
     if (cm) { SB.card.mode = cm.dataset.sbcm; sbPaint(); }
+    var pk = ev.target.closest("[data-sbpick]"), cb = ev.target.closest("[data-sbcard]");
+    if (ev.target.closest("[data-sbclear]")) { SB.picks = []; sbPaint(); }
+    if (pk) { var no = pk.dataset.sbpick, ix = SB.picks.indexOf(no); if (ix >= 0) SB.picks.splice(ix, 1); else SB.picks.push(no); sbPaint(); }
+    var ne = ev.target.closest("[data-sbnote]"), ns = ev.target.closest("[data-sbnsave]"), nc = ev.target.closest("[data-sbncopy]"), na = ev.target.closest("[data-sbnai]"), nx = ev.target.closest("[data-sbnclose]");
+    if (ne) { SB.edit = ne.dataset.sbnote; sbPaint(); }
+    if (nx) { SB.edit = null; sbPaint(); }
+    if (ns) { sbNoteSave(ns.dataset.sbnsave); }
+    if (nc) { sbNoteCopy(nc.dataset.sbncopy); }
+    if (na) { sbNoteAi(na.dataset.sbnai); }
+    if (cb) { SB.card.mode = "item"; SB.card.item = cb.dataset.sbcard; sbPaint(); var mk = document.getElementById("sb-make"); if (mk) mk.scrollIntoView({ behavior: "smooth", block: "start" }); }
     if (a) { SB.area = a.dataset.sba; sbPaint(); }
     if (k) { SB.kind = k.dataset.sbk; sbPaint(); }
     if (more) { SB.more = true; sbPaint(); }
@@ -7209,6 +7231,8 @@ function sbCardSel() {
     h = '<select id="sb-coff">' + [0, 1, 2].map(function (o) { var w = sbWeek(o); return '<option value="' + o + '"' + (o === SB.card.off ? " selected" : "") + ">" + ["이번 주", "다음 주", "다다음 주"][o] + " " + chMD(w[0]) + "~" + chMD(w[1]) + "</option>"; }).join("") + "</select>";
   } else if (m === "month") {
     h = '<select id="sb-coff">' + [0, 1].map(function (o) { var w = sbMonth(o); return '<option value="' + o + '"' + (o === SB.card.off ? " selected" : "") + ">" + (o ? "다음 달" : "이번 달") + " " + Math.floor(w[0] / 100) % 100 + "월</option>"; }).join("") + "</select>";
+  } else if (m === "picked") {
+    var P = sbPicked(); h = P.length ? '<span class="mk-tag">' + P.length + "개 선택: " + escHtml(P.map(function (it) { return it.nm; }).join(" · ")) + '</span><button type="button" class="btn sm ghost" data-sbclear="1">선택 비우기</button>' : '<span class="hint">위 단지별 상세에서 "선택"에 체크하면 그 단지들만으로 카드를 만듭니다.</span>';
   } else h = '<span class="mk-tag">접수 중 · 2주 안 접수 · 발표 · 무순위 · 경쟁률 · 분양가</span>';
   return h;
 }
@@ -7222,6 +7246,7 @@ function sbRange() {
   return null;
 }
 function sbCardTitle() {
+  if (SB.cardMode === "picked") { var P = sbPicked(); if (P.length === 1) { SB.card.item = String(P[0].no); SB.cardMode = "item"; var tt = sbCardTitle(); SB.cardMode = "picked"; return tt; } return P.length ? ["고른 단지 " + P.length + "곳 청약 일정", P.map(function (it) { return it.nm; }).join(" · ").slice(0, 60)] : null; }
   if (SB.cardMode === "item") { var it = sbCardItem(); return it ? [it.nm, String(it.area || "") + (it.n ? " · " + fmt(it.n) + "가구" : "") + (sbPrice(it) ? " · 분양가 " + sbPrice(it) : "") + " · 일정 한 장"] : null; }
   if (SB.cardMode === "range") { var r = sbRange(); return r ? [r[2], r[3]] : null; }
   return null;
@@ -7231,8 +7256,8 @@ function sbPaintCard() {
   var sel = document.getElementById("sb-csel"), cards = document.getElementById("sb-cards"); if (!sel || !cards) return;
   Array.prototype.forEach.call(document.querySelectorAll("#sb-cmode button"), function (b) { b.classList.toggle("on", b.dataset.sbcm === SB.card.mode); });
   sel.innerHTML = sbCardSel();
-  SB.cardMode = SB.card.mode === "item" ? "item" : SB.card.mode === "overview" ? "" : "range";
-  var h = "", nm = { item: "건별", day: "일별", week: "주별", month: "월별", overview: "요약" }[SB.card.mode];
+  SB.cardMode = sbModeKey();
+  var h = "", nm = { picked: "선택", item: "건별", day: "일별", week: "주별", month: "월별", overview: "요약" }[SB.card.mode];
   try { h = typeof dyCardHtml === "function" ? dyCardHtml("subs") : ""; } finally { SB.cardMode = ""; }
   cards.innerHTML = h ? '<div class="chcardWrap dy-wrap">' + h + '<button type="button" class="btn sm ghost" data-chsave="청약_' + nm + '">이미지 저장</button></div>' : '<p class="hint">이 범위에는 카드로 만들 일정이 없습니다.</p>';
   if (h && typeof dyFitLater === "function") dyFitLater(cards);
@@ -7242,25 +7267,29 @@ function sbPaintCard() {
     slot.querySelector("[data-rcgo]").addEventListener("click", function () { var F = sbFacts(); if (!F.length) { alert("재료가 없습니다."); return; } var tt = sbCardTitleNow(); rcOpen({ topic: tt[0], facts: F, basis: "청약홈 " + dyYm(X.asOf) + " 수집", purpose: "청약 일정 상세 카드(게시판)로 유입" }); });
   }
 }
-function sbCardTitleNow() { SB.cardMode = SB.card.mode === "item" ? "item" : SB.card.mode === "overview" ? "" : "range"; var t = sbCardTitle() || dyTitle("subs"); SB.cardMode = ""; return t; }
+function sbModeKey() { return SB.card.mode === "item" ? "item" : SB.card.mode === "picked" ? "picked" : SB.card.mode === "overview" ? "" : "range"; }
+function sbCardTitleNow() { SB.cardMode = sbModeKey(); var t = sbCardTitle() || dyTitle("subs"); SB.cardMode = ""; return t; }
 function sbPillCls(k) { return { "공고": "", "특별공급": "pol", "1순위": "up", "2순위": "up", "접수 시작": "up", "무순위 접수": "up", "접수 마감": "warn", "당첨자 발표": "ok", "계약 시작": "" }[k] || ""; }
 function sbItemHtml(it) {
   var st = sbStatus(it), f = sbFlags(it), rows = [];
   SB_EV.forEach(function (k) { if (it[k[0]]) rows.push([k[1], sbD(it[k[0]]) + (k[0] === "e" && it.b && it.b !== it.e ? "" : ""), sbDays(it[k[0]])]); });
+  if (it.r1g && it.r1g !== it.r1) rows.push(["1순위(경기)", sbD(it.r1g), sbDays(it.r1g)]);
   if (it.r1x && it.r1x !== it.r1) rows.push(["1순위(기타지역)", sbD(it.r1x), sbDays(it.r1x)]);
   if (it.cE) rows.push(["계약 마감", sbD(it.cE), sbDays(it.cE)]);
   if (it.move) rows.push(["입주 예정", escHtml(String(it.move).replace(/^(\d{4})(\d{2})$/, "$1.$2")), ""]);
-  return '<div class="sb-item"><div class="sb-ih"><i class="chc-pill ' + st[1] + '">' + st[0] + "</i><b>" + escHtml(it.nm) + "</b><span>" + escHtml(String(it.area || "")) + (it.n ? " · " + fmt(it.n) + "가구" : "") + (sbPrice(it) ? " · 분양가 " + sbPrice(it) : "") + "</span></div>" +
+  var picked = SB.picks.indexOf(String(it.no)) >= 0;
+  return '<div class="sb-item' + (picked ? " picked" : "") + '"><div class="sb-ih"><label class="sb-pick"><input type="checkbox" data-sbpick="' + escHtml(String(it.no)) + '"' + (picked ? " checked" : "") + "> 선택</label><i class=\"chc-pill " + st[1] + '">' + st[0] + "</i><b>" + escHtml(it.nm) + "</b><span>" + escHtml(String(it.area || "")) + (it.n ? " · " + fmt(it.n) + "가구" : "") + (sbPrice(it) ? " · 분양가 " + sbPrice(it) : "") + "</span></div>" +
     (f.length ? '<div class="sb-flags">' + f.map(function (x) { return "<i>" + escHtml(x) + "</i>"; }).join("") + "</div>" : "") +
     '<div class="sb-addr">' + escHtml(it.addr || "") + (it.builder ? " · 시공 " + escHtml(it.builder) : "") + "</div>" +
     '<div class="sb-sched">' + rows.map(function (r) { return "<div><span>" + r[0] + "</span><b>" + r[1] + "</b><small>" + r[2] + "</small></div>"; }).join("") + "</div>" +
-    (it.types && it.types.length ? '<details class="sb-types"><summary>주택형별 분양가·공급 ' + it.types.length + "개</summary><table class=\"sb-tbl\"><tr><th>주택형</th><th>공급면적</th><th>공급</th><th>특공</th><th>최고 분양가</th></tr>" + it.types.map(function (ty) { return "<tr><td>" + escHtml(ty.ty) + "</td><td>" + (ty.area ? ty.area + "㎡" : "–") + "</td><td>" + (ty.n != null ? fmt(ty.n) : "–") + "</td><td>" + (ty.sp != null ? fmt(ty.sp) : "–") + "</td><td>" + (ty.top ? eok(ty.top) : "–") + "</td></tr>"; }).join("") + "</table></details>" : "") +
+    (it.types && it.types.length ? '<details class="sb-types"><summary>주택형별 분양가·공급 ' + it.types.length + "개</summary><table class=\"sb-tbl\"><tr><th>주택형</th><th>공급면적</th><th>공급</th><th>특공</th><th>최고 분양가</th></tr>" + it.types.map(function (ty) { return "<tr><td>" + escHtml(ty.ty) + "</td><td>" + (ty.area ? ty.area + "㎡" : "–") + "</td><td>" + (ty.n != null ? fmt(ty.n) : "–") + "</td><td>" + (ty.sp != null ? fmt(ty.sp) : "–") + (sbSpd(ty) ? " <small>" + sbSpd(ty) + "</small>" : "") + "</td><td>" + (ty.top ? eok(ty.top) : "–") + "</td></tr>"; }).join("") + "</table></details>" : "") +
     (it.rate ? '<div class="sb-addr">경쟁률 평균 <b>' + it.rate + ":1</b>" + (it.maxRate ? " · 최고 " + it.maxRate + ":1" + (it.maxTy ? "(" + escHtml(it.maxTy) + ")" : "") : "") + "</div>" : "") +
-    '<div class="sb-links">' + (it.url ? '<a href="' + escHtml(it.url) + '" target="_blank" rel="noopener">청약홈 공고 보기</a>' : "") + (it.home ? '<a href="' + escHtml(/^http/.test(it.home) ? it.home : "https://" + it.home) + '" target="_blank" rel="noopener">홈페이지</a>' : "") + (it.tel ? "<span>문의 " + escHtml(it.tel) + "</span>" : "") + "</div></div>";
+    sbTermsHtml(it) + sbGuideHtml(it) +
+    '<div class="sb-links"><button type="button" class="btn sm ghost" data-sbcard="' + escHtml(String(it.no)) + '">이 단지로 카드</button>' + (it.url ? '<a href="' + escHtml(it.url) + '" target="_blank" rel="noopener">청약홈 공고 보기</a>' : "") + (it.home ? '<a href="' + escHtml(/^http/.test(it.home) ? it.home : "https://" + it.home) + '" target="_blank" rel="noopener">홈페이지</a>' : "") + (it.tel ? "<span>문의 " + escHtml(it.tel) + "</span>" : "") + "</div></div>";
 }
 /* 릴스 재료(문장) */
 function sbFacts() {
-  SB.cardMode = SB.card.mode === "item" ? "item" : SB.card.mode === "overview" ? "" : "range";
+  SB.cardMode = sbModeKey();
   var html = ""; try { html = dyCardHtml("subs"); } finally { SB.cardMode = ""; }
   var tmp = document.createElement("div"); tmp.innerHTML = html; var F = [], n = 0;
   Array.prototype.forEach.call(tmp.querySelectorAll(".dy-box"), function (b) {
@@ -7273,6 +7302,7 @@ function sbFacts() {
 function sbDyBoxes(n, big) {
   var X = (typeof DY !== "undefined" && DY.data && DY.data.subs) || null; if (!X || !X.items) return [];
   if (SB.cardMode === "item") return sbItemBoxes(n, X);
+  if (SB.cardMode === "picked") { var P = sbPicked(); if (P.length === 1) { SB.card.item = String(P[0].no); return sbItemBoxes(n, X); } return sbPickedBoxes(n, X, P); }
   if (SB.cardMode === "range") return sbRangeBoxes(n, X);
   var t = sbToday(), B = [], L = X.items.filter(function (it) { return !/임대/.test(String(it.rent || "") + String(it.type || "")); });
   var row = function (it, when, extra) { return dyRow(dyE(it.nm) + "<small>" + dyE(String(it.area || "").replace(/특별시|광역시/g, "")) + (it.n ? " · " + fmt(it.n) + "가구" : "") + (sbPrice(it) ? " · " + sbPrice(it) : "") + "</small>", when, extra || ""); };
@@ -7308,6 +7338,10 @@ function sbItemBoxes(n, X) {
   if (sch.length) B.push(dyBox(n(), "일정", sch, { wide: true, pri: 0, min: sch.length, date: "날짜는 공고 그대로 · 변경 시 청약홈 확인" }));
   if (it.types && it.types.length) B.push(dyBox(n(), "주택형별 분양가·공급", it.types.slice(0, 10).map(function (ty) { return dyRow(dyE(ty.ty) + (ty.area ? "<small>공급 " + ty.area + "㎡</small>" : ""), ty.top ? eok(ty.top) : "–", (ty.n != null ? fmt(ty.n) + "가구" : "") + (ty.sp != null ? " · 특공 " + fmt(ty.sp) : "")); }), { wide: true, pri: 2, min: 2, date: "최고 분양가" }));
   if (it.rate) B.push(dyBox(n(), "경쟁률", [dyRow("평균", it.rate + ":1", it.req ? fmt(it.req) + "명 신청" : "")].concat(it.maxRate ? [dyRow("최고", it.maxRate + ":1", it.maxTy ? dyE(it.maxTy) : "")] : []), { pri: 2 }));
+  var sp = sbSpdSum(it); if (sp) B.push(dyBox(n(), "특별공급 유형별", Object.keys(sp).map(function (k) { return dyRow(k, fmt(sp[k]) + "가구", ""); }), { pri: 2 }));
+  var T = sbTermsRows(it); if (T.length) B.push(dyBox(n(), "이 단지 청약 조건", T.map(function (r) { return dyRow(r[0], r[1], ""); }), { wide: true, pri: 1, min: Math.min(T.length, 4), date: "공고문 기준" + (sbNote(it).asOf ? " · " + dyE(sbNote(it).asOf) + " 확인" : "") }));
+  var P2 = sbPriorRow(it); if (P2) B.push(dyBox(n(), "접수 순서(공고)", P2.map(function (r) { return dyRow(r[0], r[1], r[2]); }), { pri: 1, min: P2.length }));
+  var G = sbGuideLines(it); if (G.length) B.push(dyBox(n(), "청약 전 확인", G.slice(0, 5).map(function (g) { return dyRow("· " + dyE(g), null, null); }), { wide: true, pri: 3, min: 2, date: "공고문·청약홈 사전관리로 재확인" }));
   return B;
 }
 /* 일·주·월 한 장: 날짜별 상자(월은 주별 상자) */
@@ -7327,6 +7361,102 @@ function sbRangeBoxes(n, X) {
     B.push(dyBox(n(), title, rows, { wide: rows.length > 3 || groups.length <= 2, pri: g < t ? 3 : gi < 4 ? 1 : 2, min: Math.min(rows.length, 2), date: gi === 0 ? "청약홈 " + dyYm(X.asOf) : "" }));
   });
   return B;
+}
+
+/* 고른 단지 여러 곳: 단지마다 상자 하나(핵심 일정) */
+function sbPickedBoxes(n, X, P) {
+  return P.map(function (it) {
+    var rows = [];
+    SB_EV.forEach(function (k) { var kn = it.kind === "rem" && k[0] === "b" ? "무순위 접수" : k[1]; if (it[k[0]] && sbKindOn(kn)) rows.push(dyRow(kn, sbD(it[k[0]]), sbDays(it[k[0]]))); });
+    if (sbPrice(it)) rows.unshift(dyRow("분양가", sbPrice(it), it.n ? fmt(it.n) + "가구" : ""));
+    return dyBox(n(), it.nm, rows, { wide: P.length <= 2, pri: 1, min: 3, date: String(it.area || "").replace(/특별시|광역시/g, "") + (sbFlags(it).length ? " · " + sbFlags(it).slice(0, 2).join("·") : "") });
+  });
+}
+/* 특공 유형별 합계 */
+function sbSpdSum(it) {
+  if (!it.types) return null; var o = {}, any = false;
+  it.types.forEach(function (ty) { Object.keys(ty.spd || {}).forEach(function (k) { if (ty.spd[k]) { o[k] = (o[k] || 0) + ty.spd[k]; any = true; } }); });
+  return any ? o : null;
+}
+function sbSpd(ty) { var d = ty.spd || {}; return Object.keys(d).filter(function (k) { return d[k]; }).map(function (k) { return k + " " + d[k]; }).join(" · "); }
+/* 청약 전 확인 — 공고의 조건 표시에 맞는 안내 줄 (data/manual/subs_guide.json) */
+function sbGuideLines(it) {
+  var G = (typeof DY !== "undefined" && DY.guide) || null; if (!G) return [];
+  var L = [];
+  if (it.kind === "rem") L = L.concat(G.rem || []);
+  else {
+    L = L.concat((it.hot || it.adj) ? (G.hot || []) : (G.free || []));
+    if (it.cap) L = L.concat(G.cap || []);
+    if (it.pub || it.pubLaw || it.npln) L = L.concat(G.pub || []);
+    L = L.concat(/국민|공공/.test(String(it.dtl || "")) ? (G.national || []) : (G.private || []));
+    if (it.types && it.types.some(function (t) { return t.sp; })) L = L.concat(G.special || []);
+  }
+  return L.concat(G.common || []);
+}
+function sbGuideHtml(it) {
+  var L = sbGuideLines(it); if (!L.length) return "";
+  var G = DY.guide, sp = sbSpdSum(it), dep = G.deposit && !/국민|공공/.test(String(it.dtl || "")) && it.kind !== "rem" ? G.deposit : null;
+  return '<details class="sb-guide"><summary>청약 전 확인 ' + L.length + "가지" + (sp ? " · 특공 유형별" : "") + "</summary>" +
+    (sp ? '<div class="sb-spd">' + Object.keys(sp).map(function (k) { return "<span>" + escHtml(k) + " <b>" + fmt(sp[k]) + "</b></span>"; }).join("") + "</div>" : "") +
+    "<ul>" + L.map(function (x) { return "<li>" + escHtml(x) + "</li>"; }).join("") + "</ul>" +
+    (dep ? '<table class="sb-tbl"><tr><th>' + escHtml(dep.note) + "</th>" + dep.cols.map(function (c) { return "<th>" + escHtml(c) + "</th>"; }).join("") + "</tr>" + dep.rows.map(function (r) { return "<tr><td>" + escHtml(r[0]) + "</td>" + r.slice(1).map(function (v) { return "<td>" + fmt(v) + "만</td>"; }).join("") + "</tr>"; }).join("") + "</table>" : "") +
+    (G.links ? '<div class="sb-links">' + G.links.map(function (l) { return '<a href="' + escHtml(l[1]) + '" target="_blank" rel="noopener">' + escHtml(l[0]) + "</a>"; }).join("") + "</div>" : "") +
+    '<p class="hint">기준 ' + escHtml(G.asOf || "") + " · 자격·기간·금액은 바뀔 수 있어 입주자모집공고문이 우선합니다.</p></details>";
+}
+
+/* ── 단지별 청약 조건 (공고문에서 옮긴 것) — data/manual/subs_notes.json + 이 기기 메모(localStorage) ── */
+var SB_TF = [["res", "거주지 요건"], ["resPeriod", "거주 기간"], ["prior", "지역 우선 공급"], ["firstRank", "1순위 요건"], ["point", "가점·추첨"], ["resale", "전매 제한"], ["live", "실거주 의무"], ["rewin", "재당첨 제한"], ["down", "계약금"], ["mid", "중도금"], ["balance", "잔금"], ["option", "발코니·옵션"], ["move", "입주"], ["etc", "특이 조건"]];
+var SB_NOTE_LS = "trackapt_subs_notes_v1";
+function sbLocalNotes() { try { return JSON.parse(localStorage.getItem(SB_NOTE_LS) || "{}"); } catch (e) { return {}; } }
+function sbNote(it) { var no = String(it.no), L = sbLocalNotes()[no], R = ((typeof DY !== "undefined" && DY.notes) || {})[no]; return L || R || {}; }
+function sbNoteOrigin(it) { var no = String(it.no); return sbLocalNotes()[no] ? "이 기기 메모" : (DY.notes || {})[no] ? "subs_notes.json" : ""; }
+function sbTermsRows(it) { var N = sbNote(it); return SB_TF.filter(function (f) { return N[f[0]]; }).map(function (f) { return [f[1], dyE(N[f[0]])]; }); }
+/* 공고 자체에서 보이는 접수 순서: 해당지역 → (경기) → 기타지역 날짜가 다르면 거주 우선 접수, 같으면 같은 날 접수 */
+function sbPriorRow(it) {
+  if (it.kind !== "apt" || !it.r1) return null;
+  var area = String(it.area || "").replace(/특별시|광역시/g, ""), rows = [["해당지역(" + area + ") 1순위", sbD(it.r1), "먼저 접수"]];
+  if (it.r1g && it.r1g !== it.r1) rows.push(["경기 1순위", sbD(it.r1g), ""]);
+  if (it.r1x && it.r1x !== it.r1) rows.push(["기타지역 1순위", sbD(it.r1x), it.r1x > it.r1 ? "해당지역 다음" : ""]);
+  else if (it.r1x && it.r1x === it.r1) rows[0] = ["해당·기타지역 1순위", sbD(it.r1), "같은 날 접수"];
+  if (it.r2) rows.push(["2순위", sbD(it.r2), ""]);
+  return rows;
+}
+function sbTermsHtml(it) {
+  var rows = sbTermsRows(it), P = sbPriorRow(it), N = sbNote(it), org = sbNoteOrigin(it), owner = typeof OWNER !== "undefined" && OWNER;
+  var h = '<div class="sb-terms"><div class="sb-th"><b>이 단지 청약 조건</b><small>' + (rows.length ? "공고문 기준" + (N.asOf ? " · " + escHtml(N.asOf) + " 확인" : "") + (org ? " · " + org : "") + (N.src ? " · " + escHtml(N.src) : "") : "아직 적힌 조건이 없습니다") + "</small>" + (owner ? '<button type="button" class="btn sm ghost" data-sbnote="' + escHtml(String(it.no)) + '">' + (rows.length ? "조건 고치기" : "조건 적기") + "</button>" : "") + "</div>";
+  if (P) h += '<div class="sb-prior">' + P.map(function (r) { return "<span><em>" + escHtml(r[0]) + "</em><b>" + r[1] + "</b>" + (r[2] ? "<small>" + r[2] + "</small>" : "") + "</span>"; }).join("") + "</div>";
+  if (rows.length) h += '<div class="sb-tgrid">' + rows.map(function (r) { return "<div><span>" + r[0] + "</span><b>" + r[1] + "</b></div>"; }).join("") + "</div>";
+  else if (!owner) h += '<p class="hint">거주 요건·전매 제한·실거주 의무 같은 단지별 조건은 입주자모집공고문에 있습니다. 위 "청약홈 공고 보기"에서 확인하세요.</p>';
+  if (SB.edit === String(it.no)) h += sbNoteEditor(it);
+  return h + "</div>";
+}
+function sbNoteEditor(it) {
+  var N = sbNote(it), no = escHtml(String(it.no));
+  return '<div class="sb-ned" id="sb-ned-' + no + '"><p class="hint">공고문(PDF)의 글을 복사해 아래에 붙이고 <b>공고문에서 읽기(AI)</b>를 누르면 항목이 채워집니다. 읽은 결과는 공고문과 대조한 뒤 저장하세요. 저장은 이 기기에 먼저 되고, "JSON 복사"로 data/manual/subs_notes.json 에 붙이면 모두에게 보입니다. 관리번호 ' + no + "</p>" +
+    '<textarea class="sb-ntxt" placeholder="공고문 텍스트 붙여넣기 (신청 자격·전매 제한·실거주·계약금·중도금 부분이면 충분)"></textarea>' +
+    '<div class="mk-row"><button type="button" class="btn sm" data-sbnai="' + no + '">공고문에서 읽기(AI)</button><span class="hint sb-nmsg"></span></div>' +
+    '<div class="sb-nf">' + SB_TF.map(function (f) { return '<label><span>' + f[1] + '</span><input data-nf="' + f[0] + '" value="' + escHtml(N[f[0]] || "") + '" placeholder="공고문 그대로 · 없으면 비움"></label>'; }).join("") +
+    '<label><span>출처·쪽</span><input data-nf="src" value="' + escHtml(N.src || "") + '" placeholder="예: 공고문 3쪽"></label><label><span>확인일</span><input data-nf="asOf" value="' + escHtml(N.asOf || chKstDate().key) + '"></label></div>' +
+    '<div class="mk-row"><button type="button" class="btn sm" data-sbnsave="' + no + '">저장(이 기기)</button><button type="button" class="btn sm ghost" data-sbncopy="' + no + '">JSON 복사</button><button type="button" class="btn sm ghost" data-sbnclose="1">닫기</button></div></div>';
+}
+function sbNoteRead(no) { var ed = document.getElementById("sb-ned-" + no); if (!ed) return null; var o = {}; Array.prototype.forEach.call(ed.querySelectorAll("[data-nf]"), function (i) { var v = i.value.trim(); if (v) o[i.dataset.nf] = v; }); return o; }
+function sbNoteSave(no) { var o = sbNoteRead(no); if (!o) return; var L = sbLocalNotes(); L[no] = o; try { localStorage.setItem(SB_NOTE_LS, JSON.stringify(L)); } catch (e) {} SB.edit = null; sbPaint(); }
+function sbNoteCopy(no) {
+  var o = sbNoteRead(no) || sbNote({ no: no }), txt = JSON.stringify(o, null, 1).replace(/^\{/, '"' + no + '": {').replace(/\}$/, "},");
+  if (typeof chCopy === "function") chCopy(txt); else if (navigator.clipboard) navigator.clipboard.writeText(txt);
+  var ed = document.getElementById("sb-ned-" + no); if (ed) ed.querySelector(".sb-nmsg").textContent = "복사했습니다 — subs_notes.json 의 notes 안에 붙여 넣으세요";
+}
+function sbNoteAi(no) {
+  var ed = document.getElementById("sb-ned-" + no); if (!ed) return;
+  var txt = ed.querySelector(".sb-ntxt").value.trim(), msg = ed.querySelector(".sb-nmsg");
+  if (txt.length < 50) { msg.textContent = "공고문 텍스트를 먼저 붙여 넣으세요."; return; }
+  if (typeof rcPost !== "function") { msg.textContent = "주인 모드에서만 됩니다."; return; }
+  msg.textContent = "읽는 중…";
+  rcPost("/api/ai", { mode: "extract", text: txt }).then(function (j) {
+    var T = j.terms || {}, n = 0;
+    Array.prototype.forEach.call(ed.querySelectorAll("[data-nf]"), function (i) { if (T[i.dataset.nf] != null && i.dataset.nf !== "src" && i.dataset.nf !== "asOf") { i.value = T[i.dataset.nf]; if (T[i.dataset.nf]) n++; } });
+    msg.textContent = n + "개 항목을 읽었습니다(" + (j.model || "") + "). 공고문과 대조한 뒤 저장하세요.";
+  }, function (e) { msg.textContent = "실패: " + e.message; });
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */

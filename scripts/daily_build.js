@@ -42,7 +42,7 @@ function kErr(j) { return j ? (j.errMsg || j.err || (j._raw ? j._raw.slice(0, 12
 function kNames(r) { return [r.C1_NM, r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).join(" "); }
 async function kosisProbe(c, months) {
   function q(n, over) { var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: "ALL", prdSe: "M", newEstPrdCnt: String(months || 1) }; for (var k = 1; k <= n; k++) o["objL" + k] = "ALL"; Object.keys(over || {}).forEach(function (k) { o[k] = over[k]; }); return o; }
-  for (var n = 1; n <= 3; n++) { var j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n))); var a = kArr(j); if (a && a.length) return { rows: a, nLev: n, q: q }; log("KOSIS " + c.nm + " 탐색 " + n + "단계: " + kErr(j)); }
+  for (var n = 1; n <= 5; n++) { var j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n))); var a = kArr(j); if (a && a.length) return { rows: a, nLev: n, q: q }; log("KOSIS " + c.nm + " 탐색 " + n + "단계: " + kErr(j)); }
   return null;
 }
 /* 표 찾기: 기억한 코드 → 기본 코드 → 이름 검색 후보 순으로 1개월치를 받아 보고, validate 를 통과하는 첫 표를 쓴다 */
@@ -54,7 +54,8 @@ async function kosisFind(key, validate) {
     if (pass === 1) {
       var sr = DEF_SEARCH[key], found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: sr[0] }));
       var list = (kArr(found) || []).filter(function (x) { return sr[1].test(x.TBL_NM || ""); });
-      list.sort(function (a, b) { var sa = (String(a.ORG_ID) === String(DEF[key].orgId) ? 4 : 0) + (/아파트/.test(a.TBL_NM) ? 2 : 0) + (/시도|시·도|지역별/.test(a.TBL_NM) ? 1 : 0), sb = (String(b.ORG_ID) === String(DEF[key].orgId) ? 4 : 0) + (/아파트/.test(b.TBL_NM) ? 2 : 0) + (/시도|시·도|지역별/.test(b.TBL_NM) ? 1 : 0); return sb - sa; });
+      var score = function (x) { var nm = x.TBL_NM || ""; return (String(x.ORG_ID) === String(DEF[key].orgId) ? 4 : 0) + (/아파트/.test(nm) ? 2 : 0) + (/시도|시·도|지역별/.test(nm) ? 1 : 0) - (/주간|연령|규모|변동률|증감률|월세|전환율|통합|평균가격|중위/.test(nm) ? 8 : 0); };
+      list.sort(function (a, b) { return score(b) - score(a); });
       DBG[key + "Search"] = list.slice(0, 10).map(function (x) { return x.ORG_ID + "/" + x.TBL_ID + " " + x.TBL_NM; });
       if (!list.length) log("KOSIS 검색 결과 없음 " + sr[0] + ": " + kErr(found));
       cands = list.slice(0, 8).map(function (x) { return { orgId: x.ORG_ID, tblId: x.TBL_ID, nm: x.TBL_NM }; });
@@ -98,8 +99,14 @@ async function unsold() {
     out.cap = g(function (r) { return levelRow(r, "수도권"); }) || (out.seoul && out.gg && ic ? sumSeries([out.seoul, out.gg, ic]) : null);
     out.src = tot.nm;
   }
-  var done = await kosisSeries("unsoldDone", function (rows) { return rows.some(isTotalRow); }, 25);
-  if (done) { var ds = seriesOf(done.rows, isTotalRow); if (ds.length) out.done = ds; }
+  var sidoTot = function (r) { return /^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)\S*\s+(계|합계|소계)$/.test(c1(r)) && restAll(r); };
+  var done = await kosisSeries("unsoldDone", function (rows) { return rows.some(isTotalRow) || rows.some(sidoTot); }, 25);
+  if (done) {
+    var ds = seriesOf(done.rows, isTotalRow);
+    if (!ds.length) { var by = {}; done.rows.filter(sidoTot).forEach(function (r) { by[c1(r)] = 1; }); ds = sumSeries(Object.keys(by).map(function (nm) { return seriesOf(done.rows, function (r) { return c1(r) === nm && restAll(r); }); })); log("준공 후 미분양: 시도 " + Object.keys(by).length + "곳 합산"); }
+    if (ds.length) out.done = ds;
+    var sd = seriesOf(done.rows, function (r) { return /^서울/.test(c1(r)) && (isTotalRow(r) || sidoTot(r)); }); if (sd.length) out.doneSeoul = sd;
+  }
   return Object.keys(out).length ? out : null;
 }
 async function priceIndex() {
@@ -107,7 +114,7 @@ async function priceIndex() {
   var out = {};
   for (var kk = 0; kk < 2; kk++) {
     var key = kk ? "idxRent" : "idxSale", re = kk ? /전세가격지수/ : /매매가격지수/;
-    var s = await kosisSeries(key, function (rows) { return rows.some(function (r) { return /^(전국|수도권)$/.test(c1(r)) && re.test(r.ITM_NM || "") && !/증감|변동/.test(r.ITM_NM || ""); }); }, 26);
+    var s = await kosisSeries(key, function (rows) { return String(rows[0].PRD_DE || "").length === 6 && rows.some(function (r) { return /^(전국|수도권)$/.test(c1(r)) && re.test(r.ITM_NM || "") && !/증감|변동|평균|중위/.test(r.ITM_NM || "") && restAll(r); }); }, 26);
     if (!s) continue;
     var R = s.rows, idxRow = function (nm) { return function (r) { return c1(r) === nm && restAll(r) && re.test(r.ITM_NM || "") && !/증감|변동/.test(r.ITM_NM || ""); }; };
     var g = function (nm) { var a = seriesOf(R, idxRow(nm)); return a.length ? a : null; };

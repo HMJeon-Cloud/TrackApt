@@ -99,7 +99,8 @@ async function unsold() {
     out.cap = g(function (r) { return levelRow(r, "수도권"); }) || (out.seoul && out.gg && ic ? sumSeries([out.seoul, out.gg, ic]) : null);
     out.src = tot.nm;
   }
-  var sidoTot = function (r) { return /^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)\S*\s+(계|합계|소계)$/.test(c1(r)) && restAll(r); };
+  var SIDO = /^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)/;
+  var sidoTot = function (r) { return SIDO.test(c1(r)) && !/\s(계|합계|소계)$/.test(c1(r)) ? (r.C2_NM != null && restAll(r)) : (SIDO.test(c1(r)) && /\s(계|합계|소계)$/.test(c1(r)) && restAll(r)); };
   var done = await kosisSeries("unsoldDone", function (rows) { return rows.some(isTotalRow) || rows.some(sidoTot); }, 25);
   if (done) {
     var ds = seriesOf(done.rows, isTotalRow);

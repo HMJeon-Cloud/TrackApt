@@ -1,21 +1,8 @@
 {
  "v": 1,
- "builtAt": "2026-10-11T21:31:03.421Z",
+ "builtAt": "2026-10-12T07:16:40.878Z",
  "asOf": 20261012,
  "items": [
-  {
-   "kind": "transit",
-   "line": "GTX-B 인천대입구~마석",
-   "what": "일정 변경",
-   "date": "2026-10-12",
-   "title": "“GTX-B춘천 연장 ‘지방비 전액 부담’ 재검토 해야”⋯정치권 요구 커져",
-   "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE9LeElFVmR2ajB1Ny1sZFZSZnN4RnF3ek4xMUdETDZGcnd3b3E5SmhhN08tekdMRWpJSVI5RjhYV3ZucGtCYlRXTjlpVmN6MUNadHh1RTRicktYY3M?oc=5",
-   "src": "강원일보",
-   "official": false,
-   "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-10-12",
-   "isNew": true
-  },
   {
    "kind": "loan",
    "name": "버팀목 전세대출",
@@ -39,7 +26,7 @@
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-10-12",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "policy",
@@ -51,19 +38,6 @@
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-10-11",
    "isNew": false
-  },
-  {
-   "kind": "transit",
-   "line": "GTX-C 덕정~수원",
-   "what": "개통 소식",
-   "date": "2026-10-11",
-   "title": "GTX-C, 다음달 금융약정 체결 가시화… 2031년 개통 ‘청신호’",
-   "url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE52LWNaN1l3LWVyeWc2cWp2SkZVVVhhcXFDOUZqb29id29mQjRfWUFlSEFxUUMtVW83eXhadmxNblE4RmxRc3FEeXpXeTA3djAxeE5pRmMtWi1WVkVTc2w4?oc=5",
-   "src": "MTN 머니투데이방송",
-   "official": false,
-   "todo": "data/manual/transit.json 에서 'GTX-C 덕정~수원' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-10-12",
-   "isNew": true
   },
   {
    "kind": "loan",

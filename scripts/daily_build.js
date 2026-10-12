@@ -74,10 +74,16 @@ function seriesOf(rows, filt) {
   var m = {}; rows.filter(filt).forEach(function (r) { var t = Number(r.PRD_DE), v = num(r.DT); if (t && v != null) m[t] = v; });
   return Object.keys(m).map(Number).sort().map(function (t) { return [t, m[t]]; });
 }
-async function kosisSeries(key, validate, months) {
+async function kosisSeries(key, validate, months, narrow) {
   var f = await kosisFind(key, validate); if (!f) { log("KOSIS " + key + " 쓸 수 있는 표를 못 찾음"); return null; }
-  var j = await getJson(kosisUrl("Param/statisticsParameterData.do", f.p.q(f.p.nLev, { newEstPrdCnt: String(months) })));
-  var rows = kArr(j); if (!rows) { log("KOSIS " + key + " 2차 실패: " + kErr(j)); return null; }
+  var over = { newEstPrdCnt: String(months) }, nr = narrow ? narrow(f.p.rows) : null; if (nr) Object.keys(nr).forEach(function (k) { over[k] = nr[k]; });
+  var rows = null, tries = [months, 12, 6];
+  for (var ti = 0; ti < tries.length && !rows; ti++) {
+    over.newEstPrdCnt = String(tries[ti]);
+    var j = await getJson(kosisUrl("Param/statisticsParameterData.do", f.p.q(f.p.nLev, over)));
+    rows = kArr(j); if (!rows) { log("KOSIS " + key + " 2차(" + tries[ti] + "개월) 실패: " + kErr(j)); if (!/40,000|셀/.test(kErr(j))) break; }
+  }
+  if (!rows) return null;
   DBG[key + "Sample"] = rows.slice(0, 3);
   return { rows: rows, nm: f.c.nm };
 }
@@ -101,7 +107,10 @@ async function unsold() {
   }
   var SIDO = /^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)/;
   var sidoTot = function (r) { return SIDO.test(c1(r)) && !/\s(계|합계|소계)$/.test(c1(r)) ? (r.C2_NM != null && restAll(r)) : (SIDO.test(c1(r)) && /\s(계|합계|소계)$/.test(c1(r)) && restAll(r)); };
-  var done = await kosisSeries("unsoldDone", function (rows) { return rows.some(isTotalRow) || rows.some(sidoTot); }, 25);
+  var done = await kosisSeries("unsoldDone", function (rows) { return rows.some(isTotalRow) || rows.some(sidoTot); }, 25, function (rows) {
+    var r = rows.filter(function (x) { return x.C2 && /^(계|합계|소계|총합)$/.test(String(x.C2_NM || "").trim()); })[0];
+    return r ? { objL2: r.C2 } : null;   /* 시군구 표: 2단은 '계' 코드만 받아 40,000셀 제한을 피한다 */
+  });
   if (done) {
     var ds = seriesOf(done.rows, isTotalRow);
     if (!ds.length) { var by = {}; done.rows.filter(sidoTot).forEach(function (r) { by[c1(r)] = 1; }); ds = sumSeries(Object.keys(by).map(function (nm) { return seriesOf(done.rows, function (r) { return c1(r) === nm && restAll(r); }); })); log("준공 후 미분양: 시도 " + Object.keys(by).length + "곳 합산"); }

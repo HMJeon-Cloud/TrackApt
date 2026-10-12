@@ -168,9 +168,9 @@ async function subs() {
     DBG.subsSample = apt.slice(0, 1);
     apt.forEach(function (r) {
       var it = { kind: "apt", no: r.HOUSE_MANAGE_NO, pno: r.PBLANC_NO, nm: r.HOUSE_NM, type: r.HOUSE_SECD_NM || r.HOUSE_DTL_SECD_NM, rent: r.RENT_SECD_NM, area: r.SUBSCRPT_AREA_CODE_NM, addr: r.HSSPLY_ADRES, zip: r.HSSPLY_ZIP, n: num(r.TOT_SUPLY_HSHLDCO),
-        notice: dn(r.RCRIT_PBLANC_DE), spB: dn(r.SPSPLY_RCEPT_BGNDE), spE: dn(r.SPSPLY_RCEPT_ENDDE), r1: dateIn(r.GNRL_RNK1_CRSPAREA_RCEPT_PD), r1x: dateIn(r.GNRL_RNK1_ETC_AREA_RCPTDE), r2: dateIn(r.GNRL_RNK2_CRSPAREA_RCEPT_PD), r2x: dateIn(r.GNRL_RNK2_ETC_AREA_RCPTDE),
+        notice: dn(r.RCRIT_PBLANC_DE), spB: dn(r.SPSPLY_RCEPT_BGNDE), spE: dn(r.SPSPLY_RCEPT_ENDDE), r1: dateIn(r.GNRL_RNK1_CRSPAREA_RCEPT_PD), r1x: dateIn(r.GNRL_RNK1_ETC_AREA_RCPTDE), r1g: dateIn(r.GNRL_RNK1_ETC_GG_RCPTDE), r2g: dateIn(r.GNRL_RNK2_ETC_GG_RCPTDE), r2: dateIn(r.GNRL_RNK2_CRSPAREA_RCEPT_PD), r2x: dateIn(r.GNRL_RNK2_ETC_AREA_RCPTDE),
         b: dn(r.RCEPT_BGNDE), e: dn(r.RCEPT_ENDDE), win: dn(r.PRZWNER_PRESNATN_DE), cB: dn(r.CNTRCT_CNCLS_BGNDE), cE: dn(r.CNTRCT_CNCLS_ENDDE), move: r.MVN_PREARNGE_YM,
-        cap: r.PARCPRC_ULS_AT === "Y", hot: r.SPECLT_RDN_EARTH_AT === "Y", pub: r.PUBLIC_HOUSE_EARTH_AT === "Y", big: r.LRSCL_BLDLND_AT === "Y", builder: r.CNSTRCT_ENTRPS_NM, owner: r.BSNS_MBY_NM, tel: r.MDHS_TELNO, url: r.PBLANC_URL, home: r.HMPG_ADRES };
+        cap: r.PARCPRC_ULS_AT === "Y", hot: r.SPECLT_RDN_EARTH_AT === "Y", adj: r.MDAT_TRGET_AREA_SECD === "Y", pub: r.PUBLIC_HOUSE_EARTH_AT === "Y", big: r.LRSCL_BLDLND_AT === "Y", redev: r.IMPRMN_BSNS_AT === "Y", pubLaw: r.PUBLIC_HOUSE_SPCLW_APPLC_AT === "Y", npln: r.NPLN_PRVOPR_PUBLIC_HOUSE_AT === "Y", dtl: r.HOUSE_DTL_SECD_NM, builder: r.CNSTRCT_ENTRPS_NM, owner: r.BSNS_MBY_NM, tel: r.MDHS_TELNO, url: r.PBLANC_URL, home: r.HMPG_ADRES };
       var last = Math.max(it.win || 0, it.e || 0, it.cE || 0, it.notice || 0);
       if (last >= since) out.items.push(it);
     });
@@ -192,7 +192,8 @@ async function subs() {
       out.items.forEach(function (it) {
         if (it.kind !== "apt") return;
         var L = byNo[String(it.no)] || []; if (!L.length) return;
-        it.types = L.map(function (m) { return { ty: m.HOUSE_TY, n: num(m.SUPLY_HSHLDCO), sp: num(m.SPSPLY_HSHLDCO), top: num(m.LTTOT_TOP_AMOUNT), area: num(m.SUPLY_AR) }; }).filter(function (t) { return t.ty; }).sort(function (a, b) { return (a.area || 0) - (b.area || 0); }).slice(0, 12);
+        it.types = L.map(function (m) { return { ty: m.HOUSE_TY, n: num(m.SUPLY_HSHLDCO), sp: num(m.SPSPLY_HSHLDCO), top: num(m.LTTOT_TOP_AMOUNT), area: num(m.SUPLY_AR),
+          spd: { 다자녀: num(m.MNYCH_SPSPLY_HSHLDCO), 신혼부부: num(m.NWWDS_SPSPLY_HSHLDCO), 생애최초: num(m.LFE_FRST_SPSPLY_HSHLDCO), 노부모: num(m.OLD_PARNTS_SUPORT_SPSPLY_HSHLDCO), 기관추천: num(m.INSTT_RECOMEND_SPSPLY_HSHLDCO), 청년: num(m.YGMN_SPSPLY_HSHLDCO), 신생아: num(m.NWBB_SPSPLY_HSHLDCO), 이전기관: num(m.TRANSR_INSTT_ENFSN_SPSPLY_HSHLDCO), 기타: num(m.ETC_SPSPLY_HSHLDCO) } }; }).filter(function (t) { return t.ty; }).sort(function (a, b) { return (a.area || 0) - (b.area || 0); }).slice(0, 12);
         var tops = it.types.filter(function (t) { return t.top; });
         if (tops.length) { it.pMin = Math.min.apply(null, tops.map(function (t) { return t.top; })); it.pMax = Math.max.apply(null, tops.map(function (t) { return t.top; })); var t84 = tops.filter(function (t) { return t.area && t.area >= 80 && t.area <= 86; })[0]; if (t84) it.p84 = t84.top; }
       });

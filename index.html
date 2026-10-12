@@ -1933,6 +1933,9 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .sb-types{margin-top:6px;font-size:12.5px}.sb-types summary{cursor:pointer;color:#3182f6}
 .sb-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}.sb-tbl th{text-align:left;color:var(--muted,#6b7684);font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line,#eef0f3)}.sb-tbl td{padding:4px 6px;border-bottom:1px solid var(--line,#f3f4f6)}
 .sb-links{margin-top:6px;display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px}.sb-links a{color:#3182f6;text-decoration:none;font-weight:700}.sb-links span{color:var(--muted,#6b7684)}
+.sb-kinds{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:8px}.sb-kinds small{color:var(--muted,#6b7684);margin-right:4px;font-size:12px}
+.sb-kinds button{border:1px solid var(--line,#dfe3ea);background:var(--card,#fff);color:#8a8f9c;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700;cursor:pointer}.sb-kinds button.on{background:#eef2f9;color:#16294a;border-color:#c9d3e6}.sb-kinds button.ghost{color:#3182f6}
+#sb-csel select{max-width:100%;font-size:13px;padding:6px 8px;border:1px solid var(--line,#dfe3ea);border-radius:8px;background:var(--card,#fff);color:inherit}
 </style>
 </head>
 <body>
@@ -6996,6 +6999,7 @@ function dyBoxes(topic) {
 }
 function dyTitle(topic) {
   var d = dyDate();
+  if (topic === "subs" && typeof sbCardTitle === "function") { var st = sbCardTitle(); if (st) return st; }
   return { all: ["오늘의 부동산 한 장", "실거래 · 금리 · 시장 체온 · 정책 · 일정을 한 장으로"], deal: ["오늘의 실거래 한 장", "어제 들어온 신고 · 신고가 · 값이 움직인 동네"], rate: ["오늘의 금리·대출 한 장", "기준금리 · 주담대 · 월 상환액 · 정책대출 조건"], policy: ["정책·교통·일정 한 장", "최근 대책 · 다음 개통 · 앞으로 2주 일정 · 청약"], temp: ["시장 체온 한 장", "가격지수 · 미분양 · 전세가율 · 확산 단계"], subs: ["이번 주 청약 한 장", "접수 중 · 2주 안 접수 · 당첨자 발표 · 무순위 · 경쟁률 · 분양가"], term: ["용어 한입 여덟 개", "같은 기사도 다르게 읽히는 부동산 단어 · 오늘부터 차례로"] }[topic];
 }
 function dySources(topic) {
@@ -7086,7 +7090,9 @@ document.addEventListener("click", function (e) {
 /* ══ v9.20 청약 — 일정 미리 보기 화면(#subs) + 오늘 한 장 '청약 한 장' + 릴스 대표 카드 재료 ══
    자료: daily_data.json → subs.items (청약홈 APT 분양 공고 + 무순위·잔여세대, 주택형별 분양가, 경쟁률). 새벽 3시 갱신.
    일정 종류: 공고 → 특별공급 → 1순위 → 2순위 → 접수 마감 → 당첨자 발표 → 계약. 날짜는 청약홈 공고 그대로(변경될 수 있어 '공고 보기' 링크를 항상 붙인다). */
-var SB = { area: "all", kind: "all", rent: false };
+var SB = { area: "all", kind: "all", rent: false, kinds: null, card: { mode: "week", off: 0, day: null, item: null } };
+var SB_KINDS = ["공고", "특별공급", "1순위", "2순위", "접수 시작", "접수 마감", "당첨자 발표", "계약 시작", "무순위 접수"];
+function sbKindOn(k) { return !SB.kinds || SB.kinds.indexOf(k) >= 0; }
 var SB_AREA = [["all", "전체"], ["서울", "서울"], ["경기", "경기"], ["인천", "인천"], ["etc", "그 외"]];
 var SB_KIND = [["all", "전체"], ["apt", "일반 분양"], ["rem", "무순위·잔여"]];
 function sbItems() { var X = (typeof DY !== "undefined" && DY.data && DY.data.subs) || null; return X && X.items ? X.items : []; }
@@ -7118,7 +7124,8 @@ function sbEvents(list, fromN, toN) {
       var d = it[k[0]]; if (!d || d < fromN || d > toN) return;
       if (k[0] === "b" && it.kind === "apt" && (it.spB === d || it.r1 === d)) return;   /* 특공·1순위와 같은 날이면 중복 */
       if (k[0] === "e" && (it.r2 === d || it.r1 === d || (it.kind === "rem" && it.b === d))) return;   /* 마지막 순위·무순위 당일 마감은 중복 */
-      out.push({ d: d, kind: it.kind === "rem" && k[0] === "b" ? "무순위 접수" : k[1], it: it });
+      var kn = it.kind === "rem" && k[0] === "b" ? "무순위 접수" : k[1]; if (!sbKindOn(kn)) return;
+      out.push({ d: d, kind: kn, it: it });
     });
   });
   out.sort(function (a, b) { return a.d - b.d || String(a.it.nm).localeCompare(String(b.it.nm)); });
@@ -7133,19 +7140,30 @@ function buildSubs(sec) {
   sec.innerHTML = '<div class="card"><h2>청약 일정</h2><p class="desc">청약홈 공고를 모아 공고 → 특별공급 → 1·2순위 → 당첨자 발표 → 계약 순서로 미리 보여 줍니다. 매일 새벽 갱신.</p>' +
     '<div class="chmeta" id="sb-meta">불러오는 중…</div>' +
     '<div class="seg" id="sb-area" style="margin-top:10px">' + SB_AREA.map(function (a) { return '<button type="button" data-sba="' + a[0] + '"' + (a[0] === SB.area ? ' class="on"' : "") + ">" + a[1] + "</button>"; }).join("") + "</div>" +
-    '<div class="seg" id="sb-kind" style="margin-top:6px">' + SB_KIND.map(function (a) { return '<button type="button" data-sbk="' + a[0] + '"' + (a[0] === SB.kind ? ' class="on"' : "") + ">" + a[1] + "</button>"; }).join("") + '<label class="sb-rent"><input type="checkbox" id="sb-rent"' + (SB.rent ? " checked" : "") + "> 임대 포함</label></div></div>" +
+    '<div class="seg" id="sb-kind" style="margin-top:6px">' + SB_KIND.map(function (a) { return '<button type="button" data-sbk="' + a[0] + '"' + (a[0] === SB.kind ? ' class="on"' : "") + ">" + a[1] + "</button>"; }).join("") + '<label class="sb-rent"><input type="checkbox" id="sb-rent"' + (SB.rent ? " checked" : "") + "> 임대 포함</label></div>" +
+    '<div class="sb-kinds" id="sb-kinds"><small>일정 종류</small>' + SB_KINDS.map(function (k) { return '<button type="button" data-sbe="' + k + '" class="on">' + k + "</button>"; }).join("") + '<button type="button" data-sbe="*" class="ghost">전부</button></div></div>' +
     '<div class="card"><h3>앞으로 3주 일정 <small class="hint">날짜는 공고 기준 · 바뀔 수 있으니 공고 링크로 확인</small></h3><div id="sb-tl"></div></div>' +
     '<div class="card"><h3>단지별 상세</h3><div id="sb-list"></div></div>' +
     '<div class="card"><h3>최근 경쟁률</h3><div id="sb-rate"></div></div>' +
-    '<div class="card mk-card" id="sb-make"><h3>이 화면으로 카드 만들기</h3><p class="desc">청약 한 장(1080×1350)과 릴스 대표 카드. 숫자·날짜는 위 목록 그대로입니다.</p><div class="chcards strip" id="sb-cards"></div><div id="sb-rcslot"></div></div>';
+    '<div class="card mk-card" id="sb-make"><h3>카드 만들기</h3><p class="desc">범위를 고르면 그 범위의 청약 한 장(1080×1350)이 아래에 그려집니다. 위의 지역·종류·일정 종류 조건이 그대로 적용됩니다. 주인은 같은 재료로 릴스 대표 카드(AI)도 만들 수 있습니다.</p>' +
+      '<div class="seg" id="sb-cmode">' + [["item", "건별"], ["day", "일별"], ["week", "주별"], ["month", "월별"], ["overview", "요약"]].map(function (m) { return '<button type="button" data-sbcm="' + m[0] + '"' + (m[0] === SB.card.mode ? ' class="on"' : "") + ">" + m[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="mk-row" id="sb-csel" style="margin-top:6px"></div>' +
+      '<div class="chcards strip" id="sb-cards"></div><div id="sb-rcslot"></div></div>';
   sec.addEventListener("click", function (ev) {
-    var a = ev.target.closest("[data-sba]"), k = ev.target.closest("[data-sbk]"), sv = ev.target.closest("[data-chsave]"), more = ev.target.closest("[data-sbmore]");
+    var a = ev.target.closest("[data-sba]"), k = ev.target.closest("[data-sbk]"), sv = ev.target.closest("[data-chsave]"), more = ev.target.closest("[data-sbmore]"), ke = ev.target.closest("[data-sbe]"), cm = ev.target.closest("[data-sbcm]");
+    if (ke) { var kk = ke.dataset.sbe; if (kk === "*") SB.kinds = null; else { var cur = SB.kinds || SB_KINDS.slice(); var ix = cur.indexOf(kk); if (ix >= 0) cur.splice(ix, 1); else cur.push(kk); SB.kinds = cur.length === SB_KINDS.length ? null : cur; } sbPaint(); }
+    if (cm) { SB.card.mode = cm.dataset.sbcm; sbPaint(); }
     if (a) { SB.area = a.dataset.sba; sbPaint(); }
     if (k) { SB.kind = k.dataset.sbk; sbPaint(); }
     if (more) { SB.more = true; sbPaint(); }
     if (sv && typeof chCardImage === "function") { var card = sv.parentNode.querySelector(".chcard"); if (typeof progOpen === "function") progOpen("이미지 만드는 중", 0); chCardImage(card, sv.dataset.chsave).then(function () { if (typeof progClose === "function") progClose(); }, function () { if (typeof progClose === "function") progClose(); alert("이미지 저장에 실패했습니다."); }); }
   });
-  sec.addEventListener("change", function (ev) { if (ev.target.id === "sb-rent") { SB.rent = ev.target.checked; sbPaint(); } });
+  sec.addEventListener("change", function (ev) {
+    if (ev.target.id === "sb-rent") { SB.rent = ev.target.checked; sbPaint(); }
+    if (ev.target.id === "sb-cday") { SB.card.day = Number(ev.target.value); sbPaintCard(); }
+    if (ev.target.id === "sb-citem") { SB.card.item = ev.target.value; sbPaintCard(); }
+    if (ev.target.id === "sb-coff") { SB.card.off = Number(ev.target.value); sbPaintCard(); }
+  });
 }
 function renderSubs() { if (typeof dyLoad === "function") dyLoad(sbPaint); else sbPaint(); }
 function sbPaint() {
@@ -7156,6 +7174,7 @@ function sbPaint() {
   meta.textContent = "청약홈 " + dyYm(X.asOf) + " 수집 · 공고 " + all.length + "건 · 보이는 " + L.length + "건";
   Array.prototype.forEach.call(document.querySelectorAll("#sb-area button"), function (b) { b.classList.toggle("on", b.dataset.sba === SB.area); });
   Array.prototype.forEach.call(document.querySelectorAll("#sb-kind button"), function (b) { b.classList.toggle("on", b.dataset.sbk === SB.kind); });
+  Array.prototype.forEach.call(document.querySelectorAll("#sb-kinds [data-sbe]"), function (b) { if (b.dataset.sbe !== "*") b.classList.toggle("on", sbKindOn(b.dataset.sbe)); });
   /* 일정 */
   var ev = sbEvents(L, t, chDayKey(chShift(chKstNow(), 21))), byDay = {}, days = [];
   ev.forEach(function (e) { if (!byDay[e.d]) { byDay[e.d] = []; days.push(e.d); } byDay[e.d].push(e); });
@@ -7171,15 +7190,59 @@ function sbPaint() {
   /* 경쟁률 */
   var R = (X.results || []).filter(function (r) { return SB.area === "all" || (r.area && sbAreaOf({ area: r.area }) === SB.area); }).slice(0, 12);
   document.getElementById("sb-rate").innerHTML = R.length ? '<table class="sb-tbl"><tr><th>단지</th><th>지역</th><th>공급</th><th>신청</th><th>평균</th><th>최고</th></tr>' + R.map(function (r) { return "<tr><td>" + escHtml(r.nm) + "</td><td>" + escHtml(String(r.area || "").replace(/특별시|광역시/g, "")) + "</td><td>" + fmt(r.sup) + "</td><td>" + fmt(r.req) + "</td><td><b>" + r.rate + ":1</b></td><td>" + (r.max != null ? r.max + ":1" + (r.maxTy ? " <small>" + escHtml(r.maxTy) + "</small>" : "") : "–") + "</td></tr>"; }).join("") + "</table>" : '<p class="hint">최근 경쟁률 자료가 없습니다.</p>';
-  /* 카드 */
-  var cards = document.getElementById("sb-cards");
-  if (cards && typeof dyCardHtml === "function") { var h = dyCardHtml("subs"); cards.innerHTML = h ? '<div class="chcardWrap dy-wrap">' + h + '<button type="button" class="btn sm ghost" data-chsave="청약한장">이미지 저장</button></div>' : '<p class="hint">카드로 만들 일정이 없습니다.</p>'; if (typeof dyFitLater === "function") dyFitLater(cards); }
-  var slot = document.getElementById("sb-rcslot");
-  if (slot && typeof OWNER !== "undefined" && OWNER && typeof rcEntryHtml === "function" && !slot.firstChild) {
-    slot.innerHTML = rcEntryHtml("rc-sbbar", '<span class="mk-tag">청약 일정</span>', "청약으로 대표 카드 만들기");
-    slot.querySelector("[data-rcgo]").addEventListener("click", function () { var F = sbFacts(); if (!F.length) { alert("재료가 없습니다."); return; } rcOpen({ topic: "이번 주 청약 일정", facts: F, basis: "청약홈 " + dyYm(X.asOf) + " 수집", purpose: "청약 일정 상세 카드(게시판)로 유입" }); });
+  sbPaintCard();
+}
+/* ── 카드 범위 고르기 + 그리기 ── */
+function sbCardSel() {
+  var t = sbToday(), L = sbFilter(sbItems()), m = SB.card.mode, h = "";
+  if (m === "day") {
+    var ev = sbEvents(L, t, chDayKey(chShift(chKstNow(), 60))), days = []; ev.forEach(function (e) { if (days.indexOf(e.d) < 0) days.push(e.d); });
+    if (!days.length) return '<span class="hint">일정이 없습니다.</span>';
+    if (!SB.card.day || days.indexOf(SB.card.day) < 0) SB.card.day = days[0];
+    h = '<select id="sb-cday">' + days.map(function (d) { return '<option value="' + d + '"' + (d === SB.card.day ? " selected" : "") + ">" + sbD(d) + " · " + sbDays(d) + " · " + ev.filter(function (e) { return e.d === d; }).length + "건</option>"; }).join("") + "</select>";
+  } else if (m === "item") {
+    var live = L.filter(function (it) { return Math.max(it.win || 0, it.e || 0, it.cE || 0, it.b || 0) >= t; });
+    if (!live.length) return '<span class="hint">진행 중인 공고가 없습니다.</span>';
+    if (!SB.card.item || !live.some(function (it) { return String(it.no) === String(SB.card.item); })) SB.card.item = String(live[0].no);
+    h = '<select id="sb-citem">' + live.map(function (it) { return '<option value="' + escHtml(String(it.no)) + '"' + (String(it.no) === String(SB.card.item) ? " selected" : "") + ">" + escHtml(it.nm) + " · " + escHtml(String(it.area || "")) + (it.b ? " · " + chMD(it.b) + "~" : "") + "</option>"; }).join("") + "</select>";
+  } else if (m === "week") {
+    h = '<select id="sb-coff">' + [0, 1, 2].map(function (o) { var w = sbWeek(o); return '<option value="' + o + '"' + (o === SB.card.off ? " selected" : "") + ">" + ["이번 주", "다음 주", "다다음 주"][o] + " " + chMD(w[0]) + "~" + chMD(w[1]) + "</option>"; }).join("") + "</select>";
+  } else if (m === "month") {
+    h = '<select id="sb-coff">' + [0, 1].map(function (o) { var w = sbMonth(o); return '<option value="' + o + '"' + (o === SB.card.off ? " selected" : "") + ">" + (o ? "다음 달" : "이번 달") + " " + Math.floor(w[0] / 100) % 100 + "월</option>"; }).join("") + "</select>";
+  } else h = '<span class="mk-tag">접수 중 · 2주 안 접수 · 발표 · 무순위 · 경쟁률 · 분양가</span>';
+  return h;
+}
+function sbWeek(off) { var mon = chWeekStart(chKstNow()); mon = chShift(mon, 7 * (off || 0)); return [chDayKey(mon), chDayKey(chShift(mon, 6))]; }
+function sbMonth(off) { var d = chKstNow(), y = d.getUTCFullYear(), m = d.getUTCMonth() + 1 + (off || 0); y += Math.floor((m - 1) / 12); m = ((m - 1) % 12) + 1; return [y * 10000 + m * 100 + 1, y * 10000 + m * 100 + chDaysInMonth(y, m)]; }
+function sbRange() {
+  var m = SB.card.mode, t = sbToday();
+  if (m === "day") return [SB.card.day, SB.card.day, sbD(SB.card.day) + " 청약 일정", sbDays(SB.card.day) + " · 이날 잡힌 일정"];
+  if (m === "week") { var w = sbWeek(SB.card.off); return [w[0], w[1], (["이번 주", "다음 주", "다다음 주"][SB.card.off]) + " 청약 일정", chMD(w[0]) + "(" + chWd(w[0]) + ")~" + chMD(w[1]) + "(" + chWd(w[1]) + ") · 공고·접수·발표·계약"]; }
+  if (m === "month") { var mo = sbMonth(SB.card.off); return [mo[0], mo[1], Math.floor(mo[0] / 100) % 100 + "월 청약 일정", (SB.card.off ? "다음 달" : "이번 달") + " 공고·접수·발표·계약 한눈에"]; }
+  return null;
+}
+function sbCardTitle() {
+  if (SB.cardMode === "item") { var it = sbCardItem(); return it ? [it.nm, String(it.area || "") + (it.n ? " · " + fmt(it.n) + "가구" : "") + (sbPrice(it) ? " · 분양가 " + sbPrice(it) : "") + " · 일정 한 장"] : null; }
+  if (SB.cardMode === "range") { var r = sbRange(); return r ? [r[2], r[3]] : null; }
+  return null;
+}
+function sbCardItem() { var no = String(SB.card.item); return sbItems().filter(function (it) { return String(it.no) === no; })[0] || null; }
+function sbPaintCard() {
+  var sel = document.getElementById("sb-csel"), cards = document.getElementById("sb-cards"); if (!sel || !cards) return;
+  Array.prototype.forEach.call(document.querySelectorAll("#sb-cmode button"), function (b) { b.classList.toggle("on", b.dataset.sbcm === SB.card.mode); });
+  sel.innerHTML = sbCardSel();
+  SB.cardMode = SB.card.mode === "item" ? "item" : SB.card.mode === "overview" ? "" : "range";
+  var h = "", nm = { item: "건별", day: "일별", week: "주별", month: "월별", overview: "요약" }[SB.card.mode];
+  try { h = typeof dyCardHtml === "function" ? dyCardHtml("subs") : ""; } finally { SB.cardMode = ""; }
+  cards.innerHTML = h ? '<div class="chcardWrap dy-wrap">' + h + '<button type="button" class="btn sm ghost" data-chsave="청약_' + nm + '">이미지 저장</button></div>' : '<p class="hint">이 범위에는 카드로 만들 일정이 없습니다.</p>';
+  if (h && typeof dyFitLater === "function") dyFitLater(cards);
+  var slot = document.getElementById("sb-rcslot"), X = DY.data && DY.data.subs;
+  if (slot && typeof OWNER !== "undefined" && OWNER && typeof rcEntryHtml === "function") {
+    slot.innerHTML = rcEntryHtml("rc-sbbar", '<span class="mk-tag">청약 · ' + nm + "</span>", "이 범위로 대표 카드 만들기");
+    slot.querySelector("[data-rcgo]").addEventListener("click", function () { var F = sbFacts(); if (!F.length) { alert("재료가 없습니다."); return; } var tt = sbCardTitleNow(); rcOpen({ topic: tt[0], facts: F, basis: "청약홈 " + dyYm(X.asOf) + " 수집", purpose: "청약 일정 상세 카드(게시판)로 유입" }); });
   }
 }
+function sbCardTitleNow() { SB.cardMode = SB.card.mode === "item" ? "item" : SB.card.mode === "overview" ? "" : "range"; var t = sbCardTitle() || dyTitle("subs"); SB.cardMode = ""; return t; }
 function sbPillCls(k) { return { "공고": "", "특별공급": "pol", "1순위": "up", "2순위": "up", "접수 시작": "up", "무순위 접수": "up", "접수 마감": "warn", "당첨자 발표": "ok", "계약 시작": "" }[k] || ""; }
 function sbItemHtml(it) {
   var st = sbStatus(it), f = sbFlags(it), rows = [];
@@ -7197,14 +7260,20 @@ function sbItemHtml(it) {
 }
 /* 릴스 재료(문장) */
 function sbFacts() {
-  var t = sbToday(), L = sbFilter(sbItems()), F = [], n = 0, add = function (s) { F.push({ id: "F" + (++n), text: s }); };
-  sbEvents(L, t, chDayKey(chShift(chKstNow(), 14))).slice(0, 30).forEach(function (e) { add(sbD(e.d) + " " + e.kind + " — " + e.it.nm + " (" + (e.it.area || "") + (e.it.n ? ", " + fmt(e.it.n) + "가구" : "") + (sbPrice(e.it) ? ", 분양가 " + sbPrice(e.it) : "") + ")"); });
-  ((DY.data.subs.results) || []).slice(0, 8).forEach(function (r) { add("경쟁률 " + r.nm + " 평균 " + r.rate + ":1" + (r.max != null ? ", 최고 " + r.max + ":1" : "") + " (공급 " + fmt(r.sup) + " · 신청 " + fmt(r.req) + ")"); });
-  return F;
+  SB.cardMode = SB.card.mode === "item" ? "item" : SB.card.mode === "overview" ? "" : "range";
+  var html = ""; try { html = dyCardHtml("subs"); } finally { SB.cardMode = ""; }
+  var tmp = document.createElement("div"); tmp.innerHTML = html; var F = [], n = 0;
+  Array.prototype.forEach.call(tmp.querySelectorAll(".dy-box"), function (b) {
+    var h = b.querySelector("h4"), title = chClean(h.innerHTML.replace(/<small>.*?<\/small>/, "").replace(/<i>\d+<\/i>/, ""));
+    Array.prototype.forEach.call(b.querySelectorAll(".dy-r"), function (r) { var t = typeof dyPlain === "function" ? dyPlain(r.innerHTML) : chClean(r.innerHTML); if (t) F.push({ id: "F" + (++n), text: title + " — " + t }); });
+  });
+  return F.slice(0, 60);
 }
 /* ── 오늘 한 장 '청약 한 장' 상자 (v9_daily 의 dyBoxes 에서 topic==="subs" 로 호출) ── */
 function sbDyBoxes(n, big) {
   var X = (typeof DY !== "undefined" && DY.data && DY.data.subs) || null; if (!X || !X.items) return [];
+  if (SB.cardMode === "item") return sbItemBoxes(n, X);
+  if (SB.cardMode === "range") return sbRangeBoxes(n, X);
   var t = sbToday(), B = [], L = X.items.filter(function (it) { return !/임대/.test(String(it.rent || "") + String(it.type || "")); });
   var row = function (it, when, extra) { return dyRow(dyE(it.nm) + "<small>" + dyE(String(it.area || "").replace(/특별시|광역시/g, "")) + (it.n ? " · " + fmt(it.n) + "가구" : "") + (sbPrice(it) ? " · " + sbPrice(it) : "") + "</small>", when, extra || ""); };
   var open = L.filter(function (it) { return it.kind === "apt" && it.b && it.e && it.b <= t && t <= it.e; });
@@ -7219,6 +7288,44 @@ function sbDyBoxes(n, big) {
   if (R.length) B.push(dyBox(n(), "최근 경쟁률", R.map(function (r) { return dyRow(dyE(r.nm) + "<small>" + dyE(String(r.area || "").replace(/특별시|광역시/g, "")) + " · 공급 " + fmt(r.sup) + "</small>", r.rate + ":1", r.max != null ? "최고 " + r.max + ":1" : ""); }), { pri: 3, wide: big }));
   var pr = L.filter(function (it) { return it.p84 && (it.e || 0) >= t - 30; }).slice(0, big ? 8 : 4);
   if (pr.length) B.push(dyBox(n(), "84㎡ 분양가", pr.map(function (it) { return dyRow(dyE(it.nm) + "<small>" + dyE(String(it.area || "").replace(/특별시|광역시/g, "")) + (it.cap ? " · 상한제" : "") + "</small>", eok(it.p84), it.pMin !== it.pMax ? eok(it.pMin) + "~" + eok(it.pMax) : ""); }), { pri: 3, wide: big }));
+  return B;
+}
+
+/* 건별 한 장: 기본 정보 · 일정 · 주택형별 분양가 · 경쟁률 */
+function sbItemBoxes(n, X) {
+  var it = sbCardItem(); if (!it) return [];
+  var B = [], f = sbFlags(it);
+  var info = [dyRow("위치", dyE(it.addr || ""), ""), dyRow("공급", it.n ? fmt(it.n) + "가구" : "–", it.type ? dyE(it.type) : "")];
+  if (it.pMax) info.push(dyRow("분양가", it.pMin !== it.pMax ? eok(it.pMin) + " ~ " + eok(it.pMax) : eok(it.pMax), it.p84 ? "84㎡ " + eok(it.p84) : ""));
+  if (it.builder || it.owner) info.push(dyRow("시공 · 시행", dyE([it.builder, it.owner].filter(Boolean).join(" · ")), ""));
+  if (f.length) info.push(dyRow("조건", f.map(function (x) { return '<i class="dy-pill">' + dyE(x) + "</i>"; }).join(" "), ""));
+  if (it.move) info.push(dyRow("입주 예정", dyE(String(it.move).replace(/^(\d{4})(\d{2})$/, "$1.$2")), ""));
+  B.push(dyBox(n(), "기본 정보", info, { wide: true, pri: 1, min: 3, date: "청약홈 " + dyYm(X.asOf) + " 공고 기준" }));
+  var sch = [];
+  SB_EV.forEach(function (k) { if (it[k[0]] && sbKindOn(it.kind === "rem" && k[0] === "b" ? "무순위 접수" : k[1])) sch.push(dyRow(it.kind === "rem" && k[0] === "b" ? "무순위 접수" : k[1], sbD(it[k[0]]), sbDays(it[k[0]]))); });
+  if (it.r1x && it.r1x !== it.r1) sch.push(dyRow("1순위 기타지역", sbD(it.r1x), sbDays(it.r1x)));
+  if (it.cE) sch.push(dyRow("계약 마감", sbD(it.cE), sbDays(it.cE)));
+  if (sch.length) B.push(dyBox(n(), "일정", sch, { wide: true, pri: 0, min: sch.length, date: "날짜는 공고 그대로 · 변경 시 청약홈 확인" }));
+  if (it.types && it.types.length) B.push(dyBox(n(), "주택형별 분양가·공급", it.types.slice(0, 10).map(function (ty) { return dyRow(dyE(ty.ty) + (ty.area ? "<small>공급 " + ty.area + "㎡</small>" : ""), ty.top ? eok(ty.top) : "–", (ty.n != null ? fmt(ty.n) + "가구" : "") + (ty.sp != null ? " · 특공 " + fmt(ty.sp) : "")); }), { wide: true, pri: 2, min: 2, date: "최고 분양가" }));
+  if (it.rate) B.push(dyBox(n(), "경쟁률", [dyRow("평균", it.rate + ":1", it.req ? fmt(it.req) + "명 신청" : "")].concat(it.maxRate ? [dyRow("최고", it.maxRate + ":1", it.maxTy ? dyE(it.maxTy) : "")] : []), { pri: 2 }));
+  return B;
+}
+/* 일·주·월 한 장: 날짜별 상자(월은 주별 상자) */
+function sbRangeBoxes(n, X) {
+  var r = sbRange(); if (!r) return [];
+  var L = sbFilter(X.items), ev = sbEvents(L, r[0], r[1]); if (!ev.length) return [];
+  var byMonth = SB.card.mode === "month", groups = [], map = {};
+  ev.forEach(function (e) {
+    var key = byMonth ? chDayKey(chWeekStart(new Date(Date.UTC(Math.floor(e.d / 10000), Math.floor(e.d / 100) % 100 - 1, e.d % 100)))) : e.d;
+    if (!map[key]) { map[key] = []; groups.push(key); }
+    map[key].push(e);
+  });
+  var B = [], t = sbToday();
+  groups.forEach(function (g, gi) {
+    var rows = map[g].map(function (e) { return dyRow('<i class="dy-pill' + (/발표/.test(e.kind) ? " on" : /마감/.test(e.kind) ? " warn" : "") + '">' + dyE(e.kind) + "</i>" + dyE(e.it.nm) + "<small>" + dyE(String(e.it.area || "").replace(/특별시|광역시/g, "")) + (e.it.n ? " · " + fmt(e.it.n) + "가구" : "") + (sbPrice(e.it) ? " · " + sbPrice(e.it) : "") + "</small>", byMonth ? chMD(e.d) + "(" + chWd(e.d) + ")" : "", byMonth ? "" : sbDays(e.d)); });
+    var title = byMonth ? chMD(g) + "~" + chMD(chDayKey(chShift(new Date(Date.UTC(Math.floor(g / 10000), Math.floor(g / 100) % 100 - 1, g % 100)), 6))) + " 주" : sbD(g) + (g === t ? " 오늘" : "");
+    B.push(dyBox(n(), title, rows, { wide: rows.length > 3 || groups.length <= 2, pri: g < t ? 3 : gi < 4 ? 1 : 2, min: Math.min(rows.length, 2), date: gi === 0 ? "청약홈 " + dyYm(X.asOf) : "" }));
+  });
   return B;
 }
 

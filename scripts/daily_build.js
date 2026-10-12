@@ -42,7 +42,7 @@ function kErr(j) { return j ? (j.errMsg || j.err || (j._raw ? j._raw.slice(0, 12
 function kNames(r) { return [r.C1_NM, r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).join(" "); }
 async function kosisProbe(c, months) {
   function q(n, over) { var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: "ALL", prdSe: "M", newEstPrdCnt: String(months || 1) }; for (var k = 1; k <= n; k++) o["objL" + k] = "ALL"; Object.keys(over || {}).forEach(function (k) { o[k] = over[k]; }); return o; }
-  for (var n = 1; n <= 5; n++) { var j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n))); var a = kArr(j); if (a && a.length) return { rows: a, nLev: n, q: q }; log("KOSIS " + c.nm + " 탐색 " + n + "단계: " + kErr(j)); }
+  for (var n = 1; n <= 5; n++) { var j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n))); var a = kArr(j); if (a && a.length) return { rows: a, nLev: n, q: q }; if (!/objL/.test(kErr(j))) log("KOSIS " + c.nm + " 탐색 " + n + "단계: " + kErr(j)); }   /* objL 누락은 분류 단수를 더듬는 정상 과정 */
   return null;
 }
 /* 표 찾기: 기억한 코드 → 기본 코드 → 이름 검색 후보 순으로 1개월치를 받아 보고, validate 를 통과하는 첫 표를 쓴다 */
@@ -146,29 +146,73 @@ async function weekly() {
     return out;
   } catch (e) { log("R-ONE 실패: " + e.message); return null; }
 }
-/* 청약홈 (선택) */
+/* 청약홈 (선택) — APT 분양 + 무순위·잔여세대 + 주택형별 분양가 + 경쟁률. 일정은 '미리' 알아야 하므로 공고일 기준 과거 45일 ~ 앞으로의 것을 모두 담는다 */
+function dn(v) { var n = num(String(v || "").replace(/-/g, "").slice(0, 8)); return n && n > 19000000 ? n : null; }
+function dateIn(s) { var m = String(s || "").match(/(\d{4})-?(\d{2})-?(\d{2})/); return m ? Number(m[1] + m[2] + m[3]) : null; }
+async function odc(path, q) {
+  var all = [], page = 1;
+  while (page <= 4) {
+    var j = await getJson(ODC_BASE + path + "?page=" + page + "&perPage=500&serviceKey=" + encodeURIComponent(DATAGO) + "&returnType=JSON" + (q || ""));
+    var d = j.data || []; if (!d.length) { if (page === 1) { log("청약 " + path.split("/").pop() + ": " + JSON.stringify(j).slice(0, 160)); DBG["odc_" + path.split("/").pop()] = j; } break; }
+    all = all.concat(d); if (d.length < 500) break; page++;
+  }
+  return all;
+}
 async function subs() {
   if (!DATAGO) { log("DATA_GO_KEY 없음 → 청약 건너뜀"); return null; }
-  var today = kst(), out = { open: [], soon: [], results: [], src: "청약홈(공공데이터포털)" };
+  var today = kst(), from = today - 0; var fromD = new Date(Date.UTC(Math.floor(today / 10000), Math.floor(today / 100) % 100 - 1, today % 100) - 45 * 86400000); var since = fromD.getUTCFullYear() * 10000 + (fromD.getUTCMonth() + 1) * 100 + fromD.getUTCDate();
+  var out = { asOf: today, items: [], results: [], src: "청약홈(공공데이터포털)" };
   try {
-    var j = await getJson(ODC_BASE + "ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail?page=1&perPage=300&serviceKey=" + encodeURIComponent(DATAGO) + "&returnType=JSON");
-    var rows = j.data || [];
-    if (!rows.length) { log("청약 분양정보: " + JSON.stringify(j).slice(0, 160)); DBG.subs = j; }
-    DBG.subsSample = rows.slice(0, 2);
-    rows.forEach(function (r) {
-      var b = num(String(r.RCEPT_BGNDE || "").replace(/-/g, "")), e = num(String(r.RCEPT_ENDDE || "").replace(/-/g, ""));
-      var it = { nm: r.HOUSE_NM, area: r.SUBSCRPT_AREA_CODE_NM, addr: r.HSSPLY_ADRES, n: num(r.TOT_SUPLY_HSHLDCO), b: b, e: e, win: num(String(r.PRZWNER_PRESNATN_DE || "").replace(/-/g, "")), url: r.PBLANC_URL, rent: r.RENT_SECD_NM };
-      if (!b || !e) return;
-      if (b <= today && today <= e) out.open.push(it);
-      else if (b > today && b <= today + 14) out.soon.push(it);
+    /* 1 APT 분양 공고 */
+    var apt = await odc("ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail");
+    DBG.subsSample = apt.slice(0, 1);
+    apt.forEach(function (r) {
+      var it = { kind: "apt", no: r.HOUSE_MANAGE_NO, pno: r.PBLANC_NO, nm: r.HOUSE_NM, type: r.HOUSE_SECD_NM || r.HOUSE_DTL_SECD_NM, rent: r.RENT_SECD_NM, area: r.SUBSCRPT_AREA_CODE_NM, addr: r.HSSPLY_ADRES, zip: r.HSSPLY_ZIP, n: num(r.TOT_SUPLY_HSHLDCO),
+        notice: dn(r.RCRIT_PBLANC_DE), spB: dn(r.SPSPLY_RCEPT_BGNDE), spE: dn(r.SPSPLY_RCEPT_ENDDE), r1: dateIn(r.GNRL_RNK1_CRSPAREA_RCEPT_PD), r1x: dateIn(r.GNRL_RNK1_ETC_AREA_RCPTDE), r2: dateIn(r.GNRL_RNK2_CRSPAREA_RCEPT_PD), r2x: dateIn(r.GNRL_RNK2_ETC_AREA_RCPTDE),
+        b: dn(r.RCEPT_BGNDE), e: dn(r.RCEPT_ENDDE), win: dn(r.PRZWNER_PRESNATN_DE), cB: dn(r.CNTRCT_CNCLS_BGNDE), cE: dn(r.CNTRCT_CNCLS_ENDDE), move: r.MVN_PREARNGE_YM,
+        cap: r.PARCPRC_ULS_AT === "Y", hot: r.SPECLT_RDN_EARTH_AT === "Y", pub: r.PUBLIC_HOUSE_EARTH_AT === "Y", big: r.LRSCL_BLDLND_AT === "Y", builder: r.CNSTRCT_ENTRPS_NM, owner: r.BSNS_MBY_NM, tel: r.MDHS_TELNO, url: r.PBLANC_URL, home: r.HMPG_ADRES };
+      var last = Math.max(it.win || 0, it.e || 0, it.cE || 0, it.notice || 0);
+      if (last >= since) out.items.push(it);
     });
-    out.open.sort(function (a, b) { return a.e - b.e; }); out.soon.sort(function (a, b) { return a.b - b.b; });
-    var c = await getJson(ODC_BASE + "ApplyhomeInfoCmpetRtSvc/v1/getAPTLttotPblancCmpet?page=1&perPage=300&serviceKey=" + encodeURIComponent(DATAGO) + "&returnType=JSON");
-    var cr = c.data || [], byHouse = {};
-    DBG.cmpetSample = cr.slice(0, 2);
-    cr.forEach(function (r) { var k = r.HOUSE_MANAGE_NO || r.HOUSE_NM; var rate = num(r.CMPET_RATE), req = num(r.REQ_CNT), sup = num(r.SUPLY_HSHLDCO); if (!k) return; var o = byHouse[k] || (byHouse[k] = { nm: r.HOUSE_NM, req: 0, sup: 0, max: null }); o.req += req || 0; o.sup += sup || 0; if (rate != null && (o.max == null || rate > o.max)) o.max = rate; });
-    out.results = Object.keys(byHouse).map(function (k) { var o = byHouse[k]; o.rate = o.sup ? Math.round(o.req / o.sup * 10) / 10 : o.max; return o; }).filter(function (o) { return o.rate != null; }).slice(0, 40);
-    log("청약 접수 중 " + out.open.length + " · 예정 " + out.soon.length + " · 경쟁률 " + out.results.length);
+    /* 2 무순위·잔여세대 */
+    try {
+      var rem = await odc("ApplyhomeInfoDetailSvc/v1/getRemndrLttotPblancDetail");
+      DBG.remSample = rem.slice(0, 1);
+      rem.forEach(function (r) {
+        var it = { kind: "rem", no: r.HOUSE_MANAGE_NO, pno: r.PBLANC_NO, nm: r.HOUSE_NM, type: r.HOUSE_SECD_NM || "무순위", sub: r.HOUSE_DTL_SECD_NM, area: r.SUBSCRPT_AREA_CODE_NM, addr: r.HSSPLY_ADRES, n: num(r.TOT_SUPLY_HSHLDCO), notice: dn(r.RCRIT_PBLANC_DE), b: dn(r.SUBSCRPT_RCEPT_BGNDE || r.RCEPT_BGNDE), e: dn(r.SUBSCRPT_RCEPT_ENDDE || r.RCEPT_ENDDE), win: dn(r.PRZWNER_PRESNATN_DE), cB: dn(r.CNTRCT_CNCLS_BGNDE), cE: dn(r.CNTRCT_CNCLS_ENDDE), url: r.PBLANC_URL, home: r.HMPG_ADRES, tel: r.MDHS_TELNO };
+        var last = Math.max(it.win || 0, it.e || 0, it.notice || 0);
+        if (last >= since) out.items.push(it);
+      });
+    } catch (e) { log("무순위 실패: " + e.message); }
+    /* 3 주택형별 분양가·공급 수 (APT) — 담은 단지만 */
+    try {
+      var mdl = await odc("ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancMdl");
+      DBG.mdlSample = mdl.slice(0, 1);
+      var byNo = {}; mdl.forEach(function (m) { var k = String(m.HOUSE_MANAGE_NO); (byNo[k] = byNo[k] || []).push(m); });
+      out.items.forEach(function (it) {
+        if (it.kind !== "apt") return;
+        var L = byNo[String(it.no)] || []; if (!L.length) return;
+        it.types = L.map(function (m) { return { ty: m.HOUSE_TY, n: num(m.SUPLY_HSHLDCO), sp: num(m.SPSPLY_HSHLDCO), top: num(m.LTTOT_TOP_AMOUNT), area: num(m.SUPLY_AR) }; }).filter(function (t) { return t.ty; }).sort(function (a, b) { return (a.area || 0) - (b.area || 0); }).slice(0, 12);
+        var tops = it.types.filter(function (t) { return t.top; });
+        if (tops.length) { it.pMin = Math.min.apply(null, tops.map(function (t) { return t.top; })); it.pMax = Math.max.apply(null, tops.map(function (t) { return t.top; })); var t84 = tops.filter(function (t) { return t.area && t.area >= 80 && t.area <= 86; })[0]; if (t84) it.p84 = t84.top; }
+      });
+    } catch (e) { log("주택형별 분양가 실패: " + e.message); }
+    /* 4 경쟁률 (최근 공고 기준) */
+    try {
+      var cr = await odc("ApplyhomeInfoCmpetRtSvc/v1/getAPTLttotPblancCmpet");
+      DBG.cmpetSample = cr.slice(0, 1);
+      var byHouse = {};
+      cr.forEach(function (r) { var k = String(r.HOUSE_MANAGE_NO || r.HOUSE_NM); var rate = num(r.CMPET_RATE), req = num(r.REQ_CNT), sup = num(r.SUPLY_HSHLDCO); var o = byHouse[k] || (byHouse[k] = { no: r.HOUSE_MANAGE_NO, nm: r.HOUSE_NM, req: 0, sup: 0, max: null, ty: [] }); o.req += req || 0; o.sup += sup || 0; if (rate != null && (o.max == null || rate > o.max)) { o.max = rate; o.maxTy = r.HOUSE_TY; } });
+      var known = {}; out.items.forEach(function (it) { known[String(it.no)] = it; });
+      out.results = Object.keys(byHouse).map(function (k) { var o = byHouse[k], it = known[k]; o.rate = o.sup ? Math.round(o.req / o.sup * 10) / 10 : o.max; if (it) { o.area = it.area; o.win = it.win; o.notice = it.notice; } return o; }).filter(function (o) { return o.rate != null && o.sup > 0; }).sort(function (a, b) { return (b.notice || 0) - (a.notice || 0) || b.rate - a.rate; }).slice(0, 60);
+      out.items.forEach(function (it) { var o = byHouse[String(it.no)]; if (o && o.sup) { it.rate = o.rate; it.req = o.req; it.maxRate = o.max; it.maxTy = o.maxTy; } });
+    } catch (e) { log("경쟁률 실패: " + e.message); }
+    out.items.sort(function (a, b) { return (a.b || a.notice || 0) - (b.b || b.notice || 0); });
+    /* 요약(카드용) */
+    var openN = out.items.filter(function (i) { return i.b && i.e && i.b <= today && today <= i.e; }).length, soonN = out.items.filter(function (i) { return i.b && i.b > today; }).length;
+    out.open = out.items.filter(function (i) { return i.kind === "apt" && i.b && i.e && i.b <= today && today <= i.e; }).slice(0, 10);
+    out.soon = out.items.filter(function (i) { return i.kind === "apt" && i.b && i.b > today; }).slice(0, 10);
+    log("청약 공고 " + out.items.length + "건(접수 중 " + openN + " · 예정 " + soonN + ") · 경쟁률 " + out.results.length + " · 분양가 있는 단지 " + out.items.filter(function (i) { return i.pMax; }).length);
   } catch (e) { log("청약 실패: " + e.message); }
   return out;
 }

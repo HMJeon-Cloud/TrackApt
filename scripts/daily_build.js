@@ -166,6 +166,8 @@ async function subs() {
     /* 1 APT 분양 공고 */
     var apt = await odc("ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail");
     DBG.subsSample = apt.slice(0, 1);
+    var NAME = {};   /* 경쟁률 API 에는 단지명이 없어 공고 전체(기간 무관)에서 관리번호 → 이름·지역을 만든다 */
+    apt.forEach(function (r) { NAME[String(r.HOUSE_MANAGE_NO)] = { nm: r.HOUSE_NM, area: r.SUBSCRPT_AREA_CODE_NM, notice: dn(r.RCRIT_PBLANC_DE), win: dn(r.PRZWNER_PRESNATN_DE), b: dn(r.RCEPT_BGNDE) }; });
     apt.forEach(function (r) {
       var it = { kind: "apt", no: r.HOUSE_MANAGE_NO, pno: r.PBLANC_NO, nm: r.HOUSE_NM, type: r.HOUSE_SECD_NM || r.HOUSE_DTL_SECD_NM, rent: r.RENT_SECD_NM, area: r.SUBSCRPT_AREA_CODE_NM, addr: r.HSSPLY_ADRES, zip: r.HSSPLY_ZIP, n: num(r.TOT_SUPLY_HSHLDCO),
         notice: dn(r.RCRIT_PBLANC_DE), spB: dn(r.SPSPLY_RCEPT_BGNDE), spE: dn(r.SPSPLY_RCEPT_ENDDE), r1: dateIn(r.GNRL_RNK1_CRSPAREA_RCEPT_PD), r1x: dateIn(r.GNRL_RNK1_ETC_AREA_RCPTDE), r1g: dateIn(r.GNRL_RNK1_ETC_GG_RCPTDE), r2g: dateIn(r.GNRL_RNK2_ETC_GG_RCPTDE), r2: dateIn(r.GNRL_RNK2_CRSPAREA_RCEPT_PD), r2x: dateIn(r.GNRL_RNK2_ETC_AREA_RCPTDE),
@@ -193,7 +195,7 @@ async function subs() {
         if (it.kind !== "apt") return;
         var L = byNo[String(it.no)] || []; if (!L.length) return;
         it.types = L.map(function (m) { return { ty: m.HOUSE_TY, n: num(m.SUPLY_HSHLDCO), sp: num(m.SPSPLY_HSHLDCO), top: num(m.LTTOT_TOP_AMOUNT), area: num(m.SUPLY_AR),
-          spd: { 다자녀: num(m.MNYCH_SPSPLY_HSHLDCO), 신혼부부: num(m.NWWDS_SPSPLY_HSHLDCO), 생애최초: num(m.LFE_FRST_SPSPLY_HSHLDCO), 노부모: num(m.OLD_PARNTS_SUPORT_SPSPLY_HSHLDCO), 기관추천: num(m.INSTT_RECOMEND_SPSPLY_HSHLDCO), 청년: num(m.YGMN_SPSPLY_HSHLDCO), 신생아: num(m.NWBB_SPSPLY_HSHLDCO), 이전기관: num(m.TRANSR_INSTT_ENFSN_SPSPLY_HSHLDCO), 기타: num(m.ETC_SPSPLY_HSHLDCO) } }; }).filter(function (t) { return t.ty; }).sort(function (a, b) { return (a.area || 0) - (b.area || 0); }).slice(0, 12);
+          spd: (function () { var g = function (a, b) { var v = num(m[a]); return v != null ? v : num(m[b]); }; return { 다자녀: g("MNYCH_HSHLDCO", "MNYCH_SPSPLY_HSHLDCO"), 신혼부부: g("NWWDS_HSHLDCO", "NWWDS_SPSPLY_HSHLDCO"), 생애최초: g("LFE_FRST_HSHLDCO", "LFE_FRST_SPSPLY_HSHLDCO"), 노부모: g("OLD_PARNTS_SUPORT_HSHLDCO", "OLD_PARNTS_SUPORT_SPSPLY_HSHLDCO"), 기관추천: g("INSTT_RECOMEND_HSHLDCO", "INSTT_RECOMEND_SPSPLY_HSHLDCO"), 청년: g("YGMN_HSHLDCO", "YGMN_SPSPLY_HSHLDCO"), 신생아: g("NWBB_HSHLDCO", "NWBB_SPSPLY_HSHLDCO"), 이전기관: g("TRANSR_INSTT_ENFSN_HSHLDCO", "TRANSR_INSTT_ENFSN_SPSPLY_HSHLDCO"), 기타: g("ETC_HSHLDCO", "ETC_SPSPLY_HSHLDCO") }; })() }; }).filter(function (t) { return t.ty; }).sort(function (a, b) { return (a.area || 0) - (b.area || 0); }).slice(0, 12);
         var tops = it.types.filter(function (t) { return t.top; });
         if (tops.length) { it.pMin = Math.min.apply(null, tops.map(function (t) { return t.top; })); it.pMax = Math.max.apply(null, tops.map(function (t) { return t.top; })); var t84 = tops.filter(function (t) { return t.area && t.area >= 80 && t.area <= 86; })[0]; if (t84) it.p84 = t84.top; }
       });
@@ -202,11 +204,33 @@ async function subs() {
     try {
       var cr = await odc("ApplyhomeInfoCmpetRtSvc/v1/getAPTLttotPblancCmpet");
       DBG.cmpetSample = cr.slice(0, 1);
-      var byHouse = {};
-      cr.forEach(function (r) { var k = String(r.HOUSE_MANAGE_NO || r.HOUSE_NM); var rate = num(r.CMPET_RATE), req = num(r.REQ_CNT), sup = num(r.SUPLY_HSHLDCO); var o = byHouse[k] || (byHouse[k] = { no: r.HOUSE_MANAGE_NO, nm: r.HOUSE_NM, req: 0, sup: 0, max: null, ty: [] }); o.req += req || 0; o.sup += sup || 0; if (rate != null && (o.max == null || rate > o.max)) { o.max = rate; o.maxTy = r.HOUSE_TY; } });
-      var known = {}; out.items.forEach(function (it) { known[String(it.no)] = it; });
-      out.results = Object.keys(byHouse).map(function (k) { var o = byHouse[k], it = known[k]; o.rate = o.sup ? Math.round(o.req / o.sup * 10) / 10 : o.max; if (it) { o.area = it.area; o.win = it.win; o.notice = it.notice; } return o; }).filter(function (o) { return o.rate != null && o.sup > 0; }).sort(function (a, b) { return (b.notice || 0) - (a.notice || 0) || b.rate - a.rate; }).slice(0, 60);
-      out.items.forEach(function (it) { var o = byHouse[String(it.no)]; if (o && o.sup) { it.rate = o.rate; it.req = o.req; it.maxRate = o.max; it.maxTy = o.maxTy; } });
+      /* 행 = 주택형 × 순위(1·2) × 거주구분(해당·기타·경기). 공급 세대수(SUPLY_HSHLDCO)는 주택형마다 같은 값이 행마다 반복되므로 한 번만 센다.
+         1순위 경쟁률 = 주택형 1순위 신청 합(해당+기타) ÷ 주택형 일반공급. CMPET_RATE 의 "(△n)" 은 n세대 미달. */
+      var H = {};
+      cr.forEach(function (r) {
+        var k = String(r.HOUSE_MANAGE_NO || ""); if (!k) return;
+        var h = H[k] || (H[k] = { no: k, ty: {} });
+        var tk = String(r.MODEL_NO || r.HOUSE_TY), t = h.ty[tk] || (h.ty[tk] = { ty: r.HOUSE_TY, sup: 0, r1: 0, r2: 0, r1here: 0, r1rate: null, short: false });
+        var sup = num(r.SUPLY_HSHLDCO) || 0, req = num(r.REQ_CNT) || 0, rank = Number(r.SUBSCRPT_RANK_CODE), here = /해당/.test(String(r.RESIDE_SENM || "")) || String(r.RESIDE_SECD) === "01";
+        if (sup > t.sup) t.sup = sup;
+        if (rank === 2) t.r2 += req; else { t.r1 += req; if (here) t.r1here += req; }
+        if (/△/.test(String(r.CMPET_RATE || ""))) t.short = true;
+      });
+      var R = Object.keys(H).map(function (k) {
+        var h = H[k], T = Object.keys(h.ty).map(function (x) { return h.ty[x]; }).filter(function (t) { return t.sup > 0; });
+        if (!T.length) return null;
+        var sup = 0, r1 = 0, r1h = 0, r2 = 0, max = null, maxTy = "", shortN = 0;
+        T.forEach(function (t) { sup += t.sup; r1 += t.r1; r1h += t.r1here; r2 += t.r2; var rt = t.r1 / t.sup; if (max == null || rt > max) { max = rt; maxTy = t.ty; } if (t.r1 + t.r2 < t.sup) shortN++; });
+        var nm = NAME[k] || {};
+        return { no: k, nm: nm.nm || null, area: nm.area || "", notice: nm.notice || null, win: nm.win || null, b: nm.b || null,
+          sup: sup, req: r1, reqHere: r1h, req2: r2, rate: Math.round(r1 / sup * 100) / 100, rateHere: Math.round(r1h / sup * 100) / 100, max: Math.round(max * 100) / 100, maxTy: maxTy,
+          types: T.length, shortTypes: shortN, status: r1 >= sup && !T.some(function (t) { return t.r1 < t.sup; }) ? "1순위 마감" : (r1 + r2 >= sup && shortN === 0 ? "2순위 마감" : "미달 " + shortN + "개 주택형") };
+      }).filter(Boolean);
+      R.sort(function (a, b) { return (b.b || b.notice || 0) - (a.b || a.notice || 0) || b.rate - a.rate; });
+      out.results = R.slice(0, 80);
+      log("경쟁률 행 " + cr.length + " → 단지 " + R.length + " (이름 붙은 곳 " + R.filter(function (x) { return x.nm; }).length + ")");
+      var RB = {}; R.forEach(function (x) { RB[x.no] = x; });
+      out.items.forEach(function (it) { var o = RB[String(it.no)]; if (o) { it.rate = o.rate; it.req = o.req; it.maxRate = o.max; it.maxTy = o.maxTy; it.rstat = o.status; it.rateHere = o.rateHere; } });
     } catch (e) { log("경쟁률 실패: " + e.message); }
     out.items.sort(function (a, b) { return (a.b || a.notice || 0) - (b.b || b.notice || 0); });
     /* 요약(카드용) */

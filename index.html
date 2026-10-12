@@ -1987,6 +1987,7 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 #sb-csel{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 #sb-csel .mk-tag{white-space:normal;line-height:1.4}
 #tab-subs #sb-area button{min-width:0}
+#sb-rate .sb-tbl td:first-child{white-space:normal;min-width:150px;max-width:260px}
 </style>
 </head>
 <body>
@@ -7226,6 +7227,7 @@ function buildSubs(sec) {
     if (a) { SB.area = a.dataset.sba; sbPaint(); }
     if (k) { SB.kind = k.dataset.sbk; sbPaint(); }
     if (more) { SB.more = true; sbPaint(); }
+    if (ev.target.closest("[data-sbrmore]")) { SB.rmore = true; sbPaint(); }
     if (sv && typeof chCardImage === "function") { var card = sv.parentNode.querySelector(".chcard"); if (typeof progOpen === "function") progOpen("이미지 만드는 중", 0); chCardImage(card, sv.dataset.chsave).then(function () { if (typeof progClose === "function") progClose(); }, function () { if (typeof progClose === "function") progClose(); alert("이미지 저장에 실패했습니다."); }); }
   });
   sec.addEventListener("change", function (ev) {
@@ -7258,8 +7260,8 @@ function sbPaint() {
   var shown = SB.more ? live : live.slice(0, 12);
   document.getElementById("sb-list").innerHTML = (shown.length ? shown.map(sbItemHtml).join("") : '<p class="hint">진행 중이거나 예정된 공고가 없습니다.</p>') + (live.length > shown.length ? '<button type="button" class="btn sm ghost" data-sbmore="1">' + (live.length - shown.length) + "건 더 보기</button>" : "");
   /* 경쟁률 */
-  var R = (X.results || []).filter(function (r) { return SB.area === "all" || (r.area && sbAreaOf({ area: r.area }) === SB.area); }).slice(0, 12);
-  document.getElementById("sb-rate").innerHTML = R.length ? '<div class="sb-tw"><table class="sb-tbl"><tr><th>단지</th><th>지역</th><th>공급</th><th>신청</th><th>평균</th><th>최고</th></tr>' + R.map(function (r) { return "<tr><td>" + escHtml(r.nm) + "</td><td>" + escHtml(String(r.area || "").replace(/특별시|광역시/g, "")) + "</td><td>" + fmt(r.sup) + "</td><td>" + fmt(r.req) + "</td><td><b>" + r.rate + ":1</b></td><td>" + (r.max != null ? r.max + ":1" + (r.maxTy ? " <small>" + escHtml(r.maxTy) + "</small>" : "") : "–") + "</td></tr>"; }).join("") + "</table></div>" : '<p class="hint">최근 경쟁률 자료가 없습니다.</p>';
+  var R = sbResults(X).filter(function (r) { return SB.area === "all" || (r.area && sbAreaOf({ area: r.area }) === SB.area); }).slice(0, SB.rmore ? 60 : 12);
+  document.getElementById("sb-rate").innerHTML = R.length ? '<p class="sb-cap">1순위 경쟁률 = 주택형별 1순위 신청(해당+기타지역) ÷ 일반공급 세대수 · 특별공급 제외 · 청약홈 접수 결과</p><div class="sb-tw"><table class="sb-tbl"><tr><th>단지</th><th>지역</th><th>일반공급</th><th>1순위 신청</th><th>1순위 평균</th><th>최고(주택형)</th><th>결과</th></tr>' + R.map(function (r) { return "<tr><td>" + escHtml(r.nm) + (r.win ? " <small>발표 " + chMD(r.win) + "</small>" : "") + "</td><td>" + escHtml(String(r.area || "").replace(/특별시|광역시|특별자치시|특별자치도/g, "")) + "</td><td>" + fmt(r.sup) + "</td><td>" + fmt(r.req) + "</td><td><b>" + sbRate(r.rate) + "</b></td><td>" + (r.max != null ? sbRate(r.max) + (r.maxTy ? " <small>" + escHtml(sbTy(r.maxTy)) + "</small>" : "") : "–") + "</td><td>" + (r.status ? '<i class="chc-pill ' + (/1순위/.test(r.status) ? "ok" : /미달/.test(r.status) ? "warn" : "wait") + '">' + escHtml(r.status) + "</i>" : "") + "</td></tr>"; }).join("") + "</table></div>" + ((X.results || []).length > R.length && !SB.rmore ? '<button type="button" class="btn sm ghost" data-sbrmore="1">더 보기</button>' : "") : '<p class="hint">최근 경쟁률 자료가 없습니다. (수집기를 새로 올렸다면 다음 수집부터 나옵니다)</p>';
   sbPaintCard();
 }
 /* ── 카드 범위 고르기 + 그리기 ── */
@@ -7331,7 +7333,7 @@ function sbItemHtml(it) {
     '<div class="sb-addr">' + escHtml(it.addr || "") + (it.builder ? " · 시공 " + escHtml(it.builder) : "") + "</div>" +
     '<div class="sb-sched">' + rows.map(function (r) { return "<div><span>" + r[0] + "</span><b>" + r[1] + "</b><small>" + r[2] + "</small></div>"; }).join("") + "</div>" +
     (it.types && it.types.length ? '<details class="sb-types"><summary>주택형별 분양가·공급 ' + it.types.length + "개</summary><div class=\"sb-tw\"><table class=\"sb-tbl\"><tr><th>주택형</th><th>공급면적</th><th>공급</th><th>특공</th><th>최고 분양가</th></tr>" + it.types.map(function (ty) { return "<tr><td>" + escHtml(ty.ty) + "</td><td>" + (ty.area ? ty.area + "㎡" : "–") + "</td><td>" + (ty.n != null ? fmt(ty.n) : "–") + "</td><td>" + (ty.sp != null ? fmt(ty.sp) : "–") + (sbSpd(ty) ? " <small>" + sbSpd(ty) + "</small>" : "") + "</td><td>" + (ty.top ? eok(ty.top) : "–") + "</td></tr>"; }).join("") + "</table></div></details>" : "") +
-    (it.rate ? '<div class="sb-addr">경쟁률 평균 <b>' + it.rate + ":1</b>" + (it.maxRate ? " · 최고 " + it.maxRate + ":1" + (it.maxTy ? "(" + escHtml(it.maxTy) + ")" : "") : "") + "</div>" : "") +
+    (it.rstat ? '<div class="sb-addr">1순위 경쟁률 평균 <b>' + sbRate(it.rate) + "</b>" + (it.maxRate ? " · 최고 " + sbRate(it.maxRate) + (it.maxTy ? "(" + escHtml(sbTy(it.maxTy)) + ")" : "") : "") + " · " + escHtml(it.rstat) + "</div>" : "") +
     sbTermsHtml(it) + sbGuideHtml(it) +
     '<div class="sb-links"><button type="button" class="btn sm ghost" data-sbcard="' + escHtml(String(it.no)) + '">이 단지로 카드</button>' + (it.url ? '<a href="' + escHtml(it.url) + '" target="_blank" rel="noopener">청약홈 공고 보기</a>' : "") + (it.home ? '<a href="' + escHtml(/^http/.test(it.home) ? it.home : "https://" + it.home) + '" target="_blank" rel="noopener">홈페이지</a>' : "") + (it.tel ? "<span>문의 " + escHtml(it.tel) + "</span>" : "") + "</div></div>";
 }
@@ -7362,8 +7364,8 @@ function sbDyBoxes(n, big) {
   if (soon.length) B.push(dyBox(n(), "2주 안 접수 시작", soon.slice(0, big ? 8 : 4).map(function (it) { return row(it, chMD(it.b) + "(" + chWd(it.b) + ")", (it.spB && it.spB !== it.b ? "특공 " + chMD(it.spB) : "") || sbDays(it.b)); }), { wide: big, pri: 1, min: 2 }));
   if (win.length) B.push(dyBox(n(), "당첨자 발표", win.slice(0, big ? 6 : 3).map(function (it) { return row(it, chMD(it.win) + "(" + chWd(it.win) + ")", sbDays(it.win)); }), { pri: 2 }));
   if (rem.length) B.push(dyBox(n(), "무순위·잔여세대", rem.slice(0, big ? 6 : 3).map(function (it) { return row(it, it.b && it.b !== it.e ? chMD(it.b) + "~" + chMD(it.e) : chMD(it.e) + "(" + chWd(it.e) + ")", it.sub || ""); }), { pri: 2 }));
-  var R = (X.results || []).slice(0, big ? 8 : 4);
-  if (R.length) B.push(dyBox(n(), "최근 경쟁률", R.map(function (r) { return dyRow(dyE(r.nm) + "<small>" + dyE(String(r.area || "").replace(/특별시|광역시/g, "")) + " · 공급 " + fmt(r.sup) + "</small>", r.rate + ":1", r.max != null ? "최고 " + r.max + ":1" : ""); }), { pri: 3, wide: big }));
+  var R = sbResults(X).slice(0, big ? 8 : 4);
+  if (R.length) B.push(dyBox(n(), "최근 1순위 경쟁률", R.map(function (r) { return dyRow(dyE(r.nm) + "<small>" + dyE(String(r.area || "").replace(/특별시|광역시/g, "")) + " · 일반공급 " + fmt(r.sup) + (r.status ? " · " + dyE(r.status) : "") + "</small>", sbRate(r.rate), r.max != null ? "최고 " + sbRate(r.max) : ""); }), { pri: 3, wide: big }));
   var pr = L.filter(function (it) { return it.p84 && (it.e || 0) >= t - 30; }).slice(0, big ? 8 : 4);
   if (pr.length) B.push(dyBox(n(), "84㎡ 분양가", pr.map(function (it) { return dyRow(dyE(it.nm) + "<small>" + dyE(String(it.area || "").replace(/특별시|광역시/g, "")) + (it.cap ? " · 상한제" : "") + "</small>", eok(it.p84), it.pMin !== it.pMax ? eok(it.pMin) + "~" + eok(it.pMax) : ""); }), { pri: 3, wide: big }));
   return B;
@@ -7385,7 +7387,7 @@ function sbItemBoxes(n, X) {
   if (it.cE) sch.push(dyRow("계약 마감", sbD(it.cE), sbDays(it.cE)));
   if (sch.length) B.push(dyBox(n(), "일정", sch, { wide: true, pri: 0, min: sch.length, date: "날짜는 공고 그대로 · 변경 시 청약홈 확인" }));
   if (it.types && it.types.length) B.push(dyBox(n(), "주택형별 분양가·공급", it.types.slice(0, 10).map(function (ty) { return dyRow(dyE(ty.ty) + (ty.area ? "<small>공급 " + ty.area + "㎡</small>" : ""), ty.top ? eok(ty.top) : "–", (ty.n != null ? fmt(ty.n) + "가구" : "") + (ty.sp != null ? " · 특공 " + fmt(ty.sp) : "")); }), { wide: true, pri: 2, min: 2, date: "최고 분양가" }));
-  if (it.rate) B.push(dyBox(n(), "경쟁률", [dyRow("평균", it.rate + ":1", it.req ? fmt(it.req) + "명 신청" : "")].concat(it.maxRate ? [dyRow("최고", it.maxRate + ":1", it.maxTy ? dyE(it.maxTy) : "")] : []), { pri: 2 }));
+  if (it.rstat) B.push(dyBox(n(), "1순위 경쟁률", [dyRow("평균", sbRate(it.rate), it.req ? fmt(it.req) + "명 신청" : ""), dyRow("결과", dyE(it.rstat), "")].concat(it.maxRate ? [dyRow("최고", sbRate(it.maxRate), it.maxTy ? dyE(sbTy(it.maxTy)) : "")] : []), { pri: 2 }));
   var sp = sbSpdSum(it); if (sp) B.push(dyBox(n(), "특별공급 유형별", Object.keys(sp).map(function (k) { return dyRow(k, fmt(sp[k]) + "가구", ""); }), { pri: 2 }));
   var T = sbTermsRows(it); if (T.length) B.push(dyBox(n(), "이 단지 청약 조건", T.map(function (r) { return dyRow(r[0], r[1], ""); }), { wide: true, pri: 1, min: Math.min(T.length, 4), date: "공고문 기준" + (sbNote(it).asOf ? " · " + dyE(sbNote(it).asOf) + " 확인" : "") }));
   var P2 = sbPriorRow(it); if (P2) B.push(dyBox(n(), "접수 순서(공고)", P2.map(function (r) { return dyRow(r[0], r[1], r[2]); }), { pri: 1, min: P2.length }));
@@ -7506,6 +7508,19 @@ function sbNoteAi(no) {
     msg.textContent = n + "개 항목을 읽었습니다(" + (j.model || "") + "). 공고문과 대조한 뒤 저장하세요.";
   }, function (e) { msg.textContent = "실패: " + e.message; });
 }
+
+/* 경쟁률: 예전 자료(단지명 없음·공급 중복 합산)는 버리고, 이름은 공고 목록에서 보충한다 */
+function sbResults(X) {
+  var by = {}; (X.items || []).forEach(function (it) { by[String(it.no)] = it; });
+  return (X.results || []).filter(function (r) { return r.status || r.types; }).map(function (r) {
+    var it = by[String(r.no)], o = {}; for (var k in r) o[k] = r[k];
+    if (!o.nm) o.nm = it ? it.nm : "관리번호 " + r.no;
+    if (!o.area && it) o.area = it.area;
+    return o;
+  });
+}
+function sbRate(v) { if (v == null) return "–"; return (v >= 100 ? Math.round(v) : v >= 10 ? v.toFixed(1) : v.toFixed(2).replace(/0$/, "")) + ":1"; }
+function sbTy(t) { var m = String(t || "").match(/^0*(\d+)\.\d+([A-Z]*)$/); return m ? m[1] + "㎡" + (m[2] ? " " + m[2] : "") : t; }
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

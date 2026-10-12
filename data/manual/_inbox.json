@@ -1,6 +1,6 @@
 {
  "v": 1,
- "builtAt": "2026-10-12T07:35:23.296Z",
+ "builtAt": "2026-10-12T07:53:04.698Z",
  "asOf": 20261012,
  "items": [
   {
@@ -36,17 +36,6 @@
    "src": "연합뉴스",
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-11",
-   "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-10-10",
-   "title": "디딤돌대출 방공제 의무화, 서울 아파트 한도 5500만원 깎인다…잔금 역산법",
-   "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE4ydXUtbVBwdXJlckttYnBCWVktaUxRZFRfS2dLRWxoNkNCNUJiYlpELTEzVlJKaEVIbk9hbFdLbGMyOTktQlhMa3FHc3JTSEVDZEl0b2phS0tBYzg0YTN5VU1B?oc=5",
-   "src": "매일신문",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-11",
    "isNew": false
   }

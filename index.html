@@ -1868,6 +1868,54 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .rc-in3 span{font-size:.72rem;font-weight:800;color:var(--sub)}
 .rc-ck .rc-3{display:grid;gap:4px}
 .rc-ck label.rc-in3{display:grid;grid-template-columns:34px 1fr;margin:0}
+
+/* ══ v9.19 오늘 한 장 (한 장 인포그래픽 · 360×450 → 1080×1350) ══ */
+.chcard.chc-day{padding:0;background:#f6f4ee;color:#1b2235;border-color:#e3ded2;display:flex;flex-direction:column;font-size:7.6px;line-height:1.28;letter-spacing:-.015em;word-break:keep-all;overflow-wrap:anywhere}
+.chc-day .dy-head{background:linear-gradient(135deg,#0d1b3d 0%,#16294a 60%,#2a2452 100%);color:#fff;padding:9px 12px 8px;position:relative}
+.chc-day .dy-head:after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,#d4af6a,#f0d9a6 50%,#d4af6a)}
+.chc-day .dy-brand{display:flex;justify-content:space-between;align-items:center;font-size:7.2px;color:#e9d3a6}
+.chc-day .dy-brand b{font-weight:800;letter-spacing:.02em}.chc-day .dy-brand span{color:rgba(255,255,255,.7)}
+.chc-day .dy-date{position:absolute;right:12px;top:22px;font-size:7.4px;font-weight:700;color:#fff;background:rgba(255,255,255,.14);padding:1.5px 6px;border-radius:999px}
+.chc-day .dy-title{margin:4px 0 0;font-size:17px;line-height:1.1;font-weight:900;letter-spacing:-.03em;color:#fff}
+.chc-day .dy-title:first-letter{color:#f0d9a6}
+.chc-day .dy-sub{margin:3px 0 0;font-size:7.4px;color:rgba(255,255,255,.82)}
+.chc-day .dy-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:5px 7px 0;flex:1;align-content:start;min-height:0;overflow:hidden}
+.chc-day .dy-box{background:#fff;border:1px solid #e6e1d6;border-radius:7px;padding:4px 6px 4px;min-width:0}
+.chc-day .dy-box.wide{grid-column:1/-1}
+.chc-day .dy-box h4{margin:0 0 3px;font-size:8.2px;font-weight:800;color:#0d1b3d;display:flex;align-items:center;gap:4px;line-height:1.15;padding-bottom:3px;border-bottom:1px solid #efe9dc}
+.chc-day .dy-box h4 i{flex:none;width:11px;height:11px;border-radius:3px;background:#16294a;color:#f0d9a6;font-style:normal;font-size:7px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.chc-day .dy-box h4 small{margin-left:auto;font-weight:600;color:#8a8f9c;font-size:6px;text-align:right;line-height:1.1;max-width:52%;flex:none}
+.chc-day .dy-r{display:flex;align-items:baseline;gap:4px;padding:1.6px 0;border-bottom:1px dashed #f0ebe0}
+.chc-day .dy-r:last-child{border-bottom:0}
+.chc-day .dy-r>span{flex:1;min-width:0;color:#2b3246;display:block}
+.chc-day .dy-r>span small{display:block;color:#8a8f9c;font-size:6.2px;line-height:1.2}
+.chc-day .dy-r>span u{text-decoration:none;display:inline-block;min-width:9px;font-weight:800;color:#c9a35c;margin-right:2px}
+.chc-day .dy-r>span>b{color:#0d1b3d}
+.chc-day .dy-r>b{font-weight:800;color:#0d1b3d;white-space:nowrap;font-size:8.2px;font-variant-numeric:tabular-nums}
+.chc-day .dy-r>em{font-style:normal;color:#6b7280;white-space:nowrap;font-size:6.6px;flex:none;max-width:46%;overflow:hidden;text-overflow:ellipsis}
+.chc-day .dy-r>em:empty{display:none}
+.chc-day i.up{color:#e5484d;font-style:normal;font-weight:800}.chc-day i.down{color:#3182f6;font-style:normal;font-weight:800}.chc-day i.flat{color:#6b7684;font-style:normal}
+.chc-day .dy-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin:1px 0 2px}
+.chc-day .dy-kpi>div{background:#f3f6fb;border-radius:5px;padding:3px 4px 2px;text-align:center}
+.chc-day .dy-kpi small{display:block;font-size:6.2px;color:#6b7280}
+.chc-day .dy-kpi b{display:block;font-size:11.5px;font-weight:900;color:#16294a;line-height:1.05;font-variant-numeric:tabular-nums}
+.chc-day .dy-kpi b em{font-style:normal;font-size:6.5px;font-weight:700;margin-left:1px;color:#6b7280}
+.chc-day .dy-kpi span{display:block;font-size:6.2px;color:#8a8f9c}
+.chc-day .dy-pill{display:inline-block;font-style:normal;font-size:5.8px;font-weight:800;padding:0 4px;border-radius:999px;background:#eef2f9;color:#16294a;margin-right:3px;vertical-align:1px;line-height:1.6}
+.chc-day .dy-pill.warn{background:#fff1e6;color:#c2410c}.chc-day .dy-pill.on{background:#e6f4ea;color:#15803d}
+.chc-day .dy-note{margin:2px 0 0;font-size:6.2px;color:#8a8f9c}
+.chc-day .dy-box.term{background:linear-gradient(135deg,#fffaf0,#fff);border-color:#ecd9b0}
+.chc-day .dy-box.term .dy-r>span{font-size:7.8px}
+.chc-day .dy-foot{margin-top:auto;padding:4px 10px 5px;display:flex;justify-content:space-between;gap:8px;font-size:6.2px;color:#8a8f9c;border-top:1px solid #e6e1d6;background:#fbfaf7}
+.chc-day .dy-foot b{color:#16294a;white-space:nowrap;font-weight:700}
+.chc-day .dy-foot span{line-height:1.2}
+.chc-day.dy-t1{font-size:7.1px}.chc-day.dy-t1 .dy-box{padding:3px 5px}.chc-day.dy-t1 .dy-r{padding:1.1px 0}.chc-day.dy-t1 .dy-kpi b{font-size:10.5px}
+.chc-day.dy-t2{font-size:6.7px}.chc-day.dy-t2 .dy-box h4{font-size:7.6px;margin-bottom:2px}.chc-day.dy-t2 .dy-r>b{font-size:7.6px}.chc-day.dy-t2 .dy-grid{gap:3px;padding-top:4px}.chc-day.dy-t2 .dy-head{padding:7px 12px 6px}.chc-day.dy-t2 .dy-title{font-size:15px}
+.dy-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;width:100%}
+.dy-chips button{border:1px solid var(--line,#dfe3ea);background:var(--card,#fff);color:inherit;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer}
+.dy-chips button.on{background:#16294a;color:#fff;border-color:#16294a}
+.chcards.strip .dy-chips{flex-basis:100%}
+.chc-day.dy-t3{font-size:6.4px}.chc-day.dy-t3 .dy-box h4{font-size:7.2px}.chc-day.dy-t3 .dy-r>b{font-size:7.2px}.chc-day.dy-t3 .dy-r{padding:.9px 0}.chc-day.dy-t3 .dy-kpi b{font-size:9.5px}.chc-day.dy-t3 .dy-kpi>div{padding:2px 3px 1px}.chc-day.dy-t3 .dy-box{padding:2.5px 5px}.chc-day.dy-t3 .dy-r>span small{font-size:5.8px}
 </style>
 </head>
 <body>
@@ -1875,7 +1923,7 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.18</span>
+    <span class="ver">v9.19</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -3193,10 +3241,10 @@ if ("serviceWorker" in navigator) {
      · 내 집·갈아타기 — 월별 저장본 ㎡당가·84㎡ 중위(같은 보정) + 앱의 대출·세금 규칙(finance)
    글은 고쳐 쓸 수 있는 칸에 넣고 [복사]로 가져간다. 카드는 360×450 을 3배로 찍어 1080×1350. */
 var CH = { tab: "daily", data: null, loading: false, scope: "all", band: "all" };   /* v8.0: scope/band = 카드 범위·평형 ("all"·"all" 이면 코너 기본 카드) */
-var CH_TABS = [["recap", "전일 정리"], ["week", "한주 정리"], ["weekahead", "한주 예상"], ["month", "한달 정리"], ["monthahead", "한달 예상"],
+var CH_TABS = [["today", "오늘 한 장"], ["recap", "전일 정리"], ["week", "한주 정리"], ["weekahead", "한주 예상"], ["month", "한달 정리"], ["monthahead", "한달 예상"],
   ["daily", "데일리"], ["lead", "대장아파트"], ["macro", "금리·정책"], ["mdd", "MDD·회복"], ["ripple", "확산 순서"], ["ripple2", "확산·대장"], ["move", "내 집·갈아타기"], ["school", "학군"], ["terms", "용어 한입"]];
-var CH_TAB_SHORT = { recap: "전일 정리", week: "한주 정리", weekahead: "한주 예상", month: "한달 정리", monthahead: "한달 예상", daily: "데일리", lead: "대장", macro: "금리·정책", mdd: "MDD", ripple: "확산", ripple2: "확산·대장", move: "내 집", school: "학군", terms: "용어" };
-var CH_REGULAR = ["recap", "week", "weekahead", "month", "monthahead"];
+var CH_TAB_SHORT = { today: "오늘 한 장", recap: "전일 정리", week: "한주 정리", weekahead: "한주 예상", month: "한달 정리", monthahead: "한달 예상", daily: "데일리", lead: "대장", macro: "금리·정책", mdd: "MDD", ripple: "확산", ripple2: "확산·대장", move: "내 집", school: "학군", terms: "용어" };
+var CH_REGULAR = ["today", "recap", "week", "weekahead", "month", "monthahead"];
 var CH_FOOT = "※ 국토부 실거래 신고를 정리한 참고 자료이며 투자 권유가 아닙니다.";
 
 var CH_HELP_TOP =
@@ -3381,6 +3429,7 @@ document.addEventListener("click", function (e) {
 var CH_TAB_FILES = { daily: /^(거래량|평형별|가격 변화|거래 급증|신고가|최고가 거래|인기 단지|전월세)/, mdd: /^(MDD|하락·회복|1년 상승률)/, move: /^(\d+㎡ 시세|예산별|갈아타기|내 집 마련)/ };
 /* 고른 범위·평형의 카드 — 전국·전체면 코너 기본 카드 */
 function chCardsFor(tab) {
+  if (tab === "today") return { html: typeof dyBaseCards === "function" ? dyBaseCards().map(function (o) { return chCard(o); }).join("") : "", note: "" };
   if (CH.scope === "all" && CH.band === "all") return { html: chCardsHtml(tab), note: "" };
   var codes = CH.scope === "all" ? RANKED.slice() : briefCodes(CH.scope), nm = CH.scope === "all" ? "전국" : briefScopeName(CH.scope), bn = CH_BNM[CH.band] || "";
   var note = nm + (bn ? " · " + bn : " · 전체 평형") + " 자료로 만든 카드입니다. 코너 기본 카드(전국+서울+수도권)로 돌아가려면 전국 · 전체 평형을 고르세요.";
@@ -3405,7 +3454,7 @@ function renderChannel() {
   var a = (typeof BRIEF !== "undefined" && BRIEF.data) ? Promise.resolve(BRIEF.data)
     : fetch("brief_data.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
   fetch("data/validate.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { CH.val = j; if (CH.data) { var ops = document.getElementById("ch-ops"); if (ops && typeof chOpsBanner === "function") ops.innerHTML = chOpsBanner(); } })["catch"](function () {});
-  var pm = new Promise(function (res) { macroLoad(res); if (typeof scLoad === "function") scLoad(function () { if (CH.data && CH.tab === "school") paintChannel(); }); });
+  var pm = new Promise(function (res) { macroLoad(function () { if (typeof dyLoad === "function") dyLoad(res); else res(); }); if (typeof scLoad === "function") scLoad(function () { if (CH.data && CH.tab === "school") paintChannel(); }); });
   Promise.all([a["catch"](function (e) { return { _err: String(e.message || e) }; }), pm]).then(function (vv) {
     var v = vv[0];
     CH.loading = false;
@@ -3780,6 +3829,7 @@ function chMoveText(v) {
 }
 
 function chText(tab) {
+  if (tab === "today") return typeof dyText === "function" ? dyText() : "";
   if (tab === "daily") return chDailyText(chDaily());
   if (tab === "mdd") return chMddText(chMdd());
   if (tab === "ripple") return typeof rpText === "function" ? rpText() : "";
@@ -4183,6 +4233,7 @@ function paintChannel() {
     var deck = []; try { deck = ifDeckFor(CH.tab); } catch (e) { if (window.console) console.error(e); }
     if (deck.length) cc.html = deck.map(function (h, i) { return '<div class="chcardWrap">' + h + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("채널_" + CH.tab + "_인포_" + (i + 1)) + '">이미지 저장</button></div>'; }).join("");
   }
+  if (CH.tab === "today" && typeof dyDeckHtml === "function") { try { cc.html = dyDeckHtml(); } catch (e) { if (window.console) console.error(e); } }
   if (isInfo && note) { note.innerHTML = '<span class="if-sw">카드 모양 <button type="button" data-ifstyle="info" class="' + (CH.style !== "basic" ? "on" : "") + '">인포그래픽</button><button type="button" data-ifstyle="basic" class="' + (CH.style === "basic" ? "on" : "") + '">기본(상세)</button></span>' + (cc.note ? " " + escHtml(cc.note) : ""); note.style.display = ""; }
   CH.texts = typeof chTexts === "function" ? chTexts(CH.tab, capList, scNm) : {};
   CH.texts.raw = CH.rawText;
@@ -4194,6 +4245,7 @@ function paintChannel() {
   chNumberCards(document.getElementById("ch-cards"));
   chFitLater(document.getElementById("ch-cards"));
   if (typeof ifFitLater === "function") ifFitLater(document.getElementById("ch-cards"));
+  if (CH.tab === "today" && typeof dyFitLater === "function") dyFitLater(document.getElementById("ch-cards"));
   if (typeof aiAfterPaint === "function") {
     var cardsEl = document.getElementById("ch-cards"), stu = document.getElementById("ai-studio");
     var aislot = document.getElementById("ch-aislot"), aiwrap = document.getElementById("ch-aiwrap");
@@ -4821,7 +4873,7 @@ window.addEventListener("hashchange", function () { if (/^#!?\/?owner\b/i.test(l
    투자 권유 문구·특정 단지 추천은 넣지 않는다. 숫자는 모두 기존 함수(chDaily 등)에서 가져온다. */
 var CH_POST_KEY = "trackapt_ch_posted_v1";
 var CH_TAGS_COMMON = ["#부동산", "#아파트", "#실거래가", "#부동산공부", "#내집마련", "#우상향연구소"];
-var CH_TAGS = { ripple2: ["#대장아파트", "#신고가", "#집값흐름", "#양극화", "#노도강", "#동탄"], ripple: ["#집값흐름", "#키맞추기", "#갭메우기", "#노도강", "#과천", "#분당", "#부동산공부"], brief: ["#아파트실거래", "#부동산시장", "#신고가", "#대장아파트", "#지금부동산"], daily: ["#아파트실거래", "#서울아파트", "#신고가", "#부동산시장", "#오늘의부동산"], lead: ["#대장아파트", "#신축아파트", "#대단지", "#서울대장"],
+var CH_TAGS = { today: ["#오늘의부동산", "#부동산한장", "#아파트실거래", "#금리", "#부동산정책", "#부동산공부"], ripple2: ["#대장아파트", "#신고가", "#집값흐름", "#양극화", "#노도강", "#동탄"], ripple: ["#집값흐름", "#키맞추기", "#갭메우기", "#노도강", "#과천", "#분당", "#부동산공부"], brief: ["#아파트실거래", "#부동산시장", "#신고가", "#대장아파트", "#지금부동산"], daily: ["#아파트실거래", "#서울아파트", "#신고가", "#부동산시장", "#오늘의부동산"], lead: ["#대장아파트", "#신축아파트", "#대단지", "#서울대장"],
   macro: ["#기준금리", "#주담대금리", "#부동산정책", "#디딤돌대출", "#금리인하"], mdd: ["#집값", "#부동산하락", "#회복", "#부동산데이터"],
   move: ["#갈아타기", "#첫집", "#자금계획", "#서울84"], terms: ["#부동산용어", "#부동산기초", "#경제공부", "#부린이"],
   school: ["#학군", "#학군지", "#대치동", "#목동", "#특목고", "#중학교"],
@@ -6778,6 +6830,237 @@ function renderReel() {
   });
 }
 document.addEventListener("input", function (ev) { if (ev.target && ev.target.id === "rc-topic" && RC.cur) RC.cur.topicTouched = true; });
+
+/* ══ v9.19 오늘 한 장 — 실거래·금리·시장 체온·확산·정책·교통·일정·청약·용어를 한 장(1080×1350)으로 ══
+   채널 브리핑의 첫 코너 "오늘 한 장". 전체 한 장 + 주제별 한 장(실거래·금리·대출 / 정책·교통·일정 / 시장 체온·확산 / 용어).
+   재료: brief_data(어제 신고·신고가·거래량·값 변화) · macro_data(금리·대책·교통·정책대출·일정) · market_core(전세가율) · 확산 분석(rpData)
+         · daily_data.json(미분양·부동산원 지수·청약, scripts/daily_build.js) · data/manual/terms.json(용어 사전)
+   원칙: 없는 자료는 그 줄만 빠진다(빈칸·추정 금지). 모든 숫자 옆이나 머리에 기준일. 투자 권유 문구 없음. */
+var DY = { data: null, terms: null, loaded: false, topic: "all" };
+var DY_TOPICS = [["all", "전체 한 장"], ["deal", "실거래"], ["rate", "금리·대출"], ["policy", "정책·교통·일정"], ["temp", "시장 체온·확산"], ["term", "용어"]];
+function dyLoad(cb) {
+  if (DY.loaded) { cb && cb(); return; }
+  function j(u) { return fetch(u, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; })["catch"](function () { return null; }); }
+  Promise.all([j("daily_data.json"), j("data/manual/terms.json")]).then(function (v) { DY.data = v[0]; DY.terms = (v[1] && v[1].terms) || null; DY.loaded = true; cb && cb(); });
+}
+/* ── 공통 ── */
+function dyPlain(h) { return chClean(String(h).replace(/<small>/g, " (").replace(/<\/small>/g, ")").replace(/<u>/g, "").replace(/<\/u>/g, ". ").replace(/<\/?(b|em|i)[^>]*>/g, " ")); }
+function dyE(s) { return escHtml(String(s == null ? "" : s)); }
+function dyLast(a) { if (!a) return null; for (var i = a.length - 1; i >= 0; i--) if (a[i] && a[i][1] != null) return a[i]; return null; }
+function dyPrev(a, n) { if (!a) return null; var c = 0; for (var i = a.length - 1; i >= 0; i--) if (a[i] && a[i][1] != null) { if (c === (n || 1)) return a[i]; c++; } return null; }
+function dyYm(t) { t = Number(t); return t > 999999 ? (Math.floor(t / 10000) % 100) + "." + (Math.floor(t / 100) % 100) + "." + (t % 100) : (Math.floor(t / 100) % 100) + "." + (t % 100); }
+function dyDate() { var k = chKstDate(); return { txt: k.y + "." + ("0" + k.m).slice(-2) + "." + ("0" + k.d).slice(-2) + "(" + ["일", "월", "화", "수", "목", "금", "토"][k.w] + ")", k: k }; }
+function dySgn(v, dg, unit) { if (v == null) return ""; var c = v > 0 ? "up" : v < 0 ? "down" : "flat"; return '<i class="' + c + '">' + (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(dg == null ? 1 : dg) + (unit || "%") + "</i>"; }
+function dyRow(a, b, c, opt) { return '<div class="dy-r' + (opt ? " dy-opt" : "") + '"><span>' + a + "</span>" + (b != null ? "<b>" + b + "</b>" : "") + (c != null ? "<em>" + c + "</em>" : "") + "</div>"; }
+function dyBox(no, title, rows, o) { o = o || {}; if (!rows || !rows.length) return ""; return '<section class="dy-box' + (o.wide ? " wide" : "") + (o.cls ? " " + o.cls : "") + '" data-pri="' + (o.pri == null ? 2 : o.pri) + '" data-min="' + (o.min || 1) + '"><h4><i>' + no + "</i>" + dyE(title) + (o.date ? "<small>" + dyE(o.date) + "</small>" : "") + "</h4>" + rows.join("") + (o.note ? '<p class="dy-note">' + o.note + "</p>" : "") + "</section>"; }
+function dyKpi(items) { return '<div class="dy-kpi">' + items.map(function (p) { return "<div><small>" + p[0] + "</small><b>" + p[1] + "</b>" + (p[2] != null ? "<span>" + p[2] + "</span>" : "") + "</div>"; }).join("") + "</div>"; }
+function dyBasisDeal() { var d = chOk() && CH.data.asOf ? String(CH.data.asOf) : ""; return d ? "실거래 " + dyYm(d) + " 수집" : ""; }
+function dyEok(v) { return eok(v); }
+
+/* ── 재료 1: 어제 들어온 실거래 ── */
+function dyNew() {
+  if (!chOk()) return null;
+  var DN = CH.data.dailyNew || {}, keys = Object.keys(DN).sort(), last = keys[keys.length - 1];
+  var o = { day: last ? Number(last) : null, all: null, se: null, gi: null, hi: [], hiN: 0 };
+  if (last) { o.all = DN[last][0]; o.se = DN[last][1]; o.gi = DN[last][2]; }
+  var D = CH.data.delta, R = (D && D.regions) || {};
+  Object.keys(R).forEach(function (c) { (R[c].hi || []).forEach(function (t) { o.hiN++; o.hi.push({ k: c, apt: t.apt, dong: t.dong, area: t.area, band: t.band, amount: t.amount, up: t.up, d: t.d, prev: t.prev }); }); });
+  o.hi.sort(function (a, b) { return (b.up || 0) - (a.up || 0); });
+  if (!o.hi.length && typeof chHighsBetween === "function") { var t0 = chDayKey(chShift(chKstNow(), -7)), t1 = chDayKey(chKstNow()); o.hi = chHighsBetween(t0, t1).slice(0, 6).map(function (t) { return { k: t.k, apt: t.apt, dong: t.dong, area: t.area, band: t.band, amount: t.max.amount, up: t.u, d: t.max.d }; }); o.hiWeek = true; }
+  return o;
+}
+function dyHiRow(t, i) { return dyRow('<u>' + (i + 1) + "</u>" + dyE(t.apt) + '<small>' + dyE(chShortGu(t.k)) + " · " + (t.area ? t.area + "㎡" : t.band + "㎡대") + "</small>", dyEok(t.amount), dySgn(t.up, 1)); }
+/* ── 재료 2: 전세가율(서울·경기 84㎡, market_core 집계) ── */
+function dyJeonseRatio(gnm) {
+  if (typeof MC === "undefined" || !MC || !MC.groups || !MC.groups[gnm]) return null;
+  var g = MC.groups[gnm], s = g.s || {}, r = g.r || {}, a = s.a84 || [], d = r.d84 || [], so = s.o || 0, ro = r.o || 0;
+  var last = null, skip = (MC.prov || []).length;   /* 잠정 달은 표본이 적어 뺀다 */
+  for (var i = Math.max(so + a.length, ro + d.length) - 1 - skip; i >= 0; i--) { var sv = a[i - so], dv = d[i - ro]; if (sv && dv) { last = { i: i, ratio: dv / sv * 100, sale: sv, rent: dv }; break; } }
+  if (!last) return null; last.ym = typeof rpYm === "function" ? rpYm(last.i) : ""; return last;
+}
+/* ── 재료 3: 보조 지표(daily_data) ── */
+function dyIdxRow(nm, ser, dateOnly) { var l = dyLast(ser), p = dyPrev(ser, 1), y = dyPrev(ser, 12); if (!l) return null; var mm = p ? (l[1] / p[1] - 1) * 100 : null, yy = y ? (l[1] / y[1] - 1) * 100 : null; return dyRow(nm + "<small>" + dyYm(l[0]) + "</small>", l[1].toFixed(1), (mm != null ? "전월 " + dySgn(mm, 2) : "") + (yy != null ? " · 1년 " + dySgn(yy, 1) : "")); }
+function dyUnsoldRow(nm, ser, big) { var l = dyLast(ser), p = dyPrev(ser, 1); if (!l) return null; var ch = p ? l[1] - p[1] : null; return dyRow(nm + "<small>" + dyYm(l[0]) + "</small>", fmt(l[1]) + "호", ch != null ? dySgn(ch, 0, "호") + " 전월비" : ""); }
+
+/* ── 상자 만들기 (전체·주제 공용) ── */
+function dyBoxes(topic) {
+  var B = [], no = 0, n = function () { return ++no; };
+  var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, R = D.rates || {}, X = DY.data || {}, deal = topic === "all" || topic === "deal", rate = topic === "all" || topic === "rate", pol = topic === "all" || topic === "policy", temp = topic === "all" || topic === "temp", term = topic === "all" || topic === "term";
+  var big = topic !== "all";   /* 주제 한 장은 줄을 더 넣는다 */
+  /* 1 어제 들어온 실거래 */
+  var nw = deal ? dyNew() : null;
+  if (nw && (nw.all != null || nw.hi.length)) {
+    var rows = [];
+    if (nw.all != null) rows.push(dyKpi([["전국", fmt(nw.all) + "<em>건</em>"], ["서울", fmt(nw.se) + "<em>건</em>"], ["경기·인천", fmt(nw.gi) + "<em>건</em>"], ["새 신고가", fmt(nw.hiN) + "<em>건</em>"]]));
+    if (big && chOk()) { var d0 = chDaily(); if (d0) rows.push(dyRow("최근 30일 거래<small>" + dyE(chWin()) + "</small>", fmt(d0.all.n) + "건", d0.all.chg != null ? dySgn(d0.all.chg, 0) + " 한 달 전 같은 시점" : "")); }
+    B.push(dyBox(n(), nw.all != null ? "어제 새로 들어온 실거래 신고" : "실거래", rows, { wide: true, pri: 0, date: nw.day ? dyYm(nw.day) + " 반영분" : "", note: big ? "계약 후 30일 안 신고 → 어제 신고된 계약은 최근 한 달 사이 계약분입니다" : "" }));
+  }
+  /* 2 신고가 */
+  if (nw && nw.hi.length) B.push(dyBox(n(), nw.hiWeek ? "이번 주 신고가" : "어제 들어온 신고가 TOP", nw.hi.slice(0, big ? 8 : 3).map(dyHiRow), { wide: big, pri: 1, min: 3, date: "직전 최고가 대비" }));
+  /* 2b 값 움직인 동네·거래 급증 (실거래 한 장) */
+  if (deal && big && chOk()) {
+    var dd = chDaily();
+    if (dd) {
+      var mv = [];
+      dd.upM.slice(0, 3).forEach(function (r) { mv.push(dyRow("▲ " + dyE(chName(r.k)), fmt(r.n) + "건", dySgn(r.pc, 1))); });
+      dd.dnM.slice(0, 3).forEach(function (r) { mv.push(dyRow("▼ " + dyE(chName(r.k)), fmt(r.n) + "건", dySgn(r.pc, 1))); });
+      if (mv.length) B.push(dyBox(n(), "이번 달 값이 움직인 동네(수도권)", mv, { date: "㎡당 중위 · 30건 이상" }));
+      if (dd.hot.length) B.push(dyBox(n(), "거래가 갑자기 늘어난 동네", dd.hot.slice(0, 5).map(function (r) { return dyRow(dyE(chName(r.k)), r.vt.toFixed(1) + "배", fmt(r.pn) + "→" + fmt(r.n) + "건"); }), { date: dyE(chCmpLabel()) }));
+    }
+  }
+  /* 3 금리 */
+  if (rate && (R.base || R.mortgage)) {
+    var rr = [];
+    if (R.base) { var ch = R.base.changes || [], l1 = ch[ch.length - 1], l0 = ch[ch.length - 2]; rr.push(dyRow("기준금리<small>" + (l1 ? mcYmd(l1[0]) + " " + (l0 ? (l1[1] > l0[1] ? "인상" : l1[1] < l0[1] ? "인하" : "동결") : "") : "") + "</small>", R.base.v.toFixed(2) + "%", l0 && l1 && l0[1] !== l1[1] ? dySgn(l1[1] - l0[1], 2, "%p") : "")); }
+    if (R.mortgage) { var m = R.mortgage, mp = dyPrev(m.hist, 1); rr.push(dyRow("주담대 평균(신규)<small>" + mcYm(m.t) + "</small>", m.v.toFixed(2) + "%", mp ? dySgn(m.v - mp[1], 2, "%p") + " 전월비" : "")); }
+    if (R.kb3y) rr.push(dyRow("국고채 3년<small>" + mcYmd(R.kb3y.t) + "</small>", R.kb3y.v.toFixed(2) + "%", R.base ? (R.kb3y.v - R.base.v < -0.15 ? "시장은 인하 쪽" : R.kb3y.v - R.base.v > 0.25 ? "시장은 인상 쪽" : "동결 근처") : "", true));
+    if (R.mortgage) { var P = big ? [20000, 30000, 50000] : [30000]; P.forEach(function (p) { rr.push(dyRow(eok(p) + " 빌리면 월<small>30년 원리금균등</small>", mcMan(mcPay(p, R.mortgage.v) * 10000) + "원", "", !big)); }); }
+    if (big && R.base && (R.base.changes || []).length) B.push(dyBox(n(), "기준금리 최근 결정", R.base.changes.slice(-5).reverse().map(function (c, i, arr) { var p = arr[i + 1]; return dyRow(mcYmd(c[0]), c[1].toFixed(2) + "%", p ? (c[1] > p[1] ? "인상" : c[1] < p[1] ? "인하" : "동결") : ""); }), { date: "한국은행" }));
+    B.push(dyBox(n(), "오늘 금리", rr, { date: "한국은행 ECOS", wide: big, pri: 1, min: 2 }));
+  }
+  /* 3b 정책대출 (금리 한 장) */
+  var pr = (D.loans && D.loans.manual && D.loans.manual.programs) || [];
+  if (rate && big && pr.length) B.push(dyBox(n(), "정책대출 조건", pr.slice(0, 4).map(function (p) { var au = (D.loans.auto || {})[p.name]; return dyRow(dyE(p.name) + "<small>소득 " + eok(p.income) + "↓ · 집값 " + eok(p.price) + "↓</small>", "연 " + dyE(au ? au.rate : p.rate) + "%", "한도 " + eok(p.limit)); }), { wide: true, date: (D.loans.manual.asOf || "") + " 확인 · 조건은 기금e든든에서 재확인" }));
+  /* 4 시장 체온 */
+  if (temp) {
+    var tp = [], ix = X.index || {}, wk = X.weekly || {}, un = X.unsold || {};
+    if (wk.seoul) { var wl = dyLast(wk.seoul), wp = dyPrev(wk.seoul, 1); if (wl && wp) tp.push(dyRow("서울 아파트 주간<small>" + dyYm(wl[0]) + " 부동산원</small>", wl[1].toFixed(2), "전주 " + dySgn((wl[1] / wp[1] - 1) * 100, 2))); }
+    if (ix.sale) { ["seoul", "cap", "all"].forEach(function (g, i) { var r = dyIdxRow({ seoul: "서울 매매지수", cap: "수도권 매매지수", all: "전국 매매지수" }[g], ix.sale[g]); if (r && (big || i === 0)) tp.push(r); }); }
+    if (big && ix.rent) { ["seoul", "all"].forEach(function (g) { var r = dyIdxRow({ seoul: "서울 전세지수", all: "전국 전세지수" }[g], ix.rent[g]); if (r) tp.push(r); }); }
+    ["서울", "경기"].forEach(function (g, i) { var jr = dyJeonseRatio(g); if (jr && (big || i === 0)) tp.push(dyRow(g + " 84㎡ 전세가율<small>" + jr.ym + " 거래된 84㎡ 중위 전세÷매매</small>", jr.ratio.toFixed(0) + "%", "매매 " + eok(jr.sale) + " · 전세 " + eok(jr.rent), !big)); });
+    var u1 = dyUnsoldRow("전국 미분양", un.all); if (u1) tp.push(u1);
+    var u2 = dyUnsoldRow("준공 후 미분양", un.done); if (u2) tp.push(u2);
+    if (big) { var u3 = dyUnsoldRow("수도권 미분양", un.cap); if (u3) tp.push(u3); }
+    if (tp.length) B.push(dyBox(n(), "시장 체온", tp, { wide: big, pri: 2, min: 2, date: [ix.sale ? "부동산원" : "", un.all ? "미분양 국토부" : ""].filter(Boolean).join(" · ") || "실거래 집계" }));
+    /* 확산 */
+    var rp = typeof rpData === "function" ? rpData() : null;
+    if (rp && (rp.seoul.length || rp.gg.length)) {
+      var sr = [];
+      [["서울", rp.seoul], ["경기", rp.gg]].forEach(function (w) { w[1].forEach(function (a) { sr.push(dyRow('<u>' + a.no + "</u>" + dyE(typeof ifShortStage === "function" ? ifShortStage(a.nm) : a.nm) + "<small>" + w[0] + "</small>", typeof rpPct === "function" ? rpPct(a.y1) : (a.y1 == null ? "–" : a.y1.toFixed(1) + "%"), a.R != null ? "전고점 회복 " + rpYm(a.R) : "고점까지 " + (a.vs == null ? "–" : a.vs.toFixed(1) + "%"))); }); });
+      B.push(dyBox(n(), "집값 확산, 지금 어디까지 왔나", sr, { wide: big, pri: 2, min: 2, date: rp.lastYm + " · 1년 전 대비", note: big ? "강남 → 마용성 → 외곽 순서는 경향이지 법칙이 아닙니다" : "" }));
+    }
+  }
+  /* 5 정책·대출 */
+  if (pol) {
+    var pm = (D.policy && D.policy.manual && D.policy.manual.items) || [], inbox = D.inbox || [], pz = [];
+    pm.slice(0, big ? 3 : 1).forEach(function (p) { pz.push(dyRow('<i class="dy-pill">' + dyE(p.tag || "대책") + "</i>" + dyE(p.title) + "<small>" + (p.date ? "발표 " + dyE(p.date) : "") + (p.effective ? " · 시행 " + dyE(p.effective) : "") + "</small>", null, null)); if (big) (p.points || []).slice(0, 2).forEach(function (x) { pz.push(dyRow("· " + dyE(x), null, null)); }); else if ((p.points || [])[0]) pz.push(dyRow("· " + dyE(p.points[0]), null, null, true)); });
+    if (!big && pr.length) { var p0 = pr[0], au0 = (D.loans.auto || {})[p0.name]; pz.push(dyRow(dyE(p0.name) + "<small>소득 " + eok(p0.income) + "↓ · 집값 " + eok(p0.price) + "↓</small>", "연 " + dyE(au0 ? au0.rate : p0.rate) + "%", "한도 " + eok(p0.limit))); }
+    if (inbox.length) pz.push(dyRow('<i class="dy-pill warn">확인 필요</i>' + dyE(inbox[0].title), null, inbox.length > 1 ? "외 " + (inbox.length - 1) + "건" : "", true));
+    if (pz.length) B.push(dyBox(n(), big ? "최근 대책" : "정책·대출", pz, { wide: big, pri: 3, date: "보도자료 확인" }));
+    /* 교통 */
+    var lines = ((D.transit && D.transit.manual && D.transit.manual.lines) || []).filter(function (l) { return l.status !== "개통"; }).sort(function (a, b) { return String(a.open || "9999").localeCompare(String(b.open || "9999")); });
+    if (lines.length) B.push(dyBox(n(), "교통, 다음 개통은", lines.slice(0, big ? 6 : 2).map(function (l) { return dyRow(dyE(l.name) + "<small>" + dyE(l.status) + (l.note && big ? " · " + dyE(l.note) : "") + "</small>", l.open ? dyE(String(l.open).replace(/^(\d{4})-(\d{2})$/, function (_, y, m) { return y === "0000" ? "미정" : m === "00" ? y + "년" : y.slice(2) + "." + Number(m) + "월"; })) : "미정", ""); }), { pri: 3, date: "공식 일정 확인" }));
+    /* 일정 */
+    if (typeof chEvents === "function") {
+      var t0 = chDayKey(chKstNow()), ev = chEvents(t0, chDayKey(chShift(chKstNow(), big ? 14 : 7)));
+      ev.sort(function (a, b) { return a.d - b.d; });
+      if (ev.length) B.push(dyBox(n(), big ? "앞으로 2주 일정" : "이번 주 일정", ev.slice(0, big ? 8 : 3).map(function (e) { return dyRow('<i class="dy-pill">' + dyE(e.kind) + "</i>" + dyE(e.title) + (e.verify ? "<small>날짜 확인 필요</small>" : ""), chMD(e.d) + "(" + chWd(e.d) + ")", ""); }), { wide: big, pri: 3 }));
+    }
+    /* 청약 */
+    var sb = X.subs;
+    if (sb && (sb.open.length || sb.soon.length)) {
+      var sr2 = [];
+      sb.open.slice(0, big ? 5 : 2).forEach(function (s) { sr2.push(dyRow('<i class="dy-pill on">접수 중</i>' + dyE(s.nm) + "<small>" + dyE(s.area || "") + (s.n ? " · " + fmt(s.n) + "가구" : "") + "</small>", "~" + chMD(s.e), "")); });
+      sb.soon.slice(0, big ? 5 : 1).forEach(function (s) { sr2.push(dyRow('<i class="dy-pill">예정</i>' + dyE(s.nm) + "<small>" + dyE(s.area || "") + "</small>", chMD(s.b) + "~", "", !big)); });
+      if (big) (sb.results || []).slice(0, 4).forEach(function (s) { sr2.push(dyRow("경쟁률 " + dyE(s.nm), s.rate + ":1", s.req ? fmt(s.req) + "명" : "")); });
+      B.push(dyBox(n(), "청약", sr2, { pri: 3, date: "청약홈 " + dyYm(X.asOf) }));
+    }
+  }
+  /* 6 용어 */
+  if (term && DY.terms && DY.terms.length) {
+    var k = chKstDate(), doy = Math.floor((Date.UTC(k.y, k.m - 1, k.d) - Date.UTC(k.y, 0, 1)) / 86400000), cnt = big ? 5 : 1;
+    if (big) { cnt = 8; for (var i = 0; i < cnt; i++) { var t = DY.terms[(doy + i) % DY.terms.length]; B.push(dyBox(n(), t[0], [dyRow("<b>" + dyE(t[1]) + "</b>", null, null)].concat((t[2] || []).map(function (x) { return dyRow("· " + dyE(x), null, null); })), { cls: "term", pri: 1, min: 1 })); } }
+    else { var t0 = DY.terms[doy % DY.terms.length]; B.push(dyBox(n(), "오늘의 용어", [dyRow("<b>" + dyE(t0[0]) + "</b> " + dyE(t0[1]) + (t0[2] ? "<small>" + dyE(t0[2][0]) + "</small>" : ""), null, null)], { wide: true, cls: "term", pri: 1 })); }
+  }
+  return B;
+}
+function dyTitle(topic) {
+  var d = dyDate();
+  return { all: ["오늘의 부동산 한 장", "실거래 · 금리 · 시장 체온 · 정책 · 일정을 한 장으로"], deal: ["오늘의 실거래 한 장", "어제 들어온 신고 · 신고가 · 값이 움직인 동네"], rate: ["오늘의 금리·대출 한 장", "기준금리 · 주담대 · 월 상환액 · 정책대출 조건"], policy: ["정책·교통·일정 한 장", "최근 대책 · 다음 개통 · 앞으로 2주 일정 · 청약"], temp: ["시장 체온 한 장", "가격지수 · 미분양 · 전세가율 · 확산 단계"], term: ["용어 한입 여덟 개", "같은 기사도 다르게 읽히는 부동산 단어 · 오늘부터 차례로"] }[topic];
+}
+function dySources(topic) {
+  var s = ["국토부 실거래가"], D = (typeof MACRO !== "undefined" && MACRO.data) || {}, X = DY.data || {};
+  if (topic !== "deal" && topic !== "term" && D.rates) s.push("한국은행");
+  if ((topic === "all" || topic === "temp") && (X.index || X.unsold)) s.push("부동산원·국토부(KOSIS)");
+  if ((topic === "all" || topic === "policy") && X.subs) s.push("청약홈");
+  return s.join(" · ") + " · 투자 권유 아님";
+}
+function dyCardHtml(topic) {
+  topic = topic || "all";
+  var B = dyBoxes(topic); if (!B.length) return "";
+  var t = dyTitle(topic), d = dyDate();
+  return '<div class="chcard chc-day dy-' + topic + '">' +
+    '<header class="dy-head"><div class="dy-brand"><b>우상향연구소</b><span>@uphill.lab</span></div><div class="dy-date">' + d.txt + "</div>" +
+    '<h2 class="dy-title">' + t[0] + '</h2><p class="dy-sub">' + t[1] + "</p></header>" +
+    '<div class="dy-grid">' + B.join("") + "</div>" +
+    '<footer class="dy-foot"><span>' + dyE(dySources(topic)) + "</span><b>" + (dyBasisDeal() || "") + "</b></footer></div>";
+}
+/* ── 맞춤: 저장 크기(360×450) 복제본에서 넘치면 글자 줄이기 → 선택 줄 접기 → 맨 아래 상자 줄 접기 ── */
+function dyFit(root) {
+  if (!root) return;
+  Array.prototype.forEach.call(root.querySelectorAll(".chc-day"), function (c0) {
+    var c = c0.cloneNode(true); c.classList.add("chfixed"); c.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden"; document.body.appendChild(c);
+    try {
+      var grid = c.querySelector(".dy-grid");
+      function over() { return grid.scrollHeight > grid.clientHeight + 1; }
+      c.classList.remove("dy-t1", "dy-t2", "dy-t3"); Array.prototype.forEach.call(c.querySelectorAll("[data-cut]"), function (x) { x.style.display = ""; x.removeAttribute("data-cut"); });
+      if (over()) c.classList.add("dy-t1");
+      if (over()) c.classList.add("dy-t2");
+      var opts = Array.prototype.slice.call(c.querySelectorAll(".dy-opt, .dy-note"));
+      while (over() && opts.length) { var x = opts.pop(); x.style.display = "none"; x.setAttribute("data-cut", "1"); }
+      var rows = Array.prototype.slice.call(c.querySelectorAll(".dy-box .dy-r")).filter(function (r) { return r.style.display !== "none"; });
+      var guard = 0;
+      while (over() && rows.length && guard++ < 60) {   /* 줄이 가장 많은 상자의 맨 아래 줄부터 */
+        var boxes = Array.prototype.slice.call(c.querySelectorAll(".dy-box")).map(function (b) { return { b: b, pri: Number(b.dataset.pri || 2), min: Number(b.dataset.min || 1), r: Array.prototype.filter.call(b.querySelectorAll(".dy-r"), function (r) { return r.style.display !== "none"; }) }; }).filter(function (o) { return o.r.length > o.min; }).sort(function (a, b) { return (b.pri - a.pri) || (b.r.length - a.r.length); });
+        if (!boxes.length && !c.classList.contains("dy-t3")) { c.classList.add("dy-t3"); continue; }
+        if (!boxes.length) boxes = Array.prototype.slice.call(c.querySelectorAll(".dy-box")).map(function (b) { return { b: b, r: Array.prototype.filter.call(b.querySelectorAll(".dy-r"), function (r) { return r.style.display !== "none"; }) }; }).filter(function (o) { return o.r.length > 1; }).sort(function (a, b) { return b.r.length - a.r.length; });
+        if (!boxes.length) break;
+        var rr = boxes[0].r[boxes[0].r.length - 1]; rr.style.display = "none"; rr.setAttribute("data-cut", "1");
+      }
+      c0.className = c.className.replace(/\bchfixed\b/, "").trim();
+      var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*");
+      for (var i = 0; i < src.length && i < dst.length; i++) { dst[i].style.display = src[i].style.display; if (src[i].hasAttribute("data-cut")) dst[i].setAttribute("data-cut", "1"); else dst[i].removeAttribute("data-cut"); }
+    } catch (e) {} finally { c.remove(); }
+  });
+}
+function dyFitLater(root) { if (!root) return; dyFit(root); setTimeout(function () { dyFit(root); }, 400); if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { dyFit(root); }); }
+/* ── 채널 탭 연결 ── */
+function dyDeckHtml() {
+  var list = DY.topic === "all" ? ["all"] : [DY.topic];
+  var chips = '<div class="dy-chips">' + DY_TOPICS.map(function (t) { return '<button type="button" data-dytopic="' + t[0] + '" class="' + (DY.topic === t[0] ? "on" : "") + '">' + t[1] + "</button>"; }).join("") + '<button type="button" data-dytopic="every">주제별 전부</button></div>';
+  if (DY.topic === "every") list = DY_TOPICS.map(function (t) { return t[0]; });
+  var html = list.map(function (tp) { var h = dyCardHtml(tp); return h ? '<div class="chcardWrap dy-wrap">' + h + '<button type="button" class="btn sm ghost" data-chsave="' + escHtml("오늘한장_" + { all: "전체", deal: "실거래", rate: "금리대출", policy: "정책교통", temp: "시장체온", term: "용어" }[tp]) + '">이미지 저장</button></div>' : ""; }).join("");
+  return chips + (html || '<p class="hint">오늘 한 장을 만들 자료가 아직 없습니다. 새벽 수집 뒤 다시 열어 주세요.</p>');
+}
+/* 글 만들기·릴스 재료용 기본 카드(숫자는 한 장과 같은 재료) */
+function dyBaseCards() {
+  var tmp = document.createElement("div"); tmp.innerHTML = dyCardHtml(DY.topic === "every" ? "all" : DY.topic);
+  var out = [];
+  Array.prototype.forEach.call(tmp.querySelectorAll(".dy-box"), function (b) {
+    var h = b.querySelector("h4"), rows = Array.prototype.map.call(b.querySelectorAll(".dy-r"), function (r) { return dyPlain(r.innerHTML); }).filter(Boolean);
+    var kpi = b.querySelector(".dy-kpi"); if (kpi) rows.unshift(Array.prototype.map.call(kpi.querySelectorAll("div"), function (d) { return dyPlain(d.innerHTML.replace(/<small>/g, "<x>").replace(/<\/small>/g, " </x>")); }).join(" · "));
+    var title = chClean(h.innerHTML.replace(/<small>.*?<\/small>/, "").replace(/<i>\d+<\/i>/, "")), date = h.querySelector("small") ? h.querySelector("small").textContent : "";
+    out.push({ tag: title, q: title, a: rows[0] || "", body: '<div class="chc-pol">' + rows.slice(1).map(function (r) { return "<div>" + escHtml(r) + "</div>"; }).join("") + "</div>", how: date, date: date });
+  });
+  return out;
+}
+function dyText() {
+  var tmp = document.createElement("div"); tmp.innerHTML = dyCardHtml(DY.topic === "every" ? "all" : DY.topic);
+  if (!tmp.firstChild) return "오늘 한 장을 만들 자료가 아직 없습니다.";
+  var d = dyDate(), t = dyTitle(DY.topic === "every" ? "all" : DY.topic), L = ["[" + t[0] + "] " + d.txt, t[1], ""];
+  Array.prototype.forEach.call(tmp.querySelectorAll(".dy-box"), function (b) {
+    var h = b.querySelector("h4"); L.push("■ " + chClean(h.innerHTML.replace(/<small>.*?<\/small>/, "").replace(/<i>\d+<\/i>/, "")) + (h.querySelector("small") ? " (" + h.querySelector("small").textContent + ")" : ""));
+    var kpi = b.querySelector(".dy-kpi"); if (kpi) L.push("· " + Array.prototype.map.call(kpi.querySelectorAll("div"), function (x) { return dyPlain(x.innerHTML.replace(/<small>/g, "<x>").replace(/<\/small>/g, " </x>")); }).join(" · "));
+    Array.prototype.forEach.call(b.querySelectorAll(".dy-r"), function (r) { var s = dyPlain(r.innerHTML); if (s) L.push((/^[·▲▼]/.test(s) ? "  " : "· ") + s); });
+    L.push("");
+  });
+  L.push("출처: " + dySources(DY.topic === "every" ? "all" : DY.topic));
+  return L.join("\n");
+}
+document.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest("[data-dytopic]"); if (!b) return;
+  DY.topic = b.dataset.dytopic; if (typeof paintChannel === "function") paintChannel();
+});
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

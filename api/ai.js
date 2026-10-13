@@ -3,6 +3,7 @@
 // 환경변수: OPENAI_API_KEY (필수) · TEXT_MODEL (기본 gpt-6.1-sol, 못 쓰면 gpt-4.1 로 다시 시도)
 // POST { t, mode:"plan", facts:[{id,text}], purpose, topic, note }  → { ok, plan:{hook, sub, kicker, layout, points:[{label,value,note,fact}], cta, visual} }
 // POST { t, mode:"read", image:"data:..." }                         → { ok, texts:[...] }   (카드 이미지에 실제로 찍힌 글자·숫자 받아 적기)
+// POST { t, mode:"fill", template:{name, fields:[{key,label,kind,example}]}, facts, note } → { ok, fill:{key: 값} } (v9.21 고정 양식)
 // POST { t, mode:"extract", text:"공고문 텍스트" }                   → { ok, terms:{res,resPeriod,prior,resale,live,rewin,firstRank,point,down,mid,balance,option,move,etc} } (v9.20.3 단지별 청약 조건)
 const crypto = require("crypto");
 function tokenOf(key) { return crypto.createHmac("sha256", key).update("trackapt-owner-v1").digest("hex"); }
@@ -92,6 +93,19 @@ module.exports = async (req, res) => {
       var out = await withFallback(KEY, [{ role: "system", content: guide }, { role: "user", content: "[공고문 텍스트]\n" + txt + "\n\n위 공고문에서 항목별 조건을 JSON으로 답하라. 없으면 빈 문자열." }], { type: "json_schema", name: "notice_terms", strict: true, schema: schema });
       return res.status(200).json({ ok: true, terms: JSON.parse(out.text), model: out.model });
     }
-    throw new Error("mode 는 plan · read · extract");
+    if (b.mode === "fill") {   /* v9.21 고정 양식 채우기 — 칸 설명(fields)대로 JSON. 숫자는 facts 원문만 */
+      var T = b.template || {}, FL = Array.isArray(T.fields) ? T.fields.slice(0, 20) : [];
+      if (!FL.length) throw new Error("template.fields 가 비었습니다");
+      var facts2 = (b.facts || []).slice(0, 80).map(function (f) { return f.id + ": " + String(f.text).slice(0, 300); }).join("\n");
+      if (!facts2) throw new Error("facts 가 비었습니다");
+      var props2 = {}, req2 = [];
+      FL.forEach(function (f) { req2.push(f.key); props2[f.key] = f.kind === "text" ? { type: "string", description: f.label + (f.example ? " (예: " + f.example + ")" : "") } : f.kind === "rows" ? { type: "array", description: f.label + " — 각 줄은 칸 배열" + (f.example ? " (예: " + f.example + ")" : ""), items: { type: "array", items: { type: "string" } } } : { type: "array", description: f.label + (f.example ? " (예: " + f.example + ")" : ""), items: { type: "string" } }; });
+      var schema2 = { type: "object", additionalProperties: false, required: req2, properties: props2 };
+      var sys2 = SYS + " 지금은 '" + (T.name || "고정 양식") + "' 양식의 칸을 채운다. 각 칸의 설명과 예시 형식을 따르되 예시의 숫자·이름은 쓰지 않는다. 표의 줄(rows)은 칸 수를 머리(cols)와 맞춘다. facts 에 없는 항목은 빈 문자열/빈 배열로 둔다.";
+      var user2 = (b.note ? "[가장 중요한 요청] " + b.note + "\n" : "") + "[칸 설명]\n" + FL.map(function (f) { return f.key + " (" + f.kind + "): " + f.label + (f.example ? " · 예시 형식: " + f.example : ""); }).join("\n") + "\n\n[facts — 이 안의 숫자·날짜·이름만 쓸 것]\n" + facts2 + "\n\n위 facts 로 양식의 모든 칸을 JSON 으로 채워라.";
+      var out2 = await withFallback(KEY, [{ role: "system", content: sys2 }, { role: "user", content: user2 }], { type: "json_schema", name: "tpl_fill", strict: true, schema: schema2 });
+      return res.status(200).json({ ok: true, fill: JSON.parse(out2.text), model: out2.model });
+    }
+    throw new Error("mode 는 plan · read · extract · fill");
   } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); }
 };

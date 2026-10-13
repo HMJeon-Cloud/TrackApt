@@ -1988,6 +1988,212 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 #sb-csel .mk-tag{white-space:normal;line-height:1.4}
 #tab-subs #sb-area button{min-width:0}
 #sb-rate .sb-tbl td:first-child{white-space:normal;min-width:150px;max-width:260px}
+
+/* ══ v9.21 양식 카드 — 흰 바탕 · 검정 테두리 · 분류색 1개 · 굵은 제목 ══ */
+.chcard.tp-card{--tpc:#1f6feb;padding:0;background:#fff;border:2.5px solid #111;border-radius:6px;color:#111;display:flex;flex-direction:column;font-size:8px;line-height:1.3;letter-spacing:-.02em;word-break:keep-all;overflow:hidden}
+.tp-card .tp-top{display:flex;align-items:center;gap:5px;padding:5px 8px 0;font-size:6.6px;color:#333}
+.tp-card .tp-src{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-card .tp-badge{background:var(--tpc);color:#fff;font-weight:800;padding:1.5px 6px;border-radius:3px;white-space:nowrap}
+.tp-card .tp-handle{font-weight:800;color:#111;white-space:nowrap}
+.tp-card .tp-tag{align-self:flex-start;margin:5px 8px 0;background:var(--tpc);color:#fff;font-weight:900;font-size:10.5px;padding:2px 7px;border-radius:3px;letter-spacing:-.02em}
+.tp-card .tp-title{margin:3px 8px 0;font-size:25px;line-height:1.08;font-weight:900;letter-spacing:-.045em;color:#111;max-height:2.2em;overflow:hidden;text-shadow:0 1px 0 #fff,1px 1.5px 0 rgba(0,0,0,.18)}
+.tp-card .tp-title.sm{font-size:21px}
+.tp-card .tp-sub{margin:2px 8px 0;font-size:8px;color:#444;font-weight:600}
+.tp-card .tp-body{flex:1;min-height:0;margin:5px 8px 0;overflow:hidden}
+.tp-card .tp-foot{display:flex;justify-content:space-between;gap:8px;padding:4px 8px 5px;border-top:1.5px solid #111;font-size:6.4px;color:#444;margin-top:5px}
+.tp-card .tp-foot span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tp-card .tp-foot b{white-space:nowrap;color:#111}
+/* 표 */
+.tp-card table{width:100%;border-collapse:collapse;table-layout:fixed}
+.tp-card .tp-tbl th{font-size:8.5px;font-weight:900;padding:4px 3px;border-bottom:2px solid var(--tpc);text-align:center;color:#111}
+.tp-card .tp-tbl td{font-size:8px;padding:3.5px 3px;border-bottom:1px solid #ddd;text-align:center;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tp-card .tp-tbl td:first-child{text-align:left}
+.tp-card .tp-tbl.big th{font-size:11px;padding:3px 2px}
+.tp-card .tp-tbl.big td{font-size:15px;font-weight:900;padding:5px 2px;border-bottom:0;letter-spacing:-.03em}
+.tp-card .tp-tbl.big tr:first-child th{border-bottom:2.5px solid #6d28d9}
+.tp-card td.st-개통{color:#15803d}.tp-card td.st-공사중{color:#b45309}.tp-card td.st-계획{color:#6b7280}
+/* 청약 단지: 왼쪽 핀 목록 + 오른쪽 조건표 */
+.tp-card .tp-2col{display:grid;grid-template-columns:1.25fr 1fr;gap:6px;margin-top:4px}
+.tp-card .tp-pins{list-style:none;margin:0;padding:0}
+.tp-card .tp-pins li{position:relative;padding:2.2px 0 2.2px 11px;font-size:9.2px;font-weight:800;line-height:1.25}
+.tp-card .tp-pins li:before{content:"";position:absolute;left:0;top:5px;width:6px;height:6px;background:var(--tpc);border-radius:1.5px;transform:rotate(45deg)}
+.tp-card .tp-side{border:1.5px solid #111}
+.tp-card .tp-side th,.tp-card .tp-side td{border:1px solid #111;padding:3px 4px;font-size:7.8px;text-align:center}
+.tp-card .tp-side th{font-weight:800;background:#f3f4f6;width:52%}.tp-card .tp-side td{font-weight:900;color:var(--tpc)}
+/* 달력 */
+.tp-card .tp-cal{border:1.5px solid #111}
+.tp-card .tp-cal th{background:#111;color:#fff;font-size:8.5px;padding:3px 0}
+.tp-card .tp-cal td{border:1px solid #111;vertical-align:top;height:44px;padding:2px 2.5px;font-size:6.2px;line-height:1.2}
+.tp-card .tp-cal td b{display:block;font-size:8px;margin-bottom:1px}
+.tp-card .tp-cal td.sun b{color:#d9342b}.tp-card .tp-cal td.sat b{color:#1f6feb}
+.tp-card .tp-cal td i{display:inline-block;font-style:normal;font-size:5.4px;font-weight:800;color:#fff;background:#374151;border-radius:2px;padding:0 2.5px;margin-right:2px;vertical-align:1px}
+.tp-card .tp-cal td i.k-청약{background:#d9342b}.tp-card .tp-cal td i.k-발표{background:#15803d}.tp-card .tp-cal td i.k-정책{background:#0f766e}.tp-card .tp-cal td i.k-금리{background:#6d28d9}.tp-card .tp-cal td i.k-세금{background:#b45309}.tp-card .tp-cal td i.k-교통{background:#0369a1}.tp-card .tp-cal td i.k-통계{background:#6b7280}
+.tp-card .tp-cal td span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+/* 가격대 × 권역 */
+.tp-card .tp-band th{font-size:9px;font-weight:900;padding:3px 2px;background:#111;color:#fff;border:1px solid #111}
+.tp-card .tp-band td{border:1px solid #111;padding:2px;vertical-align:middle;background:#fff}
+.tp-card .tp-band tr:nth-child(odd) td{background:#f3f4f6}
+.tp-card .tp-band tr>th:first-child{background:#fff;color:#111;font-size:11px;width:17%}
+.tp-card .tp-band td i{display:inline-block;font-style:normal;background:#2b3a55;color:#fff;font-size:5.6px;font-weight:800;line-height:1.15;padding:2px 2.5px;border-radius:2.5px;margin:1px;max-width:48px;text-align:center;vertical-align:middle;word-break:keep-all}
+/* 대책 총정리 */
+.tp-card .tp-tl{display:flex;flex-direction:column;gap:4px}
+.tp-card .tp-tli{display:grid;grid-template-columns:52px 1fr;border:1.5px solid #111}
+.tp-card .tp-tld{background:var(--tpc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;text-align:center;line-height:1.1;padding:4px}
+.tp-card .tp-tlb{padding:3px 5px}
+.tp-card .tp-tlb h4{margin:0 0 2px;font-size:9.5px;font-weight:900;background:#111;color:#fff;display:inline-block;padding:1px 5px;border-radius:2px}
+.tp-card .tp-tlb ol{margin:0;padding-left:12px;font-size:7.4px;font-weight:700;line-height:1.3}
+.tp-card .tp-tlb li{margin:1px 0}
+/* 비교표 */
+.tp-card .tp-cmp th{font-size:8.5px;font-weight:900;padding:4px 3px;border:1px solid #111;background:#111;color:#fff}
+.tp-card .tp-cmp tr:first-child th:first-child{background:#fff}
+.tp-card .tp-cmp td{font-size:7.4px;font-weight:700;padding:4px 3px;border:1px solid #111;text-align:center;line-height:1.25;vertical-align:middle}
+.tp-card .tp-cmp tr>th:first-child{background:#f3f4f6;color:#111;width:22%}
+.tp-card .tp-cmp tr:first-child th:nth-child(2){background:var(--tpc)}
+/* 순위 격자 */
+.tp-card .tp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.tp-card .tp-cell{border:1.5px solid #111;border-radius:4px;padding:4px 3px 3px;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:62px;justify-content:center}
+.tp-card .tp-cell small{font-size:7px;font-weight:900;color:var(--tpc)}
+.tp-card .tp-cell b{font-size:9px;font-weight:900;line-height:1.15;margin:2px 0;overflow:hidden;max-height:2.3em}
+.tp-card .tp-cell em{font-style:normal;font-size:12px;font-weight:900;background:#111;color:#fff;padding:1px 5px;border-radius:3px;letter-spacing:-.03em;white-space:nowrap}
+.tp-card .tp-cell span{font-size:5.8px;color:#555;margin-top:2px}
+/* 작년·올해 비교 */
+.tp-card .tp-bah{display:grid;grid-template-columns:1fr 1fr 1.2fr;text-align:center;font-size:12px;font-weight:900;color:#1f6feb;margin-bottom:2px}
+.tp-card .tp-bar{display:grid;grid-template-columns:1fr 1fr 1.2fr;align-items:center;border-top:1px dashed #bbb;padding:6px 0}
+.tp-card .tp-ban b{display:inline-block;font-size:10px;font-weight:900;border:2px solid #111;border-radius:999px;padding:1px 8px}
+.tp-card .tp-ban small{display:block;font-size:7px;font-weight:700;margin-top:2px}
+.tp-card .tp-bav{text-align:center;position:relative}
+.tp-card .tp-bav b{display:block;font-size:17px;font-weight:900;letter-spacing:-.04em}
+.tp-card .tp-bav small{display:block;font-size:6.6px;color:#555}
+.tp-card .tp-bav i{position:absolute;right:-2px;top:-9px;font-style:normal;background:#d9342b;color:#fff;font-size:7px;font-weight:900;padding:1px 4px;border-radius:3px;transform:rotate(-8deg)}
+.tp-card .tp-bav i:empty{display:none}
+/* A → B 목록 */
+.tp-card .tp-list{display:flex;flex-direction:column}
+.tp-card .tp-li{display:grid;grid-template-columns:1fr 20px 1fr;align-items:center;column-gap:4px;padding:5px 2px;border-bottom:1.5px dashed #bbb}
+.tp-card .tp-li b{font-size:12px;font-weight:900;text-align:right}
+.tp-card .tp-arr{color:var(--tpc);font-size:12px;font-weight:900;text-align:center}
+.tp-card .tp-li em{font-style:normal;font-size:12.5px;font-weight:900;color:var(--tpc)}
+.tp-card .tp-li small{grid-column:1/-1;text-align:center;font-size:6.4px;color:#555;margin-top:1px}
+/* 발언·이슈 */
+.tp-card .tp-q{display:grid;grid-template-columns:92px 1fr;gap:8px}
+.tp-card .tp-qw{border:2px solid #111;border-radius:4px;padding:5px 3px;text-align:center}
+.tp-card .tp-qw b{display:block;font-size:11px;font-weight:900}.tp-card .tp-qw small{font-size:7px;font-weight:700;color:#444}
+.tp-card .tp-qpro{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:4px}
+.tp-card .tp-qpro i{font-style:normal;border:1.5px solid #111;border-radius:3px;padding:3px 2px;font-size:6.6px;font-weight:800;text-align:center;line-height:1.2}
+.tp-card .tp-qt p{margin:0 0 7px;font-size:10px;font-weight:800;line-height:1.4;text-align:center;padding:6px 4px;border-radius:5px;background:#f3f4f6}
+/* 작게 */
+.tp-card.tp-t1{font-size:7.4px}.tp-card.tp-t1 .tp-tbl td{font-size:7.2px;padding:2.5px 2px}.tp-card.tp-t1 .tp-cal td{height:38px}.tp-card.tp-t1 .tp-cell{min-height:54px}.tp-card.tp-t1 .tp-tlb ol{font-size:6.8px}.tp-card.tp-t1 .tp-cmp td{font-size:6.8px;padding:3px 2px}.tp-card.tp-t1 .tp-pins li{font-size:8.4px}.tp-card.tp-t1 .tp-tbl.big td{font-size:13px;padding:3px 2px}
+.tp-card.tp-t2{font-size:6.8px}.tp-card.tp-t2 .tp-tbl td{font-size:6.6px;padding:2px}.tp-card.tp-t2 .tp-cal td{height:33px;font-size:5.6px}.tp-card.tp-t2 .tp-li{padding:3px 2px}.tp-card.tp-t2 .tp-bar{padding:4px 0}.tp-card.tp-t2 .tp-tlb ol{font-size:6.2px}.tp-card.tp-t2 .tp-cmp td{font-size:6.2px;padding:2px}.tp-card.tp-t2 .tp-qt p{font-size:8.8px;padding:4px 3px}.tp-card.tp-t2 .tp-band td i{font-size:5.2px}
+.tp-card.tp-t3{font-size:6.3px}.tp-card.tp-t3 .tp-title{font-size:19px}.tp-card.tp-t3 .tp-cal td{height:29px}.tp-card.tp-t3 .tp-cell{min-height:46px}.tp-card.tp-t3 .tp-cell b{font-size:8px}.tp-card.tp-t3 .tp-cell em{font-size:10px}.tp-card.tp-t3 .tp-tlb ol{font-size:5.8px}.tp-card.tp-t3 .tp-tlb li{margin:0}
+/* 화면 */
+.tp-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:10px}
+.tp-pick button{border:1px solid var(--line,#dfe3ea);background:var(--card,#fff);border-radius:10px;padding:8px 10px;text-align:left;font-weight:700;font-size:13px;cursor:pointer;color:inherit;display:flex;flex-direction:column;gap:3px}
+.tp-pick button i{font-style:normal;font-size:10.5px;font-weight:800;color:#fff;background:var(--tpc);padding:1px 6px;border-radius:3px;align-self:flex-start}
+.tp-pick button.on{border-color:#16294a;box-shadow:0 0 0 2px rgba(22,41,74,.15)}
+.tp-wrap{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px}
+@media(max-width:860px){.tp-wrap{grid-template-columns:1fr}}
+.tp-f{display:grid;grid-template-columns:110px 1fr;gap:6px;align-items:start;margin:6px 0;font-size:12.5px}
+.tp-f span{color:var(--muted,#6b7684);padding-top:6px}
+.tp-f input,.tp-f textarea{width:100%;box-sizing:border-box;font-size:12.5px;padding:6px 8px;border:1px solid var(--line,#dfe3ea);border-radius:8px;font-family:inherit;background:var(--card,#fff);color:inherit}
+@media(max-width:430px){.tp-f{grid-template-columns:1fr}.tp-f span{padding-top:0}}
+.tp-ai{margin-top:10px;border-top:1px dashed var(--line,#dfe3ea);padding-top:8px}.tp-ai summary{cursor:pointer;font-weight:700}
+.tp-ai textarea{width:100%;box-sizing:border-box;min-height:64px;margin-top:6px;font-size:12.5px;padding:7px 8px;border:1px solid var(--line,#dfe3ea);border-radius:8px;font-family:inherit}
+#tp-cards .chcardWrap{align-items:center}
+/* v9.21 양식: 빈 공간 줄이기 — 기본 크기 키우고 넘치면 tp-t1~3 로 줄인다 */
+.tp-card .tp-body{display:flex;flex-direction:column}
+.tp-card .tp-cal{flex:1 1 auto;height:100%}.tp-card .tp-cal td{height:auto}
+.tp-card .tp-tl{flex:1;justify-content:space-evenly}.tp-card .tp-tli{flex:1}.tp-card .tp-tlb{display:flex;flex-direction:column;justify-content:center}
+.tp-card .tp-tlb ol{font-size:8.2px;line-height:1.35}.tp-card .tp-tlb h4{font-size:10.5px}.tp-card .tp-tld{font-size:13.5px}
+.tp-card .tp-cmp td{font-size:8.4px;padding:6px 3px;word-break:keep-all;overflow-wrap:anywhere}.tp-card .tp-cmp th{font-size:9.5px;padding:5px 3px}.tp-card .tp-cmp{flex:1}
+.tp-card .tp-pins li{font-size:10.5px;padding:3.5px 0 3.5px 12px}.tp-card .tp-pins li:before{top:7px}
+.tp-card .tp-side th,.tp-card .tp-side td{padding:4.5px 4px;font-size:8.6px}
+.tp-card .tp-2col{margin-top:8px;flex:1;align-content:start}
+.tp-card .tp-tbl.big td{font-size:17px;padding:6px 2px}.tp-card .tp-tbl.big th{font-size:12px}
+.tp-card .tp-tbl td{font-size:9px;padding:5px 3px}.tp-card .tp-tbl th{font-size:9.5px}
+.tp-card .tp-band{flex:1}.tp-card .tp-band td i{font-size:6.2px;max-width:56px}
+.tp-card .tp-grid{flex:1;grid-auto-rows:1fr}.tp-card .tp-cell{min-height:0}
+.tp-card .tp-ba{flex:1;display:flex;flex-direction:column}.tp-card .tp-bar{flex:1}
+.tp-card .tp-list{flex:1;justify-content:space-evenly}
+.tp-card .tp-q{flex:1}
+.tp-card .tp-cmp td{white-space:normal;word-break:break-word;overflow-wrap:anywhere}
+.tp-card .tp-cmp,.tp-card .tp-band,.tp-card .tp-tbl{height:100%}
+.tp-card .tp-tbl td{white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+.tp-card .tp-2col{flex:1}.tp-card .tp-pins{display:flex;flex-direction:column;justify-content:space-evenly}
+.tp-card .tp-grid{flex:1 1 auto}
+.tp-card .tp-band td i{max-width:none;white-space:normal;line-height:1.2}.tp-card .tp-cell b{font-size:10px}.tp-card .tp-cell em{font-size:13.5px}
+
+/* ══ v9.21.1 uphill.lab 고유 느낌 — 남색·금색 · 둥근 모서리 · 우상향 라인 ══ */
+.chcard.tp-card{--nv:#16294a;--gd:#d4af6a;background:#fbfaf6;border:2px solid var(--nv);border-radius:16px;color:#16213a}
+.tp-card .tp-top{background:var(--nv);padding:5px 9px;margin:0;gap:6px;color:#fff}
+.tp-card .tp-brand{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+.tp-card .tp-brand b{font-size:8px;font-weight:800;color:#f3e4c2;letter-spacing:.02em}
+.tp-card .tp-mk{width:11px;height:11px;flex:none}
+.tp-card .tp-badge{background:var(--tpc);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:999px;padding:1px 7px;font-size:6.8px}
+.tp-card .tp-src{margin:4px 10px 0;font-size:6.4px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-card .tp-tag{margin:4px 10px 0;border-radius:999px;padding:2px 9px;font-size:10px}
+.tp-card .tp-title{margin:2px 10px 0;color:var(--nv);text-shadow:none;letter-spacing:-.05em}
+.tp-card .tp-rule{display:block;width:calc(100% - 20px);height:8px;margin:2px 10px 0}
+.tp-card .tp-sub{margin:3px 10px 0;color:#4b5563}
+.tp-card .tp-body{margin:6px 10px 0}
+.tp-card .tp-foot{background:var(--nv);border-top:0;margin-top:6px;padding:5px 10px;color:#c9d2e3;align-items:center}
+.tp-card .tp-foot span{font-size:6.2px}
+.tp-card .tp-foot .tp-handle{color:var(--gd);font-size:8.5px;font-weight:900;letter-spacing:.01em}
+/* 표·칸: 검정 대신 남색, 줄은 연한 회청색 */
+.tp-card .tp-tbl th{color:var(--nv);border-bottom-color:var(--nv)}
+.tp-card .tp-tbl td{border-bottom-color:#e5e2d8}
+.tp-card .tp-tbl.big tr:first-child th{border-bottom:2.5px solid var(--gd)}
+.tp-card .tp-tbl.big td{color:var(--nv)}
+.tp-card .tp-side{border:1.5px solid var(--nv);border-radius:6px;border-collapse:separate;border-spacing:0;overflow:hidden}
+.tp-card .tp-side th,.tp-card .tp-side td{border:0;border-bottom:1px solid #e5e2d8}
+.tp-card .tp-side tr:last-child th,.tp-card .tp-side tr:last-child td{border-bottom:0}
+.tp-card .tp-side th{background:#eef1f6;color:var(--nv)}
+.tp-card .tp-pins li:before{background:var(--gd);transform:none;border-radius:50%;width:5px;height:5px;top:7px}
+.tp-card .tp-pins li{color:var(--nv)}
+.tp-card .tp-cal{border:1.5px solid var(--nv);border-radius:6px;border-collapse:separate;border-spacing:0;overflow:hidden}
+.tp-card .tp-cal th{background:var(--nv)}
+.tp-card .tp-cal td{border:0;border-right:1px solid #e5e2d8;border-bottom:1px solid #e5e2d8;background:#fff}
+.tp-card .tp-band{border-collapse:separate;border-spacing:0;border:1.5px solid var(--nv);border-radius:6px;overflow:hidden}
+.tp-card .tp-band th{background:var(--nv);border:0}
+.tp-card .tp-band td{border:0;border-left:1px solid #e5e2d8;border-top:1px solid #e5e2d8}
+.tp-card .tp-band tr>th:first-child{background:#fff;color:var(--nv);border-top:1px solid #e5e2d8}
+.tp-card .tp-band tr:first-child>th:first-child{background:var(--nv);color:#fff}
+.tp-card .tp-band tr:nth-child(odd) td{background:#f6f4ee}
+.tp-card .tp-band td i{background:var(--nv);border-radius:4px}
+.tp-card .tp-tli{border:1.5px solid var(--nv);border-radius:8px;overflow:hidden}
+.tp-card .tp-tld{background:var(--nv);color:var(--gd)}
+.tp-card .tp-tlb h4{background:transparent;color:var(--nv);padding:0;border-bottom:2px solid var(--gd);border-radius:0}
+.tp-card .tp-cmp{border-collapse:separate;border-spacing:0;border:1.5px solid var(--nv);border-radius:6px;overflow:hidden}
+.tp-card .tp-cmp th,.tp-card .tp-cmp td{border:0;border-left:1px solid #e5e2d8;border-top:1px solid #e5e2d8}
+.tp-card .tp-cmp tr:first-child th{background:var(--nv);border-top:0;color:#fff}
+.tp-card .tp-cmp tr:first-child th:first-child{background:var(--nv)}
+.tp-card .tp-cmp tr:first-child th:nth-child(2){background:var(--nv);box-shadow:inset 0 -3px 0 var(--gd)}
+.tp-card .tp-cmp tr>th:first-child{background:#eef1f6;color:var(--nv);border-left:0}
+.tp-card .tp-cmp td{background:#fff}
+.tp-card .tp-cell{border:1.5px solid var(--nv);border-radius:10px;background:#fff}
+.tp-card .tp-cell small{color:#a8843f}
+.tp-card .tp-cell b{color:var(--nv)}
+.tp-card .tp-cell em{background:var(--nv);color:#f3e4c2;border-radius:999px}
+.tp-card .tp-cell:nth-child(-n+3){border-color:var(--gd);box-shadow:inset 0 0 0 1px var(--gd)}
+.tp-card .tp-bah{color:var(--nv)}
+.tp-card .tp-bah b:last-child{color:#a8843f}
+.tp-card .tp-ban b{border:1.5px solid var(--nv);color:var(--nv)}
+.tp-card .tp-bav b{color:var(--nv)}
+.tp-card .tp-bav i{background:var(--gd);color:var(--nv);transform:none;border-radius:999px}
+.tp-card .tp-bar{border-top:1px solid #e5e2d8}
+.tp-card .tp-li{border-bottom:1px solid #e5e2d8}
+.tp-card .tp-li b{color:var(--nv)}
+.tp-card .tp-arr{color:var(--gd)}
+.tp-card .tp-qw{border:1.5px solid var(--nv);border-radius:10px}
+.tp-card .tp-qpro i{border:1px solid #c9d2e3;border-radius:6px;background:#fff}
+.tp-card .tp-qt p{background:#fff;border:1px solid #e5e2d8;border-left:3px solid var(--gd);border-radius:6px;text-align:left}
+.tp-card>.tp-src{flex:none}.tp-card>.tp-title,.tp-card>.tp-rule,.tp-card>.tp-sub,.tp-card>.tp-tag,.tp-card>.tp-top,.tp-card>.tp-foot{flex:none}
+.tp-card .tp-tbl:not(.big){height:auto}
+/* 미리보기는 zoom 대신 transform 으로 줄인다 — zoom 은 작은 글자를 최소 크기로 키워 줄바꿈이 저장본과 달라짐 */
+#tp-cards .chcard.tp-card{zoom:1!important}
+#tp-cards .tp-scale{width:360px;height:450px}
+@media(max-width:430px){#tp-cards .tp-scale{transform:scale(.84);transform-origin:top left;width:302px;height:378px}#tp-cards .chcardWrap{align-items:flex-start}}
+.tp-card .tp-tld{font-size:11.5px;padding:4px 2px}
+/* 오늘 한 장·청약 카드 미리보기도 zoom 대신 transform(저장본과 줄바꿈이 같게) */
+.chcards.strip .chcard.chc-day{zoom:1!important;transform:scale(.7);transform-origin:top left;margin:0 -108px -135px 0}
+@media(min-width:700px){.chcards.strip .chcard.chc-day{transform:scale(.82);margin:0 -65px -81px 0}}
 </style>
 </head>
 <body>
@@ -1995,7 +2201,7 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.20</span>
+    <span class="ver">v9.21</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2080,6 +2286,7 @@ var GROUPS = [
     { id: "brief",   name: "지금 시장", cat: "price",  ic: "📰", d: "최근 30일 실거래로 본 지금", build: buildBrief },
     { id: "channel", name: "채널 브리핑", cat: "price", ic: "📣", d: "채널에 올릴 오늘의 글·카드 이미지", build: buildChannel },
     { id: "reel", name: "릴스 카드", cat: "price", ic: "🎬", d: "내 글·정책 내용을 한 장 카드로", build: buildReel },
+    { id: "tpl", name: "양식 카드", cat: "price", ic: "🗂️", d: "고정 양식 10종 — 내용만 바꿔 올리기", build: buildTpl },
     { id: "market",  name: "시장 흐름",   cat: "price",  ic: "📈", d: "연도별 상승률과 지수 흐름", build: buildMarket },
     { id: "vol",     name: "거래량",      cat: "price",  ic: "📊", d: "손바뀜으로 보는 지금 국면", build: buildVol },
     { id: "quad",    name: "매매·전세 흐름", cat: "price", ic: "🧭", d: "지역별 매매·전세 4분면", build: buildQuad },
@@ -2205,6 +2412,7 @@ function showTab(id) {
   if (id === "channel" && DB) renderChannel();
   if (id === "reel") renderReel();
   if (id === "subs") renderSubs();
+  if (id === "tpl") renderTpl();
   if (id === "school" && DB) renderSchool();
   if (!DB) return;
   if (id === "market") renderMarket();
@@ -4897,7 +5105,7 @@ function mcText() {
    잠금 해제: 주소 끝에 #owner 를 붙여 열고 비밀번호 입력 → /api/owner 가 Vercel 환경변수 OWNER_KEY 와 비교해
    맞으면 토큰을 준다. 토큰은 이 기기(브라우저)에만 저장되고, 앱이 열릴 때마다 서버에 다시 확인한다.
    잠겨 있으면 두 화면은 메뉴·홈·둘러보기·주소(#brief, #channel) 어디에서도 열리지 않는다. */
-var OWNER_LS = "trackapt_owner_v1", OWNER_TABS = ["brief", "channel", "reel"];
+var OWNER_LS = "trackapt_owner_v1", OWNER_TABS = ["brief", "channel", "reel", "tpl"];
 var OWNER = (function () { try { return !!localStorage.getItem(OWNER_LS); } catch (e) { return false; } })();
 if (!OWNER) {
   GROUPS.forEach(function (g) { g.tabs = g.tabs.filter(function (t) { return OWNER_TABS.indexOf(t.id) < 0; }); });
@@ -7521,6 +7729,185 @@ function sbResults(X) {
 }
 function sbRate(v) { if (v == null) return "–"; return (v >= 100 ? Math.round(v) : v >= 10 ? v.toFixed(1) : v.toFixed(2).replace(/0$/, "")) + ":1"; }
 function sbTy(t) { var m = String(t || "").match(/^0*(\d+)\.\d+([A-Z]*)$/); return m ? m[1] + "㎡" + (m[2] ? " " + m[2] : "") : t; }
+
+/* ══ v9.21 양식 카드 — 우상향연구소 고정 양식(템플릿) 10종. 양식은 그대로, 내용만 바뀐다 ══
+   생김새 규칙(모든 양식 공통): 흰 바탕 · 검정 2px 테두리 · 맨 위 왼쪽 "출처·기준일" 작은 글 · 오른쪽 분류 띠(분류별 색 1개) + @uphill.lab
+   · 한두 줄짜리 아주 굵은 제목 · 본문은 표/격자/목록 중 하나 · 맨 아래 한 줄 메모 + 투자 권유 아님. 색은 분류색 1개 + 검정 + 회색만.
+   채우는 길 3가지: ① 앱 데이터로 자동 ② 칸을 직접 고침 ③ AI가 재료(facts) 안의 숫자만 써서 칸을 채움(/api/ai mode:"fill", 숫자 검증 동일).
+   저장은 다른 카드와 같은 360×450 → 1080×1350. */
+var TP = { id: "aptNotice", data: null, auto: true, extra: "", note: "", busy: "", err: "", bad: [] };
+var TP_CAT = { subs: ["청약정보", "#d9342b"], deal: ["아파트실거래", "#1f6feb"], policy: ["부동산정책", "#0f766e"], transit: ["교통정보", "#b45309"], loan: ["대출정보", "#6d28d9"], term: ["부동산상식", "#374151"], issue: ["부동산이슈", "#be123c"], market: ["시장흐름", "#0369a1"] };
+function tpE(s) { return escHtml(String(s == null ? "" : s)); }
+function tpLines(v) { return Array.isArray(v) ? v : String(v || "").split(/\n/).map(function (s) { return s.trim(); }).filter(Boolean); }
+function tpRows(v) { return tpLines(v).map(function (l) { return Array.isArray(l) ? l : l.split("|").map(function (s) { return s.trim(); }); }); }
+function tpToday() { var k = chKstDate(); return k.y + "." + k.m + "." + k.d; }
+function tpEok(v) { return v == null || v === "" ? "" : (typeof v === "number" ? eok(v) : String(v)); }
+/* 공통 틀: head(출처·분류·제목·부제) + body + foot */
+/* uphill.lab 고유 표시: ① 남색 상단 띠(우상향 화살표 마크 + 우상향연구소) ② 제목 아래 '우상향 라인'(끝이 꺾여 오르는 금색 선)
+   ③ 둥근 모서리 + 남색 테두리 + 따뜻한 미색 바탕 ④ 남색 바닥 띠(@uphill.lab 금색). 분류색은 작은 띠·강조에만. */
+var TP_MARK = '<svg class="tp-mk" viewBox="0 0 20 20"><path d="M2 15 L7.5 9.5 L11 12.5 L18 4.5" fill="none" stroke="#d4af6a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.2 4.3 H18.2 V9.3" fill="none" stroke="#d4af6a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var TP_RULE = '<svg class="tp-rule" viewBox="0 0 344 12" preserveAspectRatio="none"><path d="M0 10.5 H286 L300 5.5 L309 7.5 L324 2 L344 2" fill="none" stroke="#d4af6a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="324" cy="2" r="2" fill="#d4af6a"/></svg>';
+function tpFrame(cat, d, body, o) {
+  o = o || {}; var c = TP_CAT[cat] || TP_CAT.term;
+  return '<div class="chcard tp-card tp-' + cat + '" style="--tpc:' + c[1] + '">' +
+    '<div class="tp-top"><span class="tp-brand">' + TP_MARK + "<b>우상향연구소</b></span><span class=\"tp-badge\">" + tpE(d.badge || c[0]) + "</span></div>" +
+    '<div class="tp-src">' + tpE(d.src || "") + "</div>" +
+    (d.tag ? '<div class="tp-tag">' + tpE(d.tag) + "</div>" : "") +
+    '<h2 class="tp-title' + (o.small ? " sm" : "") + '">' + tpE(d.title || "") + "</h2>" + TP_RULE +
+    (d.sub ? '<p class="tp-sub">' + tpE(d.sub) + "</p>" : "") +
+    '<div class="tp-body">' + body + "</div>" +
+    '<div class="tp-foot"><span>' + tpE(d.foot || "") + (d.foot ? " · " : "") + tpE(o.foot2 || "참고 자료 · 투자 권유 아님") + '</span><b class="tp-handle">@uphill.lab</b></div></div>';
+}
+/* 칸 설명(스키마): [키, 이름, 종류(text|lines|rows), 안내] — 편집 화면과 AI 채우기가 같은 것을 쓴다 */
+var TPL = {
+  aptNotice: { nm: "청약 단지 한 장", cat: "subs", fields: [["src", "출처·기준", "text", "모집공고일 2026년 9월 23일"], ["tag", "빨간 띠(핵심 자격)", "text", "서울시 거주자"], ["title", "단지명", "text", ""], ["cols", "표 머리(| 구분)", "text", "주택형 | 평형 | 분양가 | 공급"], ["rows", "표 줄(한 줄에 한 주택형, | 구분)", "rows", "84 | 32평 | 12.2억 | 1세대"], ["bullets", "핵심 목록(한 줄에 하나)", "lines", "2026년 9월 입주\n총 215세대"], ["side", "오른쪽 조건표(이름 | 값)", "rows", "분양가상한제 | 미적용\n재당첨제한 | 10년"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { var it = typeof sbCardItem === "function" ? (sbCardItem() || (sbItems().filter(function (x) { return x.kind === "apt" && x.b && x.b >= sbToday() - 7; })[0]) || sbItems()[0]) : null; if (!it) return null; var N = typeof sbNote === "function" ? sbNote(it) : {}, P = typeof sbPriorRow === "function" ? sbPriorRow(it) : null;
+      return { src: "모집공고일 " + (it.notice ? String(it.notice).replace(/(\d{4})(\d\d)(\d\d)/, "$1년 $2월 $3일") : "") + " · 청약홈", tag: N.res || (it.area ? String(it.area).replace(/특별시|광역시/g, "") + " 공급" : ""), title: it.nm,
+        cols: "주택형 | 공급면적 | 최고 분양가 | 공급", rows: (it.types || []).slice(0, 5).map(function (t) { return [sbTy(t.ty), t.area ? Math.round(t.area / 3.3058) + "평" : "", t.top ? eok(t.top) : "", t.n != null ? fmt(t.n) + "세대" : ""]; }),
+        bullets: [it.move ? String(it.move).replace(/^(\d{4})(\d\d)$/, "$1년 $2월 입주") : "", it.n ? "총 " + fmt(it.n) + "세대" : "", it.spB ? "특별공급 " + chMD(it.spB) + "(" + chWd(it.spB) + ")" : "", it.r1 ? "1순위 " + chMD(it.r1) + "(" + chWd(it.r1) + ")" + (P && P.length > 1 && /기타/.test(P[1][0]) ? " · 기타지역 " + chMD(it.r1x) : "") : (it.b ? "접수 " + chMD(it.b) + "(" + chWd(it.b) + ")" : ""), it.win ? "발표 " + chMD(it.win) + "(" + chWd(it.win) + ")" : "", N.firstRank ? N.firstRank : "", N.point ? N.point : ""].filter(Boolean),
+        side: [["분양가상한제", it.cap ? "적용" : "미적용"], ["규제지역", it.hot ? "투기과열" : it.adj ? "조정대상" : "해당 없음"], ["재당첨제한", N.rewin || "공고 확인"], ["전매제한", N.resale || "공고 확인"], ["거주의무", N.live || "공고 확인"]], foot: "일정·조건은 입주자모집공고문 기준 · 정정 공고 시 변경" }; },
+    render: function (d) { var cols = tpRows(d.cols)[0] || [], R = tpRows(d.rows);
+      return tpFrame("subs", d, '<table class="tp-tbl big"><tr>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr>" + cols.map(function (_, i) { return "<td>" + tpE(r[i] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>" +
+        '<div class="tp-2col"><ul class="tp-pins">' + tpLines(d.bullets).map(function (b) { return "<li>" + tpE(b) + "</li>"; }).join("") + '</ul><table class="tp-side">' + tpRows(d.side).map(function (r) { return "<tr><th>" + tpE(r[0]) + "</th><td>" + tpE(r[1] || "") + "</td></tr>"; }).join("") + "</table></div>"); } },
+  calendar: { nm: "부동산 달력", cat: "policy", fields: [["src", "출처·기준", "text", "2026년 9월 26일 ver."], ["title", "제목", "text", "부동산 달력 10월호"], ["ym", "연월(YYYY-MM)", "text", "2026-10"], ["events", "일정(날짜 | 종류 | 제목)", "rows", "2026-10-15 | 정책 | 10·15 대책 1주년"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { var k = chKstDate(), ym = k.y + "-" + ("0" + k.m).slice(-2), f = k.y * 10000 + k.m * 100 + 1, t = k.y * 10000 + k.m * 100 + chDaysInMonth(k.y, k.m), ev = [];
+      if (typeof chEvents === "function") chEvents(f, t).forEach(function (e) { ev.push([String(e.d).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3"), e.kind, e.title]); });
+      if (typeof sbEvents === "function" && typeof sbItems === "function") sbEvents(sbItems().filter(function (i) { return !/임대/.test(String(i.rent || "")); }), f, t).filter(function (e) { return /1순위|무순위|당첨자/.test(e.kind); }).slice(0, 14).forEach(function (e) { ev.push([String(e.d).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3"), e.kind === "당첨자 발표" ? "발표" : "청약", e.it.nm]); });
+      return { src: tpToday() + " 기준 · 일정 파일·청약홈", title: "부동산 달력 " + k.m + "월호", ym: ym, events: ev, foot: "일정은 발표 기관 사정으로 바뀔 수 있음" }; },
+    render: function (d) { var m = String(d.ym || "").match(/(\d{4})-(\d{1,2})/), y = m ? Number(m[1]) : chKstDate().y, mo = m ? Number(m[2]) : chKstDate().m, first = new Date(Date.UTC(y, mo - 1, 1)).getUTCDay(), dim = chDaysInMonth(y, mo), by = {};
+      tpRows(d.events).forEach(function (r) { var dd = Number(String(r[0] || "").replace(/-/g, "").slice(6, 8)); if (dd) (by[dd] = by[dd] || []).push(r); });
+      var cells = []; for (var i = 0; i < first; i++) cells.push("<td></td>");
+      for (var day = 1; day <= dim; day++) { var wd = (first + day - 1) % 7; cells.push('<td class="' + (wd === 0 ? "sun" : wd === 6 ? "sat" : "") + '"><b>' + day + "</b>" + (by[day] || []).slice(0, 3).map(function (r) { return '<i class="k-' + tpE(r[1]) + '">' + tpE(r[1]) + "</i><span>" + tpE(r[2]) + "</span>"; }).join("") + "</td>"); }
+      while (cells.length % 7) cells.push("<td></td>");
+      var trs = []; for (var j = 0; j < cells.length; j += 7) trs.push("<tr>" + cells.slice(j, j + 7).join("") + "</tr>");
+      return tpFrame("policy", d, '<table class="tp-cal"><tr>' + ["일", "월", "화", "수", "목", "금", "토"].map(function (w) { return "<th>" + w + "</th>"; }).join("") + "</tr>" + trs.join("") + "</table>"); } },
+  priceBand: { nm: "가격대 × 권역 표", cat: "deal", fields: [["src", "출처·기준", "text", "국토부 실거래(계약일 기준)"], ["title", "제목", "text", "9월의 국평 실거래"], ["cols", "권역(| 구분)", "text", "강남3구 | 마용성 | 그 외 서울 | 경기"], ["rows", "가격대 줄(가격대 | 권역1 단지들(·구분) | 권역2 | …)", "rows", "30억대 | 송파 헬리오시티 · 강남 일원동가람 | | |"], ["foot", "맨 아래 메모", "text", "해당 금액대에 실거래된 단지명(최고가 아님)"]],
+    auto: function () { if (typeof CH === "undefined" || !chOk()) return null; var R = CH.data.regions, G = [["강남3구", /^(11680|11650|11710)$/], ["마용성", /^(11440|11170|11200)$/], ["그 외 서울", /^11/], ["경기", /^41/]], by = {};
+      Object.keys(R).forEach(function (c) { var tb = R[c].topB && R[c].topB["84"]; if (!tb) return; var gi = -1; G.forEach(function (g, i) { if (gi < 0 && g[1].test(c)) gi = i; }); if (gi < 0) return; tb.slice(0, 3).forEach(function (t) { var band = Math.floor(t.amount / 10000); if (band < 5) return; by[band] = by[band] || [[], [], [], []]; var nm = chShortGu(c) + " " + t.apt; if (by[band][gi].indexOf(nm) < 0 && by[band][gi].length < 3) by[band][gi].push(nm); }); });
+      var bands = Object.keys(by).map(Number).sort(function (a, b) { return b - a; }).slice(0, 11);
+      return { src: "국토부 실거래 최근 30일 84㎡대 상위 거래 · " + tpToday() + " 조회", title: chKstDate().m + "월의 국평 실거래", cols: G.map(function (g) { return g[0]; }).join(" | "), rows: bands.map(function (b) { return [b + "억대"].concat(by[b].map(function (a) { return a.join(" · "); })); }), foot: "해당 금액대에 실거래된 단지명 · 각 지역 상위 3건만 · 최고가 의미 아님" }; },
+    render: function (d) { var cols = tpRows(d.cols)[0] || [], R = tpRows(d.rows);
+      return tpFrame("deal", d, '<table class="tp-band"><tr><th>실거래</th>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr><th>" + tpE(r[0]) + "</th>" + cols.map(function (_, i) { return "<td>" + String(r[i + 1] || "").split(/\s*·\s*/).filter(Boolean).map(function (a) { return "<i>" + tpE(a) + "</i>"; }).join("") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"); } },
+  policyTimeline: { nm: "대책 총정리", cat: "policy", fields: [["src", "출처·기준", "text", "국토부·금융위 보도자료"], ["title", "제목", "text", "부동산 대책 총정리"], ["items", "대책(날짜 | 제목 | 요점1 ; 요점2 ; …)", "rows", "2025-10-15 | 10·15 대책 | 규제지역 지정 ; LTV 40%"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, pm = (D.policy && D.policy.manual && D.policy.manual.items) || []; if (!pm.length) return null;
+      return { src: "국토부·금융위 보도자료 · 직접 관리 목록 " + tpToday(), title: "부동산 대책 총정리", items: pm.slice(0, 4).map(function (p) { return [p.date, p.title, (p.points || []).slice(0, 4).join(" ; ")]; }), foot: "요점만 간추림 · 세부 조건·예외는 공식 자료" }; },
+    render: function (d) { var R = tpRows(d.items);
+      return tpFrame("policy", d, '<div class="tp-tl">' + R.map(function (r) { var dt = String(r[0] || "").replace(/^\d{2}(\d{2})-(\d{2})-(\d{2})$/, "'$1.$2.$3"); return '<div class="tp-tli"><div class="tp-tld"><b>' + tpE(dt) + "</b></div><div class=\"tp-tlb\"><h4>" + tpE(r[1]) + "</h4><ol>" + String(r[2] || "").split(/\s*;\s*/).filter(Boolean).map(function (p) { return "<li>" + tpE(p) + "</li>"; }).join("") + "</ol></div></div>"; }).join("") + "</div>", { small: R.length > 3 }); } },
+  compareTable: { nm: "비교표(항목 × 상품)", cat: "loan", fields: [["src", "출처·기준", "text", "주택도시기금·주택금융공사"], ["title", "제목", "text", "주택구입 정책대출 한눈에 비교"], ["cols", "비교 대상(| 구분)", "text", "디딤돌 | 신생아 특례 | 보금자리론"], ["rows", "항목 줄(항목 | 값1 | 값2 | 값3)", "rows", "소득(부부합산) | 6천만 이하 | 1.3억 이하 | 7천만 이하"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, pr = (D.loans && D.loans.manual && D.loans.manual.programs) || []; if (!pr.length) return null; var P = pr.slice(0, 3), au = D.loans.auto || {};
+      return { src: "주택도시기금·주택금융공사 " + (D.loans.manual.asOf || "") + " 확인", title: "주택구입 정책대출 한눈에 비교", cols: P.map(function (p) { return p.name; }).join(" | "),
+        rows: [["대상"].concat(P.map(function (p) { return p.who || ""; })), ["소득(부부합산)"].concat(P.map(function (p) { return p.income ? eok(p.income) + " 이하" : ""; })), ["소득 예외"].concat(P.map(function (p) { return p.incomeNote || ""; })), ["주택가격"].concat(P.map(function (p) { return p.price ? eok(p.price) + " 이하" : ""; })), ["최대 한도"].concat(P.map(function (p) { return p.limit ? eok(p.limit) : ""; })), ["금리"].concat(P.map(function (p) { return "연 " + (au[p.name] ? au[p.name].rate : p.rate) + "%"; })), ["LTV"].concat(P.map(function (p) { return p.ltv || ""; }))], foot: "조건은 자주 바뀜 · 신청 전 기금e든든·주택금융공사에서 재확인" }; },
+    render: function (d) { var cols = tpRows(d.cols)[0] || [], R = tpRows(d.rows);
+      return tpFrame("loan", d, '<table class="tp-cmp"><tr><th></th>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr><th>" + tpE(r[0]) + "</th>" + cols.map(function (_, i) { return "<td>" + tpE(r[i + 1] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"); } },
+  rankGrid: { nm: "순위 격자 Top 12", cat: "market", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "1년 새 많이 오른 동네"], ["items", "항목(이름 | 값 | 보조)", "rows", "과천시 | +29.6% | 84㎡ 중위"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { if (typeof RANKED === "undefined" || typeof chYoY !== "function" || typeof DB === "undefined" || !DB || !DB.sale) return null; var rows = RANKED.filter(function (k) { return DB.sale.series[k] && /^(11|41|28|26|27|29|30|31|36)/.test(String(k)) && !/군$/.test(chName(k)); }).map(function (k) { return { k: k, v: chYoY(k) }; }).filter(function (r) { return r.v != null; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 12); if (rows.length < 6) return null;
+      return { src: "국토부 실거래 월별 집계 · " + DB.sale.dates[1].replace("-", ".") + "까지 · 수도권·광역시 시·구 · 1년 전 대비 ㎡당 중위", title: "1년 새 많이 오른 동네 TOP 12", items: rows.map(function (r) { return [chName(r.k), (r.v > 0 ? "+" : "") + r.v.toFixed(1) + "%", "1년 상승률"]; }), foot: "㎡당 중위값 비교 · 어떤 단지가 팔렸느냐에 따라 출렁일 수 있음" }; },
+    render: function (d) { var R = tpRows(d.items).slice(0, 12);
+      return tpFrame(d._cat || "market", d, '<div class="tp-grid">' + R.map(function (r, i) { return '<div class="tp-cell"><small>' + (i + 1) + "위</small><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em>" + (r[2] ? "<span>" + tpE(r[2]) + "</span>" : "") + "</div>"; }).join("") + "</div>"); } },
+  beforeAfter: { nm: "작년 · 올해 비교", cat: "deal", fields: [["src", "출처·기준", "text", "국토부 실거래가 공개"], ["title", "제목", "text", "신고가 전·후 비교"], ["colA", "왼쪽 머리", "text", "직전 최고"], ["colB", "오른쪽 머리", "text", "이번 신고가"], ["items", "항목(이름 | 보조 | 전 값 | 전 날짜 | 후 값 | 후 날짜 | 변화)", "rows", "창동주공1단지 | 19평 | 4.4억 | 2025.1.21 | 6.1억 | 2026.10.3 | +39%"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { if (typeof CH === "undefined" || !chOk() || typeof chHighsBetween !== "function") return null; var t1 = chDayKey(chKstNow()), L = chHighsBetween(t1 - 30, t1).filter(function (t) { return t.allPrev && t.max; }).slice(0, 4); if (L.length < 2) return null;
+      return { src: "국토부 실거래 · 최근 30일 신고가 · " + tpToday() + " 조회", title: "신고가, 직전 최고가와 비교", colA: "직전 최고가", colB: "이번 신고가", items: L.map(function (t) { return [t.apt, chShortGu(t.k) + " · " + (t.area ? t.area + "㎡" : t.band + "㎡대"), eok(t.allPrev[0]), String(t.allPrev[1]).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), eok(t.max.amount), String(t.max.d).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), "+" + t.u.toFixed(0) + "%"]; }), foot: "같은 단지·같은 면적대 역대 최고가끼리 비교 · 직거래 제외" }; },
+    render: function (d) { var R = tpRows(d.items).slice(0, 4);
+      return tpFrame("deal", d, '<div class="tp-ba"><div class="tp-bah"><span></span><b>' + tpE(d.colA || "전") + "</b><b>" + tpE(d.colB || "후") + "</b></div>" + R.map(function (r) { return '<div class="tp-bar"><div class="tp-ban"><b>' + tpE(r[0]) + "</b><small>" + tpE(r[1] || "") + '</small></div><div class="tp-bav"><b>' + tpE(r[2]) + "</b><small>" + tpE(r[3] || "") + '</small></div><div class="tp-bav"><i>' + tpE(r[6] || "") + "</i><b>" + tpE(r[4]) + "</b><small>" + tpE(r[5] || "") + "</small></div></div>"; }).join("") + "</div>"); } },
+  listArrow: { nm: "A → B 목록", cat: "term", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "집 한 채에 붙는 세금"], ["sub", "부제", "text", ""], ["rows", "줄(왼쪽 | 오른쪽 | 작은 설명)", "rows", "사자니 | 취득세 | 잔금일 60일 안 신고"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { var T = (typeof DY !== "undefined" && DY.terms) || null; if (!T) return null; var k = chKstDate(), doy = Math.floor((Date.UTC(k.y, k.m - 1, k.d) - Date.UTC(k.y, 0, 1)) / 86400000);
+      return { src: "우상향연구소 용어 사전", title: "오늘의 부동산 단어 6", sub: "같은 기사도 다르게 읽히는 말", rows: [0, 1, 2, 3, 4, 5].map(function (i) { var t = T[(doy + i) % T.length]; return [t[0], t[1], (t[2] || [])[0] || ""]; }), foot: "" }; },
+    render: function (d) { var R = tpRows(d.rows).slice(0, 8);
+      return tpFrame("term", d, '<div class="tp-list">' + R.map(function (r) { return '<div class="tp-li"><b>' + tpE(r[0]) + '</b><span class="tp-arr">→</span><em>' + tpE(r[1] || "") + "</em>" + (r[2] ? "<small>" + tpE(r[2]) + "</small>" : "") + "</div>"; }).join("") + "</div>"); } },
+  quote: { nm: "발언 · 이슈", cat: "issue", fields: [["src", "출처·기준", "text", "국정감사(2026.10.12) · 동아일보"], ["badge", "분류 띠", "text", "부동산이슈"], ["tag", "빨간 띠(누가·어디서)", "text", "국정감사 주요 발언"], ["title", "제목(큰따옴표 발언)", "text", ""], ["who", "발언자 소개(이름 | 직함)", "text", "홍길동 | LH 사장"], ["quotes", "발언 요지(한 줄에 하나)", "lines", ""], ["profile", "약력 칸(한 줄에 하나)", "lines", ""], ["foot", "맨 아래 메모", "text", "발언 요지는 기사·속기록 기준"]],
+    auto: function () { return null; },
+    render: function (d) { var who = tpRows(d.who)[0] || [];
+      return tpFrame("issue", d, '<div class="tp-q"><div class="tp-qp"><div class="tp-qw"><b>' + tpE(who[0] || "") + "</b><small>" + tpE(who[1] || "") + '</small></div><div class="tp-qpro">' + tpLines(d.profile).slice(0, 6).map(function (p) { return "<i>" + tpE(p) + "</i>"; }).join("") + '</div></div><div class="tp-qt">' + tpLines(d.quotes).slice(0, 4).map(function (q) { return "<p>" + tpE(q) + "</p>"; }).join("") + "</div></div>"); } },
+  lineTable: { nm: "노선 · 현황 표", cat: "transit", fields: [["src", "출처·기준", "text", "국토부·국가철도공단"], ["title", "제목", "text", "GTX 노선 개통 일정"], ["cols", "표 머리(| 구분)", "text", "노선 | 상태 | 개통(예정) | 비고"], ["rows", "줄(| 구분)", "rows", "GTX-A | 개통 | 2024.12 | 삼성역 2028"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, L = (D.transit && D.transit.manual && D.transit.manual.lines) || []; if (!L.length) return null;
+      return { src: "국토부·국가철도공단 발표 · 직접 관리 목록 " + tpToday(), title: "수도권 광역철도, 어디까지 왔나", cols: "노선 | 상태 | 개통(예정) | 비고", rows: L.slice(0, 9).map(function (l) { return [l.name, l.status, String(l.open || "").replace(/^(\d{4})-(\d{2})$/, function (_, y, m) { return m === "00" ? y + "년" : y + "." + Number(m); }).replace("0000년", "미정"), (l.note || "").slice(0, 22)]; }), foot: "개통 예정은 공정에 따라 미뤄질 수 있음" }; },
+    render: function (d) { var cols = tpRows(d.cols)[0] || [], R = tpRows(d.rows);
+      return tpFrame("transit", d, '<table class="tp-tbl"><tr>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr>" + cols.map(function (_, i) { var v = r[i] || ""; return "<td" + (i === 1 ? ' class="st-' + tpE(v) + '"' : "") + ">" + tpE(v) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"); } }
+};
+var TPL_ORDER = ["aptNotice", "calendar", "priceBand", "beforeAfter", "rankGrid", "policyTimeline", "compareTable", "lineTable", "listArrow", "quote"];
+/* ── 화면 ── */
+function buildTpl(sec) {
+  sec.innerHTML = '<div class="card"><h2>양식 카드</h2><p class="desc">우상향연구소 고정 양식 10종. 양식은 그대로 두고 내용만 바꿔 올립니다. 앱 데이터로 자동으로 채우고, 칸을 고치고, 필요하면 AI가 재료 안의 숫자만 써서 채웁니다.</p>' +
+    '<div class="tp-pick" id="tp-pick">' + TPL_ORDER.map(function (id) { var t = TPL[id], c = TP_CAT[t.cat]; return '<button type="button" data-tp="' + id + '" style="--tpc:' + c[1] + '"><i>' + c[0] + "</i>" + t.nm + "</button>"; }).join("") + "</div></div>" +
+    '<div class="card tp-wrap"><div class="tp-left"><h3>1 내용</h3><div class="mk-row"><button type="button" class="btn sm" data-tpauto="1">앱 데이터로 채우기</button><button type="button" class="btn sm ghost" data-tpclear="1">비우기</button><span class="hint" id="tp-msg"></span></div><div id="tp-form"></div>' +
+      '<details class="tp-ai" id="tp-ai"><summary>AI로 채우기 (재료 안의 숫자만)</summary><p class="hint">재료: 앱 데이터로 채운 내용 + 아래 참고 글. AI는 재료에 없는 숫자·날짜를 만들 수 없고, 재료에 없는 숫자는 빨갛게 표시됩니다. 버튼을 눌렀을 때만 돕니다.</p><textarea id="tp-extra" placeholder="참고 글(기사·공고문·내 메모) 붙여넣기 — 선택"></textarea><textarea id="tp-note" placeholder="요청(예: 신혼부부 관점으로 제목을 뽑아줘) — 선택"></textarea><div class="mk-row"><button type="button" class="btn sm" data-tpai="1">AI로 채우기</button><span class="hint" id="tp-aimsg"></span></div></details></div>' +
+      '<div class="tp-right"><h3>2 카드</h3><div class="chcards strip" id="tp-cards"></div><div id="tp-bad" class="hint"></div></div></div>';
+  sec.addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-tp]"); if (b) { TP.id = b.dataset.tp; TP.data = null; TP.auto = true; tpPaint(); }
+    if (ev.target.closest("[data-tpauto]")) { TP.data = null; TP.auto = true; tpPaint(); }
+    if (ev.target.closest("[data-tpclear]")) { TP.data = {}; TP.auto = false; tpPaint(); }
+    if (ev.target.closest("[data-tpai]")) tpAi();
+    var sv = ev.target.closest("[data-chsave]"); if (sv && typeof chCardImage === "function") { var card = sv.parentNode.querySelector(".chcard"); if (typeof progOpen === "function") progOpen("이미지 만드는 중", 0); chCardImage(card, sv.dataset.chsave).then(function () { if (typeof progClose === "function") progClose(); }, function () { if (typeof progClose === "function") progClose(); alert("이미지 저장에 실패했습니다."); }); }
+  });
+  sec.addEventListener("input", function (ev) { if (ev.target.closest("#tp-form")) { TP.auto = false; TP.data = tpReadForm(); tpPaintCard(); } });
+}
+function renderTpl() {
+  var go = function () { if (typeof dyLoad === "function") dyLoad(tpPaint); else tpPaint(); };
+  if (typeof CH !== "undefined" && !CH.data && typeof renderChannel === "function") { /* 실거래·거시 자료를 같이 쓴다 */ var once = false; var tm = setInterval(function () { if (CH.data) { clearInterval(tm); if (!once) { once = true; go(); } } }, 300); renderChannel(); setTimeout(function () { clearInterval(tm); if (!once) { once = true; go(); } }, 6000); }
+  else go();
+}
+function tpData() { var t = TPL[TP.id]; if (TP.data) return TP.data; var d = null; try { d = t.auto(); } catch (e) { if (window.console) console.error(e); } TP.data = d || tpBlank(t); TP.autoOk = !!d; return TP.data; }
+function tpBlank(t) { var o = {}; t.fields.forEach(function (f) { o[f[0]] = f[2] === "text" ? "" : []; }); return o; }
+function tpFormHtml(t, d) {
+  return t.fields.map(function (f) { var v = d[f[0]], txt = f[2] === "text" ? String(v || "") : (Array.isArray(v) ? v.map(function (r) { return Array.isArray(r) ? r.join(" | ") : r; }).join("\n") : String(v || ""));
+    return '<label class="tp-f"><span>' + tpE(f[1]) + "</span>" + (f[2] === "text" ? '<input data-tf="' + f[0] + '" value="' + tpE(txt) + '" placeholder="' + tpE(f[3]) + '">' : '<textarea data-tf="' + f[0] + '" rows="' + (f[2] === "rows" ? 5 : 3) + '" placeholder="' + tpE(f[3]) + '">' + tpE(txt) + "</textarea>") + "</label>"; }).join("");
+}
+function tpReadForm() { var o = {}, t = TPL[TP.id]; t.fields.forEach(function (f) { var el = document.querySelector('#tp-form [data-tf="' + f[0] + '"]'); if (!el) return; o[f[0]] = f[2] === "text" ? el.value : (f[2] === "rows" ? tpRows(el.value) : tpLines(el.value)); }); return o; }
+function tpPaint() {
+  var form = document.getElementById("tp-form"); if (!form) return;
+  var t = TPL[TP.id], d = tpData();
+  Array.prototype.forEach.call(document.querySelectorAll("#tp-pick button"), function (b) { b.classList.toggle("on", b.dataset.tp === TP.id); });
+  form.innerHTML = tpFormHtml(t, d);
+  var msg = document.getElementById("tp-msg"); if (msg) msg.textContent = TP.auto ? (TP.autoOk ? "앱 데이터로 채웠습니다 — 칸을 고치면 바로 반영" : "이 양식은 자동 재료가 없어 직접 적거나 AI로 채웁니다") : "직접 고친 내용";
+  tpPaintCard();
+}
+function tpPaintCard() {
+  var box = document.getElementById("tp-cards"); if (!box) return;
+  var t = TPL[TP.id], d = TP.data || tpData(), html = "";
+  try { html = t.render(d); } catch (e) { html = '<p class="hint">그리기 오류: ' + tpE(e.message) + "</p>"; }
+  box.innerHTML = '<div class="chcardWrap"><div class="tp-scale">' + html + '</div><button type="button" class="btn sm ghost" data-chsave="양식_' + tpE(t.nm) + '">이미지 저장</button></div>';
+  tpFitLater(box);
+  var bad = document.getElementById("tp-bad"); if (bad) bad.innerHTML = TP.bad.length ? '<b style="color:#e5484d">재료에 없는 숫자:</b> ' + TP.bad.map(tpE).join(", ") + " — 카드에서 확인하세요" : "";
+}
+/* 제목 한 줄 맞춤 + 본문 넘치면 글자 줄이기 */
+function tpFit(root) {
+  Array.prototype.forEach.call(root.querySelectorAll(".tp-card"), function (c0) {
+    var c = c0.cloneNode(true); c.classList.add("chfixed"); c.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden"; document.body.appendChild(c);
+    try {
+      var ti = c.querySelector(".tp-title"); if (ti) { ti.style.fontSize = ""; var fs = parseFloat(getComputedStyle(ti).fontSize); while (ti.scrollHeight > ti.clientHeight + 2 && fs > 14) { fs -= 1; ti.style.fontSize = fs + "px"; } }
+      var body = c.querySelector(".tp-body"), foot = c.querySelector(".tp-foot"); c.classList.remove("tp-t1", "tp-t2", "tp-t3");
+      var over = function () { var bb = body.getBoundingClientRect().bottom, m = 0; Array.prototype.forEach.call(body.querySelectorAll("tr, li, .tp-li, .tp-bar, .tp-cell, .tp-tli, p"), function (x) { if (x.style.display !== "none") m = Math.max(m, x.getBoundingClientRect().bottom); }); return m > bb + 0.5 || body.scrollHeight > body.clientHeight + 1; };
+      ["tp-t1", "tp-t2", "tp-t3"].forEach(function (k) { if (over()) c.classList.add(k); });
+      /* 그래도 넘치면 맨 아래 줄부터 접는다(줄 중간이 잘린 채 저장되지 않게) */
+      var rows = Array.prototype.slice.call(body.querySelectorAll("tr:not(:first-child), .tp-li, .tp-bar, .tp-tli, .tp-pins li"));
+      var cut = 0; while (over() && rows.length > 2) { var r = rows.pop(); r.style.display = "none"; r.setAttribute("data-cut", "1"); cut++; }
+      var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*"); for (var i = 0; i < src.length && i < dst.length; i++) dst[i].style.display = src[i].style.display;
+      c0.className = c.className.replace(/\bchfixed\b/, "").trim(); var t0 = c0.querySelector(".tp-title"); if (t0 && ti) t0.style.fontSize = ti.style.fontSize;
+    } catch (e) {} finally { c.remove(); }
+  });
+}
+function tpFitLater(root) { tpFit(root); setTimeout(function () { tpFit(root); }, 400); if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { tpFit(root); }); }
+/* ── AI 채우기: 재료 = 지금 칸 내용 + 참고 글. 양식의 칸 설명을 그대로 보내 JSON 으로 받고, 숫자는 재료에 있는 것만 통과 ── */
+function tpFacts() {
+  var d = TP.data || tpData(), F = [], n = 0, add = function (s) { s = String(s || "").trim(); if (s) F.push({ id: "F" + (++n), text: s.slice(0, 300) }); };
+  Object.keys(d).forEach(function (k) { var v = d[k]; if (Array.isArray(v)) v.forEach(function (r) { add(Array.isArray(r) ? r.join(" | ") : r); }); else add(v); });
+  var ex = document.getElementById("tp-extra"); if (ex && ex.value.trim() && typeof rcFactsFromText === "function") rcFactsFromText(ex.value).forEach(function (f) { add("[참고] " + f.text); });
+  return F.slice(0, 80);
+}
+function tpAi() {
+  var msg = document.getElementById("tp-aimsg"), t = TPL[TP.id]; if (!msg) return;
+  if (typeof rcPost !== "function" || typeof OWNER === "undefined" || !OWNER) { msg.textContent = "주인 모드에서만 됩니다."; return; }
+  var F = tpFacts(); if (!F.length) { msg.textContent = "재료가 없습니다. 먼저 앱 데이터로 채우거나 참고 글을 넣으세요."; return; }
+  msg.textContent = "채우는 중…"; TP.busy = true;
+  rcPost("/api/ai", { mode: "fill", template: { id: TP.id, name: t.nm, fields: t.fields.map(function (f) { return { key: f[0], label: f[1], kind: f[2], example: f[3] }; }) }, facts: F, note: (document.getElementById("tp-note") || {}).value || "" }).then(function (j) {
+    var out = j.fill || {}, d = {}; TP.bad = [];
+    var set = typeof rcFactNums === "function" ? rcFactNums(F) : null;
+    t.fields.forEach(function (f) { var v = out[f[0]]; if (v == null) { d[f[0]] = f[2] === "text" ? "" : []; return; } if (f[2] === "text") d[f[0]] = String(v); else if (f[2] === "rows") d[f[0]] = tpRows(Array.isArray(v) ? v.map(function (r) { return Array.isArray(r) ? r.join(" | ") : String(r); }) : String(v)); else d[f[0]] = tpLines(Array.isArray(v) ? v.map(String) : String(v));
+      if (set && typeof rcCheckText === "function") { var txt = Array.isArray(d[f[0]]) ? d[f[0]].map(function (r) { return Array.isArray(r) ? r.join(" ") : r; }).join(" ") : d[f[0]]; rcCheckText(txt, set).forEach(function (x) { if (TP.bad.indexOf(x) < 0) TP.bad.push(x); }); } });
+    TP.data = d; TP.auto = false; TP.busy = false; tpPaint();
+    msg.textContent = "채웠습니다(" + (j.model || "") + ")" + (TP.bad.length ? " · 재료에 없는 숫자 " + TP.bad.length + "개 — 빨간 표시 확인" : " · 숫자 모두 재료와 일치");
+  }, function (e) { TP.busy = false; msg.textContent = "실패: " + e.message; });
+}
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

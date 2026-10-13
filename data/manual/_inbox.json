@@ -1,14 +1,14 @@
 {
  "v": 1,
- "builtAt": "2026-10-13T00:12:30.217Z",
- "asOf": 20261013,
+ "builtAt": "2026-10-13T22:21:04.155Z",
+ "asOf": 20261014,
  "items": [
   {
    "kind": "loan",
    "name": "버팀목 전세대출",
    "manual": "2.3~3.3",
    "found": "2.20~3.30",
-   "date": "2026-10-13",
+   "date": "2026-10-14",
    "title": "버팀목 전세대출 금리 공고 연 2.20~3.30% (수동 2.3~3.3%)",
    "url": "https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020301.jsp",
    "src": "기금e든든",
@@ -19,25 +19,36 @@
   },
   {
    "kind": "policy",
-   "date": "2026-10-11",
-   "title": "10·15대책 1년…\"서울 집값 오르고, 공급은 제자리\"",
-   "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE5FcU9IUlV1UDVEZ2RwbERfNDNoWW1VMXVBY3FuWjd0aXVSb21rbWhZQVpyWjQtNlNmYmo2OUN5dWJfNGlaZlZuY1p3WW84MXhacnJhMlMzMm43Tm5vODhfTnRJMkI4NEk?oc=5",
-   "src": "연합뉴스TV",
+   "date": "2026-10-13",
+   "title": "[아유경제_특집] 집값 안정 위한 ‘10ㆍ15 대책’ 시행 1년… 시장 상황은?",
+   "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE1SYzBFU2pzdDRobDZwMHZ4dV9vNk15Mm0yeXVDQXFRMHpzVzA0LWxLSGFQeFRQOU96bF9ZdnN2OHlnTzdNVTRfczFwRjRlaXVvdmhja0JxSFR3Z291LTU3cjVYTEVuR2pQ?oc=5",
+   "src": "아유경제",
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-12",
-   "isNew": false
+   "firstSeen": "2026-10-14",
+   "isNew": true
   },
   {
    "kind": "policy",
-   "date": "2026-10-11",
-   "title": "[10·15 대책 1년] '닥치고 공급'인데 공급 부족 언제 해소되나",
-   "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE4tWVdldHdkMjdNY2VyZFhTa3dPbjloTVNnYWlZLUR0V1p3aXZuQU5OY0VHS0hfZXJPQWV3UVB1MVpJVF9sdjE5SWNsWkEwaTdBemZpbFRtYkZIbWfSAWBBVV95cUxOUldQSVV4RXpFSHlEdndKSjRTQUplNnhNcXZlLXMtZWRwemxOVldSSzZGdXd4ZFJpN3lhOVd4Q1ROM0hUZFdMWkIzSGExY1ZHZ2hHdVhaMWxEWlRzdG9HWmM?oc=5",
-   "src": "연합뉴스",
+   "date": "2026-10-13",
+   "title": "[10·15 부동산 대책 1년] 집값 잡으려고 규제했는데…1년 만에 서울 집값 10% 오른 이유는? 🏘️",
+   "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTE5mUFJEQU90N3NDb05Sd0pJYnp3OG95TUhmeHFmQWlOenVVMzlfRzQxb3N0dkJMLWdOTWFnd2pHdTVyYlpfN21VV0FiUUh3LXhtY2E0?oc=5",
+   "src": "뉴닉",
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-11",
-   "isNew": false
+   "firstSeen": "2026-10-14",
+   "isNew": true
+  },
+  {
+   "kind": "policy",
+   "date": "2026-10-13",
+   "title": "10·15 부동산 대책 1년 … \"투기 수요 잡았지만 집값 상승 꺾지 못했다\"",
+   "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE0tQlBqVEdVcUZ0ZHVfN19lX1dFc1lITnktTkN0THZ4dS1JSW5la2d4b2ZOMHFzbGppNGJqWF9CVWhueVNrRUJJZ3ozRTE5ZkFkSko2UUhPM011NndIVUd1SlhkbV82eGFLSmc?oc=5",
+   "src": "Queen 이코노미퀸",
+   "official": false,
+   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
+   "firstSeen": "2026-10-14",
+   "isNew": true
   }
  ]
 }

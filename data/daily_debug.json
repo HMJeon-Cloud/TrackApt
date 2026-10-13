@@ -1,12 +1,12 @@
 {
- "builtAt": "2026-10-13T00:12:55.512Z",
+ "builtAt": "2026-10-13T22:21:33.594Z",
  "steps": [
   "준공 후 미분양: 시도 18곳 합산",
   "unsold OK",
   "index OK",
   "weekly 없음",
-  "경쟁률 행 2000 → 단지 90 (이름 붙은 곳 90)",
-  "청약 공고 128건(접수 중 9 · 예정 14) · 경쟁률 80 · 분양가 있는 단지 76",
+  "경쟁률 행 2000 → 단지 91 (이름 붙은 곳 91)",
+  "청약 공고 128건(접수 중 6 · 예정 14) · 경쟁률 80 · 분양가 있는 단지 76",
   "subs OK"
  ],
  "unsoldSample": [
@@ -402,16 +402,16 @@
  ],
  "cmpetSample": [
   {
-   "CMPET_RATE": "(△1)",
-   "HOUSE_MANAGE_NO": "2026000454",
-   "HOUSE_TY": "084.9890A",
+   "CMPET_RATE": "(△30)",
+   "HOUSE_MANAGE_NO": "2026000498",
+   "HOUSE_TY": "084.9800A",
    "MODEL_NO": "01",
-   "PBLANC_NO": "2026000454",
-   "REQ_CNT": "4",
+   "PBLANC_NO": "2026000498",
+   "REQ_CNT": "6",
    "RESIDE_SECD": "01",
    "RESIDE_SENM": "해당지역",
    "SUBSCRPT_RANK_CODE": 1,
-   "SUPLY_HSHLDCO": 5
+   "SUPLY_HSHLDCO": 36
   }
  ],
  "errors": []

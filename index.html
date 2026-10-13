@@ -2194,6 +2194,126 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 /* 오늘 한 장·청약 카드 미리보기도 zoom 대신 transform(저장본과 줄바꿈이 같게) */
 .chcards.strip .chcard.chc-day{zoom:1!important;transform:scale(.7);transform-origin:top left;margin:0 -108px -135px 0}
 @media(min-width:700px){.chcards.strip .chcard.chc-day{transform:scale(.82);margin:0 -65px -81px 0}}
+
+/* ══ v9.22 우상향연구소 공통 카드 틀 (TrackStock 체계) ══ */
+.chcard.ub{--ubk:#17181c;--ubg:#d4af6a;--ubg2:#e9d3a6;--ubc:#f7f3ea;background:var(--ubc);border:0;border-radius:18px;color:var(--ubk);overflow:hidden}
+.chcard.ub.chfixed{border-radius:0}
+.chcard *{text-overflow:clip!important}
+.ub-top{flex:none;display:flex;align-items:center;gap:8px;background:var(--ubk);padding:9px 14px;color:#fff}
+.ub-logo{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.ub-mk{width:18px;height:18px;flex:none;display:block}
+.ub-logo b{font-size:13px;font-weight:800;color:#fff;letter-spacing:-.02em;white-space:nowrap}
+.ub-logo em{font-style:normal;font-size:8px;font-weight:700;color:#9a9ca3;letter-spacing:.22em;margin-left:4px;white-space:nowrap}
+.ub-pill{flex:none;border:1.5px solid var(--ubg);color:var(--ubg2);font-size:10.5px;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap;background:transparent;max-width:160px;overflow:hidden}
+.ub-rule{display:block;width:100%;height:16px;margin:2px 0 0}
+.ub-foot{flex:none;display:flex;align-items:center;gap:8px;background:var(--ubk);padding:8px 14px;color:#9a9ca3;font-size:9.5px}
+.ub-foot>span{flex:1;min-width:0;line-height:1.3}
+.ub-handle{display:flex;align-items:center;gap:5px;color:var(--ubg)!important;font-size:12.5px;font-weight:800;white-space:nowrap;letter-spacing:-.01em}
+.ub-handle .ub-mk{width:15px;height:15px}
+/* ── 채널·지금 시장 기본 카드 ── */
+.chcard.ub .chc-head{background:var(--ubc);color:var(--ubk);padding:9px 18px 0;overflow:visible}
+.chcard.ub .chc-head .chc-top{display:block}
+.chcard.ub .chc-head .chc-date{margin:0;font-size:10.5px;font-weight:600;color:#8a8f98}
+.chcard.ub .chc-head .chc-q{color:var(--ubk);font-size:23px;font-weight:900;letter-spacing:-.045em;line-height:1.18;margin:3px 0 0}
+.chcard.ub.chc-tighter .chc-head .chc-q{font-size:20.5px}
+.chcard.ub.chc-dense .chc-head .chc-q,.chcard.ub.chc-cmp .chc-head .chc-q{font-size:19px;white-space:normal}
+.chcard.ub .chc-inner{padding:8px 18px 0}
+.chcard.ub.chc-dense .chc-inner{padding:6px 16px 0}
+.chcard.ub.chc-live .chc-inner{border-left:0;padding-left:18px}
+.chcard.ub.chc-live .chc-head{background:var(--ubc)}
+.chcard.ub .chc-livepill{flex:none;background:var(--ubg);color:var(--ubk);font-size:10px;font-weight:800;border-radius:999px;padding:2px 8px}
+.chcard.ub .chc-foot.ub-foot{margin:8px -18px 0;padding:8px 18px;border-top:0;color:#9a9ca3;font-size:9.5px;display:flex}
+.chcard.ub.chc-dense .chc-foot.ub-foot{margin:6px -16px 0;padding:7px 16px}
+.chcard.ub .chc-foot .chc-idx{font-style:normal;color:#9a9ca3;font-size:10px;font-weight:700}
+.chcard.ub .chc-foot b.chc-brand{color:var(--ubg)!important;font-size:12.5px}
+.chcard.ub .chc-a{background:#fff;border:1.5px solid var(--ubk);border-left:4px solid var(--ubg);border-radius:10px;color:var(--ubk);font-weight:800}
+.chcard.ub .chc-row{background:#fff;border:1.5px solid var(--ubk);border-radius:10px}
+.chcard.ub .chc-kpis>div{background:#fff;border:1.5px solid var(--ubk);border-radius:10px}
+.chcard.ub .chc-kpis>div b{color:var(--ubk)}
+.chcard.ub .chc-h{color:#a8843f}
+.chcard.ub .up{color:#e5484d}.chcard.ub .down{color:#2f6fe4}
+.chcard.ub .chc-more{background:#fff;border:1px solid #e6dfcf;border-radius:10px}
+/* ── 오늘 한 장·청약 한 장 ── */
+.chcard.chc-day.ub{background:var(--ubc);border:0}
+.chc-day.ub .ub-top{padding:6px 10px}.chc-day.ub .ub-logo b{font-size:9.5px}.chc-day.ub .ub-logo em{font-size:6px}.chc-day.ub .ub-mk{width:13px;height:13px}.chc-day.ub .ub-pill{font-size:7.5px;padding:1.5px 7px}
+.chc-day.ub .dy-head{background:none;color:var(--ubk);padding:4px 10px 0}
+.chc-day.ub .dy-head:after{display:none}
+.chc-day.ub .dy-src{font-size:6.2px;color:#8a8f98;line-height:1.25}
+.chc-day.ub .dy-title{color:var(--ubk);font-size:19px;font-weight:900;letter-spacing:-.045em;margin:2px 0 0}
+.chc-day.ub .dy-title:first-letter{color:inherit}
+.chc-day.ub .ub-rule{height:10px}
+.chc-day.ub .dy-sub{color:#4b5563;font-size:7.2px;margin:1px 0 0;font-weight:600}
+.chc-day.ub .dy-box{background:#fff;border:1.2px solid var(--ubk);border-radius:8px}
+.chc-day.ub .dy-box h4{color:var(--ubk);border-bottom-color:#ece5d4}
+.chc-day.ub .dy-box h4 i{background:var(--ubk);color:var(--ubg)}
+.chc-day.ub .dy-r>b,.chc-day.ub .dy-r>span>b{color:var(--ubk)}
+.chc-day.ub .dy-r>span u{color:#a8843f}
+.chc-day.ub .dy-kpi>div{background:var(--ubk);border-radius:6px}
+.chc-day.ub .dy-kpi small,.chc-day.ub .dy-kpi span{color:#b8bcc6}.chc-day.ub .dy-kpi b{color:#fff}.chc-day.ub .dy-kpi b em{color:var(--ubg2)}
+.chc-day.ub .dy-pill{background:#f3ead6;color:#7a5a1f}
+.chc-day.ub .dy-box.term{background:#fffaf0;border-color:var(--ubg)}
+.chc-day.ub .ub-foot{padding:5px 10px;font-size:6.2px}.chc-day.ub .ub-handle{font-size:8.5px}.chc-day.ub .ub-handle .ub-mk{width:11px;height:11px}
+/* ── 양식 카드 ── */
+.chcard.tp-card.ub{background:var(--ubc);border:0;border-radius:18px;color:var(--ubk)}
+.tp-card.ub .ub-top{padding:6px 10px}.tp-card.ub .ub-logo b{font-size:9.5px}.tp-card.ub .ub-logo em{font-size:6px}.tp-card.ub .ub-mk{width:13px;height:13px}.tp-card.ub .ub-pill{font-size:7.5px;padding:1.5px 7px}
+.tp-card.ub .tp-src{margin:5px 10px 0;font-size:6.4px;color:#8a8f98;white-space:normal;line-height:1.25}
+.tp-card.ub .tp-title{color:var(--ubk);font-size:26px;letter-spacing:-.05em}
+.tp-card.ub .ub-rule{width:calc(100% - 20px);margin:1px 10px 0;height:11px}
+.tp-card.ub .tp-sub{color:#4b5563}
+.tp-card.ub .tp-tag{background:#e5484d;border-radius:6px}
+.tp-card.ub .ub-foot{margin-top:6px;padding:5px 10px;font-size:6.3px;border-top:0}
+.tp-card.ub .ub-foot>span{white-space:normal}
+.tp-card.ub .ub-handle{font-size:8.5px}.tp-card.ub .ub-handle .ub-mk{width:11px;height:11px}
+.tp-card.ub .tp-tbl th{color:var(--ubk);border-bottom-color:var(--ubk)}
+.tp-card.ub .tp-tbl.big tr:first-child th{border-bottom:2.5px solid var(--ubg)}
+.tp-card.ub .tp-tbl.big td{color:var(--ubk)}
+.tp-card.ub .tp-side{border-color:var(--ubk);border-radius:8px}
+.tp-card.ub .tp-side th{background:#efe8d8;color:var(--ubk)}
+.tp-card.ub .tp-side td{background:#fff}
+.tp-card.ub .tp-pins li{color:var(--ubk)}
+.tp-card.ub .tp-cal,.tp-card.ub .tp-band,.tp-card.ub .tp-cmp{border-color:var(--ubk);border-radius:8px}
+.tp-card.ub .tp-cal th,.tp-card.ub .tp-band th,.tp-card.ub .tp-cmp tr:first-child th,.tp-card.ub .tp-band tr:first-child>th:first-child,.tp-card.ub .tp-cmp tr:first-child th:first-child,.tp-card.ub .tp-cmp tr:first-child th:nth-child(2){background:var(--ubk)}
+.tp-card.ub .tp-cmp tr:first-child th:nth-child(2){box-shadow:inset 0 -3px 0 var(--ubg)}
+.tp-card.ub .tp-band tr>th:first-child{color:var(--ubk)}
+.tp-card.ub .tp-band td i{background:var(--ubk)}
+.tp-card.ub .tp-cmp tr>th:first-child{background:#efe8d8;color:var(--ubk)}
+.tp-card.ub .tp-tli{border-color:var(--ubk)}
+.tp-card.ub .tp-tld{background:var(--ubk);color:var(--ubg)}
+.tp-card.ub .tp-tlb{background:#fff}
+.tp-card.ub .tp-tlb h4{color:var(--ubk);border-bottom-color:var(--ubg)}
+/* 순위 격자 = TrackStock 수익률 순위: 흰 칸 + 검정 테두리, 1~3위 금테, 아래 검정 값 띠 */
+.tp-card.ub .tp-cell{border:1.5px solid var(--ubk);border-radius:8px;background:#fff;padding:0;justify-content:space-between;overflow:hidden}
+.tp-card.ub .tp-cell small{align-self:flex-start;margin:4px 0 0 5px;color:var(--ubk);font-size:8px}
+.tp-card.ub .tp-cell b{color:var(--ubk);margin:2px 3px}
+.tp-card.ub .tp-cell em{align-self:stretch;border-radius:0;background:var(--ubk);color:#fff;text-align:center;padding:3px 0}
+.tp-card.ub .tp-cell span{display:none}
+.tp-card.ub .tp-cell:nth-child(-n+3){border:2px solid var(--ubg);box-shadow:none}
+.tp-card.ub .tp-cell:nth-child(-n+3) small{color:#a8843f}
+.tp-card.ub .tp-bah{color:#8a8f98}.tp-card.ub .tp-bah b:last-child{color:#a8843f}
+.tp-card.ub .tp-ban b{border:1.5px solid var(--ubk);color:var(--ubk)}
+.tp-card.ub .tp-bav b{color:var(--ubk)}
+.tp-card.ub .tp-bav i{background:#e5484d;color:#fff;border-radius:3px;transform:rotate(-4deg)}
+.tp-card.ub .tp-bar{border-top:1px solid #e3dccb}
+.tp-card.ub .tp-li b{color:var(--ubk)}.tp-card.ub .tp-arr{color:var(--ubg)}
+.tp-card.ub .tp-qw{border-color:var(--ubk)}
+.tp-card.ub .tp-qt p{border-left-color:var(--ubg)}
+/* ── 인포그래픽·릴스: 상단·하단 띠만 공통 ── */
+.chcard.chc-info.ub{border-radius:18px}
+.chc-info.ub .ub-top{position:relative;z-index:3;padding:7px 12px}.chc-info.ub .ub-logo b{font-size:11px}.chc-info.ub .ub-mk{width:15px;height:15px}.chc-info.ub .ub-pill{font-size:9px;padding:2px 8px}
+.chc-info.ub .ub-foot{position:relative;z-index:3;padding:6px 12px;font-size:8px}.chc-info.ub .ub-handle{font-size:10.5px}
+.chc-info.ub .if-top{padding-top:6px}
+.chc-reel.ub .ub-top{padding:9px 14px}.chc-reel.ub .ub-foot{margin-top:auto}
+/* 미리보기 축소는 모두 transform — 화면 줄바꿈 = 저장 이미지 줄바꿈 */
+.chcards.strip .chcard{zoom:1;transform:scale(.7);transform-origin:top left;margin:0 -108px -135px 0}
+@media(min-width:700px){.chcards.strip .chcard{transform:scale(.82);margin:0 -65px -81px 0}}
+.tp-card.ub .tp-bav i{right:2px}
+.chcard.chc-info.ub{padding:0 14px}
+.chc-info.ub .ub-top{margin:0 -14px;padding:5px 12px}
+.chc-info.ub .if-top{padding-top:6px;margin-bottom:5px}
+.chc-info.ub .if-body{overflow:hidden;gap:4px}
+.chc-info.ub .ub-foot{margin:4px -14px 0;padding:4px 12px;border-top:0;font-size:7.5px}
+.chc-info.ub .ub-handle{font-size:10px}.chc-info.ub .ub-handle .ub-mk{width:13px;height:13px}
+.chcard.chc-info.ub{background:radial-gradient(120% 70% at 100% 0%,rgba(76,141,255,.35) 0%,rgba(76,141,255,0) 55%),radial-gradient(90% 60% at 0% 100%,rgba(255,77,94,.28) 0%,rgba(255,77,94,0) 60%),linear-gradient(160deg,#0a1430 0%,#151d48 55%,#26184a 100%)};color:#eef3ff}
 </style>
 </head>
 <body>
@@ -2201,7 +2321,7 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.21</span>
+    <span class="ver">v9.22</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -3516,6 +3636,31 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });
 }
 
+/* ══ v9.22 우상향연구소 공통 카드 틀 (TrackStock 과 같은 브랜드 체계) ══
+   모든 카드: 검정 상단 띠(금색 네모 ↗ 마크 + 우상향연구소 + UPHILL.LAB · 오른쪽 금테 알약) → 출처 한 줄 → 큰 검정 제목 + 금색 우상향 화살표 선
+   → 본문 → 검정 바닥 띠(메모 · 금색 ↗ @uphill.lab). 바탕은 따뜻한 미색, 강조는 금색, 값 띠는 검정.
+   글자가 칸보다 길면 '…' 으로 자르지 않고 ① 글자를 줄이고(최소 62%) ② 그래도 길면 줄을 바꾼다(ubFit). */
+var UB_MARK = '<svg class="ub-mk" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#d4af6a"/><path d="M7.5 16.5 L16.5 7.5" stroke="#17181c" stroke-width="2.8" stroke-linecap="round"/><path d="M10 7.5 H16.5 V14" fill="none" stroke="#17181c" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var UB_RULE = '<svg class="ub-rule" viewBox="0 0 340 22" preserveAspectRatio="none"><path d="M0 19 H262 L282 13 L294 16 L318 6" fill="none" stroke="#d4af6a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><path d="M309 4.5 L320 5 L317 15" fill="none" stroke="#d4af6a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>';
+function ubTop(pill) { return '<div class="ub-top"><span class="ub-logo">' + UB_MARK + "<b>우상향연구소</b><em>UPHILL.LAB</em></span>" + (pill ? '<span class="ub-pill">' + pill + "</span>" : "") + "</div>"; }
+function ubFoot(text, cls) { return '<div class="ub-foot' + (cls ? " " + cls : "") + '"><span>' + (text || "") + '</span><b class="ub-handle">' + UB_MARK + "@uphill.lab</b></div>"; }
+/* 한 줄짜리 칸이 넘치면: 글자 줄이기 → 줄바꿈. '…' 은 쓰지 않는다 */
+function ubFit(root) {
+  if (!root) return;
+  var cards = root.classList && root.classList.contains("chcard") ? [root] : Array.prototype.slice.call(root.querySelectorAll(".chcard"));
+  cards.forEach(function (card) {
+    Array.prototype.forEach.call(card.querySelectorAll("*"), function (el) {
+      if (el.children.length > 3 || el.tagName === "svg" || el.closest("svg")) return;
+      var cs = getComputedStyle(el); if (cs.whiteSpace !== "nowrap" && cs.whiteSpace !== "pre") return;
+      if (!el.clientWidth || el.scrollWidth <= el.clientWidth + 1) return;
+      if (!el.dataset.ubfs) el.dataset.ubfs = cs.fontSize;
+      var base = parseFloat(el.dataset.ubfs), fs = base, min = base * 0.62;
+      while (el.scrollWidth > el.clientWidth + 1 && fs > min) { fs -= 0.5; el.style.fontSize = fs + "px"; }
+      if (el.scrollWidth > el.clientWidth + 1) { el.style.fontSize = Math.max(min, base * 0.8) + "px"; el.style.whiteSpace = "normal"; el.style.overflow = "visible"; el.style.wordBreak = "keep-all"; el.style.overflowWrap = "anywhere"; el.style.lineHeight = "1.18"; }
+    });
+  });
+}
+
 /* ══ 채널 브리핑 (v6.5) ══════════════════════════════════
    SNS·메신저 채널에 그대로 올릴 글과 카드 이미지를 만든다. 부동산 자료만.
      · 데일리    — brief_data.json (매일 03:00 KST 수집, 최근 30일 실거래)
@@ -4185,11 +4330,11 @@ function chFitCards(root) {
     /* 맞춤은 저장 이미지와 같은 크기(360×450, .chfixed)의 복제본에서 계산하고 결과만 원본에 옮긴다 — 화면 배율과 상관없이 같은 결과 */
     var c = c0.cloneNode(true); c.classList.add("chfixed"); c.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden";
     document.body.appendChild(c);
-    try { chFitOne(c); } catch (e) {}
+    try { if (typeof ubFit === "function") ubFit(c); chFitOne(c); } catch (e) {}
     var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*");
     c0.className = c.className.replace(/\bchfixed\b/, "").trim();
     for (var i = 0; i < src.length && i < dst.length; i++) {
-      dst[i].style.display = src[i].style.display;
+      dst[i].style.cssText = src[i].style.cssText;
       if (dst[i].className !== src[i].className && typeof src[i].className === "string") dst[i].className = src[i].className;   /* 한 줄 정렬(ol*) 클래스도 옮긴다 */
       if (src[i].hasAttribute("data-cut")) dst[i].setAttribute("data-cut", "1"); else dst[i].removeAttribute("data-cut");
     }
@@ -4208,15 +4353,16 @@ function chFitOne(c) {
     var how = c.querySelector(".chc-how"); if (how) how.style.display = "none";   /* v7.8: '읽는 법'은 데이터가 다 들어가고 자리가 남을 때만 */
     var spk = c.querySelector(".chc-spark"); if (spk) spk.style.display = "";
     more.style.display = ""; art.style.display = "";
-    function over() { return foot.getBoundingClientRect().bottom > c.getBoundingClientRect().bottom - 12; }
+    function over() { return foot.getBoundingClientRect().bottom > c.getBoundingClientRect().bottom - (c.classList.contains("ub") ? 0.5 : 12); }
     var opts = Array.prototype.slice.call(c.querySelectorAll(".chc-opt"));
     more.style.display = "none"; art.style.display = "none";
     /* 1) 여분 행 → 2) 글자 조금 줄임 → 3) 더 줄임 → 4) 읽는 법 숨김 → 5) 맨 아래 행부터 접기(글자를 중간에 자르지 않는다) */
     while (over() && opts.length) opts.pop().style.display = "none";
     if (over()) c.classList.add("chc-tight");
     if (over()) c.classList.add("chc-tighter");
-    var rowsAll = Array.prototype.slice.call(c.querySelectorAll(".chc-row, .chc-loanr, .chc-pol > div, .chc-hbar, .chc-vsr, .chc-newsl > div, .chc-bud, .chc-tr:not(.h), .chc-chip")).filter(function (x) { return x.style.display !== "none"; });
+    var rowsAll = Array.prototype.slice.call(c.querySelectorAll(".chc-row, .chc-loanr, .chc-pol > div, .chc-hbar, .chc-vsr, .chc-newsl > div, .chc-bud, .chc-tr:not(.h), .chc-chip, .chc-bi, .chc-brief p")).filter(function (x) { return x.style.display !== "none"; });
     var cut = [];
+    rowsAll.sort(function (a, b) { return (a.tagName === "P" ? 1 : 0) - (b.tagName === "P" ? 1 : 0); });   /* 보조 줄(p)부터 접는다 */
     while (over() && rowsAll.length > 1) { var rr = rowsAll.pop(); rr.style.display = "none"; rr.setAttribute("data-cut", "1"); cut.push(rr); }
     if (over() && spk) spk.style.display = "none";
     /* 자리가 남으면 위쪽부터(마지막에 접은 것부터) 되살려 본다 */
@@ -4251,15 +4397,15 @@ function chCard(o) {
   var live = o.variant === "live", cls = "chcard" + (o.dense ? " chc-dense" : "") + (live ? " chc-live" : "") + (o.compact ? " chc-cmp" : "");
   var qh = o.compact ? String(o.q).replace(/,?\s*<br>\s*/g, " ") : o.q, showA = o.a && (!o.compact || o.keepA);
   var more = o.dense ? "" : '<div class="chc-more"><b>알아두면 좋은 점</b>' + String(o.more || chMoreOf(o.tag)).split(/(?<=[.다요])\s+/).map(function (x) { return "<span>" + x + " </span>"; }).join("") + "</div>";
-  return '<div class="' + cls + '"><div class="chc-head">' + CH_DECO +
-      '<div class="chc-top"><span class="chc-logo">' + CH_MARK + "우상향연구소</span><span class=\"chc-tag\">" + escHtml(o.tag) + "</span>" + (live ? '<span class="chc-livepill">지금 시장</span>' : "") + '<span class="chc-date">' + escHtml(o.date || chToday()) + "</span></div>" +
-      '<div class="chc-q">' + qh + "</div></div>" +
+  return '<div class="' + cls + ' ub">' + '<div class="ub-top"><span class="ub-logo">' + UB_MARK + "<b>우상향연구소</b><em>UPHILL.LAB</em></span>" + (live ? '<span class="chc-livepill">지금 시장</span>' : "") + '<span class="ub-pill chc-tag">' + escHtml(o.tag) + "</span></div>" +
+      '<div class="chc-head"><div class="chc-top"><span class="chc-date">' + escHtml(o.date || chToday()) + "</span></div>" +
+      '<div class="chc-q">' + qh + "</div>" + UB_RULE + "</div>" +
     '<div class="chc-inner">' +
       (showA ? '<div class="chc-a">' + o.a + "</div>" : "") +
       '<div class="chc-body">' + o.body + "</div>" +
       '<div class="chc-fill">' + more + "</div>" +
       (o.how ? '<div class="chc-how">' + o.how + "</div>" : "") +
-      '<div class="chc-foot"><span>' + (o.src || "국토부 아파트 실거래 · 투자 권유 아님") + '</span><em class="chc-idx"></em><b class="chc-brand">@uphill.lab</b></div></div></div>';
+      '<div class="chc-foot ub-foot"><span>' + (o.src || "국토부 아파트 실거래 · 투자 권유 아님") + '</span><em class="chc-idx"></em><b class="chc-brand ub-handle">' + UB_MARK + "@uphill.lab</b></div></div></div>";
 }
 /* 표 — cols 첫 칸은 행 이름. hl 은 강조할 행 번호 */
 function chTable(cols, rows, opt) {
@@ -4456,6 +4602,7 @@ function chCardsHtml(tab) {
 function chCardImage(card, name) {
   if (typeof html2canvas === "undefined") return Promise.reject(new Error("no html2canvas"));
   if (card.classList.contains("chc-day") && typeof dyFit === "function") dyFit(card.parentNode);   /* 저장 직전에 한 번 더 맞춤 */
+  if (typeof ubFit === "function") ubFit(card);
   var host = document.createElement("div");
   host.style.cssText = "position:absolute;left:0;top:" + (window.pageYOffset || 0) + "px;z-index:-1;pointer-events:none;width:360px";
   var clone = card.cloneNode(true);
@@ -6339,12 +6486,12 @@ function ifShort(nm) { return typeof rpShort === "function" ? rpShort(nm.replace
 /* 카드 틀 — 쪽 번호는 덱을 다 만든 뒤 채운다 */
 function ifCard(o) {
   if (typeof CH !== "undefined" && CH.cap && o.cap) CH.cap.push(o.cap);
-  var cls = "chcard chc-info" + (o.cover ? " if-cover" : "") + (o.dark ? " if-dark" : "");
+  var cls = "chcard chc-info ub" + (o.cover ? " if-cover" : "") + (o.dark ? " if-dark" : "");
   var bgx = o.bg || (ifImg("panel") ? '<div class="if-photo dim" style="background-image:url(' + ifImg("panel") + ')"></div>' : "");
   return '<div class="' + cls + '">' + bgx +
-    '<div class="if-top"><span class="if-idx"></span>' + (o.title ? '<span class="if-title">' + o.title + "</span>" : "") + "</div>" +
+    ubTop('<span class="if-idx"></span>') + '<div class="if-top">' + (o.title ? '<span class="if-title">' + o.title + "</span>" : "") + "</div>" +
     '<div class="if-body">' + o.body + "</div>" +
-    '<div class="if-foot"><span>' + ifEsc(o.src || "국토부 실거래 · 우상향연구소 집계 · 투자 권유 아님") + '</span><b>@uphill.lab</b></div></div>';
+    ubFoot(ifEsc(o.src || "국토부 실거래 · 우상향연구소 집계 · 투자 권유 아님"), "if-foot") + "</div>";
 }
 /* 야경 스카이라인 배경(그림) — 실제 건물·로고를 본뜨지 않은 일반 실루엣 */
 /* ── 사진·그림 자리(ChatGPT 등으로 만든 이미지를 data/img 에 올리면 그림 대신 씀) ── */
@@ -6856,9 +7003,9 @@ function rcCardHtml(P, bg, basis) {
   else if (lay === "steps") body = '<div class="rc-steps">' + pts.map(function (p, i) { return '<div style="--c:' + col[i] + '"><i>' + (i + 1) + '</i><div><b data-fit="1">' + escHtml(p.label) + '</b><small>' + escHtml(p.note) + '</small></div><em data-fit="1">' + escHtml(p.value) + "</em></div>" + (i < pts.length - 1 ? '<span class="rc-arr">▼</span>' : ""); }).join("") + "</div>";
   else if (lay === "checklist") body = '<div class="rc-check">' + pts.map(function (p) { return '<div><i>✓</i><div><b data-fit="1">' + escHtml(p.label) + " <em>" + escHtml(p.value) + "</em></b><small>" + escHtml(p.note) + "</small></div></div>"; }).join("") + "</div>";
   else body = '<div class="rc-rank">' + pts.map(function (p, i) { return '<div style="--c:' + col[i] + '"><i>' + (i + 1) + '</i><div><b data-fit="1">' + escHtml(p.label) + "</b><small>" + escHtml(p.note) + '</small></div><em data-fit="1">' + escHtml(p.value) + "</em></div>"; }).join("") + "</div>";
-  return '<div class="chcard chc-info chc-reel">' + (bg ? '<div class="if-photo" style="background-image:url(' + bg + ')"></div><div class="rc-shade"></div>' : (typeof ifSky === "function" ? ifSky(17) : "")) +
+  return '<div class="chcard chc-info chc-reel ub">' + ubTop(escHtml(P.kicker || "")) + (bg ? '<div class="if-photo" style="background-image:url(' + bg + ')"></div><div class="rc-shade"></div>' : (typeof ifSky === "function" ? ifSky(17) : "")) +
     '<div class="rc-in"><span class="rc-kick">' + escHtml(P.kicker) + '</span><h2 data-fit="1" data-lines="2">' + escHtml(P.hook) + '</h2><p class="rc-sub">' + escHtml(P.sub) + "</p>" + body +
-    '<div class="rc-cta"><b>' + escHtml(P.cta) + '</b><span>프로필 링크 · 게시판에서 전체 보기 ›</span></div><div class="rc-foot"><span>' + escHtml(basis || "") + " · 투자 권유 아님</span><b>@uphill.lab</b></div></div></div>";
+    '<div class="rc-cta"><b>' + escHtml(P.cta) + '</b><span>프로필 링크 · 게시판에서 전체 보기 ›</span></div></div>' + ubFoot(escHtml(basis || "") + " · 투자 권유 아님", "rc-foot") + "</div>";
 }
 /* AI 이미지 모드 프롬프트 — 넣을 글자를 그대로 못박는다 */
 function rcImgPrompt(P) {
@@ -7278,11 +7425,10 @@ function dyCardHtml(topic) {
   topic = topic || "all";
   var B = dyBoxes(topic); if (!B.length) return "";
   var t = dyTitle(topic), d = dyDate();
-  return '<div class="chcard chc-day dy-' + topic + '">' +
-    '<header class="dy-head"><div class="dy-brand"><b>우상향연구소</b><span>@uphill.lab</span></div><div class="dy-date">' + d.txt + "</div>" +
-    '<h2 class="dy-title">' + t[0] + '</h2><p class="dy-sub">' + t[1] + "</p></header>" +
-    '<div class="dy-grid">' + B.join("") + "</div>" +
-    '<footer class="dy-foot"><span>' + dyE(dySources(topic)) + "</span><b>" + (dyBasisDeal() || "") + "</b></footer></div>";
+  return '<div class="chcard chc-day ub dy-' + topic + '">' + ubTop(d.txt) +
+    '<header class="dy-head"><div class="dy-src">' + dyE(dySources(topic)) + (dyBasisDeal() ? " · " + dyE(dyBasisDeal()) : "") + "</div>" +
+    '<h2 class="dy-title">' + t[0] + "</h2>" + UB_RULE + '<p class="dy-sub">' + t[1] + "</p></header>" +
+    '<div class="dy-grid">' + B.join("") + "</div>" + ubFoot("우상향연구소 자동 집계 · 투자 판단과 책임은 본인에게", "dy-foot") + "</div>";
 }
 /* ── 맞춤: 저장 크기(360×450) 복제본에서 넘치면 글자 줄이기 → 선택 줄 접기 → 맨 아래 상자 줄 접기 ── */
 function dyFit(root) {
@@ -7290,6 +7436,7 @@ function dyFit(root) {
   Array.prototype.forEach.call(root.querySelectorAll(".chc-day"), function (c0) {
     var c = c0.cloneNode(true); c.classList.add("chfixed"); c.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden"; document.body.appendChild(c);
     try {
+      if (typeof ubFit === "function") ubFit(c);
       var grid = c.querySelector(".dy-grid");
       function over() { return grid.scrollHeight > grid.clientHeight + 1; }
       c.classList.remove("dy-t1", "dy-t2", "dy-t3"); Array.prototype.forEach.call(c.querySelectorAll("[data-cut]"), function (x) { x.style.display = ""; x.removeAttribute("data-cut"); });
@@ -7311,7 +7458,7 @@ function dyFit(root) {
       while (over() && bx.length > 1) { var x2 = bx.shift(); x2.style.display = "none"; x2.setAttribute("data-cut", "1"); }
       c0.className = c.className.replace(/\bchfixed\b/, "").trim();
       var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*");
-      for (var i = 0; i < src.length && i < dst.length; i++) { dst[i].style.display = src[i].style.display; if (src[i].hasAttribute("data-cut")) dst[i].setAttribute("data-cut", "1"); else dst[i].removeAttribute("data-cut"); }
+      for (var i = 0; i < src.length && i < dst.length; i++) { dst[i].style.cssText = src[i].style.cssText; if (src[i].hasAttribute("data-cut")) dst[i].setAttribute("data-cut", "1"); else dst[i].removeAttribute("data-cut"); }
     } catch (e) {} finally { c.remove(); }
   });
 }
@@ -7749,14 +7896,13 @@ var TP_MARK = '<svg class="tp-mk" viewBox="0 0 20 20"><path d="M2 15 L7.5 9.5 L1
 var TP_RULE = '<svg class="tp-rule" viewBox="0 0 344 12" preserveAspectRatio="none"><path d="M0 10.5 H286 L300 5.5 L309 7.5 L324 2 L344 2" fill="none" stroke="#d4af6a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="324" cy="2" r="2" fill="#d4af6a"/></svg>';
 function tpFrame(cat, d, body, o) {
   o = o || {}; var c = TP_CAT[cat] || TP_CAT.term;
-  return '<div class="chcard tp-card tp-' + cat + '" style="--tpc:' + c[1] + '">' +
-    '<div class="tp-top"><span class="tp-brand">' + TP_MARK + "<b>우상향연구소</b></span><span class=\"tp-badge\">" + tpE(d.badge || c[0]) + "</span></div>" +
+  return '<div class="chcard tp-card ub tp-' + cat + '" style="--tpc:' + c[1] + '">' + ubTop(tpE(d.badge || c[0])) +
     '<div class="tp-src">' + tpE(d.src || "") + "</div>" +
     (d.tag ? '<div class="tp-tag">' + tpE(d.tag) + "</div>" : "") +
-    '<h2 class="tp-title' + (o.small ? " sm" : "") + '">' + tpE(d.title || "") + "</h2>" + TP_RULE +
+    '<h2 class="tp-title' + (o.small ? " sm" : "") + '">' + tpE(d.title || "") + "</h2>" + UB_RULE +
     (d.sub ? '<p class="tp-sub">' + tpE(d.sub) + "</p>" : "") +
     '<div class="tp-body">' + body + "</div>" +
-    '<div class="tp-foot"><span>' + tpE(d.foot || "") + (d.foot ? " · " : "") + tpE(o.foot2 || "참고 자료 · 투자 권유 아님") + '</span><b class="tp-handle">@uphill.lab</b></div></div>';
+    ubFoot(tpE(d.foot || "") + (d.foot ? " · " : "") + tpE(o.foot2 || "투자 판단과 책임은 본인에게"), "tp-foot") + "</div>";
 }
 /* 칸 설명(스키마): [키, 이름, 종류(text|lines|rows), 안내] — 편집 화면과 AI 채우기가 같은 것을 쓴다 */
 var TPL = {
@@ -7874,6 +8020,7 @@ function tpFit(root) {
   Array.prototype.forEach.call(root.querySelectorAll(".tp-card"), function (c0) {
     var c = c0.cloneNode(true); c.classList.add("chfixed"); c.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden"; document.body.appendChild(c);
     try {
+      if (typeof ubFit === "function") ubFit(c);
       var ti = c.querySelector(".tp-title"); if (ti) { ti.style.fontSize = ""; var fs = parseFloat(getComputedStyle(ti).fontSize); while (ti.scrollHeight > ti.clientHeight + 2 && fs > 14) { fs -= 1; ti.style.fontSize = fs + "px"; } }
       var body = c.querySelector(".tp-body"), foot = c.querySelector(".tp-foot"); c.classList.remove("tp-t1", "tp-t2", "tp-t3");
       var over = function () { var bb = body.getBoundingClientRect().bottom, m = 0; Array.prototype.forEach.call(body.querySelectorAll("tr, li, .tp-li, .tp-bar, .tp-cell, .tp-tli, p"), function (x) { if (x.style.display !== "none") m = Math.max(m, x.getBoundingClientRect().bottom); }); return m > bb + 0.5 || body.scrollHeight > body.clientHeight + 1; };

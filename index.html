@@ -2314,6 +2314,69 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .chc-info.ub .ub-foot{margin:4px -14px 0;padding:4px 12px;border-top:0;font-size:7.5px}
 .chc-info.ub .ub-handle{font-size:10px}.chc-info.ub .ub-handle .ub-mk{width:13px;height:13px}
 .chcard.chc-info.ub{background:radial-gradient(120% 70% at 100% 0%,rgba(76,141,255,.35) 0%,rgba(76,141,255,0) 55%),radial-gradient(90% 60% at 0% 100%,rgba(255,77,94,.28) 0%,rgba(255,77,94,0) 60%),linear-gradient(160deg,#0a1430 0%,#151d48 55%,#26184a 100%)};color:#eef3ff}
+
+/* ══ v9.23 카드 만들기 ══ */
+.tpr-grps{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.tpr-g{display:grid;grid-template-columns:86px 1fr;gap:8px;align-items:start}
+.tpr-g>small{color:var(--muted,#6b7684);font-weight:700;padding-top:7px}
+.tpr-list{display:flex;flex-wrap:wrap;gap:6px}
+.tpr-list button,.tpr-tpls button,.tpr-pages button{border:1px solid var(--line,#dfe3ea);background:var(--card,#fff);color:inherit;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.tpr-list button.on,.tpr-tpls button.on,.tpr-pages button.on{background:#17181c;color:#e9d3a6;border-color:#17181c}
+@media(max-width:430px){.tpr-g{grid-template-columns:1fr;gap:4px}.tpr-g>small{padding-top:0}}
+.tpr-opts{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:8px}
+.tpr-opts label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted,#6b7684)}
+.tpr-opts select{font-size:13px;padding:6px 8px;border:1px solid var(--line,#dfe3ea);border-radius:8px;background:var(--card,#fff);color:inherit;max-width:240px}
+.tpr-tpls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex-basis:100%}.tpr-tpls small{color:var(--muted,#6b7684);font-weight:700;margin-right:4px}
+.tpr-pages{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px}.tpr-pages small{color:var(--muted,#6b7684);font-weight:700}
+.tpr-pages:empty{display:none}
+#tp-cards .chcardWrap.on .tp-scale{outline:3px solid #d4af6a;outline-offset:3px;border-radius:18px}
+.tp-wrap .tp-right .chcards.strip{max-height:none}
+/* 촘촘한 표 */
+.tp-card .tp-2tb{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tp-card .tp-dense{width:100%;border-collapse:separate;border-spacing:0;border:1.5px solid #17181c;border-radius:8px;overflow:hidden;background:#fff;table-layout:auto}
+.tp-card .tp-dense th{background:#17181c;color:#fff;font-size:8.4px;font-weight:800;padding:4px 3px;text-align:center}
+.tp-card .tp-dense td{font-size:8.6px;font-weight:700;padding:3.4px 4px;border-top:1px solid #ece5d4;text-align:center;white-space:nowrap}
+.tp-card .tp-dense td:nth-child(2){text-align:left;font-weight:800}
+.tp-card .tp-dense td.no,.tp-card .tp-dense th.no{width:14px;color:#a8843f;font-size:7.4px;padding:3px 1px}
+.tp-card .tp-dense tr:nth-child(2) td,.tp-card .tp-dense tr:nth-child(3) td,.tp-card .tp-dense tr:nth-child(4) td{background:#fffaf0}
+.tp-card .tp-dense td.up{color:#e5484d}.tp-card .tp-dense td.down{color:#2f6fe4}
+.tp-card.tp-t1 .tp-dense td{font-size:7.8px;padding:2.6px 3px}.tp-card.tp-t2 .tp-dense td{font-size:7.2px;padding:2px 3px}.tp-card.tp-t3 .tp-dense td{font-size:6.6px;padding:1.6px 2px}
+/* 대장 TOP3 칸 */
+.tp-card .tp-lead{display:flex;flex-direction:column;gap:4px;flex:1}
+.tp-card .tp-ldh{display:grid;grid-template-columns:44px 1fr 1fr 1fr;gap:4px;text-align:center;font-size:8.4px;font-weight:900;color:#a8843f}
+.tp-card .tp-ldr{display:grid;grid-template-columns:44px 1fr 1fr 1fr;gap:4px;flex:1}
+.tp-card .tp-ldg{background:#17181c;color:#e9d3a6;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:9.5px;font-weight:900;line-height:1.1;padding:2px}
+.tp-card .tp-ldc{background:#fff;border:1.3px solid #17181c;border-radius:6px;padding:3px 4px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.tp-card .tp-ldc.g{border:2px solid #d4af6a}
+.tp-card .tp-ldc b{font-size:8.4px;font-weight:900;line-height:1.15;word-break:keep-all;overflow-wrap:anywhere}
+.tp-card .tp-ldc em{font-style:normal;font-size:10.5px;font-weight:900;color:#17181c;margin-top:1px}
+.tp-card .tp-ldc small{font-size:6.2px;color:#6b7280;line-height:1.2}
+.tp-card .tp-ldc i{font-style:normal;color:#bbb;text-align:center}
+.tp-card.tp-t1 .tp-ldc b{font-size:7.6px}.tp-card.tp-t1 .tp-ldc em{font-size:9.5px}.tp-card.tp-t2 .tp-ldc b{font-size:7px}.tp-card.tp-t2 .tp-ldc em{font-size:8.6px}.tp-card.tp-t2 .tp-ldc small{font-size:5.6px}
+.tp-wrap>div{min-width:0}
+@media(max-width:860px){.tp-wrap{grid-template-columns:minmax(0,1fr)}}
+#tp-cards .chcard{transform:none!important;margin:0!important}
+.tp-card .tp-cal td span.more{color:#a8843f;font-weight:800}
+.tp-card .tp-cal td{overflow:hidden}
+.tp-card.ub .tp-cell b{white-space:nowrap;max-height:none;overflow:hidden;max-width:100%;padding:0 3px;box-sizing:border-box}
+.tp-card.ub .tp-cell span{display:block;font-size:6.4px;color:#6b7280;margin:0 3px 3px;text-align:center;white-space:nowrap;overflow:hidden;max-width:100%;box-sizing:border-box}
+@media(max-width:860px){.tp-wrap .tp-right{order:-1}}
+
+/* ══ v9.24 콘텐츠 만들기 — 상단 바 · 바로가기 ══ */
+.stu-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 12px}
+.stu-bar button{border:1px solid var(--line,#dfe3ea);background:var(--card,#fff);border-radius:12px;padding:8px 10px;text-align:left;cursor:pointer;color:inherit;display:grid;grid-template-columns:auto 1fr;column-gap:7px;align-items:center}
+.stu-bar i{grid-row:span 2;font-style:normal;width:22px;height:22px;border-radius:7px;background:#efe8d8;color:#7a5a1f;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.stu-bar b{font-size:13.5px;font-weight:800;white-space:nowrap}
+.stu-bar small{font-size:11.5px;color:var(--muted,#6b7684);white-space:nowrap;overflow:hidden}
+.stu-bar button.on{background:#17181c;border-color:#17181c;color:#fff}.stu-bar button.on i{background:#d4af6a;color:#17181c}.stu-bar button.on small{color:#c9c2b0}
+@media(max-width:560px){.stu-bar{grid-template-columns:repeat(2,minmax(0,1fr))}.stu-bar small{display:none}.stu-bar i{grid-row:auto}.stu-bar button{padding:7px 8px}}
+.stu-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:8px}
+.stu-link{display:block;border:1px solid var(--line,#dfe3ea);border-left:4px solid #d4af6a;border-radius:10px;padding:10px 12px;text-decoration:none;color:inherit;background:var(--card,#fff)}
+.stu-link b{display:block;font-size:14px}.stu-link span{display:block;font-size:12px;color:var(--muted,#6b7684);margin-top:2px}
+.stu-go #bf-rcslot{margin-top:8px}
+.tp-cap{margin-top:10px}.tp-cap summary{cursor:pointer;font-weight:700}.tp-cap textarea{width:100%;box-sizing:border-box;margin-top:6px}
+body.stu-on #subnav button:not(.back){display:none!important}
+@media(max-width:430px){.tpr-grps{gap:10px}.tpr-g{gap:5px}}
 </style>
 </head>
 <body>
@@ -2321,7 +2384,7 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.22</span>
+    <span class="ver">v9.24</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2403,10 +2466,10 @@ var GROUPS = [
     { id: "calc",    name: "돈 계산",     build: buildCalc } ] },
   { id: "browse", name: "둘러보기", ic: "🔍", tabs: [
     { id: "browse",  name: "둘러보기",    build: buildBrowse },
-    { id: "brief",   name: "지금 시장", cat: "price",  ic: "📰", d: "최근 30일 실거래로 본 지금", build: buildBrief },
-    { id: "channel", name: "채널 브리핑", cat: "price", ic: "📣", d: "채널에 올릴 오늘의 글·카드 이미지", build: buildChannel },
-    { id: "reel", name: "릴스 카드", cat: "price", ic: "🎬", d: "내 글·정책 내용을 한 장 카드로", build: buildReel },
-    { id: "tpl", name: "양식 카드", cat: "price", ic: "🗂️", d: "고정 양식 10종 — 내용만 바꿔 올리기", build: buildTpl },
+    { id: "brief",   name: "지금 시장", cat: "studio", ic: "📰", d: "최근 30일 실거래로 본 오늘 시장 — 보는 화면", build: buildBrief },
+    { id: "channel", name: "채널 브리핑", cat: "studio", ic: "📣", d: "오늘 올릴 코너 — 카드 묶음 + 올릴 글 한 번에", build: buildChannel },
+    { id: "tpl", name: "카드 만들기", cat: "studio", ic: "🗂️", d: "데이터·지역·양식을 골라 4:5 카드 (직접 입력·AI)", build: buildTpl },
+    { id: "reel", name: "릴스 카드", cat: "studio", ic: "🎬", d: "9:16 한 장 — 재료를 골라 AI가 설계, 숫자 검증", build: buildReel },
     { id: "market",  name: "시장 흐름",   cat: "price",  ic: "📈", d: "연도별 상승률과 지수 흐름", build: buildMarket },
     { id: "vol",     name: "거래량",      cat: "price",  ic: "📊", d: "손바뀜으로 보는 지금 국면", build: buildVol },
     { id: "quad",    name: "매매·전세 흐름", cat: "price", ic: "🧭", d: "지역별 매매·전세 4분면", build: buildQuad },
@@ -2432,7 +2495,7 @@ var GROUPS = [
     { id: "fun",     name: "재미로 보기", cat: "more", ic: "🎲", d: "정권·시급·자산 레이스", build: buildFun },
     { id: "setting", name: "설정",        cat: "more", ic: "⚙️", d: "대출·세금 기준과 가중치", build: buildSetting } ] }
 ];
-var CAT_NAME = { price: "시세 보기", region: "지역 고르기", apt: "아파트 고르기", more: "더보기" };
+var CAT_NAME = { studio: "콘텐츠 만들기", price: "시세 보기", region: "지역 고르기", apt: "아파트 고르기", more: "더보기" };
 var TABS = [];
 GROUPS.forEach(function (g) { g.tabs.forEach(function (t) { t.group = g.id; TABS.push(t); }); });
 var CURGROUP = "home";
@@ -2533,6 +2596,7 @@ function showTab(id) {
   if (id === "reel") renderReel();
   if (id === "subs") renderSubs();
   if (id === "tpl") renderTpl();
+  if (typeof studioBar === "function") studioBar(id);
   if (id === "school" && DB) renderSchool();
   if (!DB) return;
   if (id === "market") renderMarket();
@@ -2633,7 +2697,8 @@ function hubRowsHtml(list) {
 }
 function buildBrowse(root) {
   var h = "";
-  ["price", "region", "apt"].forEach(function (c) {
+  ["studio", "price", "region", "apt"].forEach(function (c) {
+    if (!TABS.some(function (t) { return t.cat === c; })) return;
     h += '<div class="hubHead">' + CAT_NAME[c] + "</div>" +
       hubRowsHtml(TABS.filter(function (t) { return t.cat === c; }));
   });
@@ -2924,7 +2989,7 @@ function buildBrief(root) {
         '카드 이미지는 <b>채널 브리핑</b>에서 같은 범위·평형으로 만들 수 있습니다(v8.0부터 한곳에서만).</p>' +
       '<div class="seg" id="bf-scope"></div>' +
       '<div class="seg" id="bf-scope2" style="margin-top:6px;display:none"></div>' +
-      '<nav class="bfjump" id="bf-jump">' + [["bf-hero", "요약"], ["bf-issue", "이슈"], ["bf-hot", "거래"], ["bf-price", "값"], ["bf-high", "신고가"], ["bf-top", "최고가·인기"], ["bf-lead", "대장"], ["bf-pick", "후보"], ["bf-macro", "금리"], ["bf-make", "카드 만들기"]].map(function (x) { return '<a href="#" data-jump2="' + x[0] + '"' + (x[0] === "bf-make" ? ' class="mk"' : "") + ">" + x[1] + "</a>"; }).join("") + '</nav>' +
+      '<nav class="bfjump" id="bf-jump">' + [["bf-hero", "요약"], ["bf-issue", "이슈"], ["bf-hot", "거래"], ["bf-price", "값"], ["bf-high", "신고가"], ["bf-top", "최고가·인기"], ["bf-lead", "대장"], ["bf-pick", "후보"], ["bf-macro", "금리"], ["bf-go", "카드로"]].map(function (x) { return '<a href="#" data-jump2="' + x[0] + '"' + (x[0] === "bf-make" ? ' class="mk"' : "") + ">" + x[1] + "</a>"; }).join("") + '</nav>' +
       '<div class="bfhero" id="bf-hero"></div>' +
       '<div class="status" id="bf-kpi" style="margin-top:12px"></div>' +
       '<p class="hint" id="bf-prog"></p>' +
@@ -2969,14 +3034,14 @@ function buildBrief(root) {
       '<p class="desc">한국은행 기준금리·주담대 금리·국고채, 최신 부동산 대책, 이 범위를 지나는 다음 개통 노선, 정책대출 금리를 한 줄씩 요약합니다. ' +
         '금리는 매일 새벽 자동 수집(ECOS), 대책·교통·대출은 GitHub 의 data/manual 파일 + 자동 점검(확인 필요)입니다. 카드 8장은 채널 브리핑 → 금리·정책에 있습니다.</p>' +
       '<div id="bf-macro"><p class="hint">불러오는 중…</p></div></div>' +
-    '<div class="card mk-card" id="bf-make"><h2><i class="mk-ico">✦</i>이 화면으로 카드 만들기</h2><p class="desc">위에서 고른 범위로 만듭니다. 게시판에는 상세 카드, 릴스에는 대표 카드 한 장.</p>' +
+    '<div class="card stu-go" id="bf-go"><h2>이 화면을 카드로</h2><div class="stu-links"><a href="#tpl" class="stu-link"><b>카드 만들기</b><span>지역·평형·양식을 골라 4:5 카드 여러 장 · 지역별 시세·최고가·대장 TOP3 등</span></a><a href="#channel" class="stu-link"><b>채널 브리핑</b><span>오늘 올릴 코너 카드 + 올릴 글</span></a></div><div id="bf-rcslot"></div></div>' +
+    '<div class="card mk-card" id="bf-make" hidden><h2><i class="mk-ico">✦</i>이 화면으로 카드 만들기</h2><p class="desc">위에서 고른 범위로 만듭니다. 게시판에는 상세 카드, 릴스에는 대표 카드 한 장.</p>' +
       '<div class="bfmk mk-blk"><div class="mk-hd"><b>게시판용 상세 카드</b><span>고른 섹션을 데이터 전부 여러 장(4:5)으로 · 위 범위·평형 기준</span></div>' +
         '<div class="bfsel" id="bf-csel">' + BF_SECS.map(function (x) { return '<button type="button" data-sec="' + x[0] + '"' + (BF_DEF.indexOf(x[0]) >= 0 ? ' class="on"' : "") + ">" + x[1] + '<i class="bfcnt" data-cnt="' + x[0] + '"></i></button>'; }).join("") + "</div>" +
         '<div class="chbtns"><button type="button" class="btn sm" id="bf-mkcards">카드 만들기</button><button type="button" class="btn sm ghost" id="bf-selall">전체 선택/해제</button><button type="button" class="btn sm ghost" id="bf-zip" style="display:none">카드 전부 ZIP 저장</button><span class="hint" id="bf-mknote"></span></div></div>' +
       '<div class="chcards strip" id="bf-live" style="display:none;margin-top:12px"></div>' +
       '<div id="bf-livetext" style="display:none;margin-top:10px"><div class="seg" id="bf-tmode"><button type="button" data-t="insta" class="on">인스타 글</button><button type="button" data-t="threads">스레드 글</button><button type="button" data-t="reels">릴스 대본</button></div>' +
-        '<textarea class="chpost" id="bf-text" rows="12" spellcheck="false" style="margin-top:8px"></textarea><div class="chbtns"><button type="button" class="btn sm" id="bf-copy">이 글 복사</button><span class="hint" id="bf-tlen"></span></div></div>' +
-      '<div id="bf-rcslot"></div></div>';
+        '<textarea class="chpost" id="bf-text" rows="12" spellcheck="false" style="margin-top:8px"></textarea><div class="chbtns"><button type="button" class="btn sm" id="bf-copy">이 글 복사</button><span class="hint" id="bf-tlen"></span></div></div></div>';
 }
 /* 범위 — 큰 묶음(위 줄) + 세부(아래 줄). 코드 앞 두 자리와 시·군·구 이름으로 가른다.
    서울 4권역은 한강·도심 기준의 관행적 묶음이고, 경기 북부는 한강 이북 11개 시·군이다. */
@@ -3778,7 +3843,7 @@ function buildChannel(root) {
         '<button type="button" class="btn sm ghost" id="ch-tags">해시태그만</button>' +
         '<button type="button" class="btn sm ghost" id="ch-posted">올림 표시</button>' +
         '<span class="hint" id="ch-tlen"></span><span class="hint" id="ch-copied"></span></div></div>' +
-    '<div class="card chstep mk-card" id="ch-step3"><h2><i class="chstepno">3</i>릴스 대표 카드</h2><p class="desc">올린 상세 카드로 사람들을 데려올 9:16 한 장. 만들기 창에서 재료 → 요청 → 결과·검증 순서로 진행합니다.</p>' +
+    '<div class="card chstep mk-card" id="ch-step3"><h2><i class="chstepno">3</i>릴스 · 다른 카드</h2><p class="desc">이 코너로 9:16 릴스 한 장을 만들거나(릴스 카드 화면으로 이동), 지역·양식을 바꿔 4:5 카드를 따로 만들 수 있습니다(<a href="#tpl">카드 만들기</a>).</p>' +
       '<div id="ch-rcslot"></div>' +
       '<details class="mk-blk ai-wrap" id="ch-aiwrap" style="display:none"><summary><b>AI 배경 이미지</b><span>확산 탭 인포그래픽의 배경·지도 장식·아파트 그림 (선택)</span></summary><div id="ch-aislot"></div></details></div>';
   root.querySelector("#ch-ops").addEventListener("click", function (ev) {
@@ -7044,7 +7109,12 @@ function rcAllFacts(c) {
   return base.concat(extra).slice(0, 80).map(function (f, i) { return { id: "F" + (i + 1), text: f.text }; });
 }
 function rcOpen(src) {
-  /* src = { topic, facts, basis, purpose, host?, picker?, note?, refs?, mode? } */
+  /* src = { topic, facts, basis, purpose, host?, picker?, note?, refs?, mode? }
+     v9.24: 다른 화면에서 부르면 창을 띄우지 않고 '릴스 카드' 화면으로 옮겨 같은 스튜디오에서 이어 간다(중복 UI 제거) */
+  if (!src.host && typeof showTab === "function" && document.querySelector('[data-tab="reel"], #tab-reel') !== null) {
+    showTab("reel"); var stg = document.getElementById("rl-studio");
+    if (stg) { src.host = stg; src.picker = true; setTimeout(function () { stg.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80); }
+  }
   var host = src.host;
   if (!host) { host = document.createElement("div"); host.className = "rc-modal"; document.body.appendChild(host); host.addEventListener("click", function (ev) { if (ev.target === host) { host.remove(); RC.host = null; } }); }
   RC.cur = { src: src, plan: null, bg: null, img: null, read: null, mode: src.mode || rcModePref(), busy: "", err: "", note: src.note || "", extra: src.extra || "", refs: (src.refs || []).slice(), topic: src.topic || "", purpose: src.purpose && RC_PURPOSE.indexOf(src.purpose) >= 0 ? src.purpose : RC_PURPOSE[0], purposeHint: src.purpose || "" };
@@ -7199,8 +7269,9 @@ function rcFromChannel(tab) {
   rcOpen({ topic: nm, facts: rcFactsFromCards(cards), basis: cards[0].date ? "기준 " + rcClean(cards[0].date) : "", purpose: "채널 브리핑 '" + nm + "' 상세 카드(게시판)로 유입" });
 }
 function rcEntryHtml(id, sel, label) {
-  return '<div class="mk-blk rc-entry" id="' + id + '"><div class="mk-hd"><b>릴스 대표 카드</b><span>항목 하나를 9:16 한 장으로 — 게시판 상세 카드로 유입</span></div><div class="mk-row">' + sel + '<button type="button" class="btn sm" data-rcgo="1">' + label + '</button></div><a class="mk-link" href="#reel">여러 항목을 묶거나 내 글로 만들려면 → 릴스 카드 화면</a></div>';
+  return '<div class="mk-blk rc-entry" id="' + id + '"><div class="mk-hd"><b>릴스 카드(9:16)</b><span>고른 항목을 재료로 릴스 카드 화면에서 이어 만듭니다</span></div><div class="mk-row">' + sel + '<button type="button" class="btn sm" data-rcgo="1">' + label + " →</button></div></div>";
 }
+
 function rcBriefBar() {
   var slot = document.getElementById("bf-rcslot"); if (!slot || slot.firstChild) return;
   slot.innerHTML = rcEntryHtml("rc-bfbar", '<select id="rc-bfsec">' + BF_SECS.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + "</option>"; }).join("") + "</select>", "대표 카드 만들기");
@@ -7884,7 +7955,7 @@ function sbTy(t) { var m = String(t || "").match(/^0*(\d+)\.\d+([A-Z]*)$/); retu
    저장은 다른 카드와 같은 360×450 → 1080×1350. */
 var TP = { id: "aptNotice", data: null, auto: true, extra: "", note: "", busy: "", err: "", bad: [] };
 var TP_CAT = { subs: ["청약정보", "#d9342b"], deal: ["아파트실거래", "#1f6feb"], policy: ["부동산정책", "#0f766e"], transit: ["교통정보", "#b45309"], loan: ["대출정보", "#6d28d9"], term: ["부동산상식", "#374151"], issue: ["부동산이슈", "#be123c"], market: ["시장흐름", "#0369a1"] };
-function tpE(s) { return escHtml(String(s == null ? "" : s)); }
+function tpE(s) { return escHtml(String(s == null ? "" : s).replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0?39;/g, "'")); }
 function tpLines(v) { return Array.isArray(v) ? v : String(v || "").split(/\n/).map(function (s) { return s.trim(); }).filter(Boolean); }
 function tpRows(v) { return tpLines(v).map(function (l) { return Array.isArray(l) ? l : l.split("|").map(function (s) { return s.trim(); }); }); }
 function tpToday() { var k = chKstDate(); return k.y + "." + k.m + "." + k.d; }
@@ -7923,7 +7994,7 @@ var TPL = {
     render: function (d) { var m = String(d.ym || "").match(/(\d{4})-(\d{1,2})/), y = m ? Number(m[1]) : chKstDate().y, mo = m ? Number(m[2]) : chKstDate().m, first = new Date(Date.UTC(y, mo - 1, 1)).getUTCDay(), dim = chDaysInMonth(y, mo), by = {};
       tpRows(d.events).forEach(function (r) { var dd = Number(String(r[0] || "").replace(/-/g, "").slice(6, 8)); if (dd) (by[dd] = by[dd] || []).push(r); });
       var cells = []; for (var i = 0; i < first; i++) cells.push("<td></td>");
-      for (var day = 1; day <= dim; day++) { var wd = (first + day - 1) % 7; cells.push('<td class="' + (wd === 0 ? "sun" : wd === 6 ? "sat" : "") + '"><b>' + day + "</b>" + (by[day] || []).slice(0, 3).map(function (r) { return '<i class="k-' + tpE(r[1]) + '">' + tpE(r[1]) + "</i><span>" + tpE(r[2]) + "</span>"; }).join("") + "</td>"); }
+      for (var day = 1; day <= dim; day++) { var wd = (first + day - 1) % 7; cells.push('<td class="' + (wd === 0 ? "sun" : wd === 6 ? "sat" : "") + '"><b>' + day + "</b>" + (by[day] || []).slice(0, 2).map(function (r) { return '<i class="k-' + tpE(r[1]) + '">' + tpE(r[1]) + "</i><span>" + tpE(r[2]) + "</span>"; }).join("") + ((by[day] || []).length > 2 ? '<span class="more">외 ' + ((by[day] || []).length - 2) + "건</span>" : "") + "</td>"); }
       while (cells.length % 7) cells.push("<td></td>");
       var trs = []; for (var j = 0; j < cells.length; j += 7) trs.push("<tr>" + cells.slice(j, j + 7).join("") + "</tr>");
       return tpFrame("policy", d, '<table class="tp-cal"><tr>' + ["일", "월", "화", "수", "목", "금", "토"].map(function (w) { return "<th>" + w + "</th>"; }).join("") + "</tr>" + trs.join("") + "</table>"); } },
@@ -7949,7 +8020,7 @@ var TPL = {
     auto: function () { if (typeof RANKED === "undefined" || typeof chYoY !== "function" || typeof DB === "undefined" || !DB || !DB.sale) return null; var rows = RANKED.filter(function (k) { return DB.sale.series[k] && /^(11|41|28|26|27|29|30|31|36)/.test(String(k)) && !/군$/.test(chName(k)); }).map(function (k) { return { k: k, v: chYoY(k) }; }).filter(function (r) { return r.v != null; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 12); if (rows.length < 6) return null;
       return { src: "국토부 실거래 월별 집계 · " + DB.sale.dates[1].replace("-", ".") + "까지 · 수도권·광역시 시·구 · 1년 전 대비 ㎡당 중위", title: "1년 새 많이 오른 동네 TOP 12", items: rows.map(function (r) { return [chName(r.k), (r.v > 0 ? "+" : "") + r.v.toFixed(1) + "%", "1년 상승률"]; }), foot: "㎡당 중위값 비교 · 어떤 단지가 팔렸느냐에 따라 출렁일 수 있음" }; },
     render: function (d) { var R = tpRows(d.items).slice(0, 12);
-      return tpFrame(d._cat || "market", d, '<div class="tp-grid">' + R.map(function (r, i) { return '<div class="tp-cell"><small>' + (i + 1) + "위</small><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em>" + (r[2] ? "<span>" + tpE(r[2]) + "</span>" : "") + "</div>"; }).join("") + "</div>"); } },
+      return tpFrame(d._cat || "market", d, '<div class="tp-grid">' + R.map(function (r, i) { return '<div class="tp-cell"><small>' + ((d._off || 0) + i + 1) + "위</small><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em>" + (r[2] ? "<span>" + tpE(r[2]) + "</span>" : "") + "</div>"; }).join("") + "</div>"); } },
   beforeAfter: { nm: "작년 · 올해 비교", cat: "deal", fields: [["src", "출처·기준", "text", "국토부 실거래가 공개"], ["title", "제목", "text", "신고가 전·후 비교"], ["colA", "왼쪽 머리", "text", "직전 최고"], ["colB", "오른쪽 머리", "text", "이번 신고가"], ["items", "항목(이름 | 보조 | 전 값 | 전 날짜 | 후 값 | 후 날짜 | 변화)", "rows", "창동주공1단지 | 19평 | 4.4억 | 2025.1.21 | 6.1억 | 2026.10.3 | +39%"], ["foot", "맨 아래 메모", "text", ""]],
     auto: function () { if (typeof CH === "undefined" || !chOk() || typeof chHighsBetween !== "function") return null; var t1 = chDayKey(chKstNow()), L = chHighsBetween(t1 - 30, t1).filter(function (t) { return t.allPrev && t.max; }).slice(0, 4); if (L.length < 2) return null;
       return { src: "국토부 실거래 · 최근 30일 신고가 · " + tpToday() + " 조회", title: "신고가, 직전 최고가와 비교", colA: "직전 최고가", colB: "이번 신고가", items: L.map(function (t) { return [t.apt, chShortGu(t.k) + " · " + (t.area ? t.area + "㎡" : t.band + "㎡대"), eok(t.allPrev[0]), String(t.allPrev[1]).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), eok(t.max.amount), String(t.max.d).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), "+" + t.u.toFixed(0) + "%"]; }), foot: "같은 단지·같은 면적대 역대 최고가끼리 비교 · 직거래 제외" }; },
@@ -7968,54 +8039,196 @@ var TPL = {
     auto: function () { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, L = (D.transit && D.transit.manual && D.transit.manual.lines) || []; if (!L.length) return null;
       return { src: "국토부·국가철도공단 발표 · 직접 관리 목록 " + tpToday(), title: "수도권 광역철도, 어디까지 왔나", cols: "노선 | 상태 | 개통(예정) | 비고", rows: L.slice(0, 9).map(function (l) { return [l.name, l.status, String(l.open || "").replace(/^(\d{4})-(\d{2})$/, function (_, y, m) { return m === "00" ? y + "년" : y + "." + Number(m); }).replace("0000년", "미정"), (l.note || "").slice(0, 22)]; }), foot: "개통 예정은 공정에 따라 미뤄질 수 있음" }; },
     render: function (d) { var cols = tpRows(d.cols)[0] || [], R = tpRows(d.rows);
-      return tpFrame("transit", d, '<table class="tp-tbl"><tr>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr>" + cols.map(function (_, i) { var v = r[i] || ""; return "<td" + (i === 1 ? ' class="st-' + tpE(v) + '"' : "") + ">" + tpE(v) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"); } }
+      return tpFrame(d._cat || "transit", d, '<table class="tp-tbl"><tr>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr>" + cols.map(function (_, i) { var v = r[i] || ""; return "<td" + (i === 1 ? ' class="st-' + tpE(v) + '"' : "") + ">" + tpE(v) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"); } }
 };
-var TPL_ORDER = ["aptNotice", "calendar", "priceBand", "beforeAfter", "rankGrid", "policyTimeline", "compareTable", "lineTable", "listArrow", "quote"];
+/* ── v9.23 추가 양식 ── */
+/* 촘촘한 표: 줄이 많으면(칸 3개 이하) 두 단으로 나눠 담는다 */
+TPL.denseTable = { nm: "촘촘한 표", cat: "deal", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "서울 구별 실거래 시세"], ["sub", "부제", "text", ""], ["cols", "표 머리(| 구분)", "text", "구 | 평당 | 거래"], ["rows", "줄(| 구분)", "rows", "강남구 | 1.29억 | 56건"], ["foot", "맨 아래 메모", "text", ""]],
+  auto: function () { return null; },
+  render: function (d) { var cols = tpRows(d.cols)[0] || [], R = tpRows(d.rows), two = cols.length <= 4 && R.length > 13 && R.every(function (r) { return r.every(function (v) { return String(v || "").length <= 10; }); }), half = two ? Math.ceil(R.length / 2) : R.length;
+    var tb = function (rows, off) { return '<table class="tp-dense"><tr><th class="no"></th>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + rows.map(function (r, i) { return '<tr><td class="no">' + (off + i + 1) + "</td>" + cols.map(function (_, k) { var v = String(r[k] || ""); return "<td" + (/^[+]/.test(v) ? ' class="up"' : /^[−-]\d/.test(v) ? ' class="down"' : "") + ">" + tpE(v) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"; };
+    return tpFrame(d._cat || "deal", d, two ? '<div class="tp-2tb">' + tb(R.slice(0, half), d._off || 0) + tb(R.slice(half), (d._off || 0) + half) + "</div>" : tb(R, d._off || 0)); } };
+/* 대장 3개씩: 한 줄 = 지역 + 대장 1·2·3위 칸(단지 · 가격 · 보조) */
+TPL.leaderGrid = { nm: "지역별 TOP 3 칸", cat: "deal", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "서울 구별 대장아파트 TOP 3"], ["sub", "부제", "text", ""], ["rows", "줄(지역 | 단지1 ; 가격1 ; 보조1 | 단지2 ; … | 단지3 ; …)", "rows", "강남구 | 디에이치자이개포 ; 33억 ; 2021 · 1,996세대 | …"], ["foot", "맨 아래 메모", "text", ""]],
+  auto: function () { return null; },
+  render: function (d) { var R = tpRows(d.rows);
+    return tpFrame(d._cat || "deal", d, '<div class="tp-lead"><div class="tp-ldh"><span></span><b>1위</b><b>2위</b><b>3위</b></div>' + R.map(function (r) { return '<div class="tp-ldr"><span class="tp-ldg">' + tpE(r[0]) + "</span>" + [1, 2, 3].map(function (k) { var x = String(r[k] || "").split(/\s*;\s*/); return '<div class="tp-ldc' + (k === 1 ? " g" : "") + '">' + (x[0] ? "<b>" + tpE(x[0]) + "</b><em>" + tpE(x[1] || "") + "</em>" + (x[2] ? "<small>" + tpE(x[2]) + "</small>" : "") : "<i>–</i>") + "</div>"; }).join("") + "</div>"; }).join("") + "</div>"); } };
+
+/* ══ 카드 만들기 — 재료(레시피) × 지역·평형 × 양식 ══ */
+var TPR_BANDS = [["84", "84㎡대(국평)"], ["59", "59㎡대"], ["L", "대형"], ["S", "소형"], ["all", "전체 평형"]];
+function tprScopes() { var o = []; (typeof BRIEF_GROUPS !== "undefined" ? BRIEF_GROUPS : []).forEach(function (g) { o.push([g.id, g.name]); g.subs.forEach(function (x) { o.push([x.id, g.name + " · " + x.name]); }); }); return o; }
+function tprCodes(sc) { return typeof briefCodes === "function" ? briefCodes(sc) : []; }
+function tprScopeNm(sc) { return typeof briefScopeName === "function" ? briefScopeName(sc) : sc; }
+function tprReg() { return (typeof CH !== "undefined" && CH.data && CH.data.regions) || (typeof BRIEF !== "undefined" && BRIEF.regions) || {}; }
+function tprD(n) { return n ? String(n).replace(/^\d{2}(\d{2})(\d{2})(\d{2})$/, "$1.$2.$3") : ""; }
+function tprNm(k) { return typeof chName === "function" ? chName(k) : k; }
+function tprGu(k) { var n = tprNm(k); return n.replace(/^(서울|경기|인천|부산|대구|광주|대전|울산|세종) /, ""); }
+function tprBasis() { var d = typeof CH !== "undefined" && CH.data && CH.data.asOf; return d ? "국토부 실거래 · 최근 30일 계약 · " + tprD(d) + " 수집" : "국토부 실거래"; }
+function tprBandNm(b) { return { "84": "84㎡대", "59": "59㎡대", L: "대형", S: "소형", all: "" }[b] || ""; }
+/* 줄 목록 → 여러 장 */
+function tprItems(base, items, per) { var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(items.length / per))); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.items = items.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
+function tprPaged(base, rows, per) { var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(rows.length / per))); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.rows = rows.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
+var TPR = {
+  regionPrice: { nm: "지역별 실거래 시세", grp: "실거래", opts: ["scope", "band"], tpls: ["denseTable", "lineTable"], per: 26,
+    hint: "구·시마다 최근 30일 거래 건수와 평당 중위값(전용 기준), 한 달 전 같은 시점 대비 변화",
+    build: function (o) { var R = tprReg(), b = o.band, rows = tprCodes(o.scope).map(function (c) { var r = R[c]; if (!r || r.error) return null; var x = b === "all" ? { n: r.count, pm: r.pm, ppm: r.prevPm } : (r.bands || {})[b]; if (!x || !x.n || !x.pm) return null; var ch = x.ppm ? (x.pm / x.ppm - 1) * 100 : null; return { k: c, pm: x.pm, row: [tprGu(c), eok(Math.round(x.pm * 3.3058)), fmt(x.n) + "건", ch == null || x.n < 10 ? "" : (ch >= 0 ? "+" : "−") + Math.abs(ch).toFixed(1) + "%"] }; }).filter(Boolean).sort(function (a, b) { return b.pm - a.pm; });
+      return tprPaged({ _cat: "deal", src: tprBasis() + " · 평당 = ㎡당 중위 × 3.3058(전용)", title: tprScopeNm(o.scope) + " " + (tprBandNm(b) || "아파트") + " 실거래 시세", sub: "평당 중위값 높은 순 · 거래 10건 미만은 변화 빈칸", badge: "아파트실거래", cols: "지역 | 평당 | 30일 | 변화", foot: "중위값은 어떤 단지가 팔렸느냐에 따라 출렁일 수 있음" }, rows.map(function (x) { return x.row; }), o.per); } },
+  topDeal: { nm: "지역별 최고 거래가", grp: "실거래", opts: ["scope", "band"], tpls: ["denseTable", "lineTable"], per: 14,
+    hint: "구·시마다 최근 30일 가장 비싸게 거래된 1건 (단지·면적·가격·계약일)",
+    build: function (o) { var R = tprReg(), b = o.band, rows = tprCodes(o.scope).map(function (c) { var r = R[c]; if (!r || r.error) return null; var t = b === "all" ? (r.top || [])[0] : ((r.topB || {})[b] || [])[0]; if (!t) return null; return { a: t.amount, row: [tprGu(c), t.apt + " " + Math.round(t.area) + "㎡", eok(t.amount), tprD(t.d)] }; }).filter(Boolean).sort(function (a, b) { return b.a - a.a; });
+      return tprPaged({ _cat: "deal", src: tprBasis(), title: tprScopeNm(o.scope) + " 최고 거래가" + (tprBandNm(b) ? " · " + tprBandNm(b) : ""), sub: "지역마다 최근 30일 가장 비싼 거래 1건 · 비싼 순", badge: "아파트실거래", cols: "지역 | 단지·전용 | 거래가 | 계약일", foot: "직거래 제외 · 신고 기한(30일) 때문에 최근 건은 늘어날 수 있음" }, rows.map(function (x) { return x.row; }), o.per); } },
+  leaders: { nm: "지역별 대장 TOP 3", grp: "대장", opts: ["scope", "band"], tpls: ["leaderGrid", "denseTable"], per: 7,
+    hint: "구·시마다 대장아파트 3곳(500세대↑·20년 이내 중 ㎡당가 상위) — 최근 거래가 · 연식 · 세대수",
+    build: function (o, tid) { var R = tprReg(), b = o.band === "all" ? "84" : o.band, rows = [];
+      tprCodes(o.scope).forEach(function (c) { var r = R[c]; var L = r && r.leaders && r.leaders[b]; if (!L || !L.length) return; var cell = function (x) { return x ? String(x.apt).replace(/&amp;/g, "&").replace(/;/g, ",") + " ; " + (x.p ? eok(x.p[0]) : "") + " ; " + [x.by ? x.by + "년" : "", x.hh ? fmt(x.hh) + "세대" : ""].filter(Boolean).join(" · ") : ""; };
+        rows.push({ v: L[0].p ? L[0].p[0] : 0, row: tid === "denseTable" ? [tprGu(c), L.map(function (x) { return x.apt; }).join(" · "), L[0].p ? eok(L[0].p[0]) : ""] : [tprGu(c), cell(L[0]), cell(L[1]), cell(L[2])] }); });
+      rows.sort(function (a, b) { return b.v - a.v; });
+      return tprPaged({ _cat: "deal", src: "국토부 실거래 · K-apt 단지 정보 · " + tprBandNm(b) + " · 가격 = 그 단지 최근 거래가", title: tprScopeNm(o.scope) + " 대장아파트 TOP 3", sub: tprBandNm(b) + " · 1위 단지 최근 거래가 높은 순", badge: "대장아파트", cols: "지역 | 대장 1·2·3위 | 1위 거래가", foot: "대장 = 500세대↑·20년 이내 중 ㎡당가 상위(없으면 300→150세대) · 매수 추천 아님" }, rows.map(function (x) { return x.row; }), tid === "denseTable" ? 14 : o.per); } },
+  busy: { nm: "거래 많은 단지", grp: "실거래", opts: ["scope", "band"], tpls: ["lineTable", "denseTable"], per: 12,
+    hint: "최근 30일 같은 단지·평형에서 거래가 많았던 곳 (건수 · 최고가 · 전세 중위)",
+    build: function (o) { var R = tprReg(), b = o.band, L = []; tprCodes(o.scope).forEach(function (c) { var r = R[c]; ((r && r.busy) || []).forEach(function (x) { if (b !== "all" && String(x.band) !== b && !(b === "L" && x.band >= 101) && !(b === "S" && x.band <= 46)) return; L.push({ n: x.n, row: [x.apt + " (" + tprGu(c) + ")", x.band + "㎡대", fmt(x.n) + "건", x.max ? eok(x.max.amount) : "", x.jeMed ? eok(x.jeMed) : ""] }); }); });
+      L.sort(function (a, b) { return b.n - a.n; });
+      return tprPaged({ _cat: "deal", src: tprBasis(), title: tprScopeNm(o.scope) + " 거래 많은 단지", sub: "최근 30일 같은 단지·면적대 매매 건수 순", badge: "아파트실거래", cols: "단지 | 면적 | 매매 | 최고가 | 전세 중위", foot: "입주장 단지·일괄거래 제외" }, L.map(function (x) { return x.row; }), o.per); } },
+  newHigh: { nm: "신고가 TOP", grp: "실거래", opts: ["scope"], tpls: ["rankGrid", "denseTable", "beforeAfter"], per: 12,
+    hint: "최근 30일 신고가(역대 최고가 경신) 중 상승폭 큰 순",
+    build: function (o, tid) { if (typeof chCollect !== "function") return []; var codes = tprCodes(o.scope), L = chCollect(codes, "newHighAll").filter(function (t) { return t.upAll > 0 && t.max; }).sort(function (a, b) { return b.upAll - a.upAll; });
+      if (tid === "beforeAfter") return tprItems({ _cat: "deal", badge: "아파트실거래", src: tprBasis(), title: tprScopeNm(o.scope) + " 신고가, 직전 최고가와 비교", colA: "직전 최고가", colB: "이번 신고가", foot: "같은 단지·면적대 역대 최고가끼리 비교" }, L.filter(function (t) { return t.allPrev; }).map(function (t) { return [t.apt, tprGu(t.k) + " · " + (t.area ? t.area + "㎡" : t.band + "㎡대"), eok(t.allPrev[0]), tprD(t.allPrev[1]), eok(t.max.amount), tprD(t.max.d), "+" + t.upAll.toFixed(0) + "%"]; }), 4);
+      var base = { _cat: "deal", src: tprBasis() + " · 직전 최고가 대비", title: tprScopeNm(o.scope) + " 신고가 TOP", badge: "아파트실거래", cols: "단지 | 지역·전용 | 거래가 | 상승", foot: "직거래 제외 · 같은 단지·면적대 역대 최고가 대비" };
+      if (tid === "denseTable") return tprPaged(base, L.map(function (t) { return [t.apt, tprGu(t.k) + " " + (t.area || t.band) + "㎡", eok(t.max.amount), "+" + t.upAll.toFixed(1) + "%"]; }), 14);
+      return tprItems(base, L.map(function (t) { return [t.apt, "+" + t.upAll.toFixed(1) + "%", tprGu(t.k) + " · " + eok(t.max.amount)]; }), 12); } },
+  volRank: { nm: "거래량 순위", grp: "시장", opts: ["scope"], tpls: ["rankGrid", "denseTable"], per: 12,
+    hint: "최근 30일 아파트 매매 건수 많은 지역",
+    build: function (o, tid) { var R = tprReg(), L = tprCodes(o.scope).map(function (c) { var r = R[c]; return r && !r.error && r.count ? { k: c, n: r.count } : null; }).filter(Boolean).sort(function (a, b) { return b.n - a.n; });
+      var base = { _cat: "market", src: tprBasis(), title: tprScopeNm(o.scope) + " 거래량 순위", badge: "시장흐름", cols: "지역 | 30일 매매", foot: "신고 기한 때문에 최근 2주 숫자는 계속 늘어남" };
+      if (tid === "denseTable") return tprPaged(base, L.map(function (x) { return [tprGu(x.k), fmt(x.n) + "건"]; }), 26);
+      return tprItems(base, L.map(function (x) { return [tprGu(x.k), fmt(x.n) + "건", "30일 매매"]; }), 12); } },
+  yoy: { nm: "1년 상승률 순위", grp: "시장", opts: ["scope"], tpls: ["rankGrid", "denseTable"], per: 12,
+    hint: "월별 실거래 집계로 본 1년 전 대비 ㎡당 중위값 변화",
+    build: function (o, tid) { if (typeof chYoY !== "function" || typeof DB === "undefined" || !DB || !DB.sale) return []; var L = tprCodes(o.scope).filter(function (k) { return DB.sale.series[k]; }).map(function (k) { return { k: k, v: chYoY(k) }; }).filter(function (r) { return r.v != null; }).sort(function (a, b) { return b.v - a.v; });
+      var base = { _cat: "market", src: "국토부 실거래 월별 집계 · " + DB.sale.dates[1].replace("-", ".") + "까지 · 1년 전 대비 ㎡당 중위", title: tprScopeNm(o.scope) + " 1년 상승률", badge: "시장흐름", cols: "지역 | 1년 변화", foot: "㎡당 중위값 비교 · 어떤 단지가 팔렸느냐에 따라 출렁일 수 있음" };
+      var pc = function (v) { return (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + "%"; };
+      if (tid === "denseTable") return tprPaged(base, L.map(function (x) { return [tprGu(x.k), pc(x.v)]; }), 26);
+      return tprItems(base, L.map(function (x) { return [tprGu(x.k), pc(x.v), "1년 변화"]; }), 12); } },
+  gaps: { nm: "갭 작은 단지", grp: "시장", opts: ["scope"], tpls: ["lineTable", "denseTable"], per: 12,
+    hint: "같은 단지·면적대 매매 중위 − 전세 중위가 작은 곳 (전세 10건↑)",
+    build: function (o) { var R = tprReg(), L = []; tprCodes(o.scope).forEach(function (c) { ((R[c] && R[c].gaps) || []).forEach(function (x) { L.push({ g: x.gap, row: [x.apt + " (" + tprGu(c) + ")", x.band + "㎡대", eok(x.med), eok(x.jeMed), eok(x.gap)] }); }); });
+      L.sort(function (a, b) { return a.g - b.g; });
+      return tprPaged({ _cat: "market", src: tprBasis() + " · 전월세 신고 포함", title: tprScopeNm(o.scope) + " 매매·전세 차이 작은 단지", badge: "시장흐름", cols: "단지 | 면적 | 매매 중위 | 전세 중위 | 차이", foot: "규제지역·토허구역은 전세 끼고 매수 불가 · 투자 권유 아님" }, L.map(function (x) { return x.row; }), o.per); } },
+  priceBand: { nm: "국평 가격대 × 권역", grp: "실거래", opts: [], tpls: ["priceBand"], build: function () { var d = TPL.priceBand.auto(); return d ? [d] : []; } },
+  beforeAfter: { nm: "신고가 전·후 비교", grp: "실거래", opts: [], tpls: ["beforeAfter"], build: function () { var d = TPL.beforeAfter.auto(); return d ? [d] : []; } },
+  aptNotice: { nm: "청약 단지 한 장", grp: "청약·일정", opts: ["item"], tpls: ["aptNotice"], build: function () { var d = TPL.aptNotice.auto(); return d ? [d] : []; } },
+  calendar: { nm: "부동산 달력", grp: "청약·일정", opts: [], tpls: ["calendar"], build: function () { var d = TPL.calendar.auto(); return d ? [d] : []; } },
+  policy: { nm: "대책 총정리", grp: "정책·대출·교통", opts: [], tpls: ["policyTimeline"], build: function () { var d = TPL.policyTimeline.auto(); return d ? [d] : []; } },
+  loans: { nm: "정책대출 비교", grp: "정책·대출·교통", opts: [], tpls: ["compareTable"], build: function () { var d = TPL.compareTable.auto(); return d ? [d] : []; } },
+  transit: { nm: "교통 노선 현황", grp: "정책·대출·교통", opts: [], tpls: ["lineTable"], build: function () { var d = TPL.lineTable.auto(); return d ? [d] : []; } },
+  terms: { nm: "부동산 단어", grp: "상식·이슈", opts: [], tpls: ["listArrow"], build: function () { var d = TPL.listArrow.auto(); return d ? [d] : []; } },
+  free: { nm: "직접 입력 (빈 양식)", grp: "직접", opts: ["tpl"], tpls: null, build: function () { return []; } }
+};
+var TPR_ORDER = ["regionPrice", "topDeal", "leaders", "busy", "newHigh", "beforeAfter", "priceBand", "volRank", "yoy", "gaps", "aptNotice", "calendar", "policy", "loans", "transit", "terms", "free"];
+var TPL_ORDER = ["aptNotice", "calendar", "priceBand", "beforeAfter", "rankGrid", "denseTable", "leaderGrid", "lineTable", "policyTimeline", "compareTable", "listArrow", "quote"];
+TP.r = "regionPrice"; TP.o = { scope: "seoul", band: "84", per: 26, maxp: 3 }; TP.pages = null; TP.pg = 0;
+
 /* ── 화면 ── */
 function buildTpl(sec) {
-  sec.innerHTML = '<div class="card"><h2>양식 카드</h2><p class="desc">우상향연구소 고정 양식 10종. 양식은 그대로 두고 내용만 바꿔 올립니다. 앱 데이터로 자동으로 채우고, 칸을 고치고, 필요하면 AI가 재료 안의 숫자만 써서 채웁니다.</p>' +
-    '<div class="tp-pick" id="tp-pick">' + TPL_ORDER.map(function (id) { var t = TPL[id], c = TP_CAT[t.cat]; return '<button type="button" data-tp="' + id + '" style="--tpc:' + c[1] + '"><i>' + c[0] + "</i>" + t.nm + "</button>"; }).join("") + "</div></div>" +
-    '<div class="card tp-wrap"><div class="tp-left"><h3>1 내용</h3><div class="mk-row"><button type="button" class="btn sm" data-tpauto="1">앱 데이터로 채우기</button><button type="button" class="btn sm ghost" data-tpclear="1">비우기</button><span class="hint" id="tp-msg"></span></div><div id="tp-form"></div>' +
-      '<details class="tp-ai" id="tp-ai"><summary>AI로 채우기 (재료 안의 숫자만)</summary><p class="hint">재료: 앱 데이터로 채운 내용 + 아래 참고 글. AI는 재료에 없는 숫자·날짜를 만들 수 없고, 재료에 없는 숫자는 빨갛게 표시됩니다. 버튼을 눌렀을 때만 돕니다.</p><textarea id="tp-extra" placeholder="참고 글(기사·공고문·내 메모) 붙여넣기 — 선택"></textarea><textarea id="tp-note" placeholder="요청(예: 신혼부부 관점으로 제목을 뽑아줘) — 선택"></textarea><div class="mk-row"><button type="button" class="btn sm" data-tpai="1">AI로 채우기</button><span class="hint" id="tp-aimsg"></span></div></details></div>' +
-      '<div class="tp-right"><h3>2 카드</h3><div class="chcards strip" id="tp-cards"></div><div id="tp-bad" class="hint"></div></div></div>';
+  var grps = []; TPR_ORDER.forEach(function (id) { var g = TPR[id].grp; if (grps.indexOf(g) < 0) grps.push(g); });
+  sec.innerHTML = '<div class="card"><h2>카드 만들기</h2><p class="desc">① 무엇을 ② 어느 지역·평형으로 ③ 어떤 양식에 담을지 고르면 앱 데이터로 카드가 바로 그려집니다. 칸을 직접 고치거나 AI로 채울 수 있고, 줄이 많으면 여러 장으로 나뉩니다. 모든 카드는 우상향연구소 공통 틀(1080×1350)로 저장됩니다.</p>' +
+    '<div class="tpr-grps">' + grps.map(function (g) { return '<div class="tpr-g"><small>' + g + '</small><div class="tpr-list">' + TPR_ORDER.filter(function (id) { return TPR[id].grp === g; }).map(function (id) { return '<button type="button" data-tpr="' + id + '">' + TPR[id].nm + "</button>"; }).join("") + "</div></div>"; }).join("") + "</div>" +
+    '<p class="hint" id="tpr-hint"></p><div class="tpr-opts" id="tpr-opts"></div></div>' +
+    '<div class="card tp-wrap"><div class="tp-left"><h3>내용 <small class="hint" id="tp-msg"></small></h3><div class="tpr-pages" id="tpr-pages"></div><div class="mk-row"><button type="button" class="btn sm" data-tpauto="1">앱 데이터로 다시 채우기</button><button type="button" class="btn sm ghost" data-tpclear="1">이 장 비우기</button></div><div id="tp-form"></div>' +
+      '<details class="tp-ai" id="tp-ai"><summary>AI로 채우기 (재료 안의 숫자만)</summary><p class="hint">재료 = 지금 장의 칸 내용 + 아래 참고 글. AI는 고른 양식의 칸만 채우고, 재료에 없는 숫자는 빨갛게 알려 줍니다. 직접 입력(빈 양식)에 기사·공고문을 붙여 넣고 돌리면 글로 카드를 만들 수 있습니다. 버튼을 눌렀을 때만 돕니다.</p><textarea id="tp-extra" placeholder="참고 글(기사·공고문·내 메모) — 선택"></textarea><textarea id="tp-note" placeholder="요청(예: 신혼부부 관점 제목) — 선택"></textarea><div class="mk-row"><button type="button" class="btn sm" data-tpai="1">AI로 이 장 채우기</button><span class="hint" id="tp-aimsg"></span></div></details></div>' +
+      '<div class="tp-right"><h3>미리보기 <small class="hint" id="tp-cnt"></small></h3><div class="chcards strip" id="tp-cards"></div><div class="mk-row"><button type="button" class="btn sm" data-tpzip="1">전부 ZIP 저장</button><button type="button" class="btn sm ghost" data-tpreel="1">이 내용으로 릴스 카드 →</button></div><div id="tp-bad" class="hint"></div>' +
+      '<details class="tp-cap" id="tp-capw"><summary>올릴 글 (캡션)</summary><textarea class="chpost" id="tp-cap" rows="10" spellcheck="false"></textarea><div class="mk-row"><button type="button" class="btn sm" data-tpcopy="1">글 복사</button><span class="hint" id="tp-capmsg"></span></div></details></div></div>';
   sec.addEventListener("click", function (ev) {
-    var b = ev.target.closest("[data-tp]"); if (b) { TP.id = b.dataset.tp; TP.data = null; TP.auto = true; tpPaint(); }
-    if (ev.target.closest("[data-tpauto]")) { TP.data = null; TP.auto = true; tpPaint(); }
-    if (ev.target.closest("[data-tpclear]")) { TP.data = {}; TP.auto = false; tpPaint(); }
+    var r = ev.target.closest("[data-tpr]"); if (r) { TP.r = r.dataset.tpr; var R = TPR[TP.r]; TP.id = R.tpls ? R.tpls[0] : (TP.id && TPL[TP.id] ? TP.id : "lineTable"); TP.o.per = R.per || 12; tprRebuild(); }
+    var t = ev.target.closest("[data-tptpl]"); if (t) { TP.id = t.dataset.tptpl; tprRebuild(); }
+    var pg = ev.target.closest("[data-tppg]"); if (pg) { TP.pg = Number(pg.dataset.tppg); tpPaint(); }
+    if (ev.target.closest("[data-tpauto]")) tprRebuild();
+    if (ev.target.closest("[data-tpclear]")) { TP.pages[TP.pg] = tpBlank(TPL[TP.id]); tpPaint(); }
     if (ev.target.closest("[data-tpai]")) tpAi();
+    if (ev.target.closest("[data-tpcopy]") && typeof chCopy === "function") { chCopy(document.getElementById("tp-cap").value); var cm = document.getElementById("tp-capmsg"); if (cm) cm.textContent = "복사했습니다"; }
+    if (ev.target.closest("[data-tpreel]") && typeof rcOpen === "function") { var F = tpAllFacts(); if (!F.length) { alert("재료가 없습니다."); return; } var d0 = TP.pages[0] || {}; rcOpen({ topic: d0.title || "", facts: F, basis: d0.src || "", purpose: "카드 만들기 '" + (TPR[TP.r] ? TPR[TP.r].nm : "") + "' 상세 카드(게시판)로 유입" }); }
+    if (ev.target.closest("[data-tpzip]") && typeof chSaveAllZip === "function") chSaveAllZip(document.getElementById("tp-cards"), "card").then(function () { if (typeof progClose === "function") progClose(); }, function (e) { if (typeof progClose === "function") progClose(); alert("ZIP 저장 실패: " + e.message); });
     var sv = ev.target.closest("[data-chsave]"); if (sv && typeof chCardImage === "function") { var card = sv.parentNode.querySelector(".chcard"); if (typeof progOpen === "function") progOpen("이미지 만드는 중", 0); chCardImage(card, sv.dataset.chsave).then(function () { if (typeof progClose === "function") progClose(); }, function () { if (typeof progClose === "function") progClose(); alert("이미지 저장에 실패했습니다."); }); }
   });
-  sec.addEventListener("input", function (ev) { if (ev.target.closest("#tp-form")) { TP.auto = false; TP.data = tpReadForm(); tpPaintCard(); } });
+  sec.addEventListener("change", function (ev) { var k = ev.target.dataset && ev.target.dataset.tpo; if (k) { TP.o[k] = k === "per" || k === "maxp" ? Number(ev.target.value) : ev.target.value; if (k === "item" && typeof SB !== "undefined") SB.card.item = ev.target.value; tprRebuild(); } });
+  sec.addEventListener("input", function (ev) { if (ev.target.closest("#tp-form")) { TP.pages[TP.pg] = tpReadForm(); TP.auto = false; tpPaintCard(); } });
 }
 function renderTpl() {
-  var go = function () { if (typeof dyLoad === "function") dyLoad(tpPaint); else tpPaint(); };
-  if (typeof CH !== "undefined" && !CH.data && typeof renderChannel === "function") { /* 실거래·거시 자료를 같이 쓴다 */ var once = false; var tm = setInterval(function () { if (CH.data) { clearInterval(tm); if (!once) { once = true; go(); } } }, 300); renderChannel(); setTimeout(function () { clearInterval(tm); if (!once) { once = true; go(); } }, 6000); }
+  var go = function () { if (typeof dyLoad === "function") dyLoad(tprRebuild); else tprRebuild(); };
+  if (typeof CH !== "undefined" && !CH.data && typeof renderChannel === "function") { var once = false; var tm = setInterval(function () { if (CH.data) { clearInterval(tm); if (!once) { once = true; go(); } } }, 300); renderChannel(); setTimeout(function () { clearInterval(tm); if (!once) { once = true; go(); } }, 6000); }
   else go();
 }
-function tpData() { var t = TPL[TP.id]; if (TP.data) return TP.data; var d = null; try { d = t.auto(); } catch (e) { if (window.console) console.error(e); } TP.data = d || tpBlank(t); TP.autoOk = !!d; return TP.data; }
+function tprOptsHtml() {
+  var R = TPR[TP.r], h = "";
+  if (R.opts.indexOf("scope") >= 0) h += '<label>지역<select data-tpo="scope">' + tprScopes().map(function (s) { return '<option value="' + s[0] + '"' + (s[0] === TP.o.scope ? " selected" : "") + ">" + s[1] + "</option>"; }).join("") + "</select></label>";
+  if (R.opts.indexOf("band") >= 0) h += '<label>평형<select data-tpo="band">' + TPR_BANDS.map(function (s) { return '<option value="' + s[0] + '"' + (s[0] === TP.o.band ? " selected" : "") + ">" + s[1] + "</option>"; }).join("") + "</select></label>";
+  if (R.opts.indexOf("item") >= 0 && typeof sbItems === "function") { var L = sbItems().filter(function (i) { return i.kind === "apt"; }); h += '<label>단지<select data-tpo="item">' + L.map(function (i) { return '<option value="' + tpE(i.no) + '"' + (String(i.no) === String(SB.card.item) ? " selected" : "") + ">" + tpE(i.nm) + " · " + tpE(i.area || "") + "</option>"; }).join("") + "</select></label>"; }
+  if (R.per) h += '<label>최대 장 수<select data-tpo="maxp">' + [1, 2, 3, 5, 10].map(function (n) { return '<option value="' + n + '"' + (n === TP.o.maxp ? " selected" : "") + ">" + n + "장</option>"; }).join("") + "</select></label>";
+  if (R.per) h += '<label>한 장에 줄<select data-tpo="per">' + [6, 8, 10, 12, 14, 18, 22, 26].filter(function (n) { return TP.id === "leaderGrid" ? n <= 8 : TP.id === "rankGrid" ? n === 12 : TP.id === "lineTable" ? n <= 16 : true; }).map(function (n) { return '<option value="' + n + '"' + (n === TP.o.per ? " selected" : "") + ">" + n + "줄</option>"; }).join("") + "</select></label>";
+  var tpls = R.tpls || TPL_ORDER;
+  h += '<div class="tpr-tpls"><small>양식</small>' + tpls.map(function (id) { return '<button type="button" data-tptpl="' + id + '" class="' + (id === TP.id ? "on" : "") + '">' + TPL[id].nm + "</button>"; }).join("") + "</div>";
+  return h;
+}
+function tprRebuild() {
+  var R = TPR[TP.r]; if (!R) return;
+  if (R.tpls && R.tpls.indexOf(TP.id) < 0) TP.id = R.tpls[0];
+  if (TP.id === "rankGrid") TP.o.per = 12; if (TP.id === "leaderGrid" && TP.o.per > 8) TP.o.per = 7; if (TP.id === "lineTable" && TP.o.per > 16) TP.o.per = 16; if (TP.id === "denseTable" && TP.o.per < 12 && (TPR[TP.r].per || 0) >= 14) TP.o.per = TPR[TP.r].per;
+  var pages = [];
+  try { pages = R.build(TP.o, TP.id) || []; } catch (e) { if (window.console) console.error(e); }
+  TP.autoOk = pages.length > 0;
+  if (!pages.length) pages = [tpBlank(TPL[TP.id])];
+  TP.pages = pages; TP.pg = 0; TP.auto = true; TP.bad = [];
+  var opts = document.getElementById("tpr-opts"); if (opts) opts.innerHTML = tprOptsHtml();
+  var hint = document.getElementById("tpr-hint"); if (hint) hint.textContent = R.hint || "";
+  Array.prototype.forEach.call(document.querySelectorAll("[data-tpr]"), function (b) { b.classList.toggle("on", b.dataset.tpr === TP.r); });
+  tpPaint();
+}
+function tpData() { return (TP.pages && TP.pages[TP.pg]) || tpBlank(TPL[TP.id]); }
 function tpBlank(t) { var o = {}; t.fields.forEach(function (f) { o[f[0]] = f[2] === "text" ? "" : []; }); return o; }
 function tpFormHtml(t, d) {
   return t.fields.map(function (f) { var v = d[f[0]], txt = f[2] === "text" ? String(v || "") : (Array.isArray(v) ? v.map(function (r) { return Array.isArray(r) ? r.join(" | ") : r; }).join("\n") : String(v || ""));
-    return '<label class="tp-f"><span>' + tpE(f[1]) + "</span>" + (f[2] === "text" ? '<input data-tf="' + f[0] + '" value="' + tpE(txt) + '" placeholder="' + tpE(f[3]) + '">' : '<textarea data-tf="' + f[0] + '" rows="' + (f[2] === "rows" ? 5 : 3) + '" placeholder="' + tpE(f[3]) + '">' + tpE(txt) + "</textarea>") + "</label>"; }).join("");
+    return '<label class="tp-f"><span>' + tpE(f[1]) + "</span>" + (f[2] === "text" ? '<input data-tf="' + f[0] + '" value="' + tpE(txt) + '" placeholder="' + tpE(f[3]) + '">' : '<textarea data-tf="' + f[0] + '" rows="' + (f[2] === "rows" ? 6 : 3) + '" placeholder="' + tpE(f[3]) + '">' + tpE(txt) + "</textarea>") + "</label>"; }).join("");
 }
-function tpReadForm() { var o = {}, t = TPL[TP.id]; t.fields.forEach(function (f) { var el = document.querySelector('#tp-form [data-tf="' + f[0] + '"]'); if (!el) return; o[f[0]] = f[2] === "text" ? el.value : (f[2] === "rows" ? tpRows(el.value) : tpLines(el.value)); }); return o; }
+function tpReadForm() { var old = tpData(), o = {}, t = TPL[TP.id]; ["_cat", "_off", "badge"].forEach(function (k) { if (old[k] != null) o[k] = old[k]; }); t.fields.forEach(function (f) { var el = document.querySelector('#tp-form [data-tf="' + f[0] + '"]'); if (!el) return; o[f[0]] = f[2] === "text" ? el.value : (f[2] === "rows" ? tpRows(el.value) : tpLines(el.value)); }); return o; }
 function tpPaint() {
   var form = document.getElementById("tp-form"); if (!form) return;
-  var t = TPL[TP.id], d = tpData();
-  Array.prototype.forEach.call(document.querySelectorAll("#tp-pick button"), function (b) { b.classList.toggle("on", b.dataset.tp === TP.id); });
+  var t = TPL[TP.id], d = tpData(), n = (TP.pages || []).length;
   form.innerHTML = tpFormHtml(t, d);
-  var msg = document.getElementById("tp-msg"); if (msg) msg.textContent = TP.auto ? (TP.autoOk ? "앱 데이터로 채웠습니다 — 칸을 고치면 바로 반영" : "이 양식은 자동 재료가 없어 직접 적거나 AI로 채웁니다") : "직접 고친 내용";
+  var pgs = document.getElementById("tpr-pages"); if (pgs) pgs.innerHTML = n > 1 ? '<small>고칠 장</small>' + TP.pages.map(function (_, i) { return '<button type="button" data-tppg="' + i + '" class="' + (i === TP.pg ? "on" : "") + '">' + (i + 1) + "장</button>"; }).join("") : "";
+  var msg = document.getElementById("tp-msg"); if (msg) msg.textContent = TP.r === "free" ? "빈 양식 — 직접 적거나 AI로 채우기" : TP.autoOk ? (TP.auto ? "앱 데이터로 채움 · 칸을 고치면 바로 반영" : "직접 고친 내용") : "이 조건에 맞는 자료가 없습니다 — 지역·평형을 바꾸거나 직접 적으세요";
   tpPaintCard();
 }
 function tpPaintCard() {
   var box = document.getElementById("tp-cards"); if (!box) return;
-  var t = TPL[TP.id], d = TP.data || tpData(), html = "";
-  try { html = t.render(d); } catch (e) { html = '<p class="hint">그리기 오류: ' + tpE(e.message) + "</p>"; }
-  box.innerHTML = '<div class="chcardWrap"><div class="tp-scale">' + html + '</div><button type="button" class="btn sm ghost" data-chsave="양식_' + tpE(t.nm) + '">이미지 저장</button></div>';
+  var t = TPL[TP.id], P = TP.pages || [tpData()];
+  box.innerHTML = P.map(function (d, i) { var html = ""; try { html = t.render(d); } catch (e) { html = '<p class="hint">그리기 오류: ' + tpE(e.message) + "</p>"; } return '<div class="chcardWrap' + (i === TP.pg ? " on" : "") + '" data-tppg="' + i + '"><div class="tp-scale">' + html + '</div><button type="button" class="btn sm ghost" data-chsave="' + tpE((TPR[TP.r] ? TPR[TP.r].nm : t.nm) + (P.length > 1 ? "_" + (i + 1) : "")) + '">이미지 저장</button></div>'; }).join("");
+  var cnt = document.getElementById("tp-cnt"); if (cnt) cnt.textContent = P.length + "장";
   tpFitLater(box);
-  var bad = document.getElementById("tp-bad"); if (bad) bad.innerHTML = TP.bad.length ? '<b style="color:#e5484d">재료에 없는 숫자:</b> ' + TP.bad.map(tpE).join(", ") + " — 카드에서 확인하세요" : "";
+  var cap = document.getElementById("tp-cap"); if (cap) cap.value = tpCaption();
+  setTimeout(function () { var cut = box.querySelectorAll("[data-cut]").length, bad = document.getElementById("tp-bad"); if (bad) bad.innerHTML = (TP.bad.length ? '<b style="color:#e5484d">재료에 없는 숫자:</b> ' + TP.bad.map(tpE).join(", ") + " — 카드에서 확인하세요<br>" : "") + (cut ? '<b style="color:#c2410c">' + cut + "줄이 자리가 모자라 빠졌습니다</b> — '한 장에 줄'을 줄이면 장이 늘어나며 모두 담깁니다" : ""); }, 700);
 }
-/* 제목 한 줄 맞춤 + 본문 넘치면 글자 줄이기 */
+/* ── AI 채우기: 재료 = 지금 장의 칸 내용 + 참고 글. 양식의 칸 설명대로 JSON, 숫자는 재료에 있는 것만 통과 ── */
+function tpFacts() {
+  var d = tpData(), F = [], n = 0, add = function (s) { s = String(s || "").trim(); if (s) F.push({ id: "F" + (++n), text: s.slice(0, 300) }); };
+  Object.keys(d).forEach(function (k) { if (k.charAt(0) === "_") return; var v = d[k]; if (Array.isArray(v)) v.forEach(function (r) { add(Array.isArray(r) ? r.join(" | ") : r); }); else add(v); });
+  var ex = document.getElementById("tp-extra"); if (ex && ex.value.trim() && typeof rcFactsFromText === "function") rcFactsFromText(ex.value).forEach(function (f) { add("[참고] " + f.text); });
+  return F.slice(0, 80);
+}
+function tpAi() {
+  var msg = document.getElementById("tp-aimsg"), t = TPL[TP.id]; if (!msg) return;
+  if (typeof rcPost !== "function" || typeof OWNER === "undefined" || !OWNER) { msg.textContent = "주인 모드에서만 됩니다."; return; }
+  var F = tpFacts(); if (!F.length) { msg.textContent = "재료가 없습니다. 앱 데이터로 채우거나 참고 글을 넣으세요."; return; }
+  msg.textContent = "채우는 중…";
+  rcPost("/api/ai", { mode: "fill", template: { id: TP.id, name: t.nm, fields: t.fields.map(function (f) { return { key: f[0], label: f[1], kind: f[2], example: f[3] }; }) }, facts: F, note: (document.getElementById("tp-note") || {}).value || "" }).then(function (j) {
+    var out = j.fill || {}, old = tpData(), d = {}; TP.bad = [];
+    ["_cat", "_off", "badge"].forEach(function (k) { if (old[k] != null) d[k] = old[k]; });
+    var set = typeof rcFactNums === "function" ? rcFactNums(F) : null;
+    t.fields.forEach(function (f) { var v = out[f[0]]; if (v == null) { d[f[0]] = f[2] === "text" ? "" : []; return; } if (f[2] === "text") d[f[0]] = String(v); else if (f[2] === "rows") d[f[0]] = tpRows(Array.isArray(v) ? v.map(function (r) { return Array.isArray(r) ? r.join(" | ") : String(r); }) : String(v)); else d[f[0]] = tpLines(Array.isArray(v) ? v.map(String) : String(v));
+      if (set && typeof rcCheckText === "function") { var txt = Array.isArray(d[f[0]]) ? d[f[0]].map(function (r) { return Array.isArray(r) ? r.join(" ") : r; }).join(" ") : d[f[0]]; rcCheckText(txt, set).forEach(function (x) { if (TP.bad.indexOf(x) < 0) TP.bad.push(x); }); } });
+    TP.pages[TP.pg] = d; TP.auto = false; tpPaint();
+    msg.textContent = "채웠습니다(" + (j.model || "") + ")" + (TP.bad.length ? " · 재료에 없는 숫자 " + TP.bad.length + "개 — 빨간 표시 확인" : " · 숫자 모두 재료와 일치");
+  }, function (e) { msg.textContent = "실패: " + e.message; });
+}
 function tpFit(root) {
   Array.prototype.forEach.call(root.querySelectorAll(".tp-card"), function (c0) {
     var c = c0.cloneNode(true); c.classList.add("chfixed"); c.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden"; document.body.appendChild(c);
@@ -8026,35 +8239,54 @@ function tpFit(root) {
       var over = function () { var bb = body.getBoundingClientRect().bottom, m = 0; Array.prototype.forEach.call(body.querySelectorAll("tr, li, .tp-li, .tp-bar, .tp-cell, .tp-tli, p"), function (x) { if (x.style.display !== "none") m = Math.max(m, x.getBoundingClientRect().bottom); }); return m > bb + 0.5 || body.scrollHeight > body.clientHeight + 1; };
       ["tp-t1", "tp-t2", "tp-t3"].forEach(function (k) { if (over()) c.classList.add(k); });
       /* 그래도 넘치면 맨 아래 줄부터 접는다(줄 중간이 잘린 채 저장되지 않게) */
-      var rows = Array.prototype.slice.call(body.querySelectorAll("tr:not(:first-child), .tp-li, .tp-bar, .tp-tli, .tp-pins li"));
+      var rows = Array.prototype.slice.call(body.querySelectorAll("table:not(.tp-cal) tr:not(:first-child), .tp-li, .tp-bar, .tp-tli, .tp-pins li, .tp-ldr"));
       var cut = 0; while (over() && rows.length > 2) { var r = rows.pop(); r.style.display = "none"; r.setAttribute("data-cut", "1"); cut++; }
-      var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*"); for (var i = 0; i < src.length && i < dst.length; i++) dst[i].style.display = src[i].style.display;
+      var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*"); for (var i = 0; i < src.length && i < dst.length; i++) { dst[i].style.cssText = src[i].style.cssText; if (src[i].hasAttribute("data-cut")) dst[i].setAttribute("data-cut", "1"); else dst[i].removeAttribute("data-cut"); }
       c0.className = c.className.replace(/\bchfixed\b/, "").trim(); var t0 = c0.querySelector(".tp-title"); if (t0 && ti) t0.style.fontSize = ti.style.fontSize;
     } catch (e) {} finally { c.remove(); }
   });
 }
 function tpFitLater(root) { tpFit(root); setTimeout(function () { tpFit(root); }, 400); if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { tpFit(root); }); }
-/* ── AI 채우기: 재료 = 지금 칸 내용 + 참고 글. 양식의 칸 설명을 그대로 보내 JSON 으로 받고, 숫자는 재료에 있는 것만 통과 ── */
-function tpFacts() {
-  var d = TP.data || tpData(), F = [], n = 0, add = function (s) { s = String(s || "").trim(); if (s) F.push({ id: "F" + (++n), text: s.slice(0, 300) }); };
-  Object.keys(d).forEach(function (k) { var v = d[k]; if (Array.isArray(v)) v.forEach(function (r) { add(Array.isArray(r) ? r.join(" | ") : r); }); else add(v); });
-  var ex = document.getElementById("tp-extra"); if (ex && ex.value.trim() && typeof rcFactsFromText === "function") rcFactsFromText(ex.value).forEach(function (f) { add("[참고] " + f.text); });
-  return F.slice(0, 80);
+/* 모든 장의 내용 → 릴스 재료 */
+function tpAllFacts() {
+  var F = [], n = 0; (TP.pages || []).forEach(function (d) { Object.keys(d).forEach(function (k) { if (k.charAt(0) === "_" || k === "badge") return; var v = d[k]; (Array.isArray(v) ? v : [v]).forEach(function (r) { var s = String(Array.isArray(r) ? r.join(" | ") : r || "").trim(); if (s && F.length < 80) F.push({ id: "F" + (++n), text: s.slice(0, 300) }); }); }); });
+  return F;
 }
-function tpAi() {
-  var msg = document.getElementById("tp-aimsg"), t = TPL[TP.id]; if (!msg) return;
-  if (typeof rcPost !== "function" || typeof OWNER === "undefined" || !OWNER) { msg.textContent = "주인 모드에서만 됩니다."; return; }
-  var F = tpFacts(); if (!F.length) { msg.textContent = "재료가 없습니다. 먼저 앱 데이터로 채우거나 참고 글을 넣으세요."; return; }
-  msg.textContent = "채우는 중…"; TP.busy = true;
-  rcPost("/api/ai", { mode: "fill", template: { id: TP.id, name: t.nm, fields: t.fields.map(function (f) { return { key: f[0], label: f[1], kind: f[2], example: f[3] }; }) }, facts: F, note: (document.getElementById("tp-note") || {}).value || "" }).then(function (j) {
-    var out = j.fill || {}, d = {}; TP.bad = [];
-    var set = typeof rcFactNums === "function" ? rcFactNums(F) : null;
-    t.fields.forEach(function (f) { var v = out[f[0]]; if (v == null) { d[f[0]] = f[2] === "text" ? "" : []; return; } if (f[2] === "text") d[f[0]] = String(v); else if (f[2] === "rows") d[f[0]] = tpRows(Array.isArray(v) ? v.map(function (r) { return Array.isArray(r) ? r.join(" | ") : String(r); }) : String(v)); else d[f[0]] = tpLines(Array.isArray(v) ? v.map(String) : String(v));
-      if (set && typeof rcCheckText === "function") { var txt = Array.isArray(d[f[0]]) ? d[f[0]].map(function (r) { return Array.isArray(r) ? r.join(" ") : r; }).join(" ") : d[f[0]]; rcCheckText(txt, set).forEach(function (x) { if (TP.bad.indexOf(x) < 0) TP.bad.push(x); }); } });
-    TP.data = d; TP.auto = false; TP.busy = false; tpPaint();
-    msg.textContent = "채웠습니다(" + (j.model || "") + ")" + (TP.bad.length ? " · 재료에 없는 숫자 " + TP.bad.length + "개 — 빨간 표시 확인" : " · 숫자 모두 재료와 일치");
-  }, function (e) { TP.busy = false; msg.textContent = "실패: " + e.message; });
+/* 올릴 글: 제목 · 부제 · 핵심 줄(장 순서대로 최대 12줄) · 출처 · 해시태그 — 숫자는 카드 칸 그대로 */
+var TP_TAGS = { deal: ["#아파트실거래", "#실거래가", "#신고가", "#대장아파트"], market: ["#부동산시장", "#집값흐름", "#아파트시세"], subs: ["#청약", "#청약일정", "#분양"], policy: ["#부동산정책", "#부동산대책"], loan: ["#정책대출", "#디딤돌", "#주담대"], transit: ["#GTX", "#교통호재"], term: ["#부동산공부", "#부동산상식"], issue: ["#부동산이슈"] };
+function tpCaption() {
+  var P = TP.pages || []; if (!P.length) return "";
+  var d0 = P[0], t = TPL[TP.id], cat = d0._cat || t.cat, L = [];
+  if (d0.title) L.push(String(d0.title)); if (d0.sub) L.push(String(d0.sub)); L.push("");
+  var cols = tpRows(d0.cols || "")[0] || [], lines = [];
+  P.forEach(function (d) { tpRows(d.rows || d.items || []).forEach(function (r) { if (lines.length < 12) lines.push("· " + r.filter(function (x) { return String(x || "").trim(); }).map(function (x) { return String(x).split(/\s*;\s*/)[0]; }).join(" · ")); }); tpLines(d.bullets || []).forEach(function (b) { if (lines.length < 12) lines.push("· " + b); }); });
+  if (lines.length) { L = L.concat(lines); L.push(""); }
+  L.push("전체는 카드 " + P.length + "장에 정리했습니다. 저장해 두고 다음에 같은 숫자와 비교해 보세요.");
+  if (d0.src) L.push("출처: " + d0.src);
+  L.push("※ 참고 자료이며 투자 권유가 아닙니다."); L.push("");
+  L.push((TP_TAGS[cat] || []).concat(["#부동산", "#아파트", "#우상향연구소"]).join(" "));
+  return L.join("\n");
 }
+
+/* ══ v9.24 콘텐츠 만들기 — 네 화면을 한 줄로 잇는 상단 바 ══
+   지금 시장(보기) → 채널 브리핑(오늘 올리기) → 카드 만들기(4:5) → 릴스 카드(9:16). 각 화면 맨 위에 같은 바가 붙는다. */
+var STUDIO = [["brief", "지금 시장", "오늘 시장 보기"], ["channel", "채널 브리핑", "오늘 올릴 코너"], ["tpl", "카드 만들기", "4:5 카드"], ["reel", "릴스 카드", "9:16 한 장"]];
+function studioBar(id) {
+  var isS = STUDIO.some(function (s) { return s[0] === id; });
+  document.body.classList.toggle("stu-on", isS);   /* 위 알약 줄은 숨기고(뒤로 가기만) 이 바 하나로 오간다 */
+  if (!isS) return;
+  var sec = document.getElementById("tab-" + id); if (!sec) return;
+  var bar = null; for (var i = 0; i < sec.children.length; i++) if (sec.children[i].classList.contains("stu-bar")) bar = sec.children[i];
+  if (!bar) { bar = document.createElement("nav"); bar.className = "stu-bar"; sec.insertBefore(bar, sec.firstChild);
+    bar.addEventListener("click", function (ev) { var b = ev.target.closest("[data-stu]"); if (b && b.dataset.stu !== id) { showTab(b.dataset.stu); window.scrollTo(0, 0); } }); }
+  bar.innerHTML = STUDIO.map(function (s, k) { return '<button type="button" data-stu="' + s[0] + '" class="' + (s[0] === id ? "on" : "") + '"><i>' + (k + 1) + "</i><b>" + s[1] + "</b><small>" + s[2] + "</small></button>"; }).join("");
+}
+document.addEventListener("click", function (ev) {
+  var a = ev.target.closest && ev.target.closest('a[href^="#"]'); if (!a) return;
+  var id = a.getAttribute("href").slice(1); if (!STUDIO.some(function (s) { return s[0] === id; })) return;
+  if (!a.closest("#tab-brief, #tab-channel, #tab-tpl, #tab-reel, #tab-subs")) return;
+  ev.preventDefault(); showTab(id); window.scrollTo(0, 0);
+});
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

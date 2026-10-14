@@ -10,7 +10,8 @@
    node 18+ */
 var fs = require("fs"), path = require("path");
 var ROOT = path.join(__dirname, "..");
-var KOSIS = process.env.KOSIS_KEY || "", RONE = process.env.RONE_KEY || "", DATAGO = process.env.DATA_GO_KEY || "";
+var KOSIS = process.env.KOSIS_KEY || "", RONE = process.env.RONE_KEY || "", DATAGO = process.env.DATA_GO_KEY || "", FSS = process.env.FSS_KEY || "";
+var FSS_BASE = process.env.FSS_BASE || "https://finlife.fss.or.kr/finlifeapi/";
 var KOSIS_BASE = process.env.KOSIS_BASE || "https://kosis.kr/openapi/", RONE_BASE = process.env.RONE_BASE || "https://www.reb.or.kr/r-one/openapi/", ODC_BASE = process.env.ODC_BASE || "https://api.odcloud.kr/api/";
 var CODES_P = path.join(ROOT, "data", "daily_codes.json"), DEBUG_P = path.join(ROOT, "data", "daily_debug.json"), OUT_P = path.join(ROOT, "daily_data.json");
 var DBG = { builtAt: new Date().toISOString(), steps: [] }, CALLS = 0;
@@ -317,7 +318,74 @@ function subsCompare(items) {
   });
   log("분양가 비교 " + n + "단지" + (miss.length ? " · 못 맞춘 곳 " + miss.length + " (" + miss.slice(0, 5).join(", ") + ")" : ""));
 }
-if (require.main !== module) module.exports = { subsCompare: subsCompare, subsCode: subsCode };
+/* ── ④ 금리 비교 (v9.30) — 금감원 금융상품한눈에 오픈API (FSS_KEY). 주 1회(월요일 새벽, 또는 지난 수집이 6일 넘었을 때)만 부른다.
+   주담대(아파트 담보, 은행·보험) · 전세대출(은행) · 정기예금·적금 12개월(은행·저축은행). 금융사별 최저·최고, 지난주 대비 변화. 공시 금리라 회사가 바꿔 올려야 바뀐다. */
+var RATES_P = path.join(ROOT, "data", "rates_hist.json");
+function rnum(v) { var n = num(v); return n != null && n > 0 && n < 30 ? n : null; }
+async function fssAll(svc, grp) {
+  var base = [], opt = [], page = 1, max = 1;
+  do {
+    var j = await getJson(FSS_BASE + svc + ".json?auth=" + encodeURIComponent(FSS) + "&topFinGrpNo=" + grp + "&pageNo=" + page);
+    var r = j && j.result; if (!r || (r.err_cd && r.err_cd !== "000")) { log("금리 " + svc + "/" + grp + ": " + JSON.stringify(r || j).slice(0, 160)); DBG["fss_" + svc + grp] = r || j; break; }
+    base = base.concat(r.baseList || []); opt = opt.concat(r.optionList || []); max = Number(r.max_page_no) || 1; page++;
+  } while (page <= max && page <= 5);
+  return { base: base, opt: opt };
+}
+function fssByCo(D, pick) {   /* pick(option, base) → {lo, hi} 또는 null. 금융사별로 모은다 */
+  var B = {}; D.base.forEach(function (b) { B[b.fin_co_no + "|" + b.fin_prdt_cd] = b; });
+  var C = {};
+  D.opt.forEach(function (o) {
+    var b = B[o.fin_co_no + "|" + o.fin_prdt_cd]; if (!b) return; var v = pick(o, b); if (!v) return;
+    var k = String(o.fin_co_no), c = C[k] || (C[k] = { co: b.kor_co_nm, no: k, lo: null, hi: null, n: 0, prd: {}, dcls: b.dcls_month });
+    if (v.lo != null && (c.lo == null || v.lo < c.lo)) { c.lo = v.lo; c.loPrd = b.fin_prdt_nm; c.loT = v.t || ""; }
+    if (v.hi != null && (c.hi == null || v.hi > c.hi)) { c.hi = v.hi; c.hiPrd = b.fin_prdt_nm; c.hiT = v.t || ""; }
+    c.prd[b.fin_prdt_cd] = 1; if (b.dcls_month > (c.dcls || "")) c.dcls = b.dcls_month;
+  });
+  return Object.keys(C).map(function (k) { var c = C[k]; c.n = Object.keys(c.prd).length; delete c.prd; return c; }).filter(function (c) { return c.lo != null || c.hi != null; });
+}
+async function rates() {
+  if (!FSS) { log("FSS_KEY 없음 → 금리 비교 건너뜀"); return null; }
+  var H = readJson(RATES_P, { v: 1, snaps: [] }), today = kst(), last = H.snaps.length ? H.snaps[H.snaps.length - 1] : null;
+  var dDiff = function (a, b) { var f = function (n) { return Date.UTC(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100); }; return Math.round((f(a) - f(b)) / 86400000); };
+  var wd = new Date(Date.now() + 9 * 3600000).getUTCDay();
+  if (last && last.at !== today && !(wd === 1 || dDiff(today, last.at) >= 7) && !process.env.RATES_FORCE) { log("금리 비교: 이번 주 수집분 유지(" + last.at + ")"); return rSummary(H); }
+  if (last && last.at === today && !process.env.RATES_FORCE) return rSummary(H);
+  var snap = { at: today, src: "금융감독원 금융상품한눈에" };
+  try {
+    var mg = [await fssAll("mortgageLoanProductsSearch", "020000"), await fssAll("mortgageLoanProductsSearch", "050000")];
+    DBG.fssMortgageSample = { base: mg[0].base.slice(0, 1), opt: mg[0].opt.slice(0, 2) };
+    var apt = function (o) { return /아파트/.test(o.mrtg_type_nm || "") && !/외/.test(o.mrtg_type_nm || "") ? { lo: rnum(o.lend_rate_min), hi: rnum(o.lend_rate_max), t: (o.lend_rate_type_nm || "") + (o.rpay_type_nm ? "·" + o.rpay_type_nm : "") } : null; };
+    snap.mortgage = fssByCo(mg[0], apt).map(function (c) { c.grp = "은행"; return c; }).concat(fssByCo(mg[1], apt).map(function (c) { c.grp = "보험"; return c; }));
+    var rh = await fssAll("rentHouseLoanProductsSearch", "020000");
+    DBG.fssRentSample = { base: rh.base.slice(0, 1), opt: rh.opt.slice(0, 2) };
+    snap.jeonse = fssByCo(rh, function (o) { return { lo: rnum(o.lend_rate_min), hi: rnum(o.lend_rate_max), t: (o.lend_rate_type_nm || "") + (o.rpay_type_nm ? "·" + o.rpay_type_nm : "") }; }).map(function (c) { c.grp = "은행"; return c; });
+    var dep = function (o) { return Number(o.save_trm) === 12 ? { lo: rnum(o.intr_rate), hi: rnum(o.intr_rate2) || rnum(o.intr_rate), t: o.intr_rate_type_nm || "" } : null; };
+    var dp = [await fssAll("depositProductsSearch", "020000"), await fssAll("depositProductsSearch", "030300")];
+    DBG.fssDepositSample = { base: dp[0].base.slice(0, 1), opt: dp[0].opt.slice(0, 2) };
+    snap.deposit = fssByCo(dp[0], dep).map(function (c) { c.grp = "은행"; return c; }).concat(fssByCo(dp[1], dep).map(function (c) { c.grp = "저축은행"; return c; }));
+    var sv = [await fssAll("savingProductsSearch", "020000"), await fssAll("savingProductsSearch", "030300")];
+    snap.saving = fssByCo(sv[0], dep).map(function (c) { c.grp = "은행"; return c; }).concat(fssByCo(sv[1], dep).map(function (c) { c.grp = "저축은행"; return c; }));
+  } catch (e) { log("금리 수집 실패: " + e.message); }
+  var ok = ["mortgage", "jeonse", "deposit", "saving"].filter(function (k) { return snap[k] && snap[k].length; });
+  log("금리 비교: " + ok.map(function (k) { return k + " " + snap[k].length + "곳"; }).join(" · "));
+  if (!ok.length) return last ? rSummary(H) : null;   /* 실패하면 지난 수집분을 그대로 쓴다 */
+  H.snaps = H.snaps.filter(function (x) { return x.at !== today; }); H.snaps.push(snap); H.snaps = H.snaps.slice(-13);
+  fs.mkdirSync(path.join(ROOT, "data"), { recursive: true }); fs.writeFileSync(RATES_P, JSON.stringify(H));
+  return rSummary(H);
+}
+/* 최신 수집 + 6일 이상 앞선 수집과 금융사별 비교 → 앱·카드용 요약 */
+function rSummary(H) {
+  var S = H.snaps, cur = S[S.length - 1]; if (!cur) return null;
+  var prev = null; for (var i = S.length - 2; i >= 0; i--) { var a = cur.at, b = S[i].at, d = (Date.UTC(Math.floor(a / 10000), Math.floor(a / 100) % 100 - 1, a % 100) - Date.UTC(Math.floor(b / 10000), Math.floor(b / 100) % 100 - 1, b % 100)) / 86400000; if (d >= 6) { prev = S[i]; break; } }
+  var out = { asOf: cur.at, prevAt: prev ? prev.at : null, src: cur.src };
+  ["mortgage", "jeonse", "deposit", "saving"].forEach(function (k) {
+    var L = (cur[k] || []).map(function (c) { var o = Object.assign({}, c); return o; }), P = {}; ((prev && prev[k]) || []).forEach(function (c) { P[c.no] = c; });
+    L.forEach(function (c) { var p = P[c.no]; if (!p) return; if (c.lo != null && p.lo != null) c.dLo = Math.round((c.lo - p.lo) * 100) / 100; if (c.hi != null && p.hi != null) c.dHi = Math.round((c.hi - p.hi) * 100) / 100; });
+    out[k] = L;
+  });
+  return out;
+}
+if (require.main !== module) module.exports = { subsCompare: subsCompare, subsCode: subsCode, rSummary: rSummary, fssByCo: fssByCo };
 
 if (require.main === module) (async function () {
   var out = { v: 1, builtAt: new Date().toISOString(), asOf: kst(), errors: [] };
@@ -326,6 +394,7 @@ if (require.main === module) (async function () {
   await step("index", priceIndex);
   await step("weekly", weekly);
   await step("subs", subs);
+  await step("rates", rates);
   out.calls = CALLS;
   fs.writeFileSync(OUT_P, JSON.stringify(out));
   fs.mkdirSync(path.join(ROOT, "data"), { recursive: true });

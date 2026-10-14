@@ -2551,7 +2551,7 @@ body.stu-wide #tab-reel .rl-host{width:auto;left:0;transform:none}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.27</span>
+    <span class="ver">v9.28</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -3711,7 +3711,7 @@ function bfLoc(t) { return escHtml(kbLabel(t.k)) + (t.dong ? " " + escHtml(t.don
 function bfShowText() {
   var ta = document.getElementById("bf-text"); if (!ta) return;
   var m = BRIEF.tmode || "insta", v = (BRIEF.texts || {})[m] || "";
-  ta.value = v; var ln = document.getElementById("bf-tlen"); if (ln) ln.textContent = v.length + "자" + (m === "threads" ? " / 500" : m === "insta" ? " / 2,200" : "");
+  ta.value = v; var ln = document.getElementById("bf-tlen"); if (ln) ln.textContent = (m === "threads" && typeof thrMainLen === "function" ? "본문 " + thrMainLen(v) + "자 / 500 · 답글 2개 포함" : v.length + "자" + (m === "threads" ? " / 500" : m === "insta" ? " / 2,200" : ""));
 }
 function bfLiveCardList(per) {
   var L = BRIEF.last, sel = bfSelected(), on = function (k) { return sel.indexOf(k) >= 0; };
@@ -4066,7 +4066,7 @@ function chShowText() {
   var ta = document.getElementById("ch-text"); if (!ta) return;
   var m = CH.tmode || "insta", T = CH.texts || {}, v = T[m] || T.raw || "";
   ta.value = v;
-  var ln = document.getElementById("ch-tlen"); if (ln) ln.textContent = v.length + "자" + (m === "threads" ? " / 500" : m === "insta" ? " / 2,200" : "");
+  var ln = document.getElementById("ch-tlen"); if (ln) ln.textContent = (m === "threads" && typeof thrMainLen === "function" ? "본문 " + thrMainLen(v) + "자 / 500 · 답글 2개 포함" : v.length + "자" + (m === "threads" ? " / 500" : m === "insta" ? " / 2,200" : ""));
 }
 /* 카드 범위 칩 — 지금 시장과 같은 묶음(BRIEF_GROUPS) */
 function chPaintScope() {
@@ -6147,6 +6147,7 @@ function chTexts(tab, cards, scopeNm) {
   R.push(a0);
   R.push("전체 카드와 매일 갱신되는 숫자는 프로필 링크에서. " + src + " · 투자 권유 아님");
   R.push(tags);
+  if (typeof thrFromCards === "function") { try { var th2 = thrFromCards(tab, C, src, head.date || (k.m + "월 " + k.d + "일")); if (th2) th = th2; } catch (e) { if (window.console) console.error(e); } }   /* v9.28 스레드 새 틀 */
   return { insta: I.join("\n"), threads: th, reels: R.join("\n") };
 }
 
@@ -8683,7 +8684,7 @@ function buildTpl(sec) {
       '<div class="card tp-right"><div class="tpx-bar"><h3>미리보기</h3><small class="hint" id="tp-cnt"></small></div>' +
       '<div class="tpx-tools"><button type="button" class="btn sm" data-tpzip="1">전부 저장 ZIP</button><button type="button" class="btn sm ghost" data-tpcopy="1">글 복사</button><button type="button" class="btn sm ghost" data-tpreel="1">릴스 카드로</button></div>' +
       '<div id="tp-bad" class="hint"></div><div class="chcards tpx-cards" id="tp-cards"></div>' +
-      '<details class="tp-cap" id="tp-capw"><summary>올릴 글 (캡션) <small class="hint" id="tp-capmsg"></small></summary><textarea class="chpost" id="tp-cap" rows="10" spellcheck="false"></textarea></details></div></div>';
+      '<details class="tp-cap" id="tp-capw"><summary>올릴 글 <small class="hint" id="tp-capmsg"></small></summary><div class="seg tp-capseg"><button type="button" data-tpcm="insta" class="on">인스타 글</button><button type="button" data-tpcm="threads">스레드 글</button></div><textarea class="chpost" id="tp-cap" rows="10" spellcheck="false"></textarea></details></div></div>';
   sec.addEventListener("click", function (ev) {
     var r = ev.target.closest("[data-tpr]"); if (r) { TP.r = r.dataset.tpr; var R = TPR[TP.r]; TP.id = R.tpls ? R.tpls[0] : (TP.id && TPL[TP.id] ? TP.id : "lineTable"); TP.o.per = R.per || 12; tprRebuild(); }
     var t = ev.target.closest("[data-tptpl]"); if (t) { TP.id = t.dataset.tptpl; tprRebuild(); }
@@ -8698,6 +8699,7 @@ function buildTpl(sec) {
     if (ev.target.closest("[data-tppsave]")) tpSavePreset();
     if (ev.target.closest("[data-tpicongen]")) tpIconGen();
     if (ev.target.closest("[data-tppload]") && typeof asPicker === "function") asPicker({ title: "저장한 카드 양식", kinds: ["preset"], filter: function (x) { return x.data && x.data.r; }, query: (TPR[TP.r] ? TPR[TP.r].nm : "") + " " + (TPL[TP.id] ? TPL[TP.id].nm : ""), onPick: tpApplyPreset });
+    var tcm = ev.target.closest("[data-tpcm]"); if (tcm) { TP.capMode = tcm.dataset.tpcm; tpCapPaint(); document.getElementById("tp-capw").open = true; }
     if (ev.target.closest("[data-tpcopy]") && typeof chCopy === "function") { chCopy(document.getElementById("tp-cap").value); var cm = document.getElementById("tp-capmsg"); if (cm) cm.textContent = "복사했습니다"; }
     if (ev.target.closest("[data-tpreel]") && typeof rcOpen === "function") { var F = tpAllFacts(); if (!F.length) { alert("재료가 없습니다."); return; } var d0 = TP.pages[0] || {}; rcOpen({ topic: d0.title || "", facts: F, basis: d0.src || "", purpose: "카드 만들기 '" + (TPR[TP.r] ? TPR[TP.r].nm : "") + "' 상세 카드(게시판)로 유입" }); }
     if (ev.target.closest("[data-tpzip]") && typeof chSaveAllZip === "function") chSaveAllZip(document.getElementById("tp-cards"), "card").then(function () { if (typeof progClose === "function") progClose(); }, function (e) { if (typeof progClose === "function") progClose(); alert("ZIP 저장 실패: " + e.message); });
@@ -8796,7 +8798,7 @@ function tpPaintCard() {
   box.innerHTML = P.map(function (d, i) { var html = ""; try { html = t.render(d); } catch (e) { html = '<p class="hint">그리기 오류: ' + tpE(e.message) + "</p>"; } return '<div class="chcardWrap' + (i === TP.pg ? " on" : "") + '" data-tppg="' + i + '"><div class="tp-scale">' + html + '</div><button type="button" class="btn sm ghost" data-chsave="' + tpE((TPR[TP.r] ? TPR[TP.r].nm : t.nm) + (P.length > 1 ? "_" + (i + 1) : "")) + '">이미지 저장</button></div>'; }).join("");
   var cnt = document.getElementById("tp-cnt"); if (cnt) cnt.textContent = P.length + "장";
   tpFitLater(box);
-  var cap = document.getElementById("tp-cap"); if (cap) cap.value = tpCaption();
+  tpCapPaint();
   setTimeout(function () { var cut = box.querySelectorAll("[data-cut]").length, bad = document.getElementById("tp-bad"); if (bad) bad.innerHTML = (TP.bad.length ? '<b style="color:#e5484d">재료에 없는 숫자:</b> ' + TP.bad.map(tpE).join(", ") + " — 카드에서 확인하세요<br>" : "") + (cut ? '<b style="color:#c2410c">' + cut + "줄이 자리가 모자라 빠졌습니다</b> — '한 장에 줄'을 줄이면 장이 늘어나며 모두 담깁니다" : ""); }, 700);
 }
 /* ── AI 채우기: 재료 = 지금 장의 칸 내용 + 참고 글. 양식의 칸 설명대로 JSON, 숫자는 재료에 있는 것만 통과 ── */
@@ -8846,6 +8848,14 @@ function tpAllFacts() {
 }
 /* 올릴 글: 제목 · 부제 · 핵심 줄(장 순서대로 최대 12줄) · 출처 · 해시태그 — 숫자는 카드 칸 그대로 */
 var TP_TAGS = { deal: ["#아파트실거래", "#실거래가", "#신고가", "#대장아파트"], market: ["#부동산시장", "#집값흐름", "#아파트시세"], subs: ["#청약", "#청약일정", "#분양"], policy: ["#부동산정책", "#부동산대책"], loan: ["#정책대출", "#디딤돌", "#주담대"], transit: ["#GTX", "#교통호재"], term: ["#부동산공부", "#부동산상식"], issue: ["#부동산이슈"] };
+/* 올릴 글 — 인스타(기존) · 스레드(v9.28 본문+답글 2개) */
+function tpCapPaint() {
+  var cap = document.getElementById("tp-cap"); if (!cap) return;
+  var m = TP.capMode || "insta", v = m === "threads" && typeof thrFromTpl === "function" ? thrFromTpl() : tpCaption();
+  cap.value = v; cap.rows = m === "threads" ? 16 : 10;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-tpcm]"), function (b) { b.classList.toggle("on", b.dataset.tpcm === m); });
+  var cm = document.getElementById("tp-capmsg"); if (cm) cm.textContent = m === "threads" && typeof thrMainLen === "function" ? "본문 " + thrMainLen(v) + "자 / 500 · 답글 2개 포함" : v.length + "자";
+}
 function tpCaption() {
   var P = TP.pages || []; if (!P.length) return "";
   var d0 = P[0], t = TPL[TP.id], cat = d0._cat || t.cat, L = [];
@@ -8900,6 +8910,199 @@ document.addEventListener("click", function (ev) {
   if (!a.closest("#tab-brief, #tab-channel, #tab-tpl, #tab-reel, #tab-subs")) return;
   ev.preventDefault(); showTab(id); window.scrollTo(0, 0);
 });
+
+/* ══ v9.28 스레드 글 — 본문(500자 안) + 답글 1(반대 숫자·한계) + 답글 2(질문 하나) ══
+   본문 = 초보자가 이미 하는 질문 1줄 → 데이터 리스트 5줄 이하(한 방향 정렬·단위·소수점 통일) → 해석 1~2줄 → 기준일
+   숫자는 카드(또는 카드 만들기 칸)에 있는 값만 쓴다. 억·만 섞인 값은 억으로 바꿔 소수 둘째 자리까지 맞춘다.
+   존댓말 · 단정하되 과장 없이 · 이모지 없음 · 반말 도발 없음. 인스타 글은 건드리지 않는다. */
+var THR_SEP = "\n\n―――――― 답글 1 (이어서 달기)\n", THR_SEP2 = "\n\n―――――― 답글 2\n";
+var THR_UNIT = /^([+\-−]?)((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(억원|억|만원|만|%p|%|배|건|곳|세대|가구|명|원|㎡|평|:1|위|년|개|호)?$/;
+function thrTxt(h) { var d = document.createElement("div"); d.innerHTML = String(h == null ? "" : h).replace(/<br\s*\/?>/gi, " ").replace(/<small[^>]*>.*?<\/small>/gi, ""); return (d.textContent || "").replace(/\s+/g, " ").trim(); }
+/* 값 하나 → {v, unit, dec, plus} (날짜·범위·문장은 null) */
+function thrNum(s) {
+  s = String(s || "").replace(/\s+/g, " ").trim(); var m = THR_UNIT.exec(s); if (!m) return null;
+  var n = Number(m[2].replace(/,/g, "")); if (!isFinite(n)) return null;
+  var neg = m[1] === "-" || m[1] === "−", u = m[3] || "", dec = (m[2].split(".")[1] || "").length;
+  if (u === "억원") u = "억"; if (u === "만원") u = "만";
+  return { v: neg ? -n : n, unit: u, dec: dec, plus: m[1] === "+" };
+}
+/* 칸 하나에서 숫자 찾기 — "래미안원베일리 ; 56.3억 ; 2023년" 처럼 ; 로 나뉜 칸도 본다 */
+function thrCell(c) {
+  var toks = String(c || "").split(/\s*;\s*/);
+  for (var i = 0; i < toks.length; i++) { var n = thrNum(toks[i]); if (n) { n.label = i > 0 ? toks[0] : ""; return n; } }
+  return null;
+}
+function thrFmt(v, unit, dec, plus) {
+  var a = Math.abs(v).toFixed(dec), p = a.split("."); p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return (v < 0 ? "-" : plus && v > 0 ? "+" : "") + p.join(".") + unit;
+}
+/* rows: [[이름, 칸1, 칸2, …]], cols: 머리 → 가장 알맞은 숫자 열 하나로 리스트 */
+function thrPick(rows, cols, cfg) {
+  cfg = cfg || {};
+  rows = (rows || []).filter(function (r) { return r && r.length >= 2 && String(r[0] || "").trim(); });
+  var best = null, W = Math.max.apply(null, rows.map(function (r) { return r.length; }).concat([0]));
+  var nm = function (r, n) { var b = (cfg.name || [0]).map(function (k) { return thrTxt(String(r[k] || "").split(/\s*;\s*/)[0]); }).filter(Boolean).join(" "); return b + (n.label ? " " + thrTxt(n.label) : ""); };
+  for (var j = 1; j < W; j++) {
+    if (cfg.col != null && j !== cfg.col) continue;
+    var P = [];
+    rows.forEach(function (r) { var n = thrCell(r[j]); if (n) P.push({ name: nm(r, n), n: n }); });
+    if (P.length < 3) continue;
+    var units = {}; P.forEach(function (p) { units[p.n.unit] = 1; }); var U = Object.keys(units);
+    var money = U.every(function (u) { return u === "억" || u === "만"; });
+    if (U.length > 1 && !money) continue;
+    var unit = money ? (U.indexOf("억") >= 0 ? "억" : "만") : U[0], dec;
+    P.forEach(function (p) { if (money && unit === "억" && p.n.unit === "만") { p.val = p.n.v / 10000; p.d = 2; } else { p.val = p.n.v; p.d = p.n.dec; } });
+    var srt = P.slice().sort(function (a, b) { return b.val - a.val; }).slice(0, 5);
+    dec = Math.min(2, Math.max.apply(null, srt.map(function (p) { return p.d; })));
+    var plus = P.some(function (p) { return p.n.plus; }), hd = cfg.head || (cols && cols[j] ? thrTxt(cols[j]) : "");
+    if (!unit && (/%/.test(hd) || cfg.unitHint === "%") && P.every(function (p) { return Math.abs(p.val) < 30; })) unit = "%";
+    var score = P.length + (/변화|상승|하락|%|평당|가격|금액|최고|시세|배|경쟁|평균|금리|대장/.test(hd) ? 2 : 0) - (/건|세대|가구|명/.test(unit) ? 1 : 0);
+    if (!best || score > best.score) best = { P: P, unit: unit, dec: dec, plus: plus, head: hd, score: score };
+  }
+  if (!best) return null;
+  var all = best.P.slice().sort(function (a, b) { return b.val - a.val; });
+  all.forEach(function (p) { p.txt = thrFmt(p.val, best.unit, best.dec, best.plus); });
+  return { top: all.slice(0, 5), all: all, unit: best.unit, head: best.head };
+}
+/* 해석 — 리스트에서 바로 계산되는 것만 */
+function thrRead(L) {
+  if (!L || L.top.length < 2 || !L.unit) return "";
+  var hd = L.head && !/^(값|이름|보조)$/.test(L.head) ? L.head + " 기준 " : "";
+  var a = L.top[0], z = L.top[L.top.length - 1], k = L.top.length, neg = L.all.filter(function (p) { return p.val < 0; }).length, pos = L.all.filter(function (p) { return p.val > 0; }).length;
+  if (neg && pos) return "같은 표 안에서도 오른 곳(" + pos + ")과 내린 곳(" + neg + ")이 갈립니다.";
+  if (/%|%p/.test(L.unit)) return hd + "1위와 " + k + "위는 " + Math.abs(a.val - z.val).toFixed(1) + "%p 차이입니다.";
+  if (z.val > 0 && a.val / z.val >= 1.2 && /억|만|원|건|배/.test(L.unit)) return hd + "1위와 " + k + "위 차이는 약 " + (a.val / z.val).toFixed(1) + "배입니다.";
+  return "";
+}
+/* 답글 1 — 한계·반대 숫자 / 답글 2 — 자기 노출 없이 답할 수 있는 질문 */
+var THR_LIMIT = [
+  [/노선|개통|GTX|교통/, "개통 일정은 발표 기준입니다. 공사·예산 사정으로 늦어지는 경우가 많아 확정 전까지는 바뀔 수 있습니다."],
+  [/대책|규제|정책 총정리|규제지역/, "대책은 발표일과 시행일이 다르고, 지역·대상에 따라 적용이 다릅니다. 내 경우는 원문 공고로 한 번 더 확인해 주세요."],
+  [/달력|일정|예상/, "일정은 발표 기준이라 바뀔 수 있습니다. 공고·보도자료로 한 번 더 확인해 주세요."],
+  [/단어|용어|뜻/, "같은 단어도 법·지역·시점에 따라 기준이 다를 수 있습니다. 실제 적용은 해당 공고·법령으로 확인해 주세요."],
+  [/정책대출|디딤돌|보금자리/, "정책대출 조건은 자주 바뀝니다. 신청 전 주택도시기금·은행 공지로 한 번 더 확인해 주세요."],
+  [/신고가|최고가|신고된|비싸게/, "신고가·최고가는 거래 1건으로 찍힌 값입니다. 같은 단지·같은 면적 기준이라 그 동네 전체 시세를 뜻하지는 않습니다."],
+  [/경쟁률|청약|당첨|접수/, "경쟁률은 1순위 신청 ÷ 일반공급 기준입니다. 특별공급과 부적격·포기 물량은 빠져 있어 실제 당첨 난도와는 다를 수 있습니다."],
+  [/금리|대출|이자|상환/, "기준금리가 내려도 주담대 금리는 은행채 같은 시장금리를 따라가 바로 내려가지 않습니다. 은행·신용도마다 실제 금리는 다릅니다."],
+  [/확산|순서|회복|MDD|고점|하락률|1년|상승률/, "지난 10년은 대체로 집값이 오른 시기였습니다. 그때 맞았던 순서·회복 속도가 앞으로도 같다는 보장은 없고, 남아 있는 단지만 보면 생존편향도 생깁니다."],
+  [/학군|학교|전입|학생/, "학교알리미 숫자는 공시 기준이라 1년쯤 늦게 반영됩니다. 전입이 많다는 것이 곧 가격이 오른다는 뜻은 아닙니다."],
+  [/중위|평당|시세|가격대|대장/, "중위값·평당가는 그 기간에 어떤 단지가 팔렸느냐에 따라 출렁입니다. 비싼 단지 몇 건만 몰려도 오른 것처럼 보일 수 있습니다."],
+  [/거래|건수|몰리|인기/, "실거래는 계약 후 30일 안에 신고됩니다. 최근 2주 숫자는 아직 덜 들어온 상태라 실제보다 적게 보입니다."]
+];
+var THR_ASK = [
+  [/금리|대출|이자|상환/, "여러분은 고정금리와 변동금리 중 어느 쪽을 더 믿으시나요?"],
+  [/청약|경쟁률|당첨|접수/, "청약을 고를 때 분양가와 경쟁률 중 무엇을 먼저 보시나요?"],
+  [/학군|학교|전입|학생/, "학군지를 볼 때 성적과 전입 중 무엇을 먼저 보시나요?"],
+  [/단어|용어|뜻/, "이 중에서 기사에서 가장 헷갈렸던 단어는 무엇인가요?"],
+  [/일정|달력|예상|이번 주|이번 달/, "이 일정 중에서 가장 신경 쓰이는 건 무엇인가요?"],
+  [/노선|개통|GTX|교통/, "새 노선 개통, 집값에 먼저 반영된다고 보시나요, 개통 뒤라고 보시나요?"],
+  [/대장|신고가/, "대장아파트 신고가, 동네 전체 흐름의 신호라고 보시나요?"],
+  [/정책|규제|대책/, "이번 규제에서 가장 크게 체감되는 건 무엇인가요?"],
+  [/MDD|고점|회복/, "고점 회복까지 몇 년 정도 걸린다고 보시나요?"],
+  [/갭|전세 끼고/, "여러분은 전세 끼고 사는 것과 실거주 중 어느 쪽을 먼저 생각하시나요?"]
+];
+function thrRule(T, s, def) { for (var i = 0; i < T.length; i++) if (T[i][0].test(s)) return T[i][1]; return def; }
+/* 문장 자르기 — 90자 안, 문장·' · ' 경계에서 */
+function thrCut(s, n) { var r = thrCut0(s, n), o = (r.match(/\(/g) || []).length, c = (r.match(/\)/g) || []).length; if (o > c) r = r.slice(0, r.lastIndexOf("(")).replace(/[\s·,]+$/, ""); return r; }
+function thrCut0(s, n) { s = String(s || "").trim(); if (s.length <= n) return s; var c = s.slice(0, n), k = Math.max(c.lastIndexOf(". "), c.lastIndexOf(" · "), c.lastIndexOf(", ")); return (k > n * 0.5 ? c.slice(0, k + (c.charAt(k) === "." ? 1 : 0)) : c.replace(/\s+\S*$/, "")).trim(); }
+/* 핵심: o = { q, rows, cols, lines(숫자 없는 리스트 대체), answer, basis, key(분야 낱말) } */
+function thrBuild(o) {
+  var L = thrPick(o.rows, o.cols, o.cfg), key = [o.q, o.key, L && L.head].join(" ");
+  var q = thrTxt(o.q).replace(/\s*[?？]?\s*$/, "") ;
+  var first = o.first ? o.first : /[?？]$/.test(thrTxt(o.q)) || /까요|나요|일까|인가/.test(q) ? q + (/[?？]$/.test(q) ? "" : "?") : (L && L.top[0] ? L.top[0].name + " " + L.top[0].txt + ", " + q : q);
+  var list = L ? L.top.map(function (p) { return p.name + " " + p.txt; }) : (o.lines || []).filter(Boolean).slice(0, 5).map(function (x) { return thrCut(thrTxt(x), 60); });
+  var rd = thrRead(L), read = [thrCut(thrTxt(o.answer || ""), 90), rd].filter(Boolean);
+  if (o.answerIfEmpty && !rd) read = [thrCut(thrTxt(o.answerIfEmpty), 90)].filter(Boolean);
+  if (read.length === 2 && read[0].indexOf(read[1]) >= 0) read.pop();
+  var basis = o.basis ? "기준 " + thrTxt(o.basis) : "";
+  function main() { return [first, ""].concat(list, list.length ? [""] : [], read.slice(0, 2), basis ? ["", basis] : []).join("\n").replace(/\n{3,}/g, "\n\n").trim(); }
+  var m = main();
+  while (m.length > 500 && read.length > 1) { read.pop(); m = main(); }
+  while (m.length > 500 && list.length > 3) { list.pop(); m = main(); }
+  while (m.length > 500 && read.length) { read.pop(); m = main(); }
+  if (m.length > 500) { first = thrCut(first, 60); m = main(); }
+  if (m.length > 500) m = m.slice(0, 500);
+  /* 답글 1 */
+  var R1 = [];
+  if (L && L.all.length > L.top.length) { var z = L.all[L.all.length - 1]; R1.push("같은 표 맨 아래는 " + z.name + " " + z.txt + "입니다."); }
+  R1.push(thrRule(THR_LIMIT, key, THR_LIMIT[THR_LIMIT.length - 1][1]));
+  R1.push("참고 자료이며 투자 권유가 아닙니다. 내 동네 숫자는 프로필 링크에서 직접 검색해볼 수 있습니다.");
+  /* 답글 2 */
+  var R2 = thrRule(THR_ASK, key, L ? "이 순위에서 제일 의외인 곳은 어디인가요?" : "이 중에서 가장 의외인 건 무엇인가요?");
+  return m + THR_SEP + R1.join("\n").slice(0, 500) + THR_SEP2 + R2;
+}
+/* 카드 질문을 존댓말 질문으로 — 바꿀 수 없으면 "" */
+function thrPolite(q) {
+  q = thrTxt(q).replace(/\s*[?？]\s*$/, "").trim(); if (!q) return "";
+  if (/(까요|나요|ㄹ까요|인가요|세요)$/.test(q)) return q + "?";
+  if (/까$/.test(q)) return q + "요?";
+  if (/되나$/.test(q)) return q.slice(0, -2) + "될까요?";
+  if (/하나$/.test(q)) return q.slice(0, -2) + "할까요?";
+  if (/[았었였했]나$/.test(q)) return q.slice(0, -1) + "을까요?";
+  if (/나$/.test(q)) return "";
+  if (/(얼마|어디|어디쯤|누구|몇|%|\d|무엇|뭐)$/.test(q)) return q + "일까요?";
+  return "";
+}
+function thrMainLen(t) { return String(t || "").split(THR_SEP)[0].length; }
+/* ── 채널 브리핑·지금 시장 카드에서 — 표가 있는 카드를 골라 행을 꺼낸다 ── */
+function thrRowsFromHtml(html) {
+  var d = document.createElement("div"), out = { rows: [], cols: null, lines: [] }; d.innerHTML = String(html || "");
+  var trs = d.querySelectorAll(".chc-tr");
+  if (trs.length) Array.prototype.forEach.call(trs, function (tr) { var c = Array.prototype.map.call(tr.children, function (x) { return thrTxt(x.innerHTML); }); if (tr.classList.contains("h")) out.cols = out.cols || c; else if (!tr.classList.contains("chc-opt")) out.rows.push(c); });
+  else Array.prototype.forEach.call(d.querySelectorAll("table tr"), function (tr) { var c = Array.prototype.map.call(tr.children, function (x) { return thrTxt(x.innerHTML); }); if (tr.querySelector("th")) out.cols = out.cols || c; else out.rows.push(c); });
+  Array.prototype.forEach.call(d.querySelectorAll(".chc-bi>b, .dy-r"), function (b) { out.lines.push(thrTxt(b.innerHTML).replace(/^\d+\.\s+(?=\D)/, "")); });
+  return out;
+}
+var THR_CHQ = { today: "어제 아파트 실거래, 어디서 얼마나 신고됐을까요?", recap: "어제 새로 신고된 거래 중 눈에 띄는 건 무엇일까요?", week: "이번 주 아파트 시장, 숫자로 보면 어땠을까요?",
+  weekahead: "이번 주 부동산, 무엇을 챙겨 봐야 할까요?", month: "이번 달 아파트 거래, 숫자로 보면 어땠을까요?", monthahead: "다음 달 부동산, 꼭 챙길 일정은 무엇일까요?", daily: "지난 30일, 아파트는 얼마나 팔렸을까요?",
+  lead: "서울 대장아파트 84㎡, 지금 얼마일까요?", macro: "대출 금리, 지금 어디까지 왔을까요?", mdd: "집값, 고점 대비 지금 어디쯤일까요?", ripple: "집값은 어느 지역부터 오를까요?",
+  ripple2: "동네 시세는 그대로인데 대장아파트는 신고가일까요?", move: "서울 84㎡, 현금이 얼마 있어야 살 수 있을까요?", school: "아이들이 전학 오는 동네는 어디일까요?", terms: "부동산 기사에 나오는 이 단어, 정확히 무슨 뜻일까요?", brief: "요즘 아파트 시장, 숫자로 보면 어떨까요?" };
+/* 카드 여러 장 → 장마다 "이름표 + 굵은 숫자" 한 줄 */
+function thrTagLine(o) {
+  var tag = thrTxt(o.tag).replace(/\s*\d+\/\d+$/, "").replace(/^\d+\.\s+(?=\D)/, ""), b = (String(o.a || "").match(/<b[^>]*>(.*?)<\/b>/) || [])[1], v = b ? thrTxt(b) : thrTxt(o.a).split(" · ")[0];
+  v = thrCut(v.replace(/^1위\s*/, "").replace(/^\d+\.\s+(?=\D)/, ""), 34); if (!v || !/\d/.test(v)) return "";
+  return (tag ? tag + " " : "") + v;
+}
+function thrFromCards(tab, C, srcLine, dateLine) {
+  /* '확인 전' 표시가 있는 카드(공고와 대조 전)는 스레드에 쓰지 않는다 */
+  C = (C || []).filter(function (o) { return !/chc-verify|확인 전/.test(String(o.a || "") + String(o.body || "")); });
+  if (!C.length) return "";
+  try { window.__thrSrc = C.map(function (o) { return [o.q, o.a, o.body, o.date, o.src].map(thrTxt).join(" "); }).join(" "); } catch (e) {}   /* 시험용: 글의 숫자가 카드에 있는지 대조 */
+  var pick = null;
+  C.some(function (o) { var R = thrRowsFromHtml(o.body); R.cfg = { unitHint: /%/.test(thrTxt(o.q)) ? "%" : "" }; if (thrPick(R.rows, R.cols, R.cfg)) { pick = { o: o, R: R }; return true; } return false; });
+  if (!pick) { var o0 = C[0], R0 = thrRowsFromHtml(o0.body); R0.lines = C.length >= 3 ? C.map(thrTagLine).filter(Boolean).slice(0, 5) : R0.lines; pick = { o: o0, R: R0, multi: C.length >= 3 }; }
+  var o = pick.o, src = String(o.src || srcLine || "").replace(/^출처:\s*/, "").replace(/\s*·\s*투자 권유 아님/, "");
+  var dt = thrTxt(o.date || dateLine || "");
+  var first = pick.multi || pick.o === C[0] ? THR_CHQ[tab] || thrPolite(o.q) : thrPolite(o.q);
+  return thrBuild({ q: o.q, first: first, rows: pick.R.rows, cols: pick.R.cols, cfg: pick.R.cfg, lines: pick.R.lines, answer: pick.multi ? C[0].a : o.a, basis: [dt, src].filter(Boolean).join(" · "), key: tab + " " + thrTxt(o.tag) + " " + thrTxt(o.q) });
+}
+/* ── 카드 만들기 — 칸(rows/items)에서 바로 ── */
+var THR_TPQ = { regionPrice: "요즘 어느 구 아파트가 가장 비쌀까요?", topDeal: "요즘 가장 비싸게 팔린 아파트는 얼마였을까요?", leaders: "우리 동네 대장아파트는 지금 얼마일까요?", busy: "요즘 거래가 가장 많은 단지는 어디일까요?",
+  newHigh: "요즘 신고가가 나온 단지는 어디일까요?", volRank: "요즘 거래가 몰리는 지역은 어디일까요?", yoy: "1년 사이 가장 많이 오른 동네는 어디일까요?", gaps: "전세 끼고 사려면 실제로 얼마가 필요할까요?",
+  priceBand: "국평 아파트, 가격대별로 어디를 살 수 있을까요?", beforeAfter: "신고가, 직전 최고가보다 얼마나 올랐을까요?", aptNotice: "이 단지 청약, 누가 넣을 수 있을까요?", calendar: "이번 달 부동산, 꼭 챙겨야 할 날짜는 언제일까요?",
+  policy: "지금 부동산 규제, 무엇이 바뀌었을까요?", loans: "내 소득으로 받을 수 있는 정책대출은 무엇일까요?", transit: "새 노선, 실제 개통은 언제일까요?", terms: "부동산 기사 단어, 정확히 무슨 뜻일까요?" };
+/* 재료별 숫자 열(0부터) · 이름 열 */
+var THR_TPC = { regionPrice: { col: 1, head: "평당" }, topDeal: { col: 2, name: [0, 1], head: "거래가" }, leaders: { col: 1, head: "1위 거래가" }, busy: { col: 2, head: "30일 매매 건수" }, newHigh: { col: 1, head: "직전 최고가 대비" }, beforeAfter: { col: 6, name: [0], head: "직전 최고가 대비" }, volRank: { col: 1, head: "30일 매매" }, yoy: { col: 1, head: "1년 변화" }, gaps: { col: 4, head: "매매·전세 차이" } };
+function thrMD(s) { var m = /(\d{4})[-.](\d{1,2})[-.](\d{1,2})/.exec(String(s || "")); return m ? (Number(m[1]) !== chKstDate().y ? String(m[1]).slice(2) + "." : "") + Number(m[2]) + "." + Number(m[3]) : String(s || ""); }
+function thrFromTpl() {
+  if (typeof TP === "undefined" || !TP.pages || !TP.pages.length) return "";
+  try { window.__thrSrc = JSON.stringify(TP.pages); } catch (e) {}
+  var d0 = TP.pages[0], R = TPR[TP.r], cols = tpRows(d0.cols || "")[0] || null, rows = [], lines = null, r = TP.r;
+  TP.pages.forEach(function (d) { tpRows(d.rows || d.items || d.events || []).forEach(function (x) { rows.push(x.map(function (v) { return String(v == null ? "" : v); })); }); });
+  if (TP.id === "rankGrid") cols = ["이름", R && R.nm ? (r === "yoy" ? "1년 변화" : r === "volRank" ? "30일 매매" : r === "newHigh" ? "직전 최고가 대비" : "값") : "값", "보조"];
+  if (TP.id === "beforeAfter") cols = ["단지", "", "", "", "", "", "직전 최고가 대비"];
+  var title = String(d0.title || "").trim(), q = THR_TPQ[r] || (title ? title + ", 핵심만 볼까요?" : "");
+  if (r === "regionPrice" && title) q = title.replace(/\s*실거래 시세$/, "") + ", 요즘 어느 구가 가장 비쌀까요?";
+  if (r === "calendar") { var t0 = chKstDate().key, seen = {}; lines = rows.filter(function (x) { var k = x[0] + x[2]; if (seen[k] || Number(String(x[0]).replace(/\D/g, "")) < Number(String(t0).replace(/\D/g, ""))) return false; seen[k] = 1; return true; }).slice(0, 5).map(function (x) { return thrMD(x[0]) + " " + x[2]; }); rows = []; }
+  else if (r === "policy") { lines = rows.slice(0, 5).map(function (x) { return thrMD(x[0]) + " " + x[1]; }); rows = []; }
+  else if (r === "transit") { lines = rows.slice(0, 5).map(function (x) { return x[0] + " — " + [x[1], x[2]].filter(Boolean).join(" · "); }); rows = []; }
+  else if (r === "terms") { lines = rows.slice(0, 5).map(function (x) { return x[0] + " — " + x[1]; }); rows = []; }
+  else if (r === "loans") { lines = rows.filter(function (x) { return /금리|한도|소득|주택가격/.test(x[0]); }).slice(0, 5).map(function (x) { return x[0] + ": " + x.slice(1).filter(Boolean).join(" / "); }).filter(function (l) { return l.length <= 70; }); rows = []; if (cols) q = cols.join(" · ") + ", 내 소득이면 어느 쪽일까요?"; }
+  else if (r === "aptNotice") { lines = (d0.tag ? [String(d0.tag)] : []).concat(tpRows(d0.side || []).map(function (x) { return x.filter(Boolean).join(" "); })).slice(0, 5); if (title) q = title + " 청약, 누가 넣을 수 있을까요?"; rows = []; }
+  else if (r === "priceBand") { lines = rows.slice(0, 5).map(function (x) { var w = x.slice(1).filter(function (v) { return v.trim(); })[0] || ""; return x[0] + " — " + w; }); rows = []; }
+  if (!lines) lines = rows.slice(0, 5).map(function (x) { return x.filter(function (v) { return String(v).trim(); }).slice(0, 2).map(function (v) { return String(v).split(/\s*;\s*/)[0]; }).join(" — "); });
+  return thrBuild({ q: q, first: q, rows: rows, cols: cols, cfg: THR_TPC[r], lines: lines, answer: "", answerIfEmpty: r === "terms" || r === "aptNotice" ? "" : d0.sub || "", basis: d0.src || "", key: (R ? R.nm : "") + " " + title });
+}
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

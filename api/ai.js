@@ -1,7 +1,7 @@
 // api/ai.js — 릴스 대표 카드용 글 설계(plan) · 이미지 글자 읽기(read) (v9.13)
 // 주인 토큰(OWNER_KEY) 확인 후 OpenAI Responses API 호출. 키는 서버에만.
 // 환경변수: OPENAI_API_KEY (필수) · TEXT_MODEL (기본 gpt-6.1-sol, 못 쓰면 gpt-4.1 로 다시 시도)
-// POST { t, mode:"plan", facts:[{id,text}], purpose, topic, note }  → { ok, plan:{hook, sub, kicker, layout, points:[{label,value,note,fact}], cta, visual} }
+// POST { t, mode:"plan", facts:[{id,text}], purpose, topic, note, example? }  → { ok, plan:{hook, sub, kicker, layout, points:[{label,value,note,fact}], cta, visual} }
 // POST { t, mode:"read", image:"data:..." }                         → { ok, texts:[...] }   (카드 이미지에 실제로 찍힌 글자·숫자 받아 적기)
 // POST { t, mode:"fill", template:{name, fields:[{key,label,kind,example}]}, facts, note } → { ok, fill:{key: 값} } (v9.21 고정 양식)
 // POST { t, mode:"extract", text:"공고문 텍스트" }                   → { ok, terms:{res,resPeriod,prior,resale,live,rewin,firstRank,point,down,mid,balance,option,move,etc} } (v9.20.3 단지별 청약 조건)
@@ -54,6 +54,14 @@ async function withFallback(key, input, format) {
     throw e;
   }
 }
+/* v9.26 저장한 구성(양식 프리셋) — 말머리·제목 패턴·항목 구성만 본뜨고 숫자·사실은 오늘 facts 로 바꾼다 */
+function exampleText(ex) {
+  if (!ex || typeof ex !== "object") return "";
+  const t = (v, n) => String(v == null ? "" : v).slice(0, n || 200);
+  const pts = (Array.isArray(ex.points) ? ex.points : []).slice(0, 6).map((p, i) => "  항목" + (i + 1) + ": " + t(p.label, 40) + " / " + t(p.value, 40) + " / " + t(p.note, 40)).join("\n");
+  return "\n\n[지난번 구성 예시 — 형식만 따를 것] 말머리=" + t(ex.kicker, 40) + " · 제목 패턴=" + t(ex.hook, 80) + " · 부제=" + t(ex.sub, 80) + " · 구성(layout)=" + t(ex.layout, 40) + " · 유도 문구=" + t(ex.cta, 60) + (ex.note ? " · 요청=" + t(ex.note, 200) : "") + (pts ? "\n" + pts : "") +
+    "\n위 예시의 말머리 형식·제목 말투·항목 수와 순서·layout 을 그대로 따르라. 예시 속 숫자·날짜·이름은 절대 쓰지 말고 반드시 오늘 facts 의 값으로 바꿔라. facts 에 맞는 값이 없는 항목은 빼거나 다른 facts 로 바꿔라.";
+}
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const OWN = process.env.OWNER_KEY || "", KEY = process.env.OPENAI_API_KEY || "";
@@ -68,7 +76,7 @@ module.exports = async (req, res) => {
       const facts = (b.facts || []).slice(0, 80).map((f) => f.id + ": " + String(f.text).slice(0, 300)).join("\n");
       if (!facts) throw new Error("facts 가 비었습니다");
       const user = (b.note ? "[가장 중요한 요청] " + b.note + "\n" : "") + "주제: " + (b.topic || "") + "\n목적: " + (b.purpose || "게시판 상세 카드로 유입") + (b.note ? "\n추가 요청: " + b.note : "") +
-        "\n\n[facts — 이 안의 숫자·날짜만 쓸 것]\n" + facts + "\n\n위 facts로 릴스 표지 한 장을 설계해 JSON으로 답하라. points.value 는 facts 원문을 그대로 복사.";
+        "\n\n[facts — 이 안의 숫자·날짜만 쓸 것]\n" + facts + "\n\n위 facts로 릴스 표지 한 장을 설계해 JSON으로 답하라. points.value 는 facts 원문을 그대로 복사." + exampleText(b.example);
       /* 참고 이미지(선택): 모양·구성·분위기만 참고. 그 이미지 속 숫자·글자는 사실로 쓰지 않는다 */
       const refs = (b.refs || []).filter((u) => /^data:image\//.test(String(u))).slice(0, 3);
       const content = refs.length ? [{ type: "input_text", text: user + "\n\n[참고 이미지 " + refs.length + "장] 레이아웃·구성·톤만 참고하라(layout, visual 에 반영). 참고 이미지 안의 숫자·글자·사실은 절대 카드에 옮기지 말 것." }].concat(refs.map((u) => ({ type: "input_image", image_url: u }))) : user;

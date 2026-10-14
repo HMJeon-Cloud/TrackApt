@@ -9,6 +9,7 @@
 //   GEMINI_IMG_MODEL — 기본 gemini-2.5-flash-image
 //   IMG_PROVIDER     — openai | gemini (생략하면 있는 키로 자동)
 // 요청  POST { t, mode:"gen"|"edit", prompt, size:"1024x1536"|"1024x1024"|"1536x1024", transparent?:bool, image?:"data:image/...;base64,..." }
+// 보관함  POST { vault:1, op:"list"|"thumbs"|"get"|"add"|"update"|"use"|"del", ... } → api/_vault.js (Upstash Redis)
 // 응답  { ok:true, image:"data:image/...;base64,...", provider, model }  ·  실패 { ok:false, error }
 const crypto = require("crypto");
 function tokenOf(key) { return crypto.createHmac("sha256", key).update("trackapt-owner-v1").digest("hex"); }
@@ -70,6 +71,8 @@ module.exports = async (req, res) => {
     return res.status(200).json({ ok: !!prov && !!OWN, provider: prov || null, model: prov === "gemini" ? (process.env.GEMINI_IMG_MODEL || "gemini-2.5-flash-image") : prov ? (process.env.IMG_MODEL || "gpt-image-2.5-flare") + " / 보정 " + (process.env.IMG_EDIT_MODEL || process.env.IMG_MODEL || "gpt-image-2.5-sunburst") : null });
   }
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "POST only" });
+  { let vb = req.body; if (typeof vb === "string") { try { vb = JSON.parse(vb); req.body = vb; } catch (e) { vb = null; } }
+    if (vb && vb.vault) return require("./_vault.js")(req, res); }   // v9.26 보관함(서버 저장) — 함수 수를 늘리지 않으려고 여기에 붙임
   if (!OWN) return res.status(500).json({ ok: false, error: "OWNER_KEY not set" });
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch (e) { body = {}; } }

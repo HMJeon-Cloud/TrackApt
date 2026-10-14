@@ -1,8 +1,19 @@
 {
  "v": 1,
- "builtAt": "2026-10-14T21:20:10.427Z",
+ "builtAt": "2026-10-14T23:20:10.432Z",
  "asOf": 20261015,
  "items": [
+  {
+   "kind": "policy",
+   "date": "2026-10-15",
+   "title": "[10·15 부동산 대책 1년] 대출규제 풍선효과에 집값 '천정부지'…공급도 '발목'",
+   "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFBPNGhpaDg4U1A5YUxaZ0FsOTVoZkpSV3Jrc05LRlRJVy12V19YeVBnemtxcVl1QjdmbkNUS0htbzVmRnNwTWRhMFdpNXVUMkJuRXBMU2lQakROam5vVnFKVkEwZGpkWVU?oc=5",
+   "src": "청년일보",
+   "official": false,
+   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
+   "firstSeen": "2026-10-15",
+   "isNew": true
+  },
   {
    "kind": "loan",
    "name": "버팀목 전세대출",
@@ -23,17 +34,6 @@
    "title": "[10·15 부동산 대책 1년] 집값 잡으려고 규제했는데…1년 만에 서울 집값 10% 오른 이유는? 🏘️",
    "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTE5mUFJEQU90N3NDb05Sd0pJYnp3OG95TUhmeHFmQWlOenVVMzlfRzQxb3N0dkJMLWdOTWFnd2pHdTVyYlpfN21VV0FiUUh3LXhtY2E0?oc=5",
    "src": "뉴닉",
-   "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-14",
-   "isNew": false
-  },
-  {
-   "kind": "policy",
-   "date": "2026-10-13",
-   "title": "10·15 부동산 대책 1년 … \"투기 수요 잡았지만 집값 상승 꺾지 못했다\"",
-   "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE0tQlBqVEdVcUZ0ZHVfN19lX1dFc1lITnktTkN0THZ4dS1JSW5la2d4b2ZOMHFzbGppNGJqWF9CVWhueVNrRUJJZ3ozRTE5ZkFkSko2UUhPM011NndIVUd1SlhkbV82eGFLSmc?oc=5",
-   "src": "Queen 이코노미퀸",
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-10-14",

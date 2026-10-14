@@ -1,6 +1,6 @@
 {
  "v": 1,
- "builtAt": "2026-10-14T23:20:10.432Z",
+ "builtAt": "2026-10-14T23:31:40.569Z",
  "asOf": 20261015,
  "items": [
   {
@@ -12,7 +12,7 @@
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-10-15",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "loan",

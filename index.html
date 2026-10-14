@@ -2433,6 +2433,117 @@ body.stu-on #subnav button:not(.back){display:none!important}
 .as-st-row{grid-template-columns:repeat(auto-fill,minmax(108px,1fr))}
 .as-st-row .as-txt{padding-top:24px}
 .as-txt{padding-top:26px}
+/* ══ v9.27 정리 — 아이콘 줄이기 · 한 줄 정렬 · 핵심 숫자 강조 · 카드 만들기 작업 화면 ══ */
+/* 공통 */
+.btn.sm{display:inline-flex;align-items:center;justify-content:center;min-height:34px;white-space:nowrap;box-sizing:border-box;line-height:1.1}
+.mk-row>.hint:empty,.tpx-msg:empty{display:none}
+.seg{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}.seg::-webkit-scrollbar{display:none}
+.seg button{white-space:nowrap}
+table,.sb-tbl,.kpi,.bf-kpi b{font-variant-numeric:tabular-nums}
+#botnav .ic{filter:none;opacity:.55;display:flex}#botnav .ic svg{display:block}
+#botnav button.on .ic{opacity:1;color:var(--accent)}
+.hero{padding:18px 4px 18px}.hero h2{margin-top:0}
+.startCard{gap:12px}.startCard>span:first-child{flex:1}
+.hubRow{padding:14px 12px}.hubRow>span:first-child{flex:1;min-width:0}
+.hubRow b{display:block}.hubRow small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.homeChips{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.homeChips button{text-align:center}
+/* 작업 화면(카드 만들기·릴스)은 넓게 */
+body.stu-wide main,body.stu-wide .brand,body.stu-wide #nav,body.stu-wide #subnav{max-width:1240px}
+body.stu-wide #tab-reel .rl-host{width:auto;left:0;transform:none}
+/* ── 카드 만들기 ── */
+.tpx-pick{padding-bottom:14px}
+.tpx-hd{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.tpx-hd h2{margin:0;flex:none}
+.tpx-hd #tpr-hint{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
+.tpx-hd .btn{flex:none}
+.tpr-grps{gap:6px;margin-top:0}
+.tpr-g{grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:center}
+.tpr-g>small{padding-top:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tpr-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.tpr-list button,.tpr-tpls button{border-radius:10px;padding:8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;width:100%;min-height:36px}
+.tpr-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px 10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line,#eef0f3)}
+.tpr-opts:empty{display:none}
+.tpr-opts label{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;gap:8px;font-size:12.5px;font-weight:700}
+.tpr-opts select{max-width:none;width:100%;min-height:36px}
+.tpr-tpls{grid-column:1/-1;display:grid;grid-template-columns:96px repeat(auto-fill,minmax(150px,1fr));gap:6px 6px;align-items:center}
+.tpr-tpls small{margin:0;font-size:12.5px;padding-left:0}
+.tp-wrap{display:grid;grid-template-columns:minmax(0,1fr) 404px;gap:14px;align-items:start;margin-top:12px}
+.tp-wrap>.card{margin:0}
+.tp-right{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto}
+.tpx-bar{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}.tpx-bar h3{margin:0}.tpx-bar .hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tpx-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 6px}
+.tpx-tools .btn{width:100%;overflow:hidden;text-overflow:ellipsis}
+.tpx-tools .hint{grid-column:span 2;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tpx-msg{margin:2px 0 6px;font-size:12px}
+.tpr-pages{display:grid;grid-template-columns:auto repeat(auto-fill,minmax(54px,1fr));gap:6px;margin:0 0 8px}
+.tpr-pages button{border-radius:8px;padding:5px 0}
+.tp-left .as-strip{margin:4px 0 10px}
+.tp-ai{margin:0 0 10px;border:1px solid var(--line,#eef0f3);border-radius:12px;padding:8px 12px;background:var(--bg,#f6f7f9)}
+.tp-ai[open]{background:var(--card,#fff)}
+.tp-ai summary{font-size:13.5px}.tp-ai summary .hint{font-weight:500;margin-left:6px}
+.tp-ai .tpx-tools{margin-top:6px}
+#tp-form{border-top:1px solid var(--line,#eef0f3);padding-top:6px}
+.tp-f{grid-template-columns:120px minmax(0,1fr);align-items:center}
+.tp-f span{padding-top:0;font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-f textarea{align-self:stretch}
+.tp-f:has(textarea) {align-items:start}.tp-f:has(textarea) span{padding-top:7px}
+.chcards.tpx-cards{display:flex;flex-direction:column;align-items:center;gap:14px;overflow:visible;padding:4px 0 8px;max-height:none}
+.tpx-cards .chcardWrap{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.tpx-cards .chcardWrap [data-chsave]{min-height:28px;padding:4px 12px;font-size:12px}
+.tp-cap summary{font-size:13.5px}
+@media(max-width:980px){.tp-wrap{grid-template-columns:minmax(0,1fr)}.tp-right{position:static;max-height:none;order:-1}.chcards.tpx-cards{flex-direction:row;overflow-x:auto;align-items:flex-start;justify-content:flex-start}}
+@media(max-width:560px){.tpr-g{grid-template-columns:1fr;gap:4px}.tpr-list{grid-template-columns:repeat(2,minmax(0,1fr))}.tpr-tpls{grid-template-columns:repeat(2,minmax(0,1fr))}.tpr-tpls small{grid-column:1/-1}.tpr-opts{grid-template-columns:repeat(2,minmax(0,1fr))}.tpr-opts label{grid-template-columns:1fr;gap:3px}.tp-f{grid-template-columns:1fr;gap:3px}.tpx-hd #tpr-hint{display:none}}
+/* ── 릴스 ── */
+.rl-grp{display:grid;grid-template-columns:84px minmax(0,1fr);gap:8px;align-items:start;margin-top:8px}
+.rl-grp em{width:auto;padding-top:6px}
+.rl-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:5px}
+.rl-chip{display:block}.rl-chip span{display:block;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:9px;padding:5px 6px}
+@media(max-width:560px){.rl-grp{grid-template-columns:1fr;gap:4px}.rl-grp em{padding-top:0}.rl-chips{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* ── 청약 일정 — 날짜 | 종류 | 단지 | 지역·가구 열 맞춤 ── */
+.sb-day{display:grid;grid-template-columns:88px minmax(0,1fr);gap:0 12px;padding:10px 0}
+.sb-dh{flex-direction:column;align-items:flex-start;gap:1px;margin:0;padding-top:4px}
+.sb-dh b{font-size:15px;font-variant-numeric:tabular-nums}
+.sb-ev{grid-template-columns:84px minmax(0,1fr) auto;gap:10px;align-items:center;padding:5px 0;font-size:13.5px}
+.sb-ev+.sb-ev{border-top:1px dashed var(--line,#eef0f3)}
+.sb-ev .chc-pill{display:block;width:100%;box-sizing:border-box;text-align:center;white-space:nowrap}
+.sb-ev span{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-ev small{grid-column:auto;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sb-kinds{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.sb-kinds::-webkit-scrollbar{display:none}
+.sb-kinds small{flex:none;flex-basis:auto!important;margin:0 4px 0 0!important}
+.sb-kinds button{flex:none;white-space:nowrap}
+#tab-subs .sb-wrapseg{flex-wrap:nowrap!important;overflow-x:auto}
+#tab-subs .sb-wrapseg button{flex:1 0 auto;min-width:0}
+.sb-ih{flex-wrap:nowrap}.sb-ih b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}.sb-ih span{white-space:nowrap;flex:none}
+.sb-ih .chc-pill{flex:none}
+.sb-sched{grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px;margin-top:8px}
+.sb-sched>div{display:grid;grid-template-columns:1fr;gap:1px;background:var(--bg,#f6f7f9);border-radius:10px;padding:7px 9px;flex-wrap:nowrap}
+.sb-sched span{min-width:0;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-sched b{font-size:14.5px;font-weight:800}
+.sb-sched small{font-size:11px;font-weight:700}
+.sb-addr{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-links{flex-wrap:nowrap;overflow-x:auto}
+.sb-tbl td b{font-size:14px}
+@media(max-width:560px){
+  .sb-day{grid-template-columns:1fr;gap:4px}.sb-dh{flex-direction:row;align-items:baseline;gap:8px}
+  .sb-ev{grid-template-columns:76px minmax(0,1fr);gap:2px 8px}.sb-ev small{grid-column:2;text-align:left}
+  .sb-ih{flex-wrap:wrap}.sb-ih b{flex-basis:100%;order:2;white-space:normal}.sb-ih span{order:3}
+  .sb-sched{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .sb-addr{white-space:normal}
+}
+.as-bk{display:flex;gap:6px;align-items:center;margin:0 0 6px}
+.tpr-opts{display:flex;flex-direction:column;gap:6px}
+.tpr-sel label{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px;align-items:center;font-size:12px;font-weight:700;color:var(--muted,#6b7684);white-space:nowrap}
+.tpr-sel select{width:100%;min-height:36px;font-size:13px;padding:6px 8px;border:1px solid var(--line,#dfe3ea);border-radius:10px;background:var(--card,#fff);color:inherit;min-width:0}
+.tpr-sel label:has(select[data-tpo="item"]){grid-column:span 2}
+@media(max-width:560px){.tpr-sel label{grid-template-columns:1fr;gap:2px}}
+.sb-evs{min-width:0}
+.sb-pick{white-space:nowrap;flex:none}
+.sb-sched>div.past{opacity:.55}.sb-sched>div.past small{color:var(--muted,#6b7684)}
+.sb-sched>div.now{background:#fff1f0;box-shadow:inset 0 0 0 1.5px #e5484d}.sb-sched>div.soon{background:#fff8ec;box-shadow:inset 0 0 0 1.5px #e8b04a}
+.sb-sched>div.soon small{color:#b7791f}.sb-sched>div.move small{color:transparent}
+@media(max-width:560px){#sb-rate .sb-tbl th:nth-child(2),#sb-rate .sb-tbl td:nth-child(2),#sb-rate .sb-tbl th:nth-child(3),#sb-rate .sb-tbl td:nth-child(3),#sb-rate .sb-tbl th:nth-child(4),#sb-rate .sb-tbl td:nth-child(4),#sb-rate .sb-tbl th:nth-child(6),#sb-rate .sb-tbl td:nth-child(6){display:none}#sb-rate .sb-tbl td:nth-child(5) b{font-size:15px}}
+.tpr-opts{align-items:stretch!important}.tpr-opts>.tpr-g{width:100%}
 </style>
 </head>
 <body>
@@ -2440,7 +2551,7 @@ body.stu-on #subnav button:not(.back){display:none!important}
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.26</span>
+    <span class="ver">v9.27</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2569,7 +2680,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!host) return;
       var b = document.createElement("button");
       b.type = "button";
-      b.innerHTML = '<span class="ic">' + g.ic + "</span><span>" + g.name + "</span>" +
+      var NAVI = { home: '<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>', recs: '<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>', browse: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>', cart: '<path d="M6 4h12v16l-6-4-6 4z"/>', more: '<path d="M4 7h16M4 12h16M4 17h16"/>' };
+      b.innerHTML = '<span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">' + (NAVI[g.id] || NAVI.more) + "</svg></span><span>" + g.name + "</span>" +
         (g.cart ? '<span class="navcnt"></span>' : "");
       b.dataset.group = g.id;
       b.addEventListener("click", function () { showGroup(g.id); window.scrollTo(0, 0); });
@@ -2713,21 +2825,21 @@ var COND_TABS = ["wiz", "reco", "calc", "rank", "gap", "move", "danji", "cart", 
 /* ══ v6.0 홈 · 둘러보기 · 더보기 ════════════════════════════
    첫 화면은 버튼 두 개만. 나머지 화면은 목록(허브)에서 고른다. */
 function buildHome(root) {
-  var chips = [["tiers", "🏅 전국 등급표"], ["danji", "🏢 아파트 찾기"], ["market", "📈 시장 흐름"],
-               ["mapx", "🗺️ 지도로 보기"], ["calc", "💰 돈 계산"], ["faq", "❓ FAQ"]];
+  var chips = [["tiers", "전국 등급표"], ["danji", "아파트 찾기"], ["market", "시장 흐름"],
+               ["mapx", "지도로 보기"], ["calc", "돈 계산"], ["faq", "FAQ"]];
   root.innerHTML =
-    '<div class="hero"><div class="emo">🏡</div>' +
+    '<div class="hero">' +
       "<h2>어디에 살지,<br>실거래로 쉽게 봐요</h2>" +
       "<p>국토부 실거래가를 계산해서 보여 드려요.</p></div>" +
     '<div class="startCards">' +
-      '<button type="button" class="startCard" data-go="wiz"><span class="ico">✨</span>' +
+      '<button type="button" class="startCard" data-go="wiz">' +
         "<span><b>아파트 추천받기</b><small>네 가지만 답하면 조건에 맞는 단지를 계산해 보여줘요</small></span>" +
         '<span class="arr">›</span></button>' +
-      '<button type="button" class="startCard alt" data-go="browse"><span class="ico">🔍</span>' +
+      '<button type="button" class="startCard alt" data-go="browse">' +
         "<span><b>시세 둘러보기</b><small>동네 순위·시세 흐름·아파트를 직접 찾아봐요</small></span>" +
         '<span class="arr">›</span></button>' +
     "</div>" +
-    (OWNER ? '<button type="button" class="homeBrief" data-go="brief"><span class="homeBriefIc">📰</span>' +
+    (OWNER ? '<button type="button" class="homeBrief" data-go="brief">' +
       "<span><b>지금 시장 — 최근 30일</b><small>나만 보기 · 거래 몰리는 곳 · 신고가 · 대장아파트</small></span>" +
       '<span class="arr">›</span></button>' : "") +
     '<div class="homeSec"><h3>많이 보는 화면</h3><div class="homeChips">' +
@@ -2746,7 +2858,7 @@ function renderHomeData() {
 }
 function hubRowsHtml(list) {
   return '<div class="hubList">' + list.map(function (t) {
-    return '<button type="button" class="hubRow" data-go="' + t.id + '"><span class="ico">' + (t.ic || "•") + "</span>" +
+    return '<button type="button" class="hubRow" data-go="' + t.id + '">' +
       "<span><b>" + escHtml(t.name) + "</b>" + (t.d ? "<small>" + escHtml(t.d) + "</small>" : "") + "</span>" +
       '<span class="arr">›</span></button>';
   }).join("") + "</div>";
@@ -7182,8 +7294,8 @@ function rcOpen(src) {
 function rcPickerHtml() {
   var sel = (RC.cur && RC.cur.picks) || [];
   var chip = function (key, nm) { return '<label class="rl-chip"><input type="checkbox" data-src="' + key + '"' + (sel.indexOf(key) >= 0 ? " checked" : "") + "><span>" + nm + "</span></label>"; };
-  return '<div class="rc-pick"><div class="rl-grp"><em>지금 시장</em>' + (typeof BF_SECS !== "undefined" ? BF_SECS : []).map(function (x) { return chip("brief:" + x[0], x[1]); }).join("") + '</div>' +
-    '<div class="rl-grp"><em>채널 브리핑</em>' + (typeof CH_TABS !== "undefined" ? CH_TABS : []).filter(function (x) { return !RC_CH_SKIP[x[0]]; }).map(function (x) { return chip("ch:" + x[0], CH_TAB_SHORT[x[0]] || x[1]); }).join("") + "</div></div>";
+  return '<div class="rc-pick"><div class="rl-grp"><em>지금 시장</em><div class="rl-chips">' + (typeof BF_SECS !== "undefined" ? BF_SECS : []).map(function (x) { return chip("brief:" + x[0], x[1]); }).join("") + '</div></div>' +
+    '<div class="rl-grp"><em>채널 브리핑</em><div class="rl-chips">' + (typeof CH_TABS !== "undefined" ? CH_TABS : []).filter(function (x) { return !RC_CH_SKIP[x[0]]; }).map(function (x) { return chip("ch:" + x[0], CH_TAB_SHORT[x[0]] || x[1]); }).join("") + "</div></div></div>";
 }
 function rcPaint() {
   var c = RC.cur, h = RC.host; if (!c || !h) return;
@@ -7418,8 +7530,7 @@ function rcPickRefresh() {
   }); });
 }
 function buildReel(sec) {
-  sec.innerHTML = '<div class="card rl-intro"><h2>릴스 카드</h2><p class="desc">앱 데이터와 내가 넣은 참고 내용으로 9:16 한 장 카드를 만듭니다. 지금 시장·채널 브리핑의 ‘대표 카드’와 같은 화면입니다 — <b>① 재료 → ② 요청 → ③ 결과·검증</b> 순서로 진행하세요.</p></div>' +
-    '<div class="card rl-host" id="rl-studio"></div><div class="card"><h3>최근 만든 카드 <small class="hint">이 기기에 저장 · 눌러서 다시 열기</small></h3><div id="rl-hist" class="rl-hist"><p class="hint">아직 없습니다.</p></div></div>';
+  sec.innerHTML = '<div class="card rl-host" id="rl-studio"></div><div class="card"><h3>최근 만든 카드 <small class="hint">이 기기에 저장 · 눌러서 다시 열기</small></h3><div id="rl-hist" class="rl-hist"><p class="hint">아직 없습니다.</p></div></div>';
 }
 function rcRestoreReel() { var st = document.getElementById("rl-studio"); if (st && st._rc && st.offsetParent) { RC.cur = st._rc; RC.host = st; } }
 function renderReel() {
@@ -7740,16 +7851,17 @@ function buildSubs(sec) {
     '<div class="card"><h3>앞으로 3주 일정 <small class="hint">날짜는 공고 기준 · 바뀔 수 있으니 공고 링크로 확인</small></h3><div id="sb-tl"></div></div>' +
     '<div class="card"><h3>단지별 상세</h3><div id="sb-list"></div></div>' +
     '<div class="card"><h3>최근 경쟁률</h3><div id="sb-rate"></div></div>' +
-    '<div class="card mk-card" id="sb-make"><h3>카드 만들기</h3><p class="desc">범위를 고르면 그 범위의 청약 한 장(1080×1350)이 아래에 그려집니다. 위의 지역·종류·일정 종류 조건이 그대로 적용됩니다. 주인은 같은 재료로 릴스 대표 카드(AI)도 만들 수 있습니다.</p>' +
+    (!sbOwn() ? "" : '<div class="card mk-card" id="sb-make"><h3>카드 만들기 <small class="hint">주인만</small></h3><p class="desc">범위를 고르면 그 범위의 청약 한 장(1080×1350)이 아래에 그려집니다. 위의 지역·종류·일정 종류 조건이 그대로 적용됩니다. 주인은 같은 재료로 릴스 대표 카드(AI)도 만들 수 있습니다.</p>' +
       '<div class="seg sb-wrapseg" id="sb-cmode">' + [["picked", "선택한 단지"], ["item", "건별"], ["day", "일별"], ["week", "주별"], ["month", "월별"], ["overview", "요약"]].map(function (m) { return '<button type="button" data-sbcm="' + m[0] + '"' + (m[0] === SB.card.mode ? ' class="on"' : "") + ">" + m[1] + "</button>"; }).join("") + "</div>" +
       '<div class="mk-row" id="sb-csel" style="margin-top:6px"></div>' +
-      '<div class="chcards strip" id="sb-cards"></div><div id="sb-rcslot"></div></div>';
+      '<div class="chcards strip" id="sb-cards"></div><div id="sb-rcslot"></div></div>');
   sec.addEventListener("click", function (ev) {
     var a = ev.target.closest("[data-sba]"), k = ev.target.closest("[data-sbk]"), sv = ev.target.closest("[data-chsave]"), more = ev.target.closest("[data-sbmore]"), ke = ev.target.closest("[data-sbe]"), cm = ev.target.closest("[data-sbcm]");
     if (ke) { var kk = ke.dataset.sbe; if (kk === "*") SB.kinds = null; else { var cur = SB.kinds || SB_KINDS.slice(); var ix = cur.indexOf(kk); if (ix >= 0) cur.splice(ix, 1); else cur.push(kk); SB.kinds = cur.length === SB_KINDS.length ? null : cur; } sbPaint(); }
     if (cm) { SB.card.mode = cm.dataset.sbcm; sbPaint(); }
     var pk = ev.target.closest("[data-sbpick]"), cb = ev.target.closest("[data-sbcard]");
     if (ev.target.closest("[data-sbclear]")) { SB.picks = []; sbPaint(); }
+    if ((pk || cb || cm || sv || na || ns || ne) && !sbOwn()) return;
     if (pk) { var no = pk.dataset.sbpick, ix = SB.picks.indexOf(no); if (ix >= 0) SB.picks.splice(ix, 1); else SB.picks.push(no); sbPaint(); }
     var ne = ev.target.closest("[data-sbnote]"), ns = ev.target.closest("[data-sbnsave]"), nc = ev.target.closest("[data-sbncopy]"), na = ev.target.closest("[data-sbnai]"), nx = ev.target.closest("[data-sbnclose]");
     if (ne) { SB.edit = ne.dataset.sbnote; sbPaint(); }
@@ -7785,9 +7897,9 @@ function sbPaint() {
   var ev = sbEvents(L, t, chDayKey(chShift(chKstNow(), 21))), byDay = {}, days = [];
   ev.forEach(function (e) { if (!byDay[e.d]) { byDay[e.d] = []; days.push(e.d); } byDay[e.d].push(e); });
   document.getElementById("sb-tl").innerHTML = days.length ? days.map(function (d) {
-    return '<div class="sb-day' + (d === t ? " today" : "") + '"><div class="sb-dh"><b>' + sbD(d) + "</b><small>" + sbDays(d) + "</small></div>" + byDay[d].map(function (e) {
-      return '<div class="sb-ev"><i class="chc-pill ' + sbPillCls(e.kind) + '">' + escHtml(e.kind) + "</i><span>" + escHtml(e.it.nm) + "</span><small>" + escHtml(sbShort(e.it)) + (e.it.n ? " · " + fmt(e.it.n) + "가구" : "") + "</small></div>";
-    }).join("") + "</div>";
+    return '<div class="sb-day' + (d === t ? " today" : "") + '"><div class="sb-dh"><b>' + sbD(d) + "</b><small>" + sbDays(d) + '</small></div><div class="sb-evs">' + byDay[d].map(function (e) {
+      return '<div class="sb-ev"><i class="chc-pill ' + sbPillCls(e.kind) + '">' + escHtml(e.kind) + "</i><span title=\"" + escHtml(e.it.nm) + "\">" + escHtml(e.it.nm) + "</span><small>" + escHtml(sbShort(e.it)) + (e.it.n ? " · " + fmt(e.it.n) + "가구" : "") + "</small></div>";
+    }).join("") + "</div></div>";
   }).join("") : '<p class="hint">이 조건으로 3주 안에 잡힌 일정이 없습니다.</p>';
   /* 단지 상세 */
   var live = L.filter(function (it) { return Math.max(it.win || 0, it.e || 0, it.cE || 0, it.b || 0) >= t; });
@@ -7851,25 +7963,30 @@ function sbPaintCard() {
     slot.querySelector("[data-rcgo]").addEventListener("click", function () { var F = sbFacts(); if (!F.length) { alert("재료가 없습니다."); return; } var tt = sbCardTitleNow(); rcOpen({ topic: tt[0], facts: F, basis: "청약홈 " + dyYm(X.asOf) + " 수집", purpose: "청약 일정 상세 카드(게시판)로 유입" }); });
   }
 }
+/* 카드·릴스·AI 같은 콘텐츠 만들기는 주인(나만 보기 잠금 해제)만 */
+function sbOwn() { return typeof OWNER !== "undefined" && !!OWNER; }
 function sbModeKey() { return SB.card.mode === "item" ? "item" : SB.card.mode === "picked" ? "picked" : SB.card.mode === "overview" ? "" : "range"; }
 function sbCardTitleNow() { SB.cardMode = sbModeKey(); var t = sbCardTitle() || dyTitle("subs"); SB.cardMode = ""; return t; }
 function sbPillCls(k) { return { "공고": "", "특별공급": "pol", "1순위": "up", "2순위": "up", "접수 시작": "up", "무순위 접수": "up", "접수 마감": "warn", "당첨자 발표": "ok", "계약 시작": "" }[k] || ""; }
 function sbItemHtml(it) {
   var st = sbStatus(it), f = sbFlags(it), rows = [];
-  SB_EV.forEach(function (k) { if (it[k[0]]) rows.push([k[1], sbD(it[k[0]]) + (k[0] === "e" && it.b && it.b !== it.e ? "" : ""), sbDays(it[k[0]])]); });
-  if (it.r1g && it.r1g !== it.r1) rows.push(["1순위(경기)", sbD(it.r1g), sbDays(it.r1g)]);
-  if (it.r1x && it.r1x !== it.r1) rows.push(["1순위(기타지역)", sbD(it.r1x), sbDays(it.r1x)]);
-  if (it.cE) rows.push(["계약 마감", sbD(it.cE), sbDays(it.cE)]);
-  if (it.move) rows.push(["입주 예정", escHtml(String(it.move).replace(/^(\d{4})(\d{2})$/, "$1.$2")), ""]);
+  SB_EV.forEach(function (k) { if (it[k[0]]) rows.push([k[1], sbD(it[k[0]]), sbDays(it[k[0]]), it[k[0]]]); });
+  if (it.r1g && it.r1g !== it.r1) rows.push(["1순위(경기)", sbD(it.r1g), sbDays(it.r1g), it.r1g]);
+  if (it.r1x && it.r1x !== it.r1) rows.push(["1순위(기타)", sbD(it.r1x), sbDays(it.r1x), it.r1x]);
+  if (it.cE) rows.push(["계약 마감", sbD(it.cE), sbDays(it.cE), it.cE]);
+  rows.sort(function (a, b) { return a[3] - b[3]; });   /* 날짜 순서대로 */
+  var tday = sbToday();
+  rows.forEach(function (r) { r[4] = r[3] < tday ? "past" : r[3] === tday ? "now" : (r[3] - tday <= 7 ? "soon" : ""); });
+  if (it.move) rows.push(["입주 예정", escHtml(String(it.move).replace(/^(\d{4})(\d{2})$/, "$1.$2")), "", 0, "move"]);
   var picked = SB.picks.indexOf(String(it.no)) >= 0;
-  return '<div class="sb-item' + (picked ? " picked" : "") + '"><div class="sb-ih"><label class="sb-pick"><input type="checkbox" data-sbpick="' + escHtml(String(it.no)) + '"' + (picked ? " checked" : "") + "> 선택</label><i class=\"chc-pill " + st[1] + '">' + st[0] + "</i><b>" + escHtml(it.nm) + "</b><span>" + escHtml(String(it.area || "")) + (it.n ? " · " + fmt(it.n) + "가구" : "") + (sbPrice(it) ? " · 분양가 " + sbPrice(it) : "") + "</span></div>" +
+  return '<div class="sb-item' + (picked ? " picked" : "") + '"><div class="sb-ih">' + (sbOwn() ? '<label class="sb-pick"><input type="checkbox" data-sbpick="' + escHtml(String(it.no)) + '"' + (picked ? " checked" : "") + "> 카드에 넣기</label>" : "") + "<i class=\"chc-pill " + st[1] + '">' + st[0] + "</i><b>" + escHtml(it.nm) + "</b><span>" + escHtml(String(it.area || "")) + (it.n ? " · " + fmt(it.n) + "가구" : "") + (sbPrice(it) ? " · 분양가 " + sbPrice(it) : "") + "</span></div>" +
     (f.length ? '<div class="sb-flags">' + f.map(function (x) { return "<i>" + escHtml(x) + "</i>"; }).join("") + "</div>" : "") +
     '<div class="sb-addr">' + escHtml(it.addr || "") + (it.builder ? " · 시공 " + escHtml(it.builder) : "") + "</div>" +
-    '<div class="sb-sched">' + rows.map(function (r) { return "<div><span>" + r[0] + "</span><b>" + r[1] + "</b><small>" + r[2] + "</small></div>"; }).join("") + "</div>" +
+    '<div class="sb-sched">' + rows.map(function (r) { return '<div class="' + (r[4] || "") + '"><span>' + r[0] + "</span><b>" + r[1] + "</b><small>" + (r[2] || "&nbsp;") + "</small></div>"; }).join("") + "</div>" +
     (it.types && it.types.length ? '<details class="sb-types"><summary>주택형별 분양가·공급 ' + it.types.length + "개</summary><div class=\"sb-tw\"><table class=\"sb-tbl\"><tr><th>주택형</th><th>공급면적</th><th>공급</th><th>특공</th><th>최고 분양가</th></tr>" + it.types.map(function (ty) { return "<tr><td>" + escHtml(ty.ty) + "</td><td>" + (ty.area ? ty.area + "㎡" : "–") + "</td><td>" + (ty.n != null ? fmt(ty.n) : "–") + "</td><td>" + (ty.sp != null ? fmt(ty.sp) : "–") + (sbSpd(ty) ? " <small>" + sbSpd(ty) + "</small>" : "") + "</td><td>" + (ty.top ? eok(ty.top) : "–") + "</td></tr>"; }).join("") + "</table></div></details>" : "") +
     (it.rstat ? '<div class="sb-addr">1순위 경쟁률 평균 <b>' + sbRate(it.rate) + "</b>" + (it.maxRate ? " · 최고 " + sbRate(it.maxRate) + (it.maxTy ? "(" + escHtml(sbTy(it.maxTy)) + ")" : "") : "") + " · " + escHtml(it.rstat) + "</div>" : "") +
     sbTermsHtml(it) + sbGuideHtml(it) +
-    '<div class="sb-links"><button type="button" class="btn sm ghost" data-sbcard="' + escHtml(String(it.no)) + '">이 단지로 카드</button>' + (it.url ? '<a href="' + escHtml(it.url) + '" target="_blank" rel="noopener">청약홈 공고 보기</a>' : "") + (it.home ? '<a href="' + escHtml(/^http/.test(it.home) ? it.home : "https://" + it.home) + '" target="_blank" rel="noopener">홈페이지</a>' : "") + (it.tel ? "<span>문의 " + escHtml(it.tel) + "</span>" : "") + "</div></div>";
+    '<div class="sb-links">' + (sbOwn() ? '<button type="button" class="btn sm ghost" data-sbcard="' + escHtml(String(it.no)) + '">이 단지로 카드</button>' : "") + (it.url ? '<a href="' + escHtml(it.url) + '" target="_blank" rel="noopener">청약홈 공고 보기</a>' : "") + (it.home ? '<a href="' + escHtml(/^http/.test(it.home) ? it.home : "https://" + it.home) + '" target="_blank" rel="noopener">홈페이지</a>' : "") + (it.tel ? "<span>문의 " + escHtml(it.tel) + "</span>" : "") + "</div></div>";
 }
 /* 릴스 재료(문장) */
 function sbFacts() {
@@ -8257,6 +8374,7 @@ function asPicker(o) {
         '<p class="hint as-srv' + (AS.srv ? " ok" : "") + '">' + (AS.srv ? "서버 보관함 · PC·휴대폰 공유 · 이미지 " + AS.list.filter(function (x) { return x.hasImg && !x.local; }).length + "/" + AS.max + "장 (넘으면 즐겨찾기·고정 아닌 오래된 것부터 정리)" : escHtml(AS.err || "이 기기에만 저장")) + "</p>" +
         '<div class="as-bar">' + (kinds.length > 1 ? kinds.map(function (k) { return '<button type="button" data-ask="' + k + '" class="' + (st.kind === k ? "on" : "") + '">' + (k === "*" ? "전체" : AS_KIND[k]) + "</button>"; }).join("") : "") +
           '<button type="button" data-asfavonly="1" class="' + (st.fav ? "on" : "") + '">★ 즐겨찾기</button><input type="search" data-asq="1" placeholder="찾기 (예: 야경, 서울, 대장)" value="' + escHtml(st.q) + '">' + (o.upload !== false && st.kind !== "preset" ? '<label class="btn sm ghost as-up">내 이미지 넣기<input type="file" accept="image/*" data-asup="1" hidden></label>' : "") + "</div>" +
+        (o.manage ? '<div class="as-bk"><button type="button" class="btn sm ghost" data-asexp="1">백업 파일로</button><label class="btn sm ghost">백업 가져오기<input type="file" accept="application/json,.json" data-asimp="1" hidden></label><span class="hint" id="as-msg"></span></div>' : "") +
         (ctx ? '<p class="hint">' + (o.onPick ? "누르면 바로 씁니다 · " : "") + "지금 만드는 것과 비슷한 순서 (카드 종류·양식·지역·제목 낱말)</p>" : "") +
         (L.length ? '<div class="as-grid">' + L.map(function (r) { return asTile(r.x, { sim: ctx && r.s >= 2, tools: true }); }).join("") + "</div>" : '<p class="hint as-empty">아직 담긴 것이 없습니다. 배경은 만들면 자동으로 담기고, 내 스타일·구성은 결과 옆 [저장] 버튼으로 담습니다.</p>') + "</div>";
       asThumbs(L.map(function (r) { return r.x; }), function () { L.forEach(function (r) { var t = AS.th[r.x.id]; if (!t) return; var el = m.querySelector('[data-asid="' + r.x.id + '"] .as-ph'); if (el && r.x.hasImg) el.outerHTML = '<img src="' + t + '" alt="">'; }); });
@@ -8266,6 +8384,7 @@ function asPicker(o) {
       if (ev.target === m || ev.target.closest("[data-asx]")) { m.remove(); return; }
       var k = ev.target.closest("[data-ask]"); if (k) { st.kind = k.dataset.ask; paint(); return; }
       if (ev.target.closest("[data-asfavonly]")) { st.fav = !st.fav; paint(); return; }
+      if (ev.target.closest("[data-asexp]")) { asExport(); return; }
       var b;
       if ((b = ev.target.closest("[data-asdel]"))) { ev.stopPropagation(); var xd = byId(b.dataset.asdel); if (xd && confirm("'" + (xd.name || "") + "'을(를) 보관함에서 지울까요?")) { asDel(xd.id); paint(); } return; }
       if ((b = ev.target.closest("[data-asfav]"))) { ev.stopPropagation(); var xf = byId(b.dataset.asfav); if (xf) { asPatch(xf, { fav: !xf.fav }); paint(); } return; }
@@ -8278,6 +8397,7 @@ function asPicker(o) {
     });
     m.addEventListener("input", function (ev) { if (ev.target.dataset.asq) { st.q = ev.target.value.trim(); var pos = ev.target.selectionStart; paint(); var q = m.querySelector("[data-asq]"); q.focus(); try { q.setSelectionRange(pos, pos); } catch (e) {} } });
     m.addEventListener("change", function (ev) {
+      if (ev.target.dataset.asimp && ev.target.files[0]) { asImport(ev.target.files[0], function (n) { paint(); asMsg(n + "개를 가져왔습니다"); }); return; }
       if (!ev.target.dataset.asup || !ev.target.files[0]) return; var f = ev.target.files[0], r = new FileReader();
       r.onload = function () { var nm = prompt("이름(나중에 찾을 낱말)", f.name.replace(/\.[^.]+$/, "")) || f.name; var kd = st.kind === "*" || st.kind === "preset" ? (all[0] === "preset" ? "bg" : all[0]) : st.kind; asAdd({ kind: kd, name: nm, type: "up", tags: ["직접 넣음"], img: r.result, from: "upload", cat: kd === "icon" && ctx && ctx.cat ? ctx.cat : "" }, function () { paint(); }); };
       r.readAsDataURL(f);
@@ -8550,13 +8670,20 @@ TP.r = "regionPrice"; TP.o = { scope: "seoul", band: "84", per: 26, maxp: 3 }; T
 /* ── 화면 ── */
 function buildTpl(sec) {
   var grps = []; TPR_ORDER.forEach(function (id) { var g = TPR[id].grp; if (grps.indexOf(g) < 0) grps.push(g); });
-  sec.innerHTML = '<div class="card"><h2>카드 만들기</h2><p class="desc">① 무엇을 ② 어느 지역·평형으로 ③ 어떤 양식에 담을지 고르면 앱 데이터로 카드가 바로 그려집니다. 칸을 직접 고치거나 AI로 채울 수 있고, 줄이 많으면 여러 장으로 나뉩니다. 모든 카드는 우상향연구소 공통 틀(1080×1350)로 저장됩니다.</p>' +
+  /* v9.27 작업 화면 — 위: 재료·조건 / 아래 왼쪽: 내용 고치기 / 아래 오른쪽: 미리보기(저장) */
+  sec.innerHTML = '<div class="card tpx-pick"><div class="tpx-hd"><h2>카드 만들기</h2><span class="hint" id="tpr-hint"></span><button type="button" class="btn sm ghost" data-tplib="1">보관함</button></div>' +
     '<div class="tpr-grps">' + grps.map(function (g) { return '<div class="tpr-g"><small>' + g + '</small><div class="tpr-list">' + TPR_ORDER.filter(function (id) { return TPR[id].grp === g; }).map(function (id) { return '<button type="button" data-tpr="' + id + '">' + TPR[id].nm + "</button>"; }).join("") + "</div></div>"; }).join("") + "</div>" +
-    '<p class="hint" id="tpr-hint"></p><div class="tpr-opts" id="tpr-opts"></div></div>' +
-    '<div class="card tp-wrap"><div class="tp-left"><h3>내용 <small class="hint" id="tp-msg"></small></h3><div class="tpr-pages" id="tpr-pages"></div><div class="mk-row"><button type="button" class="btn sm" data-tpauto="1">앱 데이터로 다시 채우기</button><button type="button" class="btn sm ghost" data-tpclear="1">이 장 비우기</button></div><div class="mk-row tp-lib"><button type="button" class="btn sm ghost" data-tpicon="1">아이콘·그림 넣기(보관함)</button><button type="button" class="btn sm ghost" data-tppsave="1">이 양식 저장</button><button type="button" class="btn sm ghost" data-tppload="1">저장한 양식</button><button type="button" class="btn sm ghost" data-tpicongen="1" id="tp-icongen">분류 아이콘</button><span class="hint" id="tp-libmsg"></span></div>' + (typeof asStripHtml === "function" ? asStripHtml("tp") : "") + '<div id="tp-form"></div>' +
-      '<details class="tp-ai" id="tp-ai"><summary>AI로 채우기 (재료 안의 숫자만)</summary><p class="hint">재료 = 지금 장의 칸 내용 + 아래 참고 글. AI는 고른 양식의 칸만 채우고, 재료에 없는 숫자는 빨갛게 알려 줍니다. 직접 입력(빈 양식)에 기사·공고문을 붙여 넣고 돌리면 글로 카드를 만들 수 있습니다. 버튼을 눌렀을 때만 돕니다.</p><textarea id="tp-extra" placeholder="참고 글(기사·공고문·내 메모) — 선택"></textarea><textarea id="tp-note" placeholder="요청(예: 신혼부부 관점 제목) — 선택"></textarea><div class="mk-row"><button type="button" class="btn sm" data-tpai="1">AI로 이 장 채우기</button><span class="hint" id="tp-aimsg"></span></div></details></div>' +
-      '<div class="tp-right"><h3>미리보기 <small class="hint" id="tp-cnt"></small></h3><div class="chcards strip" id="tp-cards"></div><div class="mk-row"><button type="button" class="btn sm" data-tpzip="1">전부 ZIP 저장</button><button type="button" class="btn sm ghost" data-tpreel="1">이 내용으로 릴스 카드 →</button></div><div id="tp-bad" class="hint"></div>' +
-      '<details class="tp-cap" id="tp-capw"><summary>올릴 글 (캡션)</summary><textarea class="chpost" id="tp-cap" rows="10" spellcheck="false"></textarea><div class="mk-row"><button type="button" class="btn sm" data-tpcopy="1">글 복사</button><span class="hint" id="tp-capmsg"></span></div></details></div></div>' + (typeof asPanelHtml === "function" ? asPanelHtml() : "");
+    '<div class="tpr-opts" id="tpr-opts"></div></div>' +
+    '<div class="tp-wrap"><div class="card tp-left"><div class="tpx-bar"><h3>내용</h3><small class="hint" id="tp-msg"></small></div><div class="tpr-pages" id="tpr-pages"></div>' +
+      '<div class="tpx-tools"><button type="button" class="btn sm" data-tpauto="1">다시 채우기</button><button type="button" class="btn sm ghost" data-tpclear="1">이 장 비우기</button><button type="button" class="btn sm ghost" data-tpaiopen="1">AI로 채우기</button></div>' +
+      '<div class="tpx-tools"><button type="button" class="btn sm ghost" data-tppsave="1">양식 저장</button><button type="button" class="btn sm ghost" data-tpicongen="1" id="tp-icongen">분류 아이콘</button><button type="button" class="btn sm ghost" data-tpicon="1">아이콘 고르기</button></div>' +
+      '<p class="hint tpx-msg" id="tp-libmsg"></p>' + (typeof asStripHtml === "function" ? asStripHtml("tp") : "") +
+      '<details class="tp-ai" id="tp-ai"><summary>AI로 채우기 <small class="hint">재료 안의 숫자만 · 누를 때만 실행</small></summary><p class="hint">재료 = 지금 장의 칸 내용 + 아래 참고 글. 고른 양식의 칸만 채우고, 재료에 없는 숫자는 빨갛게 알려 줍니다. 빈 양식에 기사·공고문을 붙여 넣으면 글로 카드를 만듭니다.</p><textarea id="tp-extra" placeholder="참고 글(기사·공고문·내 메모) — 선택"></textarea><textarea id="tp-note" placeholder="요청(예: 신혼부부 관점 제목) — 선택"></textarea><div class="tpx-tools"><button type="button" class="btn sm" data-tpai="1">AI로 이 장 채우기</button><span class="hint" id="tp-aimsg"></span></div></details>' +
+      '<div id="tp-form"></div></div>' +
+      '<div class="card tp-right"><div class="tpx-bar"><h3>미리보기</h3><small class="hint" id="tp-cnt"></small></div>' +
+      '<div class="tpx-tools"><button type="button" class="btn sm" data-tpzip="1">전부 저장 ZIP</button><button type="button" class="btn sm ghost" data-tpcopy="1">글 복사</button><button type="button" class="btn sm ghost" data-tpreel="1">릴스 카드로</button></div>' +
+      '<div id="tp-bad" class="hint"></div><div class="chcards tpx-cards" id="tp-cards"></div>' +
+      '<details class="tp-cap" id="tp-capw"><summary>올릴 글 (캡션) <small class="hint" id="tp-capmsg"></small></summary><textarea class="chpost" id="tp-cap" rows="10" spellcheck="false"></textarea></details></div></div>';
   sec.addEventListener("click", function (ev) {
     var r = ev.target.closest("[data-tpr]"); if (r) { TP.r = r.dataset.tpr; var R = TPR[TP.r]; TP.id = R.tpls ? R.tpls[0] : (TP.id && TPL[TP.id] ? TP.id : "lineTable"); TP.o.per = R.per || 12; tprRebuild(); }
     var t = ev.target.closest("[data-tptpl]"); if (t) { TP.id = t.dataset.tptpl; tprRebuild(); }
@@ -8564,7 +8691,9 @@ function buildTpl(sec) {
     if (ev.target.closest("[data-tpauto]")) tprRebuild();
     if (ev.target.closest("[data-tpclear]")) { TP.pages[TP.pg] = tpBlank(TPL[TP.id]); tpPaint(); }
     if (ev.target.closest("[data-tpai]")) tpAi();
-    if (ev.target.closest("[data-tpicon]") && typeof asPicker === "function") asPicker({ title: "카드 아이콘·그림 — 보관함에서 고르기", kinds: ["icon", "bg"], upload: true, query: (TPR[TP.r] ? TPR[TP.r].nm : "") + " " + (tpData().title || ""), onPick: function (x) { (TP.pages || []).forEach(function (d) { d._icon = x.img; }); TP.auto = false; tpPaint(); var m = document.getElementById("tp-libmsg"); if (m) m.innerHTML = "모든 장에 넣었습니다 · <a href=\"#\" data-tpinoff=\"1\">빼기</a>"; } });
+    if (ev.target.closest("[data-tpaiopen]")) { var ad = document.getElementById("tp-ai"); ad.open = !ad.open; if (ad.open) ad.querySelector("textarea").focus(); }
+    if (ev.target.closest("[data-tplib]") && typeof asPicker === "function") asPicker({ title: "보관함", kinds: ["*"], ctx: tpCtx(), manage: true, onPick: function (x) { if (x.kind === "preset" && x.data && x.data.r) tpApplyPreset(x); else if (x.kind === "icon" || x.kind === "bg") { (TP.pages || []).forEach(function (d) { d._icon = x.img; }); TP.iconId = x.id; tpPaint(); } } });
+    if (ev.target.closest("[data-tpicon]") && typeof asPicker === "function") asPicker({ title: "카드 아이콘·그림 — 보관함에서 고르기", kinds: ["icon", "bg"], upload: true, query: (TPR[TP.r] ? TPR[TP.r].nm : "") + " " + (tpData().title || ""), onPick: function (x) { (TP.pages || []).forEach(function (d) { d._icon = x.img; }); TP.auto = false; tpPaint(); var m = document.getElementById("tp-libmsg"); TP.iconId = x.id; if (m) m.innerHTML = "모든 장에 넣었습니다 · <a href=\"#\" data-tpinoff=\"1\">빼기</a>"; } });
     if (ev.target.closest("[data-tpinoff]")) { ev.preventDefault(); (TP.pages || []).forEach(function (d) { delete d._icon; }); tpPaint(); }
     if (ev.target.closest("[data-tppsave]")) tpSavePreset();
     if (ev.target.closest("[data-tpicongen]")) tpIconGen();
@@ -8574,7 +8703,6 @@ function buildTpl(sec) {
     if (ev.target.closest("[data-tpzip]") && typeof chSaveAllZip === "function") chSaveAllZip(document.getElementById("tp-cards"), "card").then(function () { if (typeof progClose === "function") progClose(); }, function (e) { if (typeof progClose === "function") progClose(); alert("ZIP 저장 실패: " + e.message); });
     var sv = ev.target.closest("[data-chsave]"); if (sv && typeof chCardImage === "function") { var card = sv.parentNode.querySelector(".chcard"); if (typeof progOpen === "function") progOpen("이미지 만드는 중", 0); chCardImage(card, sv.dataset.chsave).then(function () { if (typeof progClose === "function") progClose(); }, function () { if (typeof progClose === "function") progClose(); alert("이미지 저장에 실패했습니다."); }); }
   });
-  if (typeof asPanelBind === "function") asPanelBind(sec);
   sec.addEventListener("change", function (ev) { var k = ev.target.dataset && ev.target.dataset.tpo; if (k) { TP.o[k] = k === "per" || k === "maxp" ? Number(ev.target.value) : ev.target.value; if (k === "item" && typeof SB !== "undefined") SB.card.item = ev.target.value; tprRebuild(); } });
   sec.addEventListener("input", function (ev) { if (ev.target.closest("#tp-form")) { TP.pages[TP.pg] = tpReadForm(); TP.auto = false; tpPaintCard(); } });
 }
@@ -8591,8 +8719,8 @@ function tprOptsHtml() {
   if (R.per) h += '<label>최대 장 수<select data-tpo="maxp">' + [1, 2, 3, 5, 10].map(function (n) { return '<option value="' + n + '"' + (n === TP.o.maxp ? " selected" : "") + ">" + n + "장</option>"; }).join("") + "</select></label>";
   if (R.per) h += '<label>한 장에 줄<select data-tpo="per">' + [6, 8, 10, 12, 14, 18, 22, 26].filter(function (n) { return TP.id === "leaderGrid" ? n <= 8 : TP.id === "rankGrid" ? n === 12 : TP.id === "lineTable" ? n <= 16 : true; }).map(function (n) { return '<option value="' + n + '"' + (n === TP.o.per ? " selected" : "") + ">" + n + "줄</option>"; }).join("") + "</select></label>";
   var tpls = R.tpls || TPL_ORDER;
-  h += '<div class="tpr-tpls"><small>양식</small>' + tpls.map(function (id) { return '<button type="button" data-tptpl="' + id + '" class="' + (id === TP.id ? "on" : "") + '">' + TPL[id].nm + "</button>"; }).join("") + "</div>";
-  return h;
+  return (h ? '<div class="tpr-g"><small>조건</small><div class="tpr-list tpr-sel">' + h + "</div></div>" : "") +
+    '<div class="tpr-g"><small>양식</small><div class="tpr-list">' + tpls.map(function (id) { return '<button type="button" data-tptpl="' + id + '" class="' + (id === TP.id ? "on" : "") + '">' + TPL[id].nm + "</button>"; }).join("") + "</div></div>";
 }
 function tprRebuild() {
   var R = TPR[TP.r]; if (!R) return;
@@ -8630,7 +8758,7 @@ function tpStrip() {
   if (typeof asStripFill !== "function" || !document.querySelector('[data-asstrip="tp"]')) return;
   asLoad(function () {
     var g = tpGrp(), pin = asCatIcon(g), b = document.getElementById("tp-icongen");
-    if (b) b.textContent = pin ? (TP.noIcon && TP.noIcon[g] ? "분류 아이콘 다시 넣기" : "분류 아이콘 빼기") : "이 분류 아이콘 만들기(AI·1회)";
+    if (b) b.textContent = pin ? (TP.noIcon && TP.noIcon[g] ? "분류 아이콘 넣기" : "분류 아이콘 빼기") : "분류 아이콘 만들기"; b.title = pin ? g + " 고정 아이콘" : g + " 아이콘을 AI로 한 번 만들어 고정";
     var sel = {}; if (TP.presetId) sel[TP.presetId] = "불러옴"; if (TP.iconId && (TP.pages || []).some(function (d) { return d._icon; })) sel[TP.iconId] = pin && pin.id === TP.iconId ? "고정 아이콘" : "넣음";
     asStripFill("tp", { title: "저장한 양식 · 아이콘", kinds: ["preset", "icon"], per: { preset: 2, icon: 2 }, ctx: tpCtx(), sel: sel, filter: function (x) { return x.kind !== "preset" || (x.data && x.data.r); }, empty: "[이 양식 저장]·[분류 아이콘]으로 담으면 다음에 여기서 바로 고릅니다",
       onPick: function (x) {
@@ -8757,7 +8885,8 @@ function tpApplyPreset(x) {
 var STUDIO = [["brief", "지금 시장", "오늘 시장 보기"], ["channel", "채널 브리핑", "오늘 올릴 코너"], ["tpl", "카드 만들기", "4:5 카드"], ["reel", "릴스 카드", "9:16 한 장"]];
 function studioBar(id) {
   var isS = STUDIO.some(function (s) { return s[0] === id; });
-  document.body.classList.toggle("stu-on", isS);   /* 위 알약 줄은 숨기고(뒤로 가기만) 이 바 하나로 오간다 */
+  document.body.classList.toggle("stu-on", isS);
+  document.body.classList.toggle("stu-wide", id === "tpl" || id === "reel");   /* 작업 화면은 넓게 */   /* 위 알약 줄은 숨기고(뒤로 가기만) 이 바 하나로 오간다 */
   if (!isS) return;
   var sec = document.getElementById("tab-" + id); if (!sec) return;
   var bar = null; for (var i = 0; i < sec.children.length; i++) if (sec.children[i].classList.contains("stu-bar")) bar = sec.children[i];

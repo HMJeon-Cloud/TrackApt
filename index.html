@@ -2574,6 +2574,8 @@ body.stu-wide #tab-reel .rl-host{width:auto;left:0;transform:none}
 @media(max-width:560px){.rt-tbl:not(.rt-main) th:nth-child(3),.rt-tbl:not(.rt-main) td:nth-child(3){display:table-cell}.rt-main.rt-loan th:nth-child(5),.rt-main.rt-loan td:nth-child(5),.rt-main.rt-dep th:nth-child(4),.rt-main.rt-dep td:nth-child(4){display:none}}
 @media(max-width:560px){.rt-tbl td b{display:inline-block;max-width:118px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}.rt-tbl td,.rt-tbl th{padding-left:5px!important;padding-right:5px!important}}
 @media(max-width:560px){.rt-tbl:not(.rt-main) th:nth-child(3),.rt-tbl:not(.rt-main) td:nth-child(3){display:none}}
+.rt-prd{display:block;font-size:11px;color:var(--muted,#6b7684);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+@media(max-width:560px){.rt-prd{max-width:118px}}
 </style>
 </head>
 <body>
@@ -8227,6 +8229,8 @@ function sbResults(X) {
   var by = {}; (X.items || []).forEach(function (it) { by[String(it.no)] = it; });
   return (X.results || []).filter(function (r) { return r.status || r.types; }).map(function (r) {
     var it = by[String(r.no)], o = {}; for (var k in r) o[k] = r[k];
+    /* 0점 가점 행(그 거주구분 가점 당첨자 없음)은 빼고 최저~최고를 다시 잡는다 — 예전 수집분 보정 */
+    if (o.sc) { var L = o.sc.filter(function (t) { return t.lo > 0; }); if (!L.length) { delete o.sc; o.scLo = o.scHi = null; } else { var here = L.filter(function (t) { return /해당/.test(t.rs); }), B = here.length ? here : L; o.sc = L; o.scLo = Math.min.apply(null, B.map(function (t) { return t.lo; })); o.scHi = Math.max.apply(null, B.map(function (t) { return t.hi != null && t.hi > 0 ? t.hi : t.lo; })); o.scRs = here.length ? "해당지역" : (B[0].rs || "") + "지역"; } }
     if (!o.nm) o.nm = it ? it.nm : "관리번호 " + r.no;
     if (!o.area && it) o.area = it.area;
     return o;
@@ -9213,12 +9217,12 @@ function thrFromCards(tab, C, srcLine, dateLine) {
   try { window.__thrSrc = C.map(function (o) { return [o.q, o.a, o.body, o.date, o.src].map(thrTxt).join(" "); }).join(" "); } catch (e) {}   /* 시험용: 글의 숫자가 카드에 있는지 대조 */
   var pick = null;
   /* 청약: 첫 장(이번 주 접수 일정)을 날짜 목록으로 — 숫자 순위가 아니라 일정이 핵심 */
-  if (tab === "subs" && /주 청약/.test(thrTxt(C[0].tag))) { var Rs = thrRowsFromHtml(C[0].body); pick = { o: C[0], R: { rows: [], cols: null, lines: Rs.rows.slice(0, 5).map(function (r) { return r[0] + " — " + r[1]; }) }, key: "청약 일정" }; }
+  if (tab === "subs" && /주 청약/.test(thrTxt(C[0].tag))) { var Rs = thrRowsFromHtml(C[0].body); pick = { o: C[0], R: { rows: [], cols: null, lines: Rs.rows.slice(0, 5).map(function (r) { return r[0] + " — " + r[1]; }) }, key: "청약 일정", first: /다음 주/.test(thrTxt(C[0].tag)) ? "다음 주 청약, 어디서 언제 받을까요?" : "" }; }
   if (!pick) C.some(function (o) { var R = thrRowsFromHtml(o.body); R.cfg = { unitHint: /%/.test(thrTxt(o.q)) ? "%" : "", asc: /최저|낮을까|낮은 곳/.test(thrTxt(o.tag) + " " + thrTxt(o.q)) }; if (thrPick(R.rows, R.cols, R.cfg)) { pick = { o: o, R: R }; return true; } return false; });
   if (!pick) { var o0 = C[0], R0 = thrRowsFromHtml(o0.body); R0.lines = C.length >= 3 ? C.map(thrTagLine).filter(Boolean).slice(0, 5) : R0.lines; pick = { o: o0, R: R0, multi: C.length >= 3 }; }
   var o = pick.o, src = String(o.src || srcLine || "").replace(/^출처:\s*/, "").replace(/\s*·\s*투자 권유 아님/, "");
   var dt = thrTxt(o.date || dateLine || "");
-  var first = pick.multi || pick.o === C[0] ? THR_CHQ[tab] || thrPolite(o.q) : thrPolite(o.q) || THR_CHQ[tab];
+  var first = pick.first || (pick.multi || pick.o === C[0] ? THR_CHQ[tab] || thrPolite(o.q) : thrPolite(o.q) || THR_CHQ[tab]);
   return thrBuild({ q: o.q, first: first, rows: pick.R.rows, cols: pick.R.cols, cfg: pick.R.cfg, lines: pick.R.lines, answer: pick.multi ? C[0].a : o.a, basis: [dt].concat(src.split(" · ").filter(function (x) { x = x.replace(/\s*공시$/, ""); return x && dt.indexOf(x) < 0; })).filter(Boolean).join(" · "), key: (pick.key ? pick.key + " " : "") + tab + " " + thrTxt(o.tag) + " " + thrTxt(o.q) });
 }
 /* ── 카드 만들기 — 칸(rows/items)에서 바로 ── */
@@ -9254,7 +9258,7 @@ function thrFromTpl() {
    지난주 대비 = 6일 이상 앞선 수집과 같은 금융사끼리 비교. 공시 금리라 회사가 새로 올려야 바뀐다. */
 var RTE = { kind: "mortgage", grp: "all", more: false };
 var RT_KIND = [["mortgage", "주담대", "loan"], ["jeonse", "전세대출", "loan"], ["deposit", "정기예금", "dep"], ["saving", "적금", "dep"]];
-var RT_NOTE = { mortgage: "아파트 담보 · 금리 유형·상환 방식 전체 중 최저~최고", jeonse: "전세자금대출 · 금리 유형·상환 방식 전체 중 최저~최고", deposit: "12개월 · 기본 금리 ~ 우대 포함 최고", saving: "12개월 · 기본 금리 ~ 우대 포함 최고" };
+var RT_NOTE = { mortgage: "아파트 담보 · 금리 유형·상환 방식 전체 중 최저~최고", jeonse: "전세자금대출 · 금리 유형·상환 방식 전체 중 최저~최고", deposit: "12개월 · 기본 금리 ~ 우대 포함 최고", saving: "12개월 · 기본 금리 ~ 우대 포함 최고 · 고금리 적금은 월 납입 한도가 작거나 우대 조건이 까다로운 특판이 많음" };
 function rtData() { return (typeof DY !== "undefined" && DY.data && DY.data.rates) || null; }
 function rtIsLoan(k) { return k === "mortgage" || k === "jeonse"; }
 function rtP(v) { return v == null ? "–" : v.toFixed(2) + "%"; }
@@ -9309,7 +9313,7 @@ function rtPaint() {
   document.getElementById("rt-note").textContent = RT_NOTE[k] + " · 우대 조건을 모두 채웠을 때 기준이라 실제 금리는 신용도·거래 실적에 따라 다릅니다.";
   var shown = RTE.more ? L : L.slice(0, 15);
   document.getElementById("rt-tbl").innerHTML = L.length ? '<div class="sb-tw"><table class="sb-tbl rt-tbl rt-main ' + (loan ? "rt-loan" : "rt-dep") + '"><tr><th>#</th><th>금융사</th><th>구분</th><th>' + (loan ? "최저" : "기본") + "</th><th>" + (loan ? "최고" : "최고(우대)") + "</th><th>지난주 대비</th><th>상품 · 공시월</th></tr>" +
-    shown.map(function (c, i) { return "<tr><td>" + (i + 1) + "</td><td><b>" + escHtml(rtCo(c.co)) + "</b></td><td>" + escHtml(c.grp || "") + "</td><td>" + (loan ? "<b>" + rtP(c.lo) + "</b>" : rtP(c.lo)) + "</td><td>" + (loan ? rtP(c.hi) : "<b>" + rtP(c.hi) + "</b>") + "</td><td>" + (D.prevAt ? rtD(loan ? c.dLo : c.dHi) || "–" : "–") + "</td><td><small>" + c.n + "개 · " + rtYm(c.dcls) + "</small></td></tr>"; }).join("") + "</table></div>" +
+    shown.map(function (c, i) { return "<tr><td>" + (i + 1) + "</td><td><b>" + escHtml(rtCo(c.co)) + '</b><small class="rt-prd">' + escHtml((loan ? c.loPrd : c.hiPrd) || "") + "</small></td><td>" + escHtml(c.grp || "") + "</td><td>" + (loan ? "<b>" + rtP(c.lo) + "</b>" : rtP(c.lo)) + "</td><td>" + (loan ? rtP(c.hi) : "<b>" + rtP(c.hi) + "</b>") + "</td><td>" + (D.prevAt ? rtD(loan ? c.dLo : c.dHi) || "–" : "–") + "</td><td><small>" + c.n + "개 · " + rtYm(c.dcls) + "</small></td></tr>"; }).join("") + "</table></div>" +
     (L.length > shown.length ? '<button type="button" class="btn sm ghost" data-rtmore="1">' + (L.length - shown.length) + "곳 더 보기</button>" : "") : "";
   var C = rtChanges(D);
   document.getElementById("rt-chg").innerHTML = !D.prevAt ? '<p class="hint">첫 수집 주입니다. 다음 주 월요일 수집부터 지난주와 비교합니다.</p>' : C.length ? '<div class="sb-tw"><table class="sb-tbl rt-tbl"><tr><th>상품</th><th>금융사</th><th>지금</th><th>지난주 대비</th></tr>' +
@@ -9318,7 +9322,7 @@ function rtPaint() {
 /* ── 채널 브리핑 '금리 비교' 코너 (월요일) ── */
 function rtChCards() {
   var D = rtData(); if (!D) return [];
-  var C = [], basis = "금감원 금융상품한눈에 " + chMD(D.asOf) + " 수집", row = function (c, loan) { var d = D.prevAt ? (loan ? c.dLo : c.dHi) : null; return [escHtml(rtCo(c.co)), escHtml(c.grp || "") + " · " + (loan ? "최고 " + rtP(c.hi) : "기본 " + rtP(c.lo)) + (d != null && Math.abs(d) >= 0.005 ? " · 지난주 " + (d > 0 ? "+" : "") + d.toFixed(2) + "%p" : ""), loan ? rtP(c.lo) : rtP(c.hi)]; };
+  var C = [], basis = "금감원 금융상품한눈에 " + chMD(D.asOf) + " 수집", row = function (c, loan) { var d = D.prevAt ? (loan ? c.dLo : c.dHi) : null; return [escHtml(rtCo(c.co)), escHtml((loan ? c.loPrd : c.hiPrd) || c.grp || "") + " · " + (loan ? "최고 " + rtP(c.hi) : "기본 " + rtP(c.lo)) + (d != null && Math.abs(d) >= 0.005 ? " · 지난주 " + (d > 0 ? "+" : "") + d.toFixed(2) + "%p" : ""), loan ? rtP(c.lo) : rtP(c.hi)]; };
   [["mortgage", "주담대 최저 금리", "주담대 금리,<br>어디가 가장 낮을까?"], ["jeonse", "전세대출 최저 금리", "전세대출 금리,<br>어디가 가장 낮을까?"], ["deposit", "정기예금 최고 금리", "1년 정기예금,<br>어디가 가장 높을까?"], ["saving", "적금 최고 금리", "1년 적금,<br>어디가 가장 높을까?"]].forEach(function (K) {
     var loan = rtIsLoan(K[0]), L = rtList(K[0], "all"); if (L.length < 3) return;
     C.push({ tag: K[1], date: basis, src: "금감원 금융상품한눈에 공시 · 투자 권유 아님",

@@ -245,7 +245,7 @@ async function subs() {
         DBG.scoreSample = sc.slice(0, 2);
         var S = {};
         sc.forEach(function (r) {
-          var k = String(r.HOUSE_MANAGE_NO || ""), lo = num(r.LWET_SCORE), av = num(r.AVRG_SCORE), hi = num(r.TOP_SCORE); if (!k || lo == null) return;
+          var k = String(r.HOUSE_MANAGE_NO || ""), lo = num(r.LWET_SCORE), av = num(r.AVRG_SCORE), hi = num(r.TOP_SCORE); if (!k || !(lo > 0)) return;   /* 0점 행 = 그 거주구분에 가점 당첨자가 없음(추첨·미달 등) → 빼고 센다 */
           (S[k] = S[k] || []).push({ ty: r.HOUSE_TY, rs: String(r.RESIDE_SENM || "").replace(/지역$/, "") || "", lo: lo, avg: av, hi: hi });
         });
         R.forEach(function (x) { var L = S[x.no]; if (!L) return; x.sc = L.slice(0, 30); var here = L.filter(function (t) { return /해당/.test(t.rs); }); var B = here.length ? here : L; x.scLo = Math.min.apply(null, B.map(function (t) { return t.lo; })); x.scHi = Math.max.apply(null, B.map(function (t) { return t.hi != null ? t.hi : t.lo; })); x.scRs = here.length ? "해당지역" : (B[0].rs || ""); });
@@ -328,7 +328,8 @@ async function fssAll(svc, grp) {
     var j = await getJson(FSS_BASE + svc + ".json?auth=" + encodeURIComponent(FSS) + "&topFinGrpNo=" + grp + "&pageNo=" + page);
     var r = j && j.result; if (!r || (r.err_cd && r.err_cd !== "000")) { log("금리 " + svc + "/" + grp + ": " + JSON.stringify(r || j).slice(0, 160)); DBG["fss_" + svc + grp] = r || j; break; }
     base = base.concat(r.baseList || []); opt = opt.concat(r.optionList || []); max = Number(r.max_page_no) || 1; page++;
-  } while (page <= max && page <= 5);
+  } while (page <= max && page <= 15);
+  DBG["fssPages_" + svc + grp] = { pages: page - 1, max: max, base: base.length, opt: opt.length };
   return { base: base, opt: opt };
 }
 function fssByCo(D, pick) {   /* pick(option, base) → {lo, hi} 또는 null. 금융사별로 모은다 */

@@ -1,13 +1,17 @@
 {
- "builtAt": "2026-10-13T22:21:33.594Z",
+ "builtAt": "2026-10-14T21:20:35.348Z",
  "steps": [
   "준공 후 미분양: 시도 18곳 합산",
   "unsold OK",
   "index OK",
   "weekly 없음",
-  "경쟁률 행 2000 → 단지 91 (이름 붙은 곳 91)",
-  "청약 공고 128건(접수 중 6 · 예정 14) · 경쟁률 80 · 분양가 있는 단지 76",
-  "subs OK"
+  "당첨 가점 행 1932 → 단지 87 (경쟁률 단지와 겹침 59)",
+  "경쟁률 행 1848 → 단지 90 (이름 붙은 곳 47)",
+  "분양가 비교 67단지 · 못 맞춘 곳 7 (한양립스 에듀포레(조합원 취소분), 진도 승원팰리체 더 테라스, 향남역 그로브 스위첸, 올 뉴 챔피언스시티 1차, 제일풍경채 첨단3지구(A6BL))",
+  "청약 공고 130건(접수 중 1 · 예정 16) · 경쟁률 80 · 분양가 있는 단지 76",
+  "subs OK",
+  "FSS_KEY 없음 → 금리 비교 건너뜀",
+  "rates 없음"
  ],
  "unsoldSample": [
   {
@@ -351,32 +355,32 @@
  ],
  "remSample": [
   {
-   "BSNS_MBY_NM": "황학동청계지역주택조합",
+   "BSNS_MBY_NM": "코리아신탁(주)",
    "CNTRCT_CNCLS_BGNDE": "2026-10-26",
-   "CNTRCT_CNCLS_ENDDE": "2026-10-28",
+   "CNTRCT_CNCLS_ENDDE": "2026-10-26",
    "GNRL_RCEPT_BGNDE": null,
    "GNRL_RCEPT_ENDDE": null,
-   "HMPG_ADRES": "https://청계노르웨이숲.com",
-   "HOUSE_MANAGE_NO": "2026910263",
-   "HOUSE_NM": "청계 노르웨이숲(13차)",
+   "HMPG_ADRES": null,
+   "HOUSE_MANAGE_NO": "2026910262",
+   "HOUSE_NM": "화성 송산 동원로얄듀크 포레(2차)",
    "HOUSE_SECD": "04",
    "HOUSE_SECD_NM": "무순위",
-   "HSSPLY_ADRES": "서울특별시 중구 황학동 1756번지 일원",
-   "HSSPLY_ZIP": "04574",
-   "MDHS_TELNO": "15550807",
-   "MVN_PREARNGE_YM": "202807",
+   "HSSPLY_ADRES": "경기도 화성시 병점구 화산로 9",
+   "HSSPLY_ZIP": "18356",
+   "MDHS_TELNO": "0516304110",
+   "MVN_PREARNGE_YM": "202611",
    "NSPRC_NM": null,
-   "PBLANC_NO": "2026910263",
-   "PBLANC_URL": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910263&pblancNo=2026910263",
+   "PBLANC_NO": "2026910262",
+   "PBLANC_URL": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910262&pblancNo=2026910262",
    "PRZWNER_PRESNATN_DE": "2026-10-22",
-   "RCRIT_PBLANC_DE": "2026-10-12",
+   "RCRIT_PBLANC_DE": "2026-10-14",
    "SPSPLY_RCEPT_BGNDE": null,
    "SPSPLY_RCEPT_ENDDE": null,
-   "SUBSCRPT_AREA_CODE": "100",
-   "SUBSCRPT_AREA_CODE_NM": "서울",
+   "SUBSCRPT_AREA_CODE": "410",
+   "SUBSCRPT_AREA_CODE_NM": "경기",
    "SUBSCRPT_RCEPT_BGNDE": "2026-10-19",
    "SUBSCRPT_RCEPT_ENDDE": "2026-10-19",
-   "TOT_SUPLY_HSHLDCO": 10
+   "TOT_SUPLY_HSHLDCO": 5
   }
  ],
  "mdlSample": [
@@ -400,6 +404,7 @@
    "YGMN_HSHLDCO": 0
   }
  ],
+ "odcTotal_getAPTLttotPblancCmpet": 55348,
  "cmpetSample": [
   {
    "CMPET_RATE": "(△30)",
@@ -412,6 +417,31 @@
    "RESIDE_SENM": "해당지역",
    "SUBSCRPT_RANK_CODE": 1,
    "SUPLY_HSHLDCO": 36
+  }
+ ],
+ "odcTotal_getAptLttotPblancScore": 29932,
+ "scoreSample": [
+  {
+   "AVRG_SCORE": "0",
+   "HOUSE_MANAGE_NO": "2026000454",
+   "HOUSE_TY": "084.9890A",
+   "LWET_SCORE": "0",
+   "MODEL_NO": "01",
+   "PBLANC_NO": "2026000454",
+   "RESIDE_SECD": "01",
+   "RESIDE_SENM": "해당지역",
+   "TOP_SCORE": "0"
+  },
+  {
+   "AVRG_SCORE": "27",
+   "HOUSE_MANAGE_NO": "2026000454",
+   "HOUSE_TY": "084.9890A",
+   "LWET_SCORE": "27",
+   "MODEL_NO": "01",
+   "PBLANC_NO": "2026000454",
+   "RESIDE_SECD": "02",
+   "RESIDE_SENM": "기타지역",
+   "TOP_SCORE": "27"
   }
  ],
  "errors": []

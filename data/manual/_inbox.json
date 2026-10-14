@@ -1,14 +1,14 @@
 {
  "v": 1,
- "builtAt": "2026-10-13T22:21:04.155Z",
- "asOf": 20261014,
+ "builtAt": "2026-10-14T21:20:10.427Z",
+ "asOf": 20261015,
  "items": [
   {
    "kind": "loan",
    "name": "버팀목 전세대출",
    "manual": "2.3~3.3",
    "found": "2.20~3.30",
-   "date": "2026-10-14",
+   "date": "2026-10-15",
    "title": "버팀목 전세대출 금리 공고 연 2.20~3.30% (수동 2.3~3.3%)",
    "url": "https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020301.jsp",
    "src": "기금e든든",
@@ -20,24 +20,13 @@
   {
    "kind": "policy",
    "date": "2026-10-13",
-   "title": "[아유경제_특집] 집값 안정 위한 ‘10ㆍ15 대책’ 시행 1년… 시장 상황은?",
-   "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE1SYzBFU2pzdDRobDZwMHZ4dV9vNk15Mm0yeXVDQXFRMHpzVzA0LWxLSGFQeFRQOU96bF9ZdnN2OHlnTzdNVTRfczFwRjRlaXVvdmhja0JxSFR3Z291LTU3cjVYTEVuR2pQ?oc=5",
-   "src": "아유경제",
-   "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-14",
-   "isNew": true
-  },
-  {
-   "kind": "policy",
-   "date": "2026-10-13",
    "title": "[10·15 부동산 대책 1년] 집값 잡으려고 규제했는데…1년 만에 서울 집값 10% 오른 이유는? 🏘️",
    "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTE5mUFJEQU90N3NDb05Sd0pJYnp3OG95TUhmeHFmQWlOenVVMzlfRzQxb3N0dkJMLWdOTWFnd2pHdTVyYlpfN21VV0FiUUh3LXhtY2E0?oc=5",
    "src": "뉴닉",
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-10-14",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "policy",
@@ -48,7 +37,7 @@
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-10-14",
-   "isNew": true
+   "isNew": false
   }
  ]
 }

@@ -158,6 +158,17 @@ async function odc(path, q) {
   }
   return all;
 }
+/* 최근 것 위주로 받기 — 첫 쪽으로 전체 건수를 보고, 2,000건이 넘으면 마지막 쪽(최근일 가능성)도 받는다. 최대 4회 */
+async function odcRecent(path) {
+  var url = function (pg) { return ODC_BASE + path + "?page=" + pg + "&perPage=500&serviceKey=" + encodeURIComponent(DATAGO) + "&returnType=JSON"; };
+  var j = await getJson(url(1)), d = j.data || [], nm = path.split("/").pop();
+  if (!d.length) { log("청약 " + nm + ": " + JSON.stringify(j).slice(0, 160)); DBG["odc_" + nm] = j; return []; }
+  var total = Number(j.totalCount || j.matchCount || d.length), last = Math.ceil(total / 500), pages = [];
+  if (last <= 4) for (var p = 2; p <= last; p++) pages.push(p); else pages = [2, last - 1, last];
+  for (var i = 0; i < pages.length; i++) { var k = await getJson(url(pages[i])); d = d.concat(k.data || []); }
+  DBG["odcTotal_" + nm] = total;
+  return d;
+}
 async function subs() {
   if (!DATAGO) { log("DATA_GO_KEY 없음 → 청약 건너뜀"); return null; }
   var today = kst(), from = today - 0; var fromD = new Date(Date.UTC(Math.floor(today / 10000), Math.floor(today / 100) % 100 - 1, today % 100) - 45 * 86400000); var since = fromD.getUTCFullYear() * 10000 + (fromD.getUTCMonth() + 1) * 100 + fromD.getUTCDate();
@@ -170,7 +181,7 @@ async function subs() {
     apt.forEach(function (r) { NAME[String(r.HOUSE_MANAGE_NO)] = { nm: r.HOUSE_NM, area: r.SUBSCRPT_AREA_CODE_NM, notice: dn(r.RCRIT_PBLANC_DE), win: dn(r.PRZWNER_PRESNATN_DE), b: dn(r.RCEPT_BGNDE) }; });
     apt.forEach(function (r) {
       var it = { kind: "apt", no: r.HOUSE_MANAGE_NO, pno: r.PBLANC_NO, nm: r.HOUSE_NM, type: r.HOUSE_SECD_NM || r.HOUSE_DTL_SECD_NM, rent: r.RENT_SECD_NM, area: r.SUBSCRPT_AREA_CODE_NM, addr: r.HSSPLY_ADRES, zip: r.HSSPLY_ZIP, n: num(r.TOT_SUPLY_HSHLDCO),
-        notice: dn(r.RCRIT_PBLANC_DE), spB: dn(r.SPSPLY_RCEPT_BGNDE), spE: dn(r.SPSPLY_RCEPT_ENDDE), r1: dateIn(r.GNRL_RNK1_CRSPAREA_RCEPT_PD), r1x: dateIn(r.GNRL_RNK1_ETC_AREA_RCPTDE), r1g: dateIn(r.GNRL_RNK1_ETC_GG_RCPTDE), r2g: dateIn(r.GNRL_RNK2_ETC_GG_RCPTDE), r2: dateIn(r.GNRL_RNK2_CRSPAREA_RCEPT_PD), r2x: dateIn(r.GNRL_RNK2_ETC_AREA_RCPTDE),
+        notice: dn(r.RCRIT_PBLANC_DE), spB: dn(r.SPSPLY_RCEPT_BGNDE), spE: dn(r.SPSPLY_RCEPT_ENDDE), r1: dateIn(r.GNRL_RNK1_CRSPAREA_RCPTDE || r.GNRL_RNK1_CRSPAREA_RCEPT_PD), r1x: dateIn(r.GNRL_RNK1_ETC_AREA_RCPTDE), r1g: dateIn(r.GNRL_RNK1_ETC_GG_RCPTDE), r2g: dateIn(r.GNRL_RNK2_ETC_GG_RCPTDE), r2: dateIn(r.GNRL_RNK2_CRSPAREA_RCPTDE || r.GNRL_RNK2_CRSPAREA_RCEPT_PD), r2x: dateIn(r.GNRL_RNK2_ETC_AREA_RCPTDE),
         b: dn(r.RCEPT_BGNDE), e: dn(r.RCEPT_ENDDE), win: dn(r.PRZWNER_PRESNATN_DE), cB: dn(r.CNTRCT_CNCLS_BGNDE), cE: dn(r.CNTRCT_CNCLS_ENDDE), move: r.MVN_PREARNGE_YM,
         cap: r.PARCPRC_ULS_AT === "Y", hot: r.SPECLT_RDN_EARTH_AT === "Y", adj: r.MDAT_TRGET_AREA_SECD === "Y", pub: r.PUBLIC_HOUSE_EARTH_AT === "Y", big: r.LRSCL_BLDLND_AT === "Y", redev: r.IMPRMN_BSNS_AT === "Y", pubLaw: r.PUBLIC_HOUSE_SPCLW_APPLC_AT === "Y", npln: r.NPLN_PRVOPR_PUBLIC_HOUSE_AT === "Y", dtl: r.HOUSE_DTL_SECD_NM, builder: r.CNSTRCT_ENTRPS_NM, owner: r.BSNS_MBY_NM, tel: r.MDHS_TELNO, url: r.PBLANC_URL, home: r.HMPG_ADRES };
       var last = Math.max(it.win || 0, it.e || 0, it.cE || 0, it.notice || 0);
@@ -202,7 +213,7 @@ async function subs() {
     } catch (e) { log("주택형별 분양가 실패: " + e.message); }
     /* 4 경쟁률 (최근 공고 기준) */
     try {
-      var cr = await odc("ApplyhomeInfoCmpetRtSvc/v1/getAPTLttotPblancCmpet");
+      var cr = await odcRecent("ApplyhomeInfoCmpetRtSvc/v1/getAPTLttotPblancCmpet");
       DBG.cmpetSample = cr.slice(0, 1);
       /* 행 = 주택형 × 순위(1·2) × 거주구분(해당·기타·경기). 공급 세대수(SUPLY_HSHLDCO)는 주택형마다 같은 값이 행마다 반복되므로 한 번만 센다.
          1순위 경쟁률 = 주택형 1순위 신청 합(해당+기타) ÷ 주택형 일반공급. CMPET_RATE 의 "(△n)" 은 n세대 미달. */
@@ -227,11 +238,36 @@ async function subs() {
           types: T.length, shortTypes: shortN, status: r1 >= sup && !T.some(function (t) { return t.r1 < t.sup; }) ? "1순위 마감" : (r1 + r2 >= sup && shortN === 0 ? "2순위 마감" : "미달 " + shortN + "개 주택형") };
       }).filter(Boolean);
       R.sort(function (a, b) { return (b.b || b.notice || 0) - (a.b || a.notice || 0) || b.rate - a.rate; });
+      /* 4-1 당첨 가점 (v9.29) — 주택형 × 거주구분별 최저·평균·최고. 가점제 물량(주로 민영 85㎡ 이하)에만 있다 */
+      try {
+        var sc = await odcRecent("ApplyhomeInfoCmpetRtSvc/v1/getAptLttotPblancScore");
+        DBG.scoreSample = sc.slice(0, 2);
+        var S = {};
+        sc.forEach(function (r) {
+          var k = String(r.HOUSE_MANAGE_NO || ""), lo = num(r.LWET_SCORE), av = num(r.AVRG_SCORE), hi = num(r.TOP_SCORE); if (!k || lo == null) return;
+          (S[k] = S[k] || []).push({ ty: r.HOUSE_TY, rs: String(r.RESIDE_SENM || "").replace(/지역$/, "") || "", lo: lo, avg: av, hi: hi });
+        });
+        R.forEach(function (x) { var L = S[x.no]; if (!L) return; x.sc = L.slice(0, 30); var here = L.filter(function (t) { return /해당/.test(t.rs); }); var B = here.length ? here : L; x.scLo = Math.min.apply(null, B.map(function (t) { return t.lo; })); x.scHi = Math.max.apply(null, B.map(function (t) { return t.hi != null ? t.hi : t.lo; })); x.scRs = here.length ? "해당지역" : (B[0].rs || ""); });
+        log("당첨 가점 행 " + sc.length + " → 단지 " + Object.keys(S).length + " (경쟁률 단지와 겹침 " + R.filter(function (x) { return x.sc; }).length + ")");
+      } catch (e) { log("당첨 가점 실패: " + e.message); }
+      /* 4-2 보관 — API 에서 빠진 지난 단지도 '최근 경쟁률·가점'에 남게 data/subs_hist.json 에 쌓는다(최근 200) */
+      try {
+        var HP = path.join(ROOT, "data", "subs_hist.json"), HS = readJson(HP, { v: 1, items: {} });
+        R.forEach(function (x) { if (x.nm) HS.items[x.no] = Object.assign({}, HS.items[x.no] || {}, x, { at: today }); });
+        var keys = Object.keys(HS.items).sort(function (a, b) { var A = HS.items[a], B = HS.items[b]; return (B.win || B.b || B.notice || 0) - (A.win || A.b || A.notice || 0); });
+        keys.slice(200).forEach(function (k) { delete HS.items[k]; });
+        fs.mkdirSync(path.join(ROOT, "data"), { recursive: true }); fs.writeFileSync(HP, JSON.stringify(HS));
+        var have = {}; R.forEach(function (x) { have[x.no] = 1; });
+        keys.slice(0, 200).forEach(function (k) { if (!have[k] && HS.items[k] && HS.items[k].nm) R.push(HS.items[k]); });
+        R.sort(function (a, b) { return (b.win || b.b || b.notice || 0) - (a.win || a.b || a.notice || 0) || b.rate - a.rate; });
+      } catch (e) { log("청약 보관 실패: " + e.message); }
       out.results = R.slice(0, 80);
       log("경쟁률 행 " + cr.length + " → 단지 " + R.length + " (이름 붙은 곳 " + R.filter(function (x) { return x.nm; }).length + ")");
       var RB = {}; R.forEach(function (x) { RB[x.no] = x; });
       out.items.forEach(function (it) { var o = RB[String(it.no)]; if (o) { it.rate = o.rate; it.req = o.req; it.maxRate = o.max; it.maxTy = o.maxTy; it.rstat = o.status; it.rateHere = o.rateHere; } });
     } catch (e) { log("경쟁률 실패: " + e.message); }
+    /* 5 분양가 vs 주변 실거래 (v9.29) — 추가 호출 없음. 공급 주소의 시군구 → brief_data(최근 30일 84㎡대 ㎡당 중위) · market_core(3개월 이동 중위 평당가) */
+    try { subsCompare(out.items); } catch (e) { log("분양가 비교 실패: " + e.message); }
     out.items.sort(function (a, b) { return (a.b || a.notice || 0) - (b.b || b.notice || 0); });
     /* 요약(카드용) */
     var openN = out.items.filter(function (i) { return i.b && i.e && i.b <= today && today <= i.e; }).length, soonN = out.items.filter(function (i) { return i.b && i.b > today; }).length;
@@ -242,7 +278,48 @@ async function subs() {
   return out;
 }
 
-(async function () {
+var SIDO = { "서울특별시": "서울", "부산광역시": "부산", "대구광역시": "대구", "인천광역시": "인천", "광주광역시": "광주", "대전광역시": "대전", "울산광역시": "울산", "세종특별자치시": "세종", "경기도": "경기", "강원도": "강원", "강원특별자치도": "강원", "충청북도": "충북", "충청남도": "충남", "전라북도": "전북", "전북특별자치도": "전북", "전라남도": "전남", "경상북도": "경북", "경상남도": "경남", "제주특별자치도": "제주" };
+/* 주소 → 시군구 코드. 이름이 정확히 맞을 때만(애매하면 null — 틀린 비교를 하지 않는다) */
+function subsCode(addr, byName) {
+  var t = String(addr || "").trim().split(/\s+/), sd = SIDO[t[0]] || (Object.keys(SIDO).map(function (k) { return SIDO[k]; }).indexOf(t[0]) >= 0 ? t[0] : null); if (!sd) return null;
+  if (sd === "세종") return byName["세종 세종특별자치시"] || null;
+  var a = t[1] || "", b = t[2] || "";
+  if (/[시군]$/.test(a) && /구$/.test(b) && byName[sd + " " + a + " " + b]) return byName[sd + " " + a + " " + b];
+  return byName[sd + " " + a] || null;
+}
+function subsCompare(items) {
+  var MC = readJson(path.join(ROOT, "market_core.json"), null), BD = readJson(path.join(ROOT, "brief_data.json"), null);
+  if (!MC || !MC.regions) { log("분양가 비교: market_core.json 없음"); return; }
+  var byName = {}; Object.keys(MC.regions).forEach(function (k) { byName[MC.regions[k].nm] = k; });
+  var ym = function (i) { var m = Number(MC.m0), y = Math.floor(m / 100), mo = m % 100 - 1 + i; return (y + Math.floor(mo / 12)) * 100 + (mo % 12) + 1; };
+  var n = 0, miss = [];
+  items.forEach(function (it) {
+    if (it.kind !== "apt" || !it.types || !it.types.length) return;
+    if (/임대/.test(String(it.rent || "") + String(it.type || "") + String(it.nm || ""))) return;   /* 임대·분양전환은 분양가가 아니라서 비교하지 않는다 */
+    var T = it.types.filter(function (t) { return t.top && parseFloat(t.ty) > 0; }); if (!T.length) return;
+    var t84 = T.slice().sort(function (a, b) { return Math.abs(parseFloat(a.ty) - 84) - Math.abs(parseFloat(b.ty) - 84); })[0], ex = parseFloat(t84.ty);
+    var code = subsCode(it.addr, byName); if (!code) { miss.push(it.nm); return; }
+    var R = MC.regions[code], c = { code: code, gu: R.nm, ty: t84.ty, ex: Math.round(ex * 100) / 100, sale: t84.top, saleM2: Math.round(t84.top / ex * 10) / 10 };
+    /* ① 최근 30일 같은 면적대(59·84) ㎡당 중위(brief_data · 10건 이상일 때만). 다른 면적대면 ②만 쓴다 */
+    var band = ex >= 80 && ex <= 88 ? "84" : ex >= 55 && ex <= 63 ? "59" : null; c.band = band;
+    var B = band && BD && BD.regions && BD.regions[code] && BD.regions[code].bands && BD.regions[code].bands[band];
+    if (B && B.n >= 10 && B.pm) { c.m30 = Math.round(B.pm * 10) / 10; c.m30n = B.n; c.m30w = BD.window; }
+    /* ② 3개월 이동 중위 평당가(market_core) — 마지막으로 값이 있는 달 */
+    var p3 = R.s && R.s.p3 || [], nn = R.s && R.s.n || [];
+    for (var i = p3.length - 1; i >= 0; i--) if (p3[i]) { var cnt = (nn[i] || 0) + (nn[i - 1] || 0) + (nn[i - 2] || 0); if (cnt >= 10) { c.p3 = p3[i]; c.p3ym = ym(i); c.p3n = cnt; } break; }
+    if (c.m30 == null && c.p3 == null) { miss.push(it.nm + "(거래 적음)"); return; }
+    var base = c.m30 != null ? c.m30 : c.p3 / 3.3058;   /* ㎡당(전용) */
+    c.diff = Math.round((c.saleM2 / base - 1) * 1000) / 10; c.basis = c.m30 != null ? "m30" : "p3";
+    /* ③ 같은 시군구 84㎡ 대장(최근 거래가) — 신축 비교용 참고 */
+    var L = band && BD && BD.regions && BD.regions[code] && BD.regions[code].leaders && BD.regions[code].leaders[band];
+    if (L && L[0] && L[0].p) c.lead = { apt: L[0].apt, dong: L[0].dong, by: L[0].by, ar: L[0].ar, price: L[0].p[0], d: L[0].p[1] };
+    it.cmp = c; n++;
+  });
+  log("분양가 비교 " + n + "단지" + (miss.length ? " · 못 맞춘 곳 " + miss.length + " (" + miss.slice(0, 5).join(", ") + ")" : ""));
+}
+if (require.main !== module) module.exports = { subsCompare: subsCompare, subsCode: subsCode };
+
+if (require.main === module) (async function () {
   var out = { v: 1, builtAt: new Date().toISOString(), asOf: kst(), errors: [] };
   async function step(nm, fn) { try { var r = await fn(); if (r) out[nm] = r; log(nm + (r ? " OK" : " 없음")); } catch (e) { out.errors.push(nm + ": " + e.message); log(nm + " 실패: " + e.message); } }
   await step("unsold", unsold);

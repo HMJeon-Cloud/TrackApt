@@ -1,16 +1,16 @@
 {
- "builtAt": "2026-10-15T00:15:12.350Z",
+ "builtAt": "2026-10-15T20:59:36.622Z",
  "steps": [
   "준공 후 미분양: 시도 18곳 합산",
   "unsold OK",
   "index OK",
   "weekly 없음",
-  "당첨 가점 행 1932 → 단지 86 (경쟁률 단지와 겹침 58)",
-  "경쟁률 행 1848 → 단지 90 (이름 붙은 곳 47)",
-  "분양가 비교 67단지 · 못 맞춘 곳 7 (한양립스 에듀포레(조합원 취소분), 진도 승원팰리체 더 테라스, 향남역 그로브 스위첸, 올 뉴 챔피언스시티 1차, 제일풍경채 첨단3지구(A6BL))",
-  "청약 공고 130건(접수 중 1 · 예정 16) · 경쟁률 80 · 분양가 있는 단지 76",
+  "당첨 가점 행 1932 → 단지 86 (경쟁률 단지와 겹침 59)",
+  "경쟁률 행 1852 → 단지 91 (이름 붙은 곳 47)",
+  "분양가 비교 68단지 · 못 맞춘 곳 7 (한양립스 에듀포레(조합원 취소분), 진도 승원팰리체 더 테라스, 향남역 그로브 스위첸, 올 뉴 챔피언스시티 1차, 제일풍경채 첨단3지구(A6BL))",
+  "청약 공고 132건(접수 중 0 · 예정 19) · 경쟁률 80 · 분양가 있는 단지 77",
   "subs OK",
-  "금리 비교: mortgage 30곳 · jeonse 17곳 · deposit 97곳 · saving 97곳",
+  "금리 비교: 이번 주 수집분 유지(20261015)",
   "rates OK"
  ],
  "unsoldSample": [
@@ -302,85 +302,85 @@
  ],
  "subsSample": [
   {
-   "BSNS_MBY_NM": "아이파크현대산업개발 주식회사",
-   "CNSTRCT_ENTRPS_NM": "아이파크현대산업개발 주식회사",
-   "CNTRCT_CNCLS_BGNDE": "2026-11-09",
-   "CNTRCT_CNCLS_ENDDE": "2026-11-15",
-   "GNRL_RNK1_CRSPAREA_ENDDE": "2026-10-20",
-   "GNRL_RNK1_CRSPAREA_RCPTDE": "2026-10-20",
-   "GNRL_RNK1_ETC_AREA_ENDDE": "2026-10-20",
-   "GNRL_RNK1_ETC_AREA_RCPTDE": "2026-10-20",
+   "BSNS_MBY_NM": "유한회사 에이치엠서빈",
+   "CNSTRCT_ENTRPS_NM": "에이치엘디앤아이한라 주식회사, 에이치엘에코텍 주식회사",
+   "CNTRCT_CNCLS_BGNDE": "2026-11-16",
+   "CNTRCT_CNCLS_ENDDE": "2026-11-18",
+   "GNRL_RNK1_CRSPAREA_ENDDE": "2026-10-28",
+   "GNRL_RNK1_CRSPAREA_RCPTDE": "2026-10-28",
+   "GNRL_RNK1_ETC_AREA_ENDDE": "2026-10-28",
+   "GNRL_RNK1_ETC_AREA_RCPTDE": "2026-10-28",
    "GNRL_RNK1_ETC_GG_ENDDE": null,
    "GNRL_RNK1_ETC_GG_RCPTDE": null,
-   "GNRL_RNK2_CRSPAREA_ENDDE": "2026-10-21",
-   "GNRL_RNK2_CRSPAREA_RCPTDE": "2026-10-21",
-   "GNRL_RNK2_ETC_AREA_ENDDE": "2026-10-21",
-   "GNRL_RNK2_ETC_AREA_RCPTDE": "2026-10-21",
+   "GNRL_RNK2_CRSPAREA_ENDDE": "2026-10-29",
+   "GNRL_RNK2_CRSPAREA_RCPTDE": "2026-10-29",
+   "GNRL_RNK2_ETC_AREA_ENDDE": "2026-10-29",
+   "GNRL_RNK2_ETC_AREA_RCPTDE": "2026-10-29",
    "GNRL_RNK2_ETC_GG_ENDDE": null,
    "GNRL_RNK2_ETC_GG_RCPTDE": null,
-   "HMPG_ADRES": "https://www.i-park.com/gagyeong7-8",
+   "HMPG_ADRES": "https://brand.hldni.com/thewaycity/",
    "HOUSE_DTL_SECD": "01",
    "HOUSE_DTL_SECD_NM": "민영",
-   "HOUSE_MANAGE_NO": "2026000492",
-   "HOUSE_NM": "청주 가경 아이파크 8단지",
+   "HOUSE_MANAGE_NO": "2026000455",
+   "HOUSE_NM": "신분평 에피트 더웨이시티",
    "HOUSE_SECD": "01",
    "HOUSE_SECD_NM": "APT",
-   "HSSPLY_ADRES": "충청북도 청주시 흥덕구 가경동 701번지 일원",
-   "HSSPLY_ZIP": "28382",
+   "HSSPLY_ADRES": "충청북도 청주시 서원구 장성동 135번지 일원(장성지구 A2블럭)",
+   "HSSPLY_ZIP": "28804",
    "IMPRMN_BSNS_AT": "N",
    "LRSCL_BLDLND_AT": "N",
    "MDAT_TRGET_AREA_SECD": "N",
-   "MDHS_TELNO": "15333767",
-   "MVN_PREARNGE_YM": "202911",
+   "MDHS_TELNO": "15336700",
+   "MVN_PREARNGE_YM": "202909",
    "NPLN_PRVOPR_PUBLIC_HOUSE_AT": "N",
-   "NSPRC_NM": "문화일보",
+   "NSPRC_NM": "헤럴드경제신문",
    "PARCPRC_ULS_AT": "N",
-   "PBLANC_NO": "2026000492",
-   "PBLANC_URL": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000492&pblancNo=2026000492",
-   "PRZWNER_PRESNATN_DE": "2026-10-27",
+   "PBLANC_NO": "2026000455",
+   "PBLANC_URL": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000455&pblancNo=2026000455",
+   "PRZWNER_PRESNATN_DE": "2026-11-04",
    "PUBLIC_HOUSE_EARTH_AT": "N",
    "PUBLIC_HOUSE_SPCLW_APPLC_AT": "N",
-   "RCEPT_BGNDE": "2026-10-19",
-   "RCEPT_ENDDE": "2026-10-21",
-   "RCRIT_PBLANC_DE": "2026-10-08",
+   "RCEPT_BGNDE": "2026-10-27",
+   "RCEPT_ENDDE": "2026-10-29",
+   "RCRIT_PBLANC_DE": "2026-10-15",
    "RENT_SECD": "0",
    "RENT_SECD_NM": "분양주택",
    "SPECLT_RDN_EARTH_AT": "N",
-   "SPSPLY_RCEPT_BGNDE": "2026-10-19",
-   "SPSPLY_RCEPT_ENDDE": "2026-10-19",
+   "SPSPLY_RCEPT_BGNDE": "2026-10-27",
+   "SPSPLY_RCEPT_ENDDE": "2026-10-27",
    "SUBSCRPT_AREA_CODE": "360",
    "SUBSCRPT_AREA_CODE_NM": "충북",
-   "TOT_SUPLY_HSHLDCO": 1128
+   "TOT_SUPLY_HSHLDCO": 992
   }
  ],
  "remSample": [
   {
-   "BSNS_MBY_NM": "코리아신탁(주)",
-   "CNTRCT_CNCLS_BGNDE": "2026-10-26",
-   "CNTRCT_CNCLS_ENDDE": "2026-10-26",
+   "BSNS_MBY_NM": "신극동아파트 가로주택정비사업조합",
+   "CNTRCT_CNCLS_BGNDE": "2026-10-28",
+   "CNTRCT_CNCLS_ENDDE": "2026-10-28",
    "GNRL_RCEPT_BGNDE": null,
    "GNRL_RCEPT_ENDDE": null,
-   "HMPG_ADRES": null,
-   "HOUSE_MANAGE_NO": "2026910262",
-   "HOUSE_NM": "화성 송산 동원로얄듀크 포레(2차)",
+   "HMPG_ADRES": "http://efete-eungye.com/",
+   "HOUSE_MANAGE_NO": "2026910264",
+   "HOUSE_NM": "시흥 은계 에피트(조합원 취소분)",
    "HOUSE_SECD": "04",
    "HOUSE_SECD_NM": "무순위",
-   "HSSPLY_ADRES": "경기도 화성시 병점구 화산로 9",
-   "HSSPLY_ZIP": "18356",
-   "MDHS_TELNO": "0516304110",
-   "MVN_PREARNGE_YM": "202611",
+   "HSSPLY_ADRES": "경기도 시흥시 은행동 289-31번지 일원",
+   "HSSPLY_ZIP": "14921",
+   "MDHS_TELNO": "0313184998",
+   "MVN_PREARNGE_YM": "202610",
    "NSPRC_NM": null,
-   "PBLANC_NO": "2026910262",
-   "PBLANC_URL": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910262&pblancNo=2026910262",
-   "PRZWNER_PRESNATN_DE": "2026-10-22",
-   "RCRIT_PBLANC_DE": "2026-10-14",
+   "PBLANC_NO": "2026910264",
+   "PBLANC_URL": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910264&pblancNo=2026910264",
+   "PRZWNER_PRESNATN_DE": "2026-10-23",
+   "RCRIT_PBLANC_DE": "2026-10-15",
    "SPSPLY_RCEPT_BGNDE": null,
    "SPSPLY_RCEPT_ENDDE": null,
    "SUBSCRPT_AREA_CODE": "410",
    "SUBSCRPT_AREA_CODE_NM": "경기",
-   "SUBSCRPT_RCEPT_BGNDE": "2026-10-19",
-   "SUBSCRPT_RCEPT_ENDDE": "2026-10-19",
-   "TOT_SUPLY_HSHLDCO": 5
+   "SUBSCRPT_RCEPT_BGNDE": "2026-10-20",
+   "SUBSCRPT_RCEPT_ENDDE": "2026-10-20",
+   "TOT_SUPLY_HSHLDCO": 16
   }
  ],
  "mdlSample": [
@@ -404,7 +404,7 @@
    "YGMN_HSHLDCO": 0
   }
  ],
- "odcTotal_getAPTLttotPblancCmpet": 55348,
+ "odcTotal_getAPTLttotPblancCmpet": 55352,
  "cmpetSample": [
   {
    "CMPET_RATE": "(△30)",
@@ -444,184 +444,5 @@
    "TOP_SCORE": "27"
   }
  ],
- "fssPages_mortgageLoanProductsSearch020000": {
-  "pages": 1,
-  "max": 1,
-  "base": 34,
-  "opt": 108
- },
- "fssPages_mortgageLoanProductsSearch050000": {
-  "pages": 1,
-  "max": 1,
-  "base": 20,
-  "opt": 36
- },
- "fssMortgageSample": {
-  "base": [
-   {
-    "dcls_month": "202609",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "1054",
-    "kor_co_nm": "우리은행",
-    "fin_prdt_nm": "우리아파트론",
-    "join_way": "영업점,모집인",
-    "loan_inci_expn": "- 인지세 : 해당세액의 50%(대출금액 5천만원 이하시 없음)\n- 국민주택채권 매입 : 대출금액 × 120% × 1% × 채권할인율",
-    "erly_rpay_fee": "- 고정금리 : 중도상환대출금×0.71%×잔존기간÷대출기간\n- 변동금리 : 중도상환대출금×0.95%×잔존기간÷대출기간",
-    "dly_rate": "- 적용금리+ 3%\n(가계대출 최고연체이자율 : 12%)",
-    "loan_lmt": "LTV 70%",
-    "dcls_strt_day": "20260920",
-    "dcls_end_day": "20270919",
-    "fin_co_subm_day": "202609171823"
-   }
-  ],
-  "opt": [
-   {
-    "dcls_month": "202609",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "1054",
-    "mrtg_type": "A",
-    "mrtg_type_nm": "아파트",
-    "rpay_type": "S",
-    "rpay_type_nm": "만기일시상환방식",
-    "lend_rate_type": "C",
-    "lend_rate_type_nm": "변동금리",
-    "lend_rate_min": 4.18,
-    "lend_rate_max": 5.28,
-    "lend_rate_avg": null
-   },
-   {
-    "dcls_month": "202609",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "1054",
-    "mrtg_type": "A",
-    "mrtg_type_nm": "아파트",
-    "rpay_type": "D",
-    "rpay_type_nm": "분할상환방식",
-    "lend_rate_type": "C",
-    "lend_rate_type_nm": "변동금리",
-    "lend_rate_min": 4.41,
-    "lend_rate_max": 5.61,
-    "lend_rate_avg": 4.73
-   }
-  ]
- },
- "fssPages_rentHouseLoanProductsSearch020000": {
-  "pages": 1,
-  "max": 1,
-  "base": 41,
-  "opt": 80
- },
- "fssRentSample": {
-  "base": [
-   {
-    "dcls_month": "202609",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "10561",
-    "kor_co_nm": "우리은행",
-    "fin_prdt_nm": "우리전세론(주택금융보증)",
-    "join_way": "영업점,모집인",
-    "loan_inci_expn": "- 인지세 : 해당세액의 50%(대출금액 5천만원 이하시 없음)\n- 보증료",
-    "erly_rpay_fee": "- 고정금리 : 중도상환대출금×0.76%×잔존기간÷대출기간\n- 변동금리 : 중도상환대출금×0.35%×잔존기간÷대출기간",
-    "dly_rate": "- 적용금리+ 3%\n(가계대출 최고연체이자율 : 12%)",
-    "loan_lmt": "최대4.44억원",
-    "dcls_strt_day": "20260920",
-    "dcls_end_day": "20270919",
-    "fin_co_subm_day": "202609171823"
-   }
-  ],
-  "opt": [
-   {
-    "dcls_month": "202609",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "10561",
-    "rpay_type": "S",
-    "rpay_type_nm": "만기일시상환방식",
-    "lend_rate_type": "F",
-    "lend_rate_type_nm": "고정금리",
-    "lend_rate_min": 5.46,
-    "lend_rate_max": 6.16,
-    "lend_rate_avg": 5.22
-   },
-   {
-    "dcls_month": "202609",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "10561",
-    "rpay_type": "D",
-    "rpay_type_nm": "분할상환방식",
-    "lend_rate_type": "F",
-    "lend_rate_type_nm": "고정금리",
-    "lend_rate_min": 5.46,
-    "lend_rate_max": 6.16,
-    "lend_rate_avg": null
-   }
-  ]
- },
- "fssPages_depositProductsSearch020000": {
-  "pages": 1,
-  "max": 1,
-  "base": 39,
-  "opt": 158
- },
- "fssPages_depositProductsSearch030300": {
-  "pages": 4,
-  "max": 4,
-  "base": 396,
-  "opt": 2654
- },
- "fssDepositSample": {
-  "base": [
-   {
-    "dcls_month": "202609",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "WR0001B",
-    "kor_co_nm": "우리은행",
-    "fin_prdt_nm": "WON플러스예금",
-    "join_way": "인터넷,스마트폰,전화(텔레뱅킹)",
-    "mtrt_int": "만기 후\n- 1개월이내 : 만기시점약정이율×50%\n- 1개월초과 6개월이내: 만기시점약정이율×30%\n- 6개월초과 : 만기시점약정이율×20%\n\n※ 만기시점 약정이율 : 일반정기예금 금리",
-    "spcl_cnd": "해당사항 없음",
-    "join_deny": "1",
-    "join_member": "실명의 개인",
-    "etc_note": "- 가입기간: 1~36개월\n- 최소가입금액: 1만원 이상\n- 만기일을 일,월 단위로 자유롭게 선택 가능\n- 만기해지 시 신규일 당시 영업점과 인터넷 홈페이지에 고시된 계약기간별 금리 적용",
-    "max_limit": null,
-    "dcls_strt_day": "20261007",
-    "dcls_end_day": null,
-    "fin_co_subm_day": "202610070703"
-   }
-  ],
-  "opt": [
-   {
-    "dcls_month": "202609",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "WR0001B",
-    "intr_rate_type": "S",
-    "intr_rate_type_nm": "단리",
-    "save_trm": "1",
-    "intr_rate": 2.7,
-    "intr_rate2": 2.7
-   },
-   {
-    "dcls_month": "202609",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "WR0001B",
-    "intr_rate_type": "S",
-    "intr_rate_type_nm": "단리",
-    "save_trm": "3",
-    "intr_rate": 3.1,
-    "intr_rate2": 3.1
-   }
-  ]
- },
- "fssPages_savingProductsSearch020000": {
-  "pages": 1,
-  "max": 1,
-  "base": 59,
-  "opt": 178
- },
- "fssPages_savingProductsSearch030300": {
-  "pages": 3,
-  "max": 3,
-  "base": 276,
-  "opt": 1352
- },
  "errors": []
 }

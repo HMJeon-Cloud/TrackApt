@@ -349,9 +349,10 @@ async function rates() {
   var H = readJson(RATES_P, { v: 1, snaps: [] }), today = kst(), last = H.snaps.length ? H.snaps[H.snaps.length - 1] : null;
   var dDiff = function (a, b) { var f = function (n) { return Date.UTC(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100); }; return Math.round((f(a) - f(b)) / 86400000); };
   var wd = new Date(Date.now() + 9 * 3600000).getUTCDay();
-  if (last && last.at !== today && !(wd === 1 || dDiff(today, last.at) >= 7) && !process.env.RATES_FORCE) { log("금리 비교: 이번 주 수집분 유지(" + last.at + ")"); return rSummary(H); }
-  if (last && last.at === today && !process.env.RATES_FORCE) return rSummary(H);
-  var snap = { at: today, src: "금융감독원 금융상품한눈에" };
+  var stale = last && !(last.v >= 2);   /* v9.30.1 이전 수집분(5쪽 한도로 잘렸을 수 있음)은 한 번 다시 받는다 */
+  if (last && !stale && last.at !== today && !(wd === 1 || dDiff(today, last.at) >= 7) && !process.env.RATES_FORCE) { log("금리 비교: 이번 주 수집분 유지(" + last.at + ")"); return rSummary(H); }
+  if (last && !stale && last.at === today && !process.env.RATES_FORCE) return rSummary(H);
+  var snap = { at: today, v: 2, src: "금융감독원 금융상품한눈에" };
   try {
     var mg = [await fssAll("mortgageLoanProductsSearch", "020000"), await fssAll("mortgageLoanProductsSearch", "050000")];
     DBG.fssMortgageSample = { base: mg[0].base.slice(0, 1), opt: mg[0].opt.slice(0, 2) };
@@ -377,7 +378,7 @@ async function rates() {
 /* 최신 수집 + 6일 이상 앞선 수집과 금융사별 비교 → 앱·카드용 요약 */
 function rSummary(H) {
   var S = H.snaps, cur = S[S.length - 1]; if (!cur) return null;
-  var prev = null; for (var i = S.length - 2; i >= 0; i--) { var a = cur.at, b = S[i].at, d = (Date.UTC(Math.floor(a / 10000), Math.floor(a / 100) % 100 - 1, a % 100) - Date.UTC(Math.floor(b / 10000), Math.floor(b / 100) % 100 - 1, b % 100)) / 86400000; if (d >= 6) { prev = S[i]; break; } }
+  var prev = null; for (var i = S.length - 2; i >= 0; i--) { if ((S[i].v || 1) !== (cur.v || 1)) continue;   /* 수집 방식이 다른 회차끼리는 비교하지 않는다(잘못된 변화 방지) */ var a = cur.at, b = S[i].at, d = (Date.UTC(Math.floor(a / 10000), Math.floor(a / 100) % 100 - 1, a % 100) - Date.UTC(Math.floor(b / 10000), Math.floor(b / 100) % 100 - 1, b % 100)) / 86400000; if (d >= 6) { prev = S[i]; break; } }
   var out = { asOf: cur.at, prevAt: prev ? prev.at : null, src: cur.src };
   ["mortgage", "jeonse", "deposit", "saving"].forEach(function (k) {
     var L = (cur[k] || []).map(function (c) { var o = Object.assign({}, c); return o; }), P = {}; ((prev && prev[k]) || []).forEach(function (c) { P[c.no] = c; });

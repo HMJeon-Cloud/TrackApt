@@ -2646,6 +2646,25 @@ i.in-kind{display:inline-block;font-style:normal;font-size:10px;font-weight:800;
 i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;background:#f3f4f6;border-radius:4px;padding:0 4px;margin:0 2px 0 3px;vertical-align:middle}
 .in-srcs{margin-top:8px;padding-top:6px;border-top:1px dashed #efe5cc;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}.in-srcs small{font-size:11px;color:var(--muted,#6b7280)}.in-srcs a,.in-srcs span{font-size:11.5px;color:#2563eb;text-decoration:none}.in-srcs span{color:#6b7280}
 @media (prefers-color-scheme:dark){.in-rep{background:rgba(212,175,106,.06);border-color:rgba(212,175,106,.25)}.in-rep p b{color:inherit}i.cite{background:rgba(255,255,255,.08);color:#aaa}}
+/* v9.38 카드 만들기 — 순서대로 */
+.tpx-steps{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 0 10px;background:var(--bg,#f6f7f9)}
+.tpx-steps button{display:flex;align-items:center;gap:8px;text-align:left;border:1px solid var(--line,#e5e7eb);background:var(--card,#fff);border-radius:12px;padding:8px 10px;cursor:pointer;color:inherit;font:inherit;min-width:0}
+.tpx-steps button i{flex:none;width:24px;height:24px;border-radius:50%;background:#17181c;color:#d4af6a;font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center}
+.tpx-steps button span{min-width:0;display:flex;flex-direction:column}.tpx-steps button b{font-size:13px}.tpx-steps button small{font-size:11px;color:var(--muted,#6b7280);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:700px){.tpx-steps{grid-template-columns:repeat(2,1fr)}}
+.tpx-s{margin-top:12px}.tpx-s .tpx-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.tpx-s .tpx-hd h2{display:flex;align-items:center;gap:8px;margin:0;font-size:18px}.tpx-s .tpx-hd h2 i{width:26px;height:26px;border-radius:8px;background:#17181c;color:#d4af6a;font-style:normal;font-size:13px;font-weight:900;display:inline-flex;align-items:center;justify-content:center}.tpx-s .tpx-hd .hint{flex:1;min-width:0}
+.tpr-grpbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 4px}.tpr-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}.tpr-chips button{border:1px solid var(--line,#e5e7eb);background:var(--card,#fff);color:inherit;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;gap:5px;align-items:center}.tpr-chips button i{font-style:normal;font-size:10px;color:var(--muted,#9ca3af)}.tpr-chips button.on{background:#17181c;color:#e9d3a6;border-color:#17181c}.tpr-chips button.on i{color:#e9d3a6}
+#tpr-q{font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line,#e5e7eb);border-radius:999px;min-width:220px}
+#td-slot .td-box{margin:10px 0 2px;padding:10px 12px;border-radius:12px;background:rgba(212,175,106,.08);border:1px solid rgba(212,175,106,.35)}#td-slot .td-list{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px;margin:8px 0 2px}#td-slot .td-list button{padding:7px 9px;grid-template-rows:auto}#td-slot .td-list span{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:12px}#td-slot .td-list button::before{width:20px;height:20px;font-size:11px}#td-slot .td-list b{font-size:13px}#td-slot .td-list small{display:none}#td-slot .td-box>.hint{display:none}
+.tpx-lead{margin:8px 0 10px}.tpx-leadin{display:grid;grid-template-columns:1.4fr 1.4fr 1fr;gap:10px}@media (max-width:760px){.tpx-leadin{grid-template-columns:1fr}}.tpx-leadin>div{border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:8px 11px;background:var(--card,#fff);min-width:0}.tpx-leadin small{display:block;font-size:11px;color:var(--muted,#6b7280);margin-bottom:2px}.tpx-leadin b{font-size:13.5px;line-height:1.45;display:block}.tpx-leadin b.hint{font-weight:500}.tpx-leadin em{font-style:normal;font-size:11px;color:#a8843f}
+.tp-edit{margin-top:12px;border-top:1px dashed var(--line,#e5e7eb);padding-top:8px}.tp-edit>summary{cursor:pointer;font-weight:800;font-size:14px}.tp-edit>summary small{font-weight:500;margin-left:6px}.tp-edit .tp-left{margin-top:8px}
+/* 카드 안 한 줄(lead)·함께 보면(note) */
+.tp-card .tp-lead{margin:4px 8px 0;padding:5px 8px;border-radius:5px;background:#17181c;color:#f5efe2;font-size:9.2px;font-weight:800;line-height:1.35;letter-spacing:-.02em}.tp-card .tp-lead::before{content:"→ ";color:#d4af6a}
+.tp-card .tp-note{margin:4px 8px 0;padding:4px 7px;border-left:3px solid #d4af6a;background:#faf6ec;font-size:7.6px;line-height:1.35;display:flex;gap:5px;align-items:baseline;flex-wrap:wrap}.tp-card .tp-note b{color:#a8843f;white-space:nowrap}.tp-card .tp-note span{flex:1;min-width:0;font-weight:700;color:#222}.tp-card .tp-note small{color:#777;font-size:6.6px;white-space:nowrap}
+.tp-card.tp-t1 .tp-lead{font-size:8.4px}.tp-card.tp-t2 .tp-lead,.tp-card.tp-t3 .tp-lead{font-size:7.8px;padding:4px 7px}.tp-card.tp-g1 .tp-lead{font-size:10px}.tp-card.tp-g2 .tp-lead{font-size:11px}.tp-card.tp-g1 .tp-note{font-size:8.4px}.tp-card.tp-g2 .tp-note{font-size:9.2px}
+.tp-card .tp-lead,.tp-card .tp-note{flex:none}
+.tp-card .tp-lead{display:block}.tp-card .tp-lead::before{display:inline}
+.tpr-chips button{white-space:nowrap}@media (max-width:700px){.tpr-grpbar{flex-direction:column;align-items:stretch}#tpr-q{min-width:0;width:100%}.tpr-chips{flex:none}}
 </style>
 </head>
 <body>
@@ -2653,7 +2672,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.37</span>
+    <span class="ver">v9.38</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -8735,8 +8754,8 @@ function tpFrame(cat, d, body, o) {
     '<div class="tp-src">' + tpE(d.src || "") + "</div>" +
     (d.tag ? '<div class="tp-tag">' + tpE(d.tag) + "</div>" : "") +
     (d._icon ? '<img class="tp-icon" src="' + d._icon + '" alt="">' : "") + '<h2 class="tp-title' + (o.small ? " sm" : "") + (d._icon ? " has-icon" : "") + '">' + tpE(d.title || "") + "</h2>" + UB_RULE +
-    (d.sub ? '<p class="tp-sub">' + tpE(d.sub) + "</p>" : "") +
-    '<div class="tp-body">' + body + "</div>" +
+    (d.sub ? '<p class="tp-sub">' + tpE(d.sub) + "</p>" : "") + (d.lead ? '<p class="tp-lead">' + tpE(d.lead) + "</p>" : "") +
+    '<div class="tp-body">' + body + "</div>" + (d.note ? '<div class="tp-note"><b>함께 보면</b><span>' + tpE(d.note) + "</span>" + (d.noteSrc ? "<small>" + tpE(d.noteSrc) + "</small>" : "") + "</div>" : "") +
     ubFoot(tpE(d.foot || "") + (d.foot ? " · " : "") + tpE(o.foot2 || "투자 판단과 책임은 본인에게"), "tp-foot") + "</div>";
 }
 /* 칸 설명(스키마): [키, 이름, 종류(text|lines|rows), 안내] — 편집 화면과 AI 채우기가 같은 것을 쓴다 */
@@ -8971,24 +8990,43 @@ var TPL_ORDER = ["aptNotice", "calendar", "priceBand", "beforeAfter", "rankGrid"
 TP.r = "regionPrice"; TP.o = { scope: "seoul", band: "84", per: 26, maxp: 3, size: "multi" }; TP.draw = "ours"; TP.bg = null; TP.aiImg = {}; TP.pages = null; TP.pg = 0;
 
 /* ── 화면 ── */
+function tprGroups() { var grps = []; TPR_ORDER.forEach(function (id) { var g = TPR[id].grp; if (grps.indexOf(g) < 0) grps.push(g); }); return grps; }
+/* v9.38 주제 목록 — 분류 칩으로 좁혀 보고, 검색으로 찾는다. 고른 주제는 항상 보인다 */
+function tprListHtml() {
+  var q = (TP.q || "").trim(), g0 = TP.grp || "", grps = tprGroups();
+  var show = TPR_ORDER.filter(function (id) { var R = TPR[id]; if (q) return (R.nm + " " + R.grp + " " + (R.hint || "")).indexOf(q) >= 0; return !g0 || R.grp === g0 || id === TP.r; });
+  var byG = {}; show.forEach(function (id) { (byG[TPR[id].grp] = byG[TPR[id].grp] || []).push(id); });
+  return '<div class="tpr-grpbar"><div class="tpr-chips"><button type="button" data-tpg="" class="' + (!g0 ? "on" : "") + '">전체</button>' + grps.map(function (g) { return '<button type="button" data-tpg="' + tpE(g) + '" class="' + (g === g0 ? "on" : "") + '">' + tpE(g) + '<i>' + TPR_ORDER.filter(function (id) { return TPR[id].grp === g; }).length + "</i></button>"; }).join("") + '</div><input id="tpr-q" placeholder="주제 찾기 — 예: 금리, 신고가, 청약" value="' + tpE(q) + '"></div>' +
+    '<div class="tpr-grps">' + grps.filter(function (g) { return byG[g]; }).map(function (g) { return '<div class="tpr-g"><small>' + tpE(g) + '</small><div class="tpr-list">' + byG[g].map(function (id) { return '<button type="button" data-tpr="' + id + '" class="' + (id === TP.r ? "on" : "") + '" title="' + tpE(TPR[id].hint || "") + '">' + tpE(TPR[id].nm) + "</button>"; }).join("") + "</div></div>"; }).join("") + (show.length ? "" : '<p class="hint">찾는 주제가 없습니다</p>') + "</div>";
+}
+function tpStepsPaint() {
+  var el = document.getElementById("tpx-steps"); if (!el) return; var R = TPR[TP.r] || {}, t = TPL[TP.id] || {}, n = (TP.pages || []).length;
+  var shape = (TP.o.size === "one" ? "한 장" : "여러 장" + (n ? " " + n + "장" : "")) + " · " + (t.nm || "") + " · " + ({ ours: "우리 양식", bg: "AI 배경", ai: "AI 전체" }[TP.draw] || "우리 양식");
+  var cond = []; if ((R.opts || []).indexOf("scope") >= 0) cond.push(tprScopeNm(TP.o.scope)); if ((R.opts || []).indexOf("band") >= 0) cond.push(tprBandNm(TP.o.band) || "전체 평형"); if ((R.opts || []).indexOf("fgrp") >= 0 && TP.o.fgrp && TP.o.fgrp !== "all") cond.push(TP.o.fgrp);
+  el.innerHTML = [["1", "주제", (R.nm || "고르세요") + (cond.length ? " · " + cond.join(" · ") : ""), "tpx-s1"], ["2", "모양", shape, "tpx-s2"], ["3", "확인", TP.autoOk ? n + "장 · " + (TP.bad && TP.bad.length ? "빨간 숫자 " + TP.bad.length : TP.auto ? "앱 데이터" : "직접 고침") : "자료 없음", "tpx-s3"], ["4", "저장·올리기", "ZIP · 글 · 릴스", "tpx-s4"]].map(function (x) { return '<button type="button" data-tpstep="' + x[3] + '"><i>' + x[0] + "</i><span><b>" + tpE(x[1]) + "</b><small>" + tpE(x[2]) + "</small></span></button>"; }).join("");
+}
 function buildTpl(sec) {
-  var grps = []; TPR_ORDER.forEach(function (id) { var g = TPR[id].grp; if (grps.indexOf(g) < 0) grps.push(g); });
-  /* v9.27 작업 화면 — 위: 재료·조건 / 아래 왼쪽: 내용 고치기 / 아래 오른쪽: 미리보기(저장) */
-  sec.innerHTML = '<div class="card tpx-pick"><div class="tpx-hd"><h2>카드 만들기</h2><span class="hint" id="tpr-hint"></span><button type="button" class="btn sm ghost" data-tplib="1">보관함</button></div>' +
-    '<div class="tpr-grps">' + grps.map(function (g) { return '<div class="tpr-g"><small>' + g + '</small><div class="tpr-list">' + TPR_ORDER.filter(function (id) { return TPR[id].grp === g; }).map(function (id) { return '<button type="button" data-tpr="' + id + '">' + TPR[id].nm + "</button>"; }).join("") + "</div></div>"; }).join("") + "</div>" +
-    '<div class="tpr-opts" id="tpr-opts"></div></div>' +
-    '<div class="tp-wrap"><div class="card tp-left"><div class="tpx-bar"><h3>내용</h3><small class="hint" id="tp-msg"></small></div><div class="tpr-pages" id="tpr-pages"></div>' +
-      '<div class="tpx-tools"><button type="button" class="btn sm" data-tpauto="1">다시 채우기</button><button type="button" class="btn sm ghost" data-tpclear="1">이 장 비우기</button><button type="button" class="btn sm ghost" data-tpaiopen="1">AI로 채우기</button></div>' +
-      '<div class="tpx-tools"><button type="button" class="btn sm ghost" data-tppsave="1">양식 저장</button><button type="button" class="btn sm ghost" data-tpicongen="1" id="tp-icongen">분류 아이콘</button><button type="button" class="btn sm ghost" data-tpicon="1">아이콘 고르기</button></div>' +
+  if (TP.grp == null && window.innerWidth < 700 && TPR[TP.r]) TP.grp = TPR[TP.r].grp;   /* 휴대폰은 고른 주제의 분류만 펼쳐 둔다 */
+  /* v9.38 사용 순서대로 — ① 주제(오늘 추천 + 전체 목록) → ② 모양(분량·그리기·조건·양식) → ③ 확인(미리보기 · 이 카드가 말하는 것 · 세부 고치기) → ④ 저장·올리기 */
+  sec.innerHTML = '<nav class="tpx-steps" id="tpx-steps"></nav>' +
+    '<div class="card tpx-s" id="tpx-s1"><div class="tpx-hd"><h2><i>1</i>주제 고르기</h2><span class="hint" id="tpr-hint"></span><button type="button" class="btn sm ghost" data-tplib="1">보관함</button></div><div id="td-slot"></div><div id="tpr-listbox">' + tprListHtml() + '</div></div>' +
+    '<div class="card tpx-s" id="tpx-s2"><div class="tpx-hd"><h2><i>2</i>모양 정하기</h2><span class="hint">분량 · 그리기 · 조건 · 양식 — 바꾸면 바로 다시 만듭니다</span></div><div class="tpr-opts" id="tpr-opts"></div></div>' +
+    '<div class="card tpx-s" id="tpx-s3"><div class="tpx-hd"><h2><i>3</i>확인하기</h2><small class="hint" id="tp-cnt"></small><small class="hint" id="tp-msg"></small></div>' +
+      '<div class="tpx-lead" id="tp-leadbox"></div><div id="tp-drawbar"></div><div id="tp-bad" class="hint"></div><div class="chcards tpx-cards" id="tp-cards"></div>' +
+      '<details class="tp-edit" id="tp-editw"><summary>세부 고치기 <small class="hint">칸 내용 · AI로 채우기 · 양식 저장 · 아이콘</small></summary><div class="tp-left">' +
+      '<div class="tpr-pages" id="tpr-pages"></div>' +
+      '<div class="tpx-tools"><button type="button" class="btn sm" data-tpauto="1">다시 채우기</button><button type="button" class="btn sm ghost" data-tpclear="1">이 장 비우기</button><button type="button" class="btn sm ghost" data-tpaiopen="1">AI로 채우기</button><button type="button" class="btn sm ghost" data-tppsave="1">양식 저장</button><button type="button" class="btn sm ghost" data-tpicongen="1" id="tp-icongen">분류 아이콘</button><button type="button" class="btn sm ghost" data-tpicon="1">아이콘 고르기</button></div>' +
       '<p class="hint tpx-msg" id="tp-libmsg"></p>' + (typeof asStripHtml === "function" ? asStripHtml("tp") : "") +
       '<details class="tp-ai" id="tp-ai"><summary>AI로 채우기 <small class="hint">재료 안의 숫자만 · 누를 때만 실행</small></summary><p class="hint">재료 = 지금 장의 칸 내용 + 아래 참고 글. 고른 양식의 칸만 채우고, 재료에 없는 숫자는 빨갛게 알려 줍니다. 빈 양식에 기사·공고문을 붙여 넣으면 글로 카드를 만듭니다.</p><textarea id="tp-extra" placeholder="참고 글(기사·공고문·내 메모) — 선택"></textarea><textarea id="tp-note" placeholder="요청(예: 신혼부부 관점 제목) — 선택"></textarea><div class="tpx-tools"><button type="button" class="btn sm" data-tpai="one">AI 한 장 · 핵심 요약</button><button type="button" class="btn sm ghost" data-tpai="multi">AI 여러 장 · 상세</button><span class="hint" id="tp-aimsg"></span></div></details>' +
-      '<div id="tp-form"></div></div>' +
-      '<div class="card tp-right"><div class="tpx-bar"><h3>미리보기</h3><small class="hint" id="tp-cnt"></small></div>' +
-      '<div class="tpx-tools"><button type="button" class="btn sm" data-tpzip="1">전부 저장 ZIP</button><button type="button" class="btn sm ghost" data-tpcopy="1">글 복사</button><button type="button" class="btn sm ghost" data-tpreel="1">릴스 카드로</button></div>' +
-      '<div id="tp-drawbar"></div><div id="tp-bad" class="hint"></div><div class="chcards tpx-cards" id="tp-cards"></div>' +
-      '<details class="tp-cap" id="tp-capw"><summary>올릴 글 <small class="hint" id="tp-capmsg"></small></summary><div class="seg tp-capseg"><button type="button" data-tpcm="insta" class="on">인스타 글</button><button type="button" data-tpcm="threads">스레드 글</button></div><textarea class="chpost" id="tp-cap" rows="10" spellcheck="false"></textarea></details></div></div>';
+      '<div id="tp-form"></div></div></details></div>' +
+    '<div class="card tpx-s" id="tpx-s4"><div class="tpx-hd"><h2><i>4</i>저장 · 올리기</h2><span class="hint">이미지는 장마다 [이미지 저장], 한 번에 받으려면 ZIP</span></div>' +
+      '<div class="tpx-tools"><button type="button" class="btn" data-tpzip="1">전부 저장 ZIP</button><button type="button" class="btn sm ghost" data-tpcopy="1">글 복사</button><button type="button" class="btn sm ghost" data-tpreel="1">릴스 카드로</button></div>' +
+      '<details class="tp-cap" id="tp-capw" open><summary>올릴 글 <small class="hint" id="tp-capmsg"></small></summary><div class="seg tp-capseg"><button type="button" data-tpcm="insta" class="on">인스타 글</button><button type="button" data-tpcm="threads">스레드 글</button></div><textarea class="chpost" id="tp-cap" rows="10" spellcheck="false"></textarea></details></div>';
+  sec.addEventListener("input", function (ev) { if (ev.target.id === "tpr-q") { TP.q = ev.target.value; var lb = document.getElementById("tpr-listbox"); if (lb) { lb.innerHTML = tprListHtml(); var q = document.getElementById("tpr-q"); q.focus(); q.setSelectionRange(q.value.length, q.value.length); } } });
   sec.addEventListener("click", function (ev) {
-    var r = ev.target.closest("[data-tpr]"); if (r) { TP.r = r.dataset.tpr; var R = TPR[TP.r]; TP.id = R.tpls ? R.tpls[0] : (TP.id && TPL[TP.id] ? TP.id : "lineTable"); TP.o.per = R.per || 12; tprRebuild(); }
+    var gch = ev.target.closest("[data-tpg]"); if (gch) { TP.grp = gch.dataset.tpg; TP.q = ""; var lb0 = document.getElementById("tpr-listbox"); if (lb0) lb0.innerHTML = tprListHtml(); return; }
+    var stp = ev.target.closest("[data-tpstep]"); if (stp) { var tg = document.getElementById(stp.dataset.tpstep); if (tg) { if (stp.dataset.tpstep === "tpx-s3") { var ed = document.getElementById("tp-editw"); if (ed) ed.open = true; } tg.scrollIntoView({ behavior: "smooth", block: "start" }); } return; }
+    var r = ev.target.closest("[data-tpr]"); if (r) { TP.r = r.dataset.tpr; var R = TPR[TP.r]; TP.id = R.tpls ? R.tpls[0] : (TP.id && TPL[TP.id] ? TP.id : "lineTable"); TP.o.per = R.per || 12; tprRebuild(); var s3 = document.getElementById("tpx-s3"); if (s3 && window.innerWidth < 900) setTimeout(function () { s3.scrollIntoView({ behavior: "smooth", block: "start" }); }, 150); }
     var t = ev.target.closest("[data-tptpl]"); if (t) { TP.id = t.dataset.tptpl; tprRebuild(); }
     var pg = ev.target.closest("[data-tppg]"); if (pg) { TP.pg = Number(pg.dataset.tppg); tpPaint(); }
     if (ev.target.closest("[data-tpauto]")) tprRebuild();
@@ -9042,6 +9080,7 @@ function tprOptsHtml() {
 }
 function tprRebuild() {
   var R = TPR[TP.r]; if (!R) return;
+  if (typeof inCtxLoad === "function" && typeof IN !== "undefined" && !IN.ctxFile && !TP._ctxWait) { TP._ctxWait = 1; inCtxLoad(function () { TP._ctxWait = 0; if (IN.ctxFile) tprRebuild(); }); }   /* 함께 보면 메모(속사정) 불러오기 — 한 번 */
   var xto = R.tpls && R.tpls.indexOf(TP.id) < 0 && typeof TP_XTPL !== "undefined" && TP_XTPL.indexOf(TP.id) >= 0 ? TP.id : null;   /* v9.32 다른 양식: 기본 양식으로 만든 뒤 줄 그대로 옮김 */
   if (xto) TP.id = R.tpls[0];
   if (R.tpls && R.tpls.indexOf(TP.id) < 0) TP.id = R.tpls[0];
@@ -9057,11 +9096,12 @@ function tprRebuild() {
       pages = np; } }
   TP.autoOk = pages.length > 0;
   if (!pages.length) pages = [tpBlank(TPL[TP.id])];
+  if (TP.autoOk && typeof tpEnrich === "function") tpEnrich(pages, TP.r);
   TP.pages = pages; TP.pg = 0; TP.auto = true; TP.bad = []; TP.aiImg = {}; TP.drawMsg = ""; TP.iconId = null; TP.presetId = null;
   var opts = document.getElementById("tpr-opts"); if (opts) opts.innerHTML = tprOptsHtml();
   var hint = document.getElementById("tpr-hint"); if (hint) hint.textContent = R.hint || "";
   Array.prototype.forEach.call(document.querySelectorAll("[data-tpr]"), function (b) { b.classList.toggle("on", b.dataset.tpr === TP.r); });
-  tpPaint(); tpCatIcon();
+  tpPaint(); tpCatIcon(); tpStepsPaint();
 }
 function tpData() { return (TP.pages && TP.pages[TP.pg]) || tpBlank(TPL[TP.id]); }
 function tpBlank(t) { var o = {}; t.fields.forEach(function (f) { o[f[0]] = f[2] === "text" ? "" : []; }); return o; }
@@ -9069,7 +9109,7 @@ function tpFormHtml(t, d) {
   return t.fields.map(function (f) { var v = d[f[0]], txt = f[2] === "text" ? String(v || "") : (Array.isArray(v) ? v.map(function (r) { return Array.isArray(r) ? r.join(" | ") : r; }).join("\n") : String(v || ""));
     return '<label class="tp-f"><span>' + tpE(f[1]) + "</span>" + (f[2] === "text" ? '<input data-tf="' + f[0] + '" value="' + tpE(txt) + '" placeholder="' + tpE(f[3]) + '">' : '<textarea data-tf="' + f[0] + '" rows="' + (f[2] === "rows" ? 6 : 3) + '" placeholder="' + tpE(f[3]) + '">' + tpE(txt) + "</textarea>") + "</label>"; }).join("");
 }
-function tpReadForm() { var old = tpData(), o = {}, t = TPL[TP.id]; ["_cat", "_off", "badge", "_icon"].forEach(function (k) { if (old[k] != null) o[k] = old[k]; }); t.fields.forEach(function (f) { var el = document.querySelector('#tp-form [data-tf="' + f[0] + '"]'); if (!el) return; o[f[0]] = f[2] === "text" ? el.value : (f[2] === "rows" ? tpRows(el.value) : tpLines(el.value)); }); return o; }
+function tpReadForm() { var old = tpData(), o = {}, t = TPL[TP.id]; ["_cat", "_off", "badge", "_icon", "lead", "note", "noteSrc"].forEach(function (k) { if (old[k] != null) o[k] = old[k]; }); t.fields.forEach(function (f) { var el = document.querySelector('#tp-form [data-tf="' + f[0] + '"]'); if (!el) return; o[f[0]] = f[2] === "text" ? el.value : (f[2] === "rows" ? tpRows(el.value) : tpLines(el.value)); }); return o; }
 function tpPaint() {
   var form = document.getElementById("tp-form"); if (!form) return;
   var t = TPL[TP.id], d = tpData(), n = (TP.pages || []).length;
@@ -9123,6 +9163,7 @@ function tpPaintCard() {
   var t = TPL[TP.id], P = TP.pages || [tpData()];
   box.innerHTML = P.map(function (d, i) { var html = ""; try { html = t.render(d); } catch (e) { html = '<p class="hint">그리기 오류: ' + tpE(e.message) + "</p>"; } return '<div class="chcardWrap' + (i === TP.pg ? " on" : "") + '" data-tppg="' + i + '"><div class="tp-scale">' + html + '</div><button type="button" class="btn sm ghost" data-chsave="' + tpE((TPR[TP.r] ? TPR[TP.r].nm : t.nm) + (P.length > 1 ? "_" + (i + 1) : "")) + '">이미지 저장</button></div>'; }).join("");
   var cnt = document.getElementById("tp-cnt"); if (cnt) cnt.textContent = P.length + "장";
+  tpLeadPaint(P); if (typeof tpStepsPaint === "function") tpStepsPaint();
   tpDrawPaint(box, P);
   tpFitLater(box);
   tpCapPaint();
@@ -9233,6 +9274,37 @@ function tpAi(mode) {
     tpAiCall(t, F, "[여러 장 중 " + (i2 + 1) + "/" + jobs.length + "장 · 상세] 이 장의 재료를 빠짐없이 풀어 설명하고, 칸을 빈칸 없이 채워라. " + note).then(function (r) { var d = keep(r.d, P[i2] || P[0]); if (jobs.length > 1) d.badge = (d.badge || (P[0] && P[0].badge) || "") .replace(/\s*\d+\/\d+$/, "") + " " + (i2 + 1) + "/" + jobs.length; out.push(d); r.bad.forEach(function (x) { if (bad.indexOf(x) < 0) bad.push(x); }); i2++; next(); }, function (e) { msg.textContent = "실패(" + (i2 + 1) + "장): " + e.message; });
   })();
 }
+/* ══ v9.38 카드 글 강화 — 읽는 사람 입장의 한 줄(lead) + 함께 볼 최신 이슈·전문가 한 줄(note, 출처 있는 메모에서) ══ */
+var TP_NOTE_TAG = { "금리": "rate", "청약·일정": "subs", "실거래": "price", "대장": "price", "시장": "price", "정책·대출·교통": "buy", "인사이트": "price", "채널 코너 그대로": "price", "지금 시장 그대로": "price", "이슈 한 장씩": "", "금일·금주·금월": "", "상식·이슈": "" };
+function tpNumIdxOf(r) { var N = /^[+\-−]?[\d,.]+\s*(%p|%|억|만|천|건|점|:1|대1|곳|세대|㎡|원|배|위|년|개월|일)?(\s|$|[·(~])/; for (var i = 1; i < r.length; i++) if (N.test(String(r[i] || "")) && String(r[i]).length <= 16) return i; for (var j = 1; j < r.length; j++) if (/\d/.test(r[j] || "")) return j; return -1; }
+function tpLeadOf(d, R) {
+  var isItems = !d.rows && d.items, rows = tpRows(d.rows || d.items || []).filter(function (r) { return r.join("").trim(); }); if (!rows.length) return "";
+  var cols = isItems ? [] : (tpRows(d.cols || "")[0] || []), r0 = rows[0], k = tpNumIdxOf(r0); if (k < 0) return "";
+  var name = String(r0[0] || "").replace(/\s*\(.*?\)\s*$/, ""), v = String(r0[k]), what = cols[k] ? String(cols[k]).replace(/\(.*?\)/g, "").trim() : "", total = 0, pages = R._pages || TP.pages || []; (pages.length ? pages : [d]).forEach(function (p) { total += tpRows(p.rows || p.items || []).length; }); total = total || rows.length;
+  var c0 = String(cols[0] || ""), isReg = (function () { try { return Object.keys(tprReg()).some(function (kk) { return tprGu(kk) === name || tprNm(kk) === name; }); } catch (e) { return false; } })();
+  var unit = isReg || /지역|구$|시$/.test(c0) ? "곳" : /금융사|은행/.test(c0) || /은행|저축은행|뱅크|보험|생명|화재|카드/.test(name) ? "곳" : /단지|아파트/.test(c0) || d._cat === "subs" || d._cat === "deal" ? "단지" : "건";
+  if (/^\d{2,4}[.년]/.test(name) || /^\d+월/.test(name) || /^\d+$/.test(name)) return "";   /* 날짜 줄(일정·달력)은 1위가 없다 */
+  var asc = /낮은 순|낮을까/.test((d.sub || "") + (d.title || "")), head = (total > 1 ? total + unit + " 중 " : "") + (asc ? "가장 낮은 곳은" : "1위는");
+  return head + " " + name + ", " + (what && !/^(지역|단지|항목|이름)$/.test(what) ? what + " " : "") + v;
+}
+function tpNoteOf(R) {
+  if (typeof inCtx !== "function") return null; var tag = TP_NOTE_TAG[R.grp]; if (tag === "") return null; if (!tag) tag = "price";
+  var L = inCtx(null, tag, 6).filter(function (x) { return x.kind !== "rule" || R.grp === "정책·대출·교통"; }); if (!L.length) L = inCtx("fact", null, 3); if (!L.length) return null;
+  var k = ((typeof chKstDate === "function" ? chKstDate().d : 0) + String(TP.r || "").length) % L.length, x = L[k], t = String(x.title || "").split(" — ")[0].split(" → ")[0];
+  return { text: t.length > 70 ? t.slice(0, 69) + "…" : t, src: String(x.src || "").split(" · ")[0] };
+}
+function tpEnrich(pages, rid) {
+  var R = TPR[rid] || {}; if (!R.grp || R.grp === "직접") return pages;
+  R._pages = pages; var N = tpNoteOf(R);
+  pages.forEach(function (d, i) { if (!d.lead && i === 0 && !/^(issue|versus|quote|calendar|policyTimeline|compareTable|listArrow|leaderGrid|beforeAfter|priceBand|aptNotice)$/.test(TP.id)) d.lead = tpLeadOf(d, R); if (N && i === pages.length - 1 && !d.note) { d.note = N.text; d.noteSrc = N.src; } }); R._pages = null;
+  return pages;
+}
+/* ③ 확인하기 머리 — 이 카드 묶음이 말하는 것(관리자용 요약) */
+function tpLeadPaint(P) {
+  var el = document.getElementById("tp-leadbox"); if (!el) return; var d0 = (P && P[0]) || {}, R = TPR[TP.r] || {}, last = P && P[P.length - 1] || {};
+  if (!TP.autoOk || !P || !P.length) { el.innerHTML = ""; return; }
+  el.innerHTML = '<div class="tpx-leadin"><div><small>읽는 사람에게 보이는 한 줄</small><b>' + tpE(d0.lead || d0.sub || d0.title || "") + '</b></div>' + (last.note ? '<div><small>함께 보면 · 마지막 장 아래</small><b>' + tpE(last.note) + '</b><em>' + tpE(last.noteSrc || "") + "</em></div>" : '<div><small>함께 보면</small><b class="hint">이 주제에 맞는 메모가 없습니다 — 인사이트의 상황 메모에 출처와 함께 넣으면 카드 아래에 붙습니다</b></div>') + '<div><small>기준</small><b>' + tpE(d0.src || "") + "</b></div></div>";
+}
 function tpFit(root) {
   Array.prototype.forEach.call(root.querySelectorAll(".tp-card"), function (c0) {
     var c = c0.cloneNode(true); c.classList.add("chfixed"); c.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden"; document.body.appendChild(c);
@@ -9295,10 +9367,11 @@ function tpCapPaint() {
 function tpCaption() {
   var P = TP.pages || []; if (!P.length) return "";
   var d0 = P[0], t = TPL[TP.id], cat = d0._cat || t.cat, L = [];
-  if (d0.title) L.push(String(d0.title)); if (d0.sub) L.push(String(d0.sub)); L.push("");
+  if (d0.title) L.push(String(d0.title)); if (d0.lead) L.push(String(d0.lead)); else if (d0.sub) L.push(String(d0.sub)); L.push("");
   var cols = tpRows(d0.cols || "")[0] || [], lines = [];
   P.forEach(function (d) { tpRows(d.rows || d.items || []).forEach(function (r) { if (lines.length < 12) lines.push("· " + r.filter(function (x) { return String(x || "").trim(); }).map(function (x) { return String(x).split(/\s*;\s*/)[0]; }).join(" · ")); }); tpLines(d.bullets || []).forEach(function (b) { if (lines.length < 12) lines.push("· " + b); }); });
   if (lines.length) { L = L.concat(lines); L.push(""); }
+  if (d0.note) { L.push("함께 보면: " + d0.note + (d0.noteSrc ? " (" + d0.noteSrc + ")" : "")); L.push(""); }
   L.push("전체는 카드 " + P.length + "장에 정리했습니다. 저장해 두고 다음에 같은 숫자와 비교해 보세요.");
   if (d0.src) L.push("출처: " + d0.src);
   L.push("※ 참고 자료이며 투자 권유가 아닙니다."); L.push("");
@@ -9936,7 +10009,7 @@ function tdPaint() {
     '<p class="hint">고른 이유는 앱이 모은 데이터(실거래·청약·금리·일정)의 신호입니다. 누르면 그 재료로 바로 채웁니다 · 투자 권유 아님</p>';
 }
 function tdMount(sec) {
-  var box = document.createElement("div"); box.className = "card td-box"; box.id = "td-box"; sec.insertBefore(box, sec.firstChild);
+  var box = document.createElement("div"); box.className = "td-box"; box.id = "td-box"; var slot = sec.querySelector("#td-slot"); if (slot) slot.appendChild(box); else { box.className = "card td-box"; sec.insertBefore(box, sec.firstChild); }
   tdPaint(); cdNeed("channel", ""); cdNeed("daily", ""); cdNeed("macro", "");
 }
 document.addEventListener("click", function (ev) {

@@ -2640,6 +2640,12 @@ i.in-kind{display:inline-block;font-style:normal;font-size:10px;font-weight:800;
 .tp-card .tp-vsr{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tp-card .tp-vsr p{margin:0;font-size:8.4px;line-height:1.4;font-weight:600;padding:5px 6px;border-radius:5px;background:#faf7f0;border-left:3px solid #c2410c;word-break:keep-all}.tp-card .tp-vsr p.b{border-left:0;border-right:3px solid #1d4ed8;text-align:right}.tp-card .tp-vsr p:empty{background:transparent;border:0}
 .tp-card .tp-vsq{margin-top:5px;text-align:center;font-size:10.5px;font-weight:900;padding:6px;border-radius:6px;background:#17181c;color:#d4af6a}
 .tp-card.tp-g1 .tp-vsr p{font-size:9.6px}.tp-card.tp-g2 .tp-vsr p{font-size:10.8px;line-height:1.5}
+/* v9.35 판단 리포트 */
+.in-rep{margin:6px 0 10px;padding:14px 16px;border-radius:12px;background:#fffdf7;border:1px solid #efe5cc}.in-reph{display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #efe5cc}.in-reph b{font-size:16px}.in-reph small{font-size:11.5px;color:var(--muted,#6b7280)}
+.in-rep section{margin:8px 0}.in-rep h5{margin:0 0 3px;font-size:12px;color:#a8843f;letter-spacing:.02em}.in-rep p{margin:0;font-size:14.5px;line-height:1.7;word-break:keep-all}.in-rep p b{color:#17181c}
+i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;background:#f3f4f6;border-radius:4px;padding:0 4px;margin:0 2px 0 3px;vertical-align:middle}
+.in-srcs{margin-top:8px;padding-top:6px;border-top:1px dashed #efe5cc;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}.in-srcs small{font-size:11px;color:var(--muted,#6b7280)}.in-srcs a,.in-srcs span{font-size:11.5px;color:#2563eb;text-decoration:none}.in-srcs span{color:#6b7280}
+@media (prefers-color-scheme:dark){.in-rep{background:rgba(212,175,106,.06);border-color:rgba(212,175,106,.25)}.in-rep p b{color:inherit}i.cite{background:rgba(255,255,255,.08);color:#aaa}}
 </style>
 </head>
 <body>
@@ -2647,7 +2653,7 @@ i.in-kind{display:inline-block;font-style:normal;font-size:10px;font-weight:800;
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.34</span>
+    <span class="ver">v9.35</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -8826,7 +8832,9 @@ function tprBandNm(b) { return { "84": "84㎡대", "59": "59㎡대", L: "대형"
 function tprClone(base) { var d = {}; for (var k in base) d[k] = base[k]; return d; }
 /* v9.32 분량 — 한 장(핵심 요약): 1장에 최대한 많이(넘치면 맨 아래부터 접어 빈칸·잘림 없이) · 여러 장(상세): 장마다 고르게 나눠 담는다 */
 function tprOne() { return TP.o.size === "one"; }
-function tprItems(base, items, per) { if (tprOne()) { var d1 = tprClone(base); d1.items = items.slice(0, 12); d1._off = 0; return [d1]; } var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(items.length / per))); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.items = items.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
+/* v9.35 장마다 고르게 — 28개·12개씩이면 12/12/4 가 아니라 10/9/9 (장마다 칸·표 높이가 같아진다) */
+function tprChunk(arr, per, maxp) { var n = Math.max(1, Math.ceil(arr.length / per)); if (maxp) n = Math.min(maxp, n); var tot = Math.min(arr.length, n * per), each = Math.ceil(tot / n), out = [], off = 0; for (var i = 0; i < n && off < tot; i++) { var take = Math.min(each, tot - off); out.push({ off: off, rows: arr.slice(off, off + take) }); off += take; } return out; }
+function tprItems(base, items, per) { if (tprOne()) { var d1 = tprClone(base); d1.items = items.slice(0, 12); d1._off = 0; return [d1]; } var out = [], C = tprChunk(items, per, TP.o.maxp || 3), n = C.length; for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.items = C[i].rows; d._off = C[i].off; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
 function tprPaged(base, rows, per) { if (tprOne()) { var d1 = tprClone(base); d1.rows = rows.slice(0, 40); d1._off = 0; return [d1]; } var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(rows.length / per))); per = Math.max(1, Math.ceil(Math.min(rows.length, n * per) / n)); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.rows = rows.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
 /* 청약·금리 재료 도우미 (v9.31) */
 function tprSubs() { return (typeof DY !== "undefined" && DY.data && DY.data.subs) || null; }
@@ -9034,7 +9042,10 @@ function tprRebuild() {
   try { pages = R.build(TP.o, TP.id) || []; } catch (e) { if (window.console) console.error(e); }
   if (xto) { pages = pages.map(function (d) { return tpConvert(d, xto); }); TP.id = xto;
     if (!tprOne()) { var XP = { issue: 7, lineTable: 10, rankGrid: 12, listArrow: 10, denseTable: 16 }[xto] || 12, k0 = xto === "rankGrid" ? "items" : "rows", np = [];   /* 옮긴 줄이 한 장에 넘치면 장을 나눈다 */
-      pages.forEach(function (d) { var L = tpRows(d[k0] || []); if (L.length <= XP) { np.push(d); return; } for (var q = 0; q * XP < L.length; q++) { var e = tprClone(d); e[k0] = L.slice(q * XP, (q + 1) * XP); e._off = (d._off || 0) + q * XP; e.badge = (d.badge || "") + " " + (q + 1) + "/" + Math.ceil(L.length / XP); np.push(e); } });
+      /* 같은 재료의 장들이면 줄을 전부 모아 다시 고르게 나눈다(14/14/14 → 12 로 옮길 때 7/7/7/7/7/7 이 되지 않게) */
+      var same = pages.length > 1 && pages.every(function (d) { return (d.title || "") === (pages[0].title || ""); });
+      if (same) { var all = [], d0 = tprClone(pages[0]); pages.forEach(function (d) { all = all.concat(tpRows(d[k0] || [])); }); d0.badge = String(d0.badge || "").replace(/\s*\d+\/\d+$/, ""); pages = [d0]; pages[0][k0] = all; pages[0]._off = 0; }
+      pages.forEach(function (d) { var L = tpRows(d[k0] || []); if (L.length <= XP) { np.push(d); return; } var C = tprChunk(L, XP, TP.o.maxp || 3); C.forEach(function (c, q) { var e = tprClone(d); e[k0] = c.rows; e._off = (d._off || 0) + c.off; e.badge = (d.badge || "") + " " + (q + 1) + "/" + C.length; np.push(e); }); });
       pages = np; } }
   TP.autoOk = pages.length > 0;
   if (!pages.length) pages = [tpBlank(TPL[TP.id])];
@@ -9220,9 +9231,9 @@ function tpFit(root) {
     try {
       if (typeof ubFit === "function") ubFit(c);
       var ti = c.querySelector(".tp-title"); if (ti) { ti.style.fontSize = ""; var fs = parseFloat(getComputedStyle(ti).fontSize); while (ti.scrollHeight > ti.clientHeight + 2 && fs > 14) { fs -= 1; ti.style.fontSize = fs + "px"; } }
-      var body = c.querySelector(".tp-body"), foot = c.querySelector(".tp-foot"); c.classList.remove("tp-t1", "tp-t2", "tp-t3");
+      var body = c.querySelector(".tp-body"), foot = c.querySelector(".tp-foot"); c.classList.remove("tp-t1", "tp-t2", "tp-t3", "tp-g1", "tp-g2");
       Array.prototype.forEach.call(c.querySelectorAll("[data-cut]"), function (x) { x.style.display = ""; x.removeAttribute("data-cut"); });   /* 앞 회차 맞춤 흔적 지우고 다시 잰다 */
-      Array.prototype.forEach.call(c.querySelectorAll(".tp-body table"), function (x) { x.style.height = ""; });
+      Array.prototype.forEach.call(c.querySelectorAll(".tp-body table, .tp-body tr"), function (x) { x.style.height = ""; });
       Array.prototype.forEach.call(c.querySelectorAll(".tp-li, .tp-bar, .tp-tli, .tp-ldr, .tp-cell, .tp-pins li"), function (x) { x.style.paddingTop = x.style.paddingBottom = ""; });
       var over = function () { var bb = body.getBoundingClientRect().bottom, m = -1e9;   /* v9.31: 0 으로 두면 화면을 내려 둔 상태(측정용 복제본 좌표가 음수)에서 늘 '넘침'으로 판단해 줄을 접었다 */ Array.prototype.forEach.call(body.querySelectorAll("tr, li, .tp-li, .tp-bar, .tp-cell, .tp-tli, p"), function (x) { if (x.style.display !== "none") m = Math.max(m, x.getBoundingClientRect().bottom); }); return m > bb + 0.5 || body.scrollHeight > body.clientHeight + 1; };
       ["tp-t1", "tp-t2", "tp-t3"].forEach(function (k) { if (over()) c.classList.add(k); });
@@ -9239,6 +9250,22 @@ function tpFit(root) {
       var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*"); for (var i = 0; i < src.length && i < dst.length; i++) { dst[i].style.cssText = src[i].style.cssText; if (src[i].hasAttribute("data-cut")) dst[i].setAttribute("data-cut", "1"); else dst[i].removeAttribute("data-cut"); }
       c0.className = c.className.replace(/\bchfixed\b/, "").trim(); var t0 = c0.querySelector(".tp-title"); if (t0 && ti) t0.style.fontSize = ti.style.fontSize;
     } catch (e) {} finally { c.remove(); }
+  });
+  tpUnify(root);
+}
+/* v9.35 장마다 같은 모양 — 줄이 가장 많은 장을 기준으로 글자 크기(tp-t·tp-g)와 줄 높이를 모든 장에 똑같이 준다(마지막 장이 한두 줄 적어도 칸이 늘어나지 않게) */
+function tpUnify(root) {
+  var cards = Array.prototype.slice.call(root.querySelectorAll(".tp-card")); if (cards.length < 2) return;
+  var rowsOf = function (c) { return Array.prototype.filter.call(c.querySelectorAll(".tp-body table:not(.tp-cal) tr:not(:first-child), .tp-body .tp-li, .tp-body .tp-bar, .tp-body .tp-tli, .tp-body .tp-cell, .tp-body .tp-ldr, .tp-body .tp-pins li"), function (x) { return x.style.display !== "none"; }); };
+  var ref = cards[0], max = -1; cards.forEach(function (c) { var n = rowsOf(c).length; if (n > max) { max = n; ref = c; } });
+  var cls = ref.className.match(/\btp-(t[123]|g[12])\b/g) || [], rr = rowsOf(ref)[0], refPad = rr ? [rr.style.paddingTop, rr.style.paddingBottom] : null;
+  var refTbl = ref.querySelector(".tp-body table:not(.tp-cal)"), refH = refTbl ? parseFloat(refTbl.style.height) || refTbl.getBoundingClientRect().height : 0, refN = refTbl ? refTbl.querySelectorAll("tr").length : 0;
+  cards.forEach(function (c) {
+    if (c === ref) return;
+    c.className = c.className.replace(/\btp-(t[123]|g[12])\b/g, "").replace(/\s+/g, " ").trim() + (cls.length ? " " + cls.join(" ") : "");
+    /* 표: 기준 장의 줄 높이(표 높이 ÷ 줄 수)를 그대로 — 줄이 적은 장은 표가 짧아지고 아래는 비워 둔다(칸이 늘어나지 않게) */
+    Array.prototype.forEach.call(c.querySelectorAll(".tp-body table:not(.tp-cal)"), function (t) { var n = t.querySelectorAll("tr").length; t.style.height = refH && refN ? Math.round(refH * n / refN) + "px" : ""; });
+    rowsOf(c).forEach(function (x) { if (refPad && !/^TR$/i.test(x.tagName)) { x.style.paddingTop = refPad[0]; x.style.paddingBottom = refPad[1]; } });
   });
 }
 function tpFitLater(root) { tpFit(root); setTimeout(function () { tpFit(root); }, 400); if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { tpFit(root); }); }
@@ -9808,8 +9835,8 @@ function cdCardPages(cards, nm, cat) {
     if (!rows.length) { var t = cdTxt(o.body); if (!t) return; rows = t.split(/(?<=[.다요])\s+/).filter(Boolean).slice(0, 12).map(function (l) { return [l]; }); cols = ["내용"]; }
     var subA = cdCut(cdTxt(o.a), 90); if (cols && cols.length === 1 && subA && /\d/.test(subA)) { rows.unshift([subA]); subA = ""; }
     var n = (cols && cols.length) || Math.max.apply(null, rows.map(function (r) { return r.length; }));
-    var pg = {  _cat: cat, src: cdCut(cdTxt(o.src || src), 44) + " · " + (o.date ? cdTxt(o.date) : dt), badge: nm, title: cdCut(cdTxt(o.q), 60), sub: subA, cols: (cols || rows[0].map(function (_, i) { return ["항목", "값", "참고", "비고", "기타"][i] || ""; })).slice(0, n).join(" | "), foot: cdTxt(o.tag) }, PER = cols && cols.length === 1 ? 10 : 14, nP = Math.ceil(rows.length / PER);
-    for (var q = 0; q < nP; q++) { var d = tprClone(pg); d.rows = rows.slice(q * PER, (q + 1) * PER); d._off = q * PER; if (nP > 1) d.title = pg.title + " (" + (q + 1) + "/" + nP + ")"; if (q) d.sub = ""; out.push(d); }
+    var pg = {  _cat: cat, src: cdCut(cdTxt(o.src || src), 44) + " · " + (o.date ? cdTxt(o.date) : dt), badge: nm, title: cdCut(cdTxt(o.q), 60), sub: subA, cols: (cols || rows[0].map(function (_, i) { return ["항목", "값", "참고", "비고", "기타"][i] || ""; })).slice(0, n).join(" | "), foot: cdTxt(o.tag) }, PER = cols && cols.length === 1 ? 10 : 14, CH = tprChunk(rows, PER), nP = CH.length;
+    CH.forEach(function (c, q) { var d = tprClone(pg); d.rows = c.rows; d._off = c.off; if (nP > 1) d.title = pg.title + " (" + (q + 1) + "/" + nP + ")"; if (q) d.sub = ""; out.push(d); });
   });
   return out.slice(0, Math.max(TP.o.maxp || 3, 10));
 }
@@ -10053,6 +10080,54 @@ function inSituation(S, T) {
   return parts.join(". ") + ".";
 }
 
+/* ══ 오늘의 판단 리포트 — 숫자 + 속사정 + 양쪽 의견 → 결론 (규칙으로 쓴 글 · 문장마다 근거) ══ */
+function inSrcShort(x) { return String(x.src || "").split(" · ")[0].replace(/\(.*?\)/g, "").trim(); }
+function inTitleShort(x) { var t = String(x.title || "").split(" — ")[0].split(" → ")[0].split(": ")[0]; return t.length > 46 ? t.slice(0, 45) + "…" : t; }
+function inJoin(L) { return L.length <= 1 ? L.join("") : L.slice(0, -1).join(", ") + " 그리고 " + L[L.length - 1]; }
+function inReport(S, T, sit, sc) {
+  var P = [], M = IN.metrics || {}, by = function (id) { return S.filter(function (x) { return x.id === id; })[0]; };
+  var pos = S.filter(function (x) { return x.sc > 0; }).sort(function (a, b) { return b.sc * b.w - a.sc * a.w; }), neg = S.filter(function (x) { return x.sc < 0; }).sort(function (a, b) { return a.sc * a.w - b.sc * b.w; });
+  var f = function (x) { return x.nm + " " + x.val; }, cite = function (x) { return x ? '<i class="fid">' + x.id + "</i>" : ""; }, src = function (x) { return '<i class="cite">' + inE(inSrcShort(x)) + "</i>"; };
+  /* 1 결론 */
+  P.push({ h: "한 줄로", t: "<b>" + inE(T.nm) + "</b> — " + inE(sit) });
+  /* 2 숫자 */
+  var t2 = "";
+  if (pos.length) t2 += "더운 쪽 신호는 " + inJoin(pos.slice(0, 3).map(function (x) { return inE(f(x)) + cite(x); })) + ". ";
+  if (neg.length) t2 += "식는 쪽은 " + inJoin(neg.slice(0, 3).map(function (x) { return inE(f(x)) + cite(x); })) + ". ";
+  var v1 = by("F1") || by("F2"), p1 = by("F4") || by("F3");
+  if (v1 && p1 && v1.sc < 0 && p1.sc > 0) t2 += "즉 <b>가격 신호는 살아 있는데 거래가 받쳐 주지 않는</b> 모양이다 — 이런 장은 적은 거래가 평균을 끌어올리기 쉬워 지수만 보면 실제보다 뜨거워 보인다.";
+  else if (v1 && p1 && v1.sc > 0 && p1.sc > 0) t2 += "가격과 거래가 같이 오르는 전형적인 상승 국면이다.";
+  else if (v1 && p1 && v1.sc < 0 && p1.sc < 0) t2 += "가격도 거래도 식는 조정 국면이다.";
+  P.push({ h: "숫자가 말하는 것", t: t2 });
+  /* 3 속사정 */
+  var R = inCtx("rule", "volume", 5), F = inCtx("fact", null, 3), t3 = "";
+  if (R.length) { t3 += (v1 && v1.sc < 0 ? "거래가 적은 것은 가격만의 문제가 아니다. " : "지금 거래는 아래 규칙 안에서만 일어난다. ") + "규칙 쪽을 보면 " + inJoin(R.map(function (x) { return inE(inTitleShort(x)) + src(x); })) + ". ";
+    var gap = R.some(function (x) { return (x.tags || []).indexOf("gap") >= 0; }), sell = R.some(function (x) { return (x.tags || []).indexOf("sell") >= 0; }), mv = R.some(function (x) { return (x.tags || []).indexOf("move") >= 0; });
+    var who = []; if (gap) who.push("전세 끼고 사던 수요"); if (mv) who.push("갈아타기(처분·전입 기한)"); if (sell) who.push("세금 일정을 보는 다주택 매도");
+    if (who.length) t3 += "그래서 " + inJoin(who) + "가 묶여 있고, 움직일 수 있는 쪽은 <b>현금이 있는 무주택 실거주 수요</b>다. 이 수요는 상급지보다 중저가·외곽에서 체결되기 쉬워 '오른 지역 수'는 늘고 '거래량'은 적은 조합이 나온다."; }
+  if (F.length) t3 += (t3 ? " " : "") + "최근 사실로는 " + inJoin(F.map(function (x) { return inE(inTitleShort(x)) + src(x); })) + ".";
+  if (t3) P.push({ h: "숫자 뒤의 속사정", t: t3 });
+  /* 4 양쪽 */
+  var B = inCtx("bull", null, 3), E = inCtx("bear", null, 3), t4 = "";
+  if (B.length) t4 += "상승 쪽은 " + inJoin(B.map(function (x) { return inE(inTitleShort(x)) + src(x); })) + "를 근거로 든다. ";
+  if (E.length) t4 += "하락 쪽은 " + inJoin(E.map(function (x) { return inE(inTitleShort(x)) + src(x); })) + "를 든다. ";
+  if (B.length && E.length) { var dd = by("F7"), rp = by("F8"); t4 += "두 주장은 사실 같은 그림의 앞뒤다 — " + (dd && dd.sc > 0 ? "상급지가 먼저 전고점을 넘겼고" + cite(dd) : "상급지가 먼저 움직였고") + (rp ? " 외곽은 " + inE(rp.val) + " 단계" + cite(rp) : "") + "에서, <b>상급지의 조정이 외곽으로 번지느냐(하락론), 외곽이 뒤따라 메우느냐(상승론)</b>가 갈림길이다."; }
+  if (t4) P.push({ h: "양쪽 의견을 겹쳐 보면", t: t4 });
+  /* 5 결론·할 일 */
+  var base = (sc || [])[0], t5 = "";
+  if (base) t5 += "기준 시나리오는 <b>" + inE(base.nm.replace(/^기준 시나리오 — /, "")) + "</b>: " + inE(base.how) + ". ";
+  var mo = M.mort, bR = M.base; if (bR && mo) t5 += "금리는 " + (bR.dir === "인하" ? "내려가는 쪽" : bR.dir === "인상" ? "올라가는 쪽(" + bR.v.toFixed(2) + "%, 주담대 평균 " + mo.v.toFixed(2) + "%)" : "동결") + "이라 " + (bR.dir === "인상" ? "매수 여력은 더 줄고, 보유자는 버티는 비용이 는다" : bR.dir === "인하" ? "거래가 먼저 늘고 가격이 뒤따르는 순서를 과거에 봤다" : "국고채가 방향을 먼저 말해 줄 것") + ". ";
+  var w = (sc || []).slice(1).map(function (o) { return o.watch[0]; }).filter(Boolean); if (w.length) t5 += "생각을 바꿀 신호는 " + inJoin(w.map(inE)) + ".";
+  P.push({ h: "그래서", t: t5 });
+  return P;
+}
+function inReportHtml(S, T, sit, sc) {
+  var P = inReport(S, T, sit, sc), srcs = {}; inCtx(null, null, 30).forEach(function (x) { var k = inSrcShort(x); if (k) srcs[k] = x.url || ""; });
+  var d = typeof dyDate === "function" ? dyDate().txt : tpToday();
+  return '<div class="in-rep"><div class="in-reph"><b>오늘의 판단 리포트</b><small>' + inE(d) + ' · 숫자(앱 집계) + 속사정(출처 있는 메모) + 양쪽 의견 → 결론 · 규칙으로 쓴 글이며 문장마다 근거 표시</small></div>' +
+    P.filter(function (p) { return p.t; }).map(function (p) { return '<section><h5>' + inE(p.h) + "</h5><p>" + p.t + "</p></section>"; }).join("") +
+    '<div class="in-srcs"><small>출처</small>' + Object.keys(srcs).map(function (k) { return srcs[k] ? '<a href="' + inE(srcs[k]) + '" target="_blank" rel="noopener">' + inE(k) + "</a>" : "<span>" + inE(k) + "</span>"; }).join("") + '</div></div>';
+}
 /* 숫자 뒤의 속사정 — 거래·가격 신호에 걸린 규칙·세금·대출과 최근 사실 */
 function inWhyHtml(S, T) {
   var v = S.filter(function (x) { return x.grp === "거래"; }), vAvg = v.length ? v.reduce(function (a, x) { return a + x.sc; }, 0) / v.length : 0;
@@ -10208,8 +10283,9 @@ function inPaint() {
   /* ① 상황판 */
   h += '<div class="card in-sec"><div class="in-q"><i>Q</i>어떤 상황이야?</div>' +
     '<div class="in-temp"><div class="in-gauge"><div class="in-gbar"><i style="left:' + T.pct + '%;background:' + T.col + '"></i></div><div class="in-glb"><span>냉각</span><span>관망</span><span>과열</span></div></div><div class="in-tsum"><b style="color:' + T.col + '">' + inE(T.nm) + '</b><small>신호 ' + T.n + '개 · 더운 쪽 ' + T.up + ' · 식는 쪽 ' + T.dn + ' · 점수 ' + (T.t >= 0 ? "+" : "") + T.t.toFixed(2) + '</small></div></div>' +
-    '<p class="in-a">' + inE(sit) + '</p>' + inWhyHtml(S, T) +
-    '<details class="in-det" open><summary>근거 신호 ' + S.length + '개 <small>점수 −2~+2 × 가중치 · 규칙은 코드에 그대로</small></summary><div class="in-siglist">' + grpOrder.map(function (g) { return S.filter(function (x) { return x.grp === g; }).map(function (x) { return '<div class="in-sig sc' + (x.sc > 0 ? "p" : x.sc < 0 ? "n" : "z") + '"><div class="t"><small>' + inE(g) + '</small><b>' + inE(x.nm) + '</b><span class="v">' + inE(x.val) + '</span><em>' + (x.sc > 0 ? "+" + x.sc : x.sc) + '</em></div><div class="c">' + x.cmp + ' <small>' + inE(x.at || "") + '</small></div><div class="r">' + inE(x.read) + '</div></div>'; }).join(""); }).join("") + '</div><div class="in-tblw in-sigtbl"><table class="in-tbl sig"><tr><th></th><th>신호</th><th>지금</th><th>비교</th><th>점수</th><th>읽기</th></tr>' + sigRows + '</table></div></details></div>';
+    inReportHtml(S, T, sit, sc) +
+    '<details class="in-det"><summary>속사정 메모 · 최근 사실 · 정책 기사 제목 <small>리포트에 쓴 재료 원문</small></summary>' + inWhyHtml(S, T) + '</details>' +
+    '<details class="in-det"><summary>근거 신호 ' + S.length + '개 <small>점수 −2~+2 × 가중치 · 규칙은 코드에 그대로</small></summary><div class="in-siglist">' + grpOrder.map(function (g) { return S.filter(function (x) { return x.grp === g; }).map(function (x) { return '<div class="in-sig sc' + (x.sc > 0 ? "p" : x.sc < 0 ? "n" : "z") + '"><div class="t"><small>' + inE(g) + '</small><b>' + inE(x.nm) + '</b><span class="v">' + inE(x.val) + '</span><em>' + (x.sc > 0 ? "+" + x.sc : x.sc) + '</em></div><div class="c">' + x.cmp + ' <small>' + inE(x.at || "") + '</small></div><div class="r">' + inE(x.read) + '</div></div>'; }).join(""); }).join("") + '</div><div class="in-tblw in-sigtbl"><table class="in-tbl sig"><tr><th></th><th>신호</th><th>지금</th><th>비교</th><th>점수</th><th>읽기</th></tr>' + sigRows + '</table></div></details></div>';
   /* ② 판단 */
   h += '<div class="card in-sec"><div class="in-q"><i>Q</i>어떻게 하면 좋을 것 같아?</div><p class="hint">입장별로 다르다. 주인 메모용 판단 — 공개 글에는 투자 권유 문구를 쓰지 않는다.</p><div class="in-st">' + st.map(function (o) { return '<div class="in-stc"><b>' + inE(o.who) + '</b><ul>' + o.todo.map(function (t) { return "<li>" + inE(t) + "</li>"; }).join("") + "</ul>" + (o.rules && o.rules.length ? '<details class="in-det"><summary>걸려 있는 규칙 ' + o.rules.length + '개</summary>' + o.rules.map(function (x) { return inCtxLine(x); }).join("") + "</details>" : "") + "</div>"; }).join("") + '</div></div>';
   /* ②-2 상승론 vs 하락론 */

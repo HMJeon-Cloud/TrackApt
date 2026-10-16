@@ -2626,6 +2626,20 @@ i.fid{display:inline-block;font-style:normal;font-size:10px;color:#a8843f;border
 @media (max-width:640px){.in-q{font-size:16px}.in-tsum b{font-size:22px}.in-a{font-size:14px}}
 .in-siglist{display:none}
 @media (max-width:700px){.in-sigtbl{display:none}.in-siglist{display:flex;flex-direction:column;gap:8px}.in-sig{border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:9px 11px;border-left-width:4px}.in-sig.scp{border-left-color:#dc2626}.in-sig.scn{border-left-color:#2563eb}.in-sig.scz{border-left-color:#9ca3af}.in-sig .t{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.in-sig .t small{font-size:10px;color:var(--muted,#6b7280)}.in-sig .t b{font-size:13.5px;flex:1}.in-sig .t .v{font-weight:900;font-size:15px}.in-sig .t em{font-style:normal;font-size:11px;font-weight:800;border-radius:6px;padding:1px 6px;background:#f3f4f6}.in-sig.scp .t em{background:#fee2e2;color:#b91c1c}.in-sig.scn .t em{background:#dbeafe;color:#1d4ed8}.in-sig .c{font-size:12px;color:#4b5563;margin-top:3px}.in-sig .c small{color:var(--muted,#9ca3af)}.in-sig .r{font-size:12.5px;line-height:1.45;margin-top:4px}}
+/* v9.34 속사정 · 상승론 vs 하락론 · 대립 카드 */
+.in-why{margin:4px 0 10px;padding:10px 12px;border-radius:10px;background:#f8f7f4;border:1px solid var(--line,#e5e7eb)}.in-why h4{margin:0 0 6px}.in-a.sm{font-size:13.5px;margin:4px 0 8px}
+.in-ctx{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px dashed #e5e7eb}.in-ctx:first-of-type{border-top:0}.in-ctx>div{flex:1;min-width:0}.in-ctx b{font-size:13px;display:inline}.in-ctx p{margin:3px 0 0;font-size:12.5px;line-height:1.45;color:#374151}.in-ctx small{display:block;margin-top:2px;font-size:11px;color:var(--muted,#6b7280)}.in-ctx small a{color:#2563eb}
+i.in-kind{display:inline-block;font-style:normal;font-size:10px;font-weight:800;border-radius:4px;padding:1px 5px;margin-right:6px;background:#e5e7eb;color:#374151;vertical-align:middle}.in-ctx.k-bull i.in-kind{background:#fee2e2;color:#b91c1c}.in-ctx.k-bear i.in-kind{background:#dbeafe;color:#1d4ed8}.in-ctx.k-rule i.in-kind{background:#17181c;color:#d4af6a}.in-ctx.k-fact i.in-kind{background:#fef3c7;color:#92400e}
+.in-heads{margin-top:8px}.in-heads small{display:block;font-size:11px;color:var(--muted,#6b7280);margin-bottom:4px}.in-heads a{display:block;font-size:12.5px;color:inherit;text-decoration:none;padding:3px 0;border-top:1px dashed #eee}.in-heads a em{font-style:normal;color:var(--muted,#9ca3af);font-size:11px;margin-left:6px}
+.in-vs{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media (max-width:760px){.in-vs{grid-template-columns:1fr}}.in-side{border-radius:12px;padding:12px;border-top:4px solid}.in-side.bull{border-top-color:#dc2626;background:#fff7f7}.in-side.bear{border-top-color:#2563eb;background:#f5f8ff}.in-side h3{margin:0 0 6px;font-size:16px}.in-side h3 small{display:block;font-weight:500;font-size:11px;color:var(--muted,#6b7280)}.in-side h4{margin:10px 0 4px;font-size:12.5px;color:var(--muted,#6b7280)}
+.in-fork{margin-top:12px;padding:10px 12px;border-radius:10px;background:#17181c;color:#f3f4f6}.in-fork b{color:#d4af6a;font-size:13px}.in-fork ul{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.5}
+.in-ctxform{margin-top:10px}.in-ctxform summary{cursor:pointer;font-weight:700;font-size:13px}.in-ctxform summary small{font-weight:500;color:var(--muted,#6b7280)}.in-ctxform input,.in-ctxform textarea{font:inherit;padding:7px 9px;border:1px solid var(--line,#e5e7eb);border-radius:8px;width:100%;box-sizing:border-box;margin:4px 0}.in-ctxform .in-jrow input{flex:1;min-width:140px}.in-tags label.chk{flex-direction:row;align-items:center;gap:4px;font-size:12px;border:1px solid var(--line,#e5e7eb);border-radius:999px;padding:3px 9px}
+@media (prefers-color-scheme:dark){.in-why{background:rgba(255,255,255,.04)}.in-side.bull{background:rgba(220,38,38,.08)}.in-side.bear{background:rgba(37,99,235,.08)}.in-ctx p{color:inherit}}
+/* 대립 카드 양식 */
+.tp-card .tp-vs{display:flex;flex-direction:column;gap:4px}.tp-card .tp-vsh{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-bottom:3px}.tp-card .tp-vsh b{font-size:12px;font-weight:900;padding:4px 6px;border-radius:5px;text-align:center;color:#fff}.tp-card .tp-vsh b.a{background:#c2410c}.tp-card .tp-vsh b.b{background:#1d4ed8}.tp-card .tp-vsh i{font-style:normal;font-weight:900;font-size:9px;color:#999}
+.tp-card .tp-vsr{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tp-card .tp-vsr p{margin:0;font-size:8.4px;line-height:1.4;font-weight:600;padding:5px 6px;border-radius:5px;background:#faf7f0;border-left:3px solid #c2410c;word-break:keep-all}.tp-card .tp-vsr p.b{border-left:0;border-right:3px solid #1d4ed8;text-align:right}.tp-card .tp-vsr p:empty{background:transparent;border:0}
+.tp-card .tp-vsq{margin-top:5px;text-align:center;font-size:10.5px;font-weight:900;padding:6px;border-radius:6px;background:#17181c;color:#d4af6a}
+.tp-card.tp-g1 .tp-vsr p{font-size:9.6px}.tp-card.tp-g2 .tp-vsr p{font-size:10.8px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -2633,7 +2647,7 @@ i.fid{display:inline-block;font-style:normal;font-size:10px;color:#a8843f;border
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.33</span>
+    <span class="ver">v9.34</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -9930,7 +9944,17 @@ function rcLocalPlan(c, F) {
    ④ 회상: 지금과 비슷했던 달(실거래 2010~), 기준금리 바뀐 뒤 어땠나, 이달의 계절성   ⑤ 비교: 지금·1년 전·고점·저점   ⑥ 검증: 예상을 적어 두고 기한이 오면 데이터로 채점
    AI 의견은 버튼을 눌렀을 때만(/api/ai mode "insight") — 재료 = 이 화면의 숫자. 답의 숫자는 재료와 대조해 없는 숫자는 빨갛게.
    원칙: 없는 자료는 그 줄이 빠진다(추정 금지). 주인 메모용 판단이며 공개 글에는 투자 권유 문구를 쓰지 않는다. */
-var IN = { ai: null, aiQ: "", journal: null, jErr: "", busy: "", metrics: null };
+var IN = { ai: null, aiQ: "", journal: null, jErr: "", busy: "", metrics: null, ctxFile: null, ctxMine: [] };
+/* ══ 속사정(context) — 규칙·세금·대출·상승론·하락론 메모: data/manual/context.json(파일) + 앱에서 추가한 것(서버 보관함) ══ */
+var IN_KIND = { rule: "규칙", fact: "최근 사실", bull: "상승 논거", bear: "하락 논거" }, IN_TAG = { volume: "거래", price: "가격", buy: "무주택 매수", move: "갈아타기", gap: "전세 끼고", subs: "청약", sell: "매도", rent: "전월세", rate: "금리" };
+function inCtxLoad(cb) { if (IN.ctxFile) { cb && cb(); return; } fetch("data/manual/context.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { IN.ctxFile = j || { items: [] }; cb && cb(); }, function () { IN.ctxFile = { items: [] }; cb && cb(); }); }
+function inCtxAll() { var F = ((IN.ctxFile && IN.ctxFile.items) || []).map(function (x) { x = Object.assign({}, x); x.from = "file"; return x; }), M = (IN.ctxMine || []).map(function (j) { var d = Object.assign({}, j.data); d.id = j.id; d.from = "mine"; return d; }); return M.concat(F).filter(function (x) { return x.title; }); }
+function inCtxStale(x) { if (!x.asOf) return false; var d = Date.parse(x.asOf); return isFinite(d) && Date.now() - d > 60 * 86400000; }
+function inCtxEnded(x) { if (!x.until) return false; var d = Date.parse(x.until); return isFinite(d) && Date.now() > d + 86400000; }
+function inCtx(kind, tag, n) { return inCtxAll().filter(function (x) { return (!kind || x.kind === kind) && (!tag || (x.tags || []).indexOf(tag) >= 0) && !inCtxEnded(x); }).sort(function (a, b) { return String(b.asOf || "").localeCompare(String(a.asOf || "")); }).slice(0, n || 99); }
+function inCtxLine(x, opt) { opt = opt || {}; return '<div class="in-ctx k-' + inE(x.kind) + '"><div><i class="in-kind">' + inE(IN_KIND[x.kind] || x.kind) + '</i><b>' + inE(x.title) + '</b>' + (opt.body !== false && x.body ? '<p>' + inE(x.body) + '</p>' : '') + '<small>' + (x.src ? inE(x.src) : "") + (x.url ? ' · <a href="' + inE(x.url) + '" target="_blank" rel="noopener">원문</a>' : "") + (x.until ? " · ~" + inE(x.until) : "") + (inCtxStale(x) ? ' · <u class="rc-bad">확인일 ' + inE(x.asOf) + ' — 다시 확인</u>' : x.asOf ? " · 확인 " + inE(x.asOf) : "") + '</small></div>' + (x.from === "mine" ? '<button type="button" class="btn xs ghost" data-inctxdel="' + inE(x.id) + '">지움</button>' : "") + "</div>"; }
+function inHeads(topic, n) { var T = (typeof CH !== "undefined" && CH.data && CH.data.news && CH.data.news.topics) || null; return T && T[topic] ? T[topic].slice(0, n || 6) : []; }
+function inHeadsHtml(topic, nm) { var L = inHeads(topic); if (!L.length) return ""; return '<div class="in-heads"><small>' + inE(nm) + ' — 최근 기사 제목(내용은 확인하지 않음) · 구글 뉴스 ' + inE(((CH.data.news || {}).topicsAt) || "") + '</small>' + L.map(function (h) { return '<a href="' + inE(h.u) + '" target="_blank" rel="noopener">' + inE(h.t) + '<em>' + inE(h.s || "") + (h.d ? " · " + inE(h.d.slice(5).replace("-", ".")) : "") + "</em></a>"; }).join("") + "</div>"; }
 function inE(s) { return escHtml(String(s == null ? "" : s)); }
 function inPct(v, d) { return v == null ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d == null ? 1 : d) + "%"; }
 function inSgn(v, d, unit) { if (v == null) return ""; return '<i class="' + (v > 0.0001 ? "up" : v < -0.0001 ? "down" : "flat") + '">' + (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d == null ? 1 : d) + (unit || "%") + "</i>"; }
@@ -10029,6 +10053,13 @@ function inSituation(S, T) {
   return parts.join(". ") + ".";
 }
 
+/* 숫자 뒤의 속사정 — 거래·가격 신호에 걸린 규칙·세금·대출과 최근 사실 */
+function inWhyHtml(S, T) {
+  var v = S.filter(function (x) { return x.grp === "거래"; }), vAvg = v.length ? v.reduce(function (a, x) { return a + x.sc; }, 0) / v.length : 0;
+  var R = inCtx("rule", "volume", 6), F = inCtx("fact", null, 3); if (!R.length && !F.length) return '<p class="hint">속사정 메모가 없습니다 — 아래 "상황 메모 추가"에 규칙·기사 내용을 넣으면 해석에 같이 씁니다.</p>';
+  var lead = vAvg < 0 ? "거래가 적은 데는 가격 말고도 '움직일 수 없는' 사정이 있다 — 규칙이 매수·매도·이사를 묶고 있다:" : vAvg > 0 ? "거래가 늘고 있지만 아래 규칙 안에서의 거래다 — 어떤 수요(무주택 실거주)만 움직일 수 있는 구조:" : "지금 거래를 묶거나 미루게 하는 규칙:";
+  return '<div class="in-why"><h4>왜 그런가 — 숫자 뒤의 속사정 <small>규칙·세금·대출 · 출처 있는 것만</small></h4><p class="in-a sm">' + inE(lead) + '</p>' + R.map(function (x) { return inCtxLine(x, { body: true }); }).join("") + (F.length ? '<h4>최근 사실 <small>기사·발표</small></h4>' + F.map(function (x) { return inCtxLine(x); }).join("") : "") + inHeadsHtml("policy", "정책·규제") + '</div>';
+}
 /* ══ ② 판단 — 입장별로 '그래서 뭘 하라는 거야' ══ */
 function inStances(S, T) {
   var M = IN.metrics || {}, mo = M.mort, j = M.jr, s = M.subsMed, b = M.base, out = [];
@@ -10059,9 +10090,31 @@ function inStances(S, T) {
     "내 단지의 30일 거래·신고가는 '지금 시장'에서 지역을 좁혀 확인",
     "파는 쪽은 세금(보유 기간·거주 요건)이 가격보다 크게 남는다 — 잔금 시점을 먼저 정한다"
   ] });
-  return out.map(function (o) { o.todo = o.todo.filter(Boolean); return o; });
+  var tagOf = { "무주택 · 실거주 예정": "buy", "갈아타기(상급지로)": "move", "전세 끼고(갭)": "gap", "청약 대기": "subs", "매도 검토": "sell" };
+  return out.map(function (o) { o.todo = o.todo.filter(Boolean); o.rules = inCtx("rule", tagOf[o.who], 4); o.views = inCtx(null, tagOf[o.who], 3).filter(function (x) { return x.kind === "bull" || x.kind === "bear"; });
+    if (o.who === "전세 끼고(갭)" && o.rules.some(function (x) { return x.id === "r-llp"; })) o.todo.unshift("토허구역(서울 전역·경기 일부)에서는 매수 후 4개월 내 입주·2년 실거주라 전세 끼고 사는 것 자체가 막혀 있다 — 가능한 길은 비규제지역, 또는 무주택자가 '세 낀 집'을 사서 입주를 세입자 계약 끝까지 미루는 예외(아래 규칙)뿐");
+    if (o.who === "갈아타기(상급지로)" && o.rules.some(function (x) { return /전입|처분/.test(x.title + x.body); })) o.todo.unshift("규칙이 순서를 정해 준다 — 주담대 받으면 6개월 내 전입, 1주택 이사는 기존 집 6개월 내 처분 조건, 토허구역은 4개월 내 입주. '먼저 사 두고 천천히 팔기'는 안 되고, 매도·매수·입주를 6개월 안에 맞춰야 한다");
+    if (o.who === "매도 검토" && o.rules.some(function (x) { return /중과/.test(x.title); })) o.todo.unshift("다주택이면 세금이 시점을 정한다 — 중과(2026.5 부활)가 2027년에 한시 완화(+5/+10%p) 예고 · 장특공은 '거주'한 기간만 공제로 바뀌는 중. 올해 팔 것과 내년에 팔 것을 세무사와 먼저 나눈다");
+    if (o.who === "무주택 · 실거주 예정" && o.rules.some(function (x) { return /LTV/.test(x.title); })) o.todo.unshift("대출이 예산을 정한다 — 규제지역 LTV 40%(생애최초 70%), 15억 이하 한도 6억·15~25억 4억, DSR 40%. 집값의 60%는 현금이 있어야 하므로 '월 상환' 전에 '현금'부터");
+    return o; });
 }
 
+/* ══ ②-2 상승론 vs 하락론 — 데이터 근거 + 전문가·기사 논거를 양쪽에 ══ */
+function inDebate(S) {
+  var side = function (pos) { return { data: S.filter(function (x) { return pos ? x.sc > 0 : x.sc < 0; }).sort(function (a, b) { return pos ? b.sc - a.sc : a.sc - b.sc; }), views: inCtx(pos ? "bull" : "bear", null, 6), heads: inHeads(pos ? "bull" : "bear", 6) }; };
+  return { bull: side(true), bear: side(false) };
+}
+function inDebateHtml(S, sc) {
+  var D = inDebate(S), col = function (pos, X) { return '<div class="in-side ' + (pos ? "bull" : "bear") + '"><h3>' + (pos ? "상승론 — 더 오른다" : "하락론 — 꺾인다") + '<small>데이터 ' + X.data.length + ' · 논거 ' + X.views.length + '</small></h3>' +
+    '<h4>우리 데이터가 말하는 것</h4>' + (X.data.length ? '<ul class="in-ul">' + X.data.map(function (x) { return "<li><b>" + inE(x.nm) + " " + inE(x.val) + "</b> — " + inE(x.read.split(" — ")[0]) + ' <i class="fid">' + x.id + "</i></li>"; }).join("") + "</ul>" : '<p class="hint">이쪽을 뒷받침하는 신호가 없다</p>') +
+    '<h4>전문가·기사가 말하는 것</h4>' + (X.views.length ? X.views.map(function (x) { return inCtxLine(x); }).join("") : '<p class="hint">메모 없음 — 아래에서 추가</p>') + inHeadsHtml(pos ? "bull" : "bear", pos ? "상승 쪽 제목" : "하락 쪽 제목") + "</div>"; };
+  var fork = (sc || []).slice(1).map(function (o) { return o.watch; }).reduce(function (a, b) { return a.concat(b); }, []).slice(0, 5);
+  return '<div class="card in-sec"><div class="in-q"><i>VS</i>상승론 vs 하락론 — 어느 쪽이 맞나? <small>양쪽을 같은 무게로 · 숫자는 앱, 논거는 출처 있는 것만</small></div><div class="in-vs">' + col(true, D.bull) + col(false, D.bear) + '</div>' +
+    '<div class="in-fork"><b>갈림길 — 이 신호가 어느 쪽인지 정한다</b><ul>' + fork.map(function (w) { return "<li>" + inE(w) + "</li>"; }).join("") + '</ul></div>' +
+    '<div class="in-ctxform"><details><summary>상황 메모 추가 <small>규칙·기사·전문가 의견을 출처와 함께 — 서버에 저장되어 PC·휴대폰 같이 씀</small></summary><div class="in-jrow"><label>종류<select id="in-ck"><option value="rule">규칙(규제·세금·대출)</option><option value="fact">최근 사실</option><option value="bull">상승 논거</option><option value="bear">하락 논거</option></select></label><label>확인일<input id="in-cd" type="date" value="' + new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10) + '"></label><label>끝나는 날(선택)<input id="in-cu" type="date"></label></div>' +
+    '<input id="in-ct" placeholder="한 줄 제목 — 예: 토허구역 실거주 유예 2027.12까지"><textarea id="in-cb" rows="2" placeholder="내용(숫자·조건) — 기사에 적힌 그대로"></textarea><div class="in-jrow"><input id="in-cs" placeholder="출처 — 예: 한국일보 2026.9.18"><input id="in-curl" placeholder="원문 주소(선택)"></div>' +
+    '<div class="in-jrow in-tags">' + Object.keys(IN_TAG).map(function (k) { return '<label class="chk"><input type="checkbox" data-ctag="' + k + '">' + IN_TAG[k] + "</label>"; }).join("") + '</div><div class="in-jrow"><button type="button" class="btn sm" data-in="cadd">메모 저장</button><span class="hint">내 메모 ' + (IN.ctxMine || []).length + '개 · 파일 ' + ((IN.ctxFile && IN.ctxFile.items) || []).length + '개(data/manual/context.json)</span></div></details></div></div>';
+}
 /* ══ ③ 앞으로 — 시나리오 + 확인 신호 ══ */
 function inScenarios(S, T) {
   var M = IN.metrics || {}, b = M.base, k3 = M.kb3y, v = M.seoulVol30, i = M.idxSeoul, sp = b && k3 ? k3.v - b.v : null;
@@ -10132,7 +10185,8 @@ function buildInsight(sec) {
 }
 function renderInsight() {
   if (typeof OWNER === "undefined" || !OWNER) { var b0 = document.getElementById("in-body"); if (b0) b0.innerHTML = '<p class="hint">주인 모드에서만 보입니다.</p>'; return; }
-  var n = 3, done = function () { if (--n === 0) { inPaint(); inJournalLoad(); } };
+  var n = 4, done = function () { if (--n === 0) { inPaint(); inJournalLoad(); } };
+  inCtxLoad(done);
   if (typeof dyLoad === "function") dyLoad(done); else done();
   if (typeof macroLoad === "function") macroLoad(done); else done();
   if (typeof rcEnsure === "function") rcEnsure("channel", done); else done();
@@ -10154,10 +10208,12 @@ function inPaint() {
   /* ① 상황판 */
   h += '<div class="card in-sec"><div class="in-q"><i>Q</i>어떤 상황이야?</div>' +
     '<div class="in-temp"><div class="in-gauge"><div class="in-gbar"><i style="left:' + T.pct + '%;background:' + T.col + '"></i></div><div class="in-glb"><span>냉각</span><span>관망</span><span>과열</span></div></div><div class="in-tsum"><b style="color:' + T.col + '">' + inE(T.nm) + '</b><small>신호 ' + T.n + '개 · 더운 쪽 ' + T.up + ' · 식는 쪽 ' + T.dn + ' · 점수 ' + (T.t >= 0 ? "+" : "") + T.t.toFixed(2) + '</small></div></div>' +
-    '<p class="in-a">' + inE(sit) + '</p>' +
+    '<p class="in-a">' + inE(sit) + '</p>' + inWhyHtml(S, T) +
     '<details class="in-det" open><summary>근거 신호 ' + S.length + '개 <small>점수 −2~+2 × 가중치 · 규칙은 코드에 그대로</small></summary><div class="in-siglist">' + grpOrder.map(function (g) { return S.filter(function (x) { return x.grp === g; }).map(function (x) { return '<div class="in-sig sc' + (x.sc > 0 ? "p" : x.sc < 0 ? "n" : "z") + '"><div class="t"><small>' + inE(g) + '</small><b>' + inE(x.nm) + '</b><span class="v">' + inE(x.val) + '</span><em>' + (x.sc > 0 ? "+" + x.sc : x.sc) + '</em></div><div class="c">' + x.cmp + ' <small>' + inE(x.at || "") + '</small></div><div class="r">' + inE(x.read) + '</div></div>'; }).join(""); }).join("") + '</div><div class="in-tblw in-sigtbl"><table class="in-tbl sig"><tr><th></th><th>신호</th><th>지금</th><th>비교</th><th>점수</th><th>읽기</th></tr>' + sigRows + '</table></div></details></div>';
   /* ② 판단 */
-  h += '<div class="card in-sec"><div class="in-q"><i>Q</i>어떻게 하면 좋을 것 같아?</div><p class="hint">입장별로 다르다. 주인 메모용 판단 — 공개 글에는 투자 권유 문구를 쓰지 않는다.</p><div class="in-st">' + st.map(function (o) { return '<div class="in-stc"><b>' + inE(o.who) + '</b><ul>' + o.todo.map(function (t) { return "<li>" + inE(t) + "</li>"; }).join("") + "</ul></div>"; }).join("") + '</div></div>';
+  h += '<div class="card in-sec"><div class="in-q"><i>Q</i>어떻게 하면 좋을 것 같아?</div><p class="hint">입장별로 다르다. 주인 메모용 판단 — 공개 글에는 투자 권유 문구를 쓰지 않는다.</p><div class="in-st">' + st.map(function (o) { return '<div class="in-stc"><b>' + inE(o.who) + '</b><ul>' + o.todo.map(function (t) { return "<li>" + inE(t) + "</li>"; }).join("") + "</ul>" + (o.rules && o.rules.length ? '<details class="in-det"><summary>걸려 있는 규칙 ' + o.rules.length + '개</summary>' + o.rules.map(function (x) { return inCtxLine(x); }).join("") + "</details>" : "") + "</div>"; }).join("") + '</div></div>';
+  /* ②-2 상승론 vs 하락론 */
+  h += inDebateHtml(S, sc);
   /* ③ 앞으로 */
   h += '<div class="card in-sec"><div class="in-q"><i>Q</i>앞으로 어떤 일이 벌어질 것 같아?</div><div class="in-sc">' + sc.map(function (o, k) { return '<div class="in-scc k' + k + '"><b>' + inE(o.nm) + '</b><p>' + inE(o.how) + '</p><small>확인 신호</small><ul>' + o.watch.map(function (w) { return "<li>" + inE(w) + "</li>"; }).join("") + "</ul></div>"; }).join("") + '</div>' +
     '<p class="hint">시나리오는 지금 신호에서 규칙으로 고른 것이고 확률을 매기지 않는다. 아래 회상(과거 데이터)과 같이 본다.</p></div>';
@@ -10189,9 +10245,11 @@ function inFacts() {
   if (IN.cp) IN.cp.rows.forEach(function (r) { add("비교 " + r[0] + ": " + IN.cp.cols.map(function (c, i) { return c + " " + r[i + 1]; }).join(" / ")); });
   if (IN.an) { add("지금과 비슷했던 달 " + IN.an.n + "개 중 12개월 뒤 상승 " + IN.an.up12 + "번 · 평균 6개월 뒤 " + inPct(IN.an.m6) + " · 12개월 뒤 " + inPct(IN.an.m12)); IN.an.rows.forEach(function (r) { add("비슷했던 달 " + r.ym + ": 1년 " + inPct(r.yoy) + " · 거래 " + r.vr.toFixed(2) + "배 · 고점 대비 " + inPct(r.dd) + " → 6개월 뒤 " + inPct(r.p6) + " · 12개월 뒤 " + inPct(r.p12)); }); }
   if (IN.re) IN.re.forEach(function (r) { add("기준금리 " + r.dir + " " + r.at + " " + r.from.toFixed(2) + "→" + r.to.toFixed(2) + "% → 서울 3개월 뒤 " + inPct(r.p3) + " · 6개월 뒤 " + inPct(r.p6) + " · 12개월 뒤 " + inPct(r.p12)); });
+  inCtx(null, null, 20).forEach(function (x) { add("[" + (IN_KIND[x.kind] || x.kind) + (x.src ? " · " + x.src : "") + "] " + x.title + (x.body ? " — " + x.body : "")); });
+  ["policy", "bull", "bear", "rate"].forEach(function (k) { inHeads(k, 4).forEach(function (h) { add("[기사 제목 · " + { policy: "정책", bull: "상승", bear: "하락", rate: "금리" }[k] + (h.d ? " " + h.d : "") + (h.s ? " " + h.s : "") + "] " + h.t); }); });
   if (IN.se) add(IN.se.m + "월 계절성: " + IN.se.n + "년 중 " + IN.se.up + "년 상승 · 평균 " + inPct(IN.se.avg, 2));
   (IN.journal || []).filter(function (j) { return j.data && j.data.result; }).slice(0, 5).forEach(function (j) { add("지난 예상 '" + (j.data.text || j.name) + "' → " + (j.data.result.ok ? "맞음" : "틀림")); });
-  return F.slice(0, 80);
+  return F.slice(0, 120);
 }
 function inAsk(q) {
   if (typeof rcPost !== "function") return; var F = inFacts(); if (!F.length) { IN.aiErr = "재료가 없습니다 — 데이터가 다 불러와진 뒤 다시"; inPaint(); return; }
@@ -10218,7 +10276,7 @@ function inAiHtml() {
 /* ── 검증 일지 — 보관함 서버(kind insight) ── */
 function inJournalLoad() {
   if (typeof asApi !== "function" || typeof asTok !== "function" || !asTok()) { IN.journal = []; IN.jErr = "주인 인증 전 — 기록은 서버에 저장됩니다"; inJournalPaint(); return; }
-  asApi("list").then(function (j) { IN.journal = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); IN.jErr = ""; inJournalCheck(); inJournalPaint(); }, function (e) { IN.journal = []; IN.jErr = "서버 연결 안 됨: " + e.message; inJournalPaint(); });
+  asApi("list").then(function (j) { var all = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); var hadCtx = (IN.ctxMine || []).length; IN.ctxMine = all.filter(function (x) { return x.data.type === "ctx"; }); IN.journal = all.filter(function (x) { return x.data.type !== "ctx"; }); IN.jErr = ""; inJournalCheck(); inJournalPaint(); if (IN.ctxMine.length !== hadCtx) inPaint(); }, function (e) { IN.journal = []; IN.jErr = "서버 연결 안 됨: " + e.message; inJournalPaint(); });
 }
 function inJournalPaint() { var el = document.getElementById("in-journal"); if (!el) return; el.innerHTML = '<div class="in-q"><i>Q</i>지난 예상은 맞았어? <small>예상을 적어 두면 기한이 왔을 때 데이터로 채점</small></div>' + inJournalHtml(); }
 function inJournalHtml() {
@@ -10249,17 +10307,35 @@ function inClick(ev) {
   var t = ev.target; if (!t || !t.closest) return;
   var a = t.closest("[data-in]"), q = t.closest("[data-inai]");
   if (q) { var qq = q.dataset.inai; if (qq === "custom") { qq = (document.getElementById("in-aiq") || {}).value || ""; if (!qq.trim()) return; } inAsk(qq); return; }
+  var cd = t.closest("[data-inctxdel]"); if (cd) { if (!confirm("이 메모를 지울까요?")) return; asApi("del", { id: cd.dataset.inctxdel }).then(inJournalLoad); return; }
   var jo = t.closest("[data-injok]"), jn = t.closest("[data-injno]"), jd = t.closest("[data-injdel]");
   if (jo || jn) { var id = (jo || jn).dataset.injok || (jo || jn).dataset.injno, it = (IN.journal || []).filter(function (x) { return x.id === id; })[0]; if (!it) return; it.data.result = { ok: !!jo, manual: true, at: chDayKey(chKstNow()) }; asApi("update", { id: id, patch: { data: it.data } }).then(inJournalLoad, function (e) { IN.jErr = e.message; inJournalPaint(); }); return; }
   if (jd) { if (!confirm("이 기록을 지울까요?")) return; asApi("del", { id: jd.dataset.injdel }).then(inJournalLoad); return; }
   if (!a) return; var k = a.dataset.in;
-  if (k === "refresh") { IN.metrics = null; inPaint(); inJournalLoad(); }
+  if (k === "refresh") { IN.metrics = null; IN.ctxFile = null; inCtxLoad(function () { inPaint(); inJournalLoad(); }); }
+  if (k === "cadd") { var ct = (document.getElementById("in-ct") || {}).value || "", cs = (document.getElementById("in-cs") || {}).value || ""; if (!ct.trim()) { alert("제목을 적어 주세요"); return; } if (!cs.trim()) { alert("출처를 적어 주세요 — 출처 없는 메모는 넣지 않습니다"); return; }
+    var tags = Array.prototype.filter.call(document.querySelectorAll("[data-ctag]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.ctag; });
+    var d = { type: "ctx", kind: (document.getElementById("in-ck") || {}).value || "rule", title: ct.slice(0, 160), body: ((document.getElementById("in-cb") || {}).value || "").slice(0, 1200), src: cs.slice(0, 120), url: ((document.getElementById("in-curl") || {}).value || "").slice(0, 300), tags: tags, asOf: (document.getElementById("in-cd") || {}).value || "", until: (document.getElementById("in-cu") || {}).value || "" };
+    asApi("add", { item: { kind: "insight", type: "ctx", name: d.title.slice(0, 80), tags: ["메모", d.kind].concat(tags), data: d } }).then(function () { inJournalLoad(); }, function (e) { alert("저장 실패: " + e.message); }); }
   if (k === "jadd") { var tx = (document.getElementById("in-jt") || {}).value || ""; if (!tx.trim()) { alert("예상을 적어 주세요"); return; } inJournalAdd("me", tx, (document.getElementById("in-jm") || {}).value, (document.getElementById("in-jd") || {}).value, (document.getElementById("in-jh") || {}).value); }
   if (k === "saveai" && IN.ai) { var r = IN.ai.r, sc0 = (r.scenarios || [])[0]; inJournalAdd("ai", "[" + IN.ai.q + "] " + (r.answer || "").slice(0, 300) + (sc0 ? " / " + sc0.name + ": " + sc0.then : ""), null, null, 3); }
   if (k === "cards") { if (typeof showTab !== "function" || typeof TPR === "undefined") return; TP.r = "inState"; TP.id = "denseTable"; TP.o.size = "one"; showTab("tpl"); setTimeout(function () { if (typeof tprRebuild === "function") tprRebuild(); }, 300); }
 }
-/* ── 카드 만들기 재료: 상황판 · 비교표 · 비슷했던 달 (Exhibit 식) ── */
+/* ── 카드 만들기 재료: 상황판 · 비교표 · 비슷했던 달 (Exhibit 식) + 대립 카드 ── */
+if (typeof TPL !== "undefined") {
+  TPL.versus = { nm: "대립 카드(A vs B)", cat: "issue", fields: [["src", "출처·기준", "text", "국토부 실거래 · 머니투데이 9.23"], ["badge", "분류 띠", "text", "부동산이슈"], ["title", "제목(질문)", "text", "서울 집값, 더 오를까 꺾일까"], ["sub", "부제", "text", ""], ["colA", "왼쪽 머리", "text", "상승론"], ["colB", "오른쪽 머리", "text", "하락론"], ["rowsA", "왼쪽 근거(한 줄에 하나)", "lines", ""], ["rowsB", "오른쪽 근거(한 줄에 하나)", "lines", ""], ["ask", "맨 아래 질문", "text", "당신 생각은? 댓글로"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { return null; },
+    render: function (d) { var A = tpLines(d.rowsA).slice(0, 6), B = tpLines(d.rowsB).slice(0, 6), n = Math.max(A.length, B.length);
+      return tpFrame(d._cat || "issue", d, '<div class="tp-vs"><div class="tp-vsh"><b class="a">' + tpE(d.colA || "A") + '</b><i>VS</i><b class="b">' + tpE(d.colB || "B") + '</b></div>' + Array.apply(null, Array(n)).map(function (_, i) { return '<div class="tp-vsr"><p class="a">' + tpE(A[i] || "") + '</p><p class="b">' + tpE(B[i] || "") + "</p></div>"; }).join("") + (d.ask ? '<div class="tp-vsq">' + tpE(d.ask) + "</div>" : "") + "</div>"); } };
+  TPL_ORDER.push("versus");
+}
 if (typeof TPR !== "undefined") {
+  TPR.inDebate = { nm: "상승론 vs 하락론", grp: "인사이트", opts: [], tpls: ["versus", "denseTable"], per: 12, hint: "왼쪽 상승 근거 · 오른쪽 하락 근거 — 앱 데이터 신호 + 출처 있는 전문가·기사 논거. 한 장은 질문형 대립 카드, 여러 장은 근거 표",
+    build: function (o, tid) { var S = IN.S || inSignals(), D = inDebate(S), line = function (x) { return x.nm + " " + x.val + " — " + x.read.split(" — ")[0]; }, vl = function (x) { return x.title + (x.src ? " (" + x.src.split(" · ")[0] + ")" : ""); };
+      var A = D.bull.data.slice(0, 3).map(line).concat(D.bull.views.slice(0, 3).map(vl)), B = D.bear.data.slice(0, 3).map(line).concat(D.bear.views.slice(0, 3).map(vl)); if (!A.length && !B.length) return [];
+      var base = { _cat: "issue", src: "국토부 실거래·청약홈·한국은행 + 기사(출처 표기) · " + tpToday(), badge: "부동산이슈", title: "서울 집값, 더 오를까 꺾일까", sub: "상승 근거 " + A.length + " · 하락 근거 " + B.length + " — 같은 데이터를 양쪽에서", foot: "기사·전문가 의견은 원문 기준 · 데이터는 앱 집계" };
+      if (tid === "denseTable") return tprPaged(Object.assign(base, { cols: "쪽 | 근거 | 출처" }), A.map(function (t) { return ["상승", t.split(" (")[0], (t.match(/\(([^)]+)\)$/) || [0, "앱 데이터"])[1]]; }).concat(B.map(function (t) { return ["하락", t.split(" (")[0], (t.match(/\(([^)]+)\)$/) || [0, "앱 데이터"])[1]]; })), 12);
+      return [Object.assign(base, { colA: "상승론", colB: "하락론", rowsA: A.slice(0, 5), rowsB: B.slice(0, 5), ask: "당신은 어느 쪽? 댓글로 근거와 함께" })]; } };
   TPR.inState = { nm: "시장 온도 · 상황판", grp: "인사이트", opts: [], tpls: ["denseTable", "lineTable", "issue"], per: 14, hint: "인사이트 화면의 신호표 — 신호 | 지금 | 비교 | 읽기 (주인 판단 문장은 뺀다)",
     build: function () { var S = IN.S || inSignals(), T = inTemp(S); if (!S.length) return []; return tprPaged({ _cat: "market", src: inBasisLine().slice(0, 60), title: "지금 시장, 숫자로 보면", sub: "신호 " + S.length + "개 · 더운 쪽 " + T.up + " · 식는 쪽 " + T.dn, badge: "시장흐름", cols: "신호 | 지금 | 비교 | 읽기", foot: "각 숫자의 기준일은 지표마다 다름 · 투자 판단과 책임은 본인에게" }, S.map(function (x) { return [x.nm, x.val, String(x.cmp).replace(/<[^>]+>/g, ""), x.read.split(" — ")[0]]; }), 14); } };
   TPR.inCompare = { nm: "지금 · 1년 전 · 고점 · 저점", grp: "인사이트", opts: [], tpls: ["denseTable", "lineTable"], per: 8, hint: "서울 가격·거래·전세가율·금리·미분양을 네 시점으로",
@@ -10270,8 +10346,8 @@ if (typeof TPR !== "undefined") {
     build: function () { var re = inRateEvents(); if (!re) return []; return tprPaged({ _cat: "rate", src: "한국은행 ECOS · 국토부 실거래 서울 구별 균등 지수", title: "기준금리가 바뀐 뒤, 서울 집값은", sub: "결정 달 지수 대비 변화", badge: "금리비교", cols: "결정 | 방향 | 3개월 뒤 | 6개월 뒤 | 12개월 뒤", foot: "빈칸은 아직 오지 않은 달 · 금리 하나로 집값이 정해지진 않음" }, re.map(function (r) { return [r.at, r.dir + " " + r.from.toFixed(2) + "→" + r.to.toFixed(2) + "%", inPct(r.p3), inPct(r.p6), inPct(r.p12)]; }), 10); } };
   TPR.inSeason = { nm: "이달의 계절성", grp: "인사이트", opts: [], tpls: ["denseTable", "rankGrid"], per: 16, hint: "이달에 서울 지수가 전월보다 오른 해는 몇 년 중 몇 년",
     build: function (o, tid) { var se = inSeason(); if (!se) return []; var base = { _cat: "market", src: "국토부 실거래 · 서울 구별 균등 지수 · 전월 대비", title: se.m + "월, 서울 집값은 보통 어땠나", sub: se.n + "년 중 " + se.up + "년 상승 · 평균 " + inPct(se.avg, 2), badge: "시장흐름", cols: "해 | 전월 대비 | 거래(월평균 대비)", foot: "계절성은 경향 · 그해 금리·정책이 더 크게 작용" }; if (tid === "rankGrid") return tprItems(base, se.rows.map(function (r) { return [r.y + "년", inPct(r.mm, 1), r.vr ? "거래 " + r.vr.toFixed(2) + "배" : ""]; }), 12); return tprPaged(base, se.rows.map(function (r) { return [r.y + "년", inPct(r.mm, 2), r.vr ? r.vr.toFixed(2) + "배" : "–"]; }), 16); } };
-  (function () { var i = TPR_ORDER.indexOf("terms"); TPR_ORDER.splice(i < 0 ? TPR_ORDER.length - 1 : i, 0, "inState", "inCompare", "inAnalog", "inRate", "inSeason"); })();
-  if (typeof THR_TPQ !== "undefined") { THR_TPQ.inState = "지금 부동산 시장, 숫자로 보면 어떤 상황일까요?"; THR_TPQ.inCompare = "서울 집값, 고점과 저점 사이 어디쯤일까요?"; THR_TPQ.inAnalog = "지금과 비슷했던 때, 그 뒤엔 어땠을까요?"; THR_TPQ.inRate = "기준금리가 바뀌면 서울 집값은 어떻게 움직였을까요?"; THR_TPQ.inSeason = "이달에 서울 집값은 보통 올랐을까요?"; }
+  (function () { var i = TPR_ORDER.indexOf("terms"); TPR_ORDER.splice(i < 0 ? TPR_ORDER.length - 1 : i, 0, "inState", "inDebate", "inCompare", "inAnalog", "inRate", "inSeason"); })();
+  if (typeof THR_TPQ !== "undefined") { THR_TPQ.inState = "지금 부동산 시장, 숫자로 보면 어떤 상황일까요?"; THR_TPQ.inDebate = "서울 집값, 더 오를까요 꺾일까요? 양쪽 근거를 놓고 봅니다"; THR_TPQ.inCompare = "서울 집값, 고점과 저점 사이 어디쯤일까요?"; THR_TPQ.inAnalog = "지금과 비슷했던 때, 그 뒤엔 어땠을까요?"; THR_TPQ.inRate = "기준금리가 바뀌면 서울 집값은 어떻게 움직였을까요?"; THR_TPQ.inSeason = "이달에 서울 집값은 보통 올랐을까요?"; }
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */

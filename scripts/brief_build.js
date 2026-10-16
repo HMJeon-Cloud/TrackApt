@@ -470,11 +470,36 @@ var FEEDS = [
   "https://news.google.com/rss/search?q=" + encodeURIComponent("아파트 실거래") + "&hl=ko&gl=KR&ceid=KR:ko",
   "https://news.google.com/rss/search?q=" + encodeURIComponent("부동산 규제 OR 대출 OR 분양") + "&hl=ko&gl=KR&ceid=KR:ko"
 ];
+/* v9.34 주제별 제목(인사이트 '상승론 vs 하락론'·'속사정' 재료) — 제목만, 내용은 확인하지 않음. 하루 4회 추가 호출 */
+var TOPIC_FEEDS = { bull: "집값 상승 전망 OR 더 오른다 OR 상승세 OR 신고가", bear: "집값 하락 전망 OR 고점 OR 거품 OR 하락 전환 OR 경매 급증", policy: "토지거래허가 OR 대출 규제 OR 양도세 OR 보유세 OR 장기보유특별공제 OR 실거주 의무", rate: "기준금리 OR 주담대 금리 OR 금통위" };
 var STOP = ["아파트", "부동산", "서울", "기자", "뉴스", "오늘", "이번", "지난", "관련", "위해", "대한", "통해", "것으로", "있다", "했다", "한다", "된다",
   "등", "및", "더", "vs", "속", "중", "전", "후", "년", "월", "일", "억", "만", "곳", "명"];
 function unesc(s) {
   return String(s || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/<[^>]+>/g, "").trim();
+}
+async function feedItems(url) {
+  var out = [];
+  var xml = await (await fetch(url, { headers: { "user-agent": "TrackApt-brief-build/1.0" } })).text();
+  var re = /<item>([\s\S]*?)<\/item>/g, m;
+  while ((m = re.exec(xml))) {
+    var it = m[1], title = unesc((it.match(/<title>([\s\S]*?)<\/title>/) || [])[1]).replace(/\s*-\s*[^-]+$/, "");
+    if (!title) continue;
+    out.push({ t: title, u: unesc((it.match(/<link>([\s\S]*?)<\/link>/) || [])[1]), d: unesc((it.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1]), s: unesc((it.match(/<source[^>]*>([\s\S]*?)<\/source>/) || [])[1]) });
+  }
+  return out;
+}
+async function newsTopics() {
+  var out = {}, two = Date.now() - 14 * 86400000, keys = Object.keys(TOPIC_FEEDS);
+  for (var i = 0; i < keys.length; i++) {
+    try {
+      var L = await feedItems("https://news.google.com/rss/search?q=" + encodeURIComponent("아파트 " + TOPIC_FEEDS[keys[i]]) + "&hl=ko&gl=KR&ceid=KR:ko"), seen = {};
+      L = L.filter(function (it) { var k = it.t.replace(/\s/g, ""); if (seen[k]) return false; seen[k] = 1; var d = new Date(it.d); return !isFinite(d) || d >= two; });
+      L.sort(function (a, b) { return new Date(b.d) - new Date(a.d); });
+      out[keys[i]] = L.slice(0, 10).map(function (it) { return { t: it.t, u: it.u, d: isFinite(new Date(it.d)) ? new Date(it.d).toISOString().slice(0, 10) : "", s: it.s }; });
+    } catch (e) { console.warn("주제 피드 실패(" + keys[i] + "):", e.message); out[keys[i]] = []; }
+  }
+  return out;
 }
 async function news() {
   var all = [], seen = {};
@@ -504,8 +529,9 @@ async function news() {
       seenW[w] = 1; cnt[w] = (cnt[w] || 0) + 1;
     });
   });
+  var topics = await newsTopics();
   return { items: recent.slice(0, 30), keywords: Object.keys(cnt).map(function (k) { return [k, cnt[k]]; })
-    .sort(function (a, b) { return b[1] - a[1]; }).slice(0, 14) };
+    .sort(function (a, b) { return b[1] - a[1]; }).slice(0, 14), topics: topics, topicsAt: new Date().toISOString().slice(0, 10) };
 }
 
 /* ── 실행 ── */

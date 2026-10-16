@@ -20,6 +20,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <!-- 방문 통계 (Microsoft Clarity) — 익명 집계·세션 기록. 소유자만 열람.
      앱 코드는 clarity()를 호출하지 않으므로 차단되거나 실패해도 동작에 영향 없음. -->
+<script>
+/* v9.39 데이터 파일(.json)은 GitHub 저장소에서 바로 받는다(5분 캐시). 실패하면 이 사이트의 사본으로 돌아간다.
+   → 새벽·오후 수집 커밋 때 Vercel 을 다시 배포할 필요가 없어 배포 저장 용량이 거의 늘지 않고, 수집 결과가 배포 없이 바로 반영된다. */
+(function () {
+  var RAW = "https://raw.githubusercontent.com/HMJeon-Cloud/TrackApt/main/", of = window.fetch;
+  if (!of || /^(localhost|127\.0\.0\.1|app)$/.test(location.hostname)) return;
+  window.DATA_RAW = RAW;
+  window.fetch = function (u, o) {
+    var s = typeof u === "string" ? u : (u && u.url) || "";
+    if (/^(\.\/)?[^:?#]+\.json(\?.*)?$/.test(s) && !/^\/?api\//.test(s) && !/^https?:/.test(s)) {
+      var p = s.replace(/^\.\//, "").replace(/^\//, "").replace(/\?.*$/, ""), t = Math.floor(Date.now() / 300000);
+      return of(RAW + p + "?v=" + t, { cache: "default" }).then(function (r) { if (!r.ok) throw new Error("raw " + r.status); return r; }, function () { return of(u, o); })["catch"](function () { return of(u, o); });
+    }
+    return of(u, o);
+  };
+})();
+</script>
 <script type="text/javascript">
   (function (c, l, a, r, i, t, y) {
     c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
@@ -2672,7 +2689,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.38</span>
+    <span class="ver">v9.39</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>

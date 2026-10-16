@@ -44,5 +44,6 @@
     "api/ai.js": {
       "maxDuration": 60
     }
-  }
+  },
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- index.html api vercel.json .vercelignore sw.js manifest.webmanifest"
 }

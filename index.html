@@ -2653,7 +2653,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.35</span>
+    <span class="ver">v9.37</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -8030,7 +8030,8 @@ function sbPaint() {
   var X = (typeof DY !== "undefined" && DY.data && DY.data.subs) || null;
   if (!X) { meta.innerHTML = "청약 자료가 아직 없습니다. GitHub Secrets 에 <code>DATA_GO_KEY</code>(공공데이터포털 청약홈 API)를 넣고 새벽 수집이 한 번 돌면 나옵니다."; return; }
   var all = sbItems(), L = sbFilter(all), t = sbToday();
-  meta.textContent = "청약홈 " + dyYm(X.asOf) + " 수집 · 공고 " + all.length + "건 · 보이는 " + L.length + "건";
+  var at = (typeof DY !== "undefined" && DY.data && (DY.data.subsAt || DY.data.builtAt)) || "", hm = at ? new Date(new Date(at).getTime() + 9 * 3600e3).toISOString().slice(11, 16) : "";
+  meta.textContent = "청약홈 " + dyYm(X.asOf) + (hm ? " " + hm : "") + " 수집(새벽 3시·오후 3시) · 공고 " + all.length + "건 · 보이는 " + L.length + "건 · 모집공고일 기준이라 그날 공고는 다음 수집 때 들어옵니다";
   Array.prototype.forEach.call(document.querySelectorAll("#sb-area button"), function (b) { b.classList.toggle("on", b.dataset.sba === SB.area); });
   Array.prototype.forEach.call(document.querySelectorAll("#sb-kind button"), function (b) { b.classList.toggle("on", b.dataset.sbk === SB.kind); });
   Array.prototype.forEach.call(document.querySelectorAll("#sb-kinds [data-sbe]"), function (b) { if (b.dataset.sbe !== "*") b.classList.toggle("on", sbKindOn(b.dataset.sbe)); });
@@ -8181,7 +8182,7 @@ function sbItemBoxes(n, X) {
   if (it.r1x && it.r1x !== it.r1) sch.push(dyRow("1순위 기타지역", sbD(it.r1x), sbDays(it.r1x)));
   if (it.cE) sch.push(dyRow("계약 마감", sbD(it.cE), sbDays(it.cE)));
   if (sch.length) B.push(dyBox(n(), "일정", sch, { wide: true, pri: 0, min: sch.length, date: "날짜는 공고 그대로 · 변경 시 청약홈 확인" }));
-  if (it.types && it.types.length) B.push(dyBox(n(), "주택형별 분양가·공급", it.types.slice(0, 10).map(function (ty) { return dyRow(dyE(ty.ty) + (ty.area ? "<small>공급 " + ty.area + "㎡</small>" : ""), ty.top ? eok(ty.top) : "–", (ty.n != null ? fmt(ty.n) + "가구" : "") + (ty.sp != null ? " · 특공 " + fmt(ty.sp) : "")); }), { wide: true, pri: 2, min: 2, date: "최고 분양가" }));
+  if (it.types && it.types.length) { var TR = typeof tprTypeRows === "function" ? tprTypeRows(it) : []; B.push(dyBox(n(), "주택형별 분양가·공급" + (TR.length < it.types.length ? " <small>같은 전용은 한 줄</small>" : ""), (TR.length ? TR.map(function (r) { return dyRow(dyE(r[0]) + (r[1] ? "<small>" + dyE(r[1]) + "</small>" : ""), r[2] || "–", r[3] + (r[4] ? " · 일반 " + r[4] : "")); }) : it.types.slice(0, 10).map(function (ty) { return dyRow(dyE(ty.ty), ty.top ? eok(ty.top) : "–", (ty.n != null ? fmt(ty.n) + "가구" : "")); })), { wide: true, pri: 2, min: 2, date: "최고 분양가 · 공급 = 일반+특공" })); }
   if (it.rstat) B.push(dyBox(n(), "1순위 경쟁률", [dyRow("평균", sbRate(it.rate), it.req ? fmt(it.req) + "명 신청" : ""), dyRow("결과", dyE(it.rstat), "")].concat(it.maxRate ? [dyRow("최고", sbRate(it.maxRate), it.maxTy ? dyE(sbTy(it.maxTy)) : "")] : []), { pri: 2 }));
   var sp = sbSpdSum(it); if (sp) B.push(dyBox(n(), "특별공급 유형별", Object.keys(sp).map(function (k) { return dyRow(k, fmt(sp[k]) + "가구", ""); }), { pri: 2 }));
   var T = sbTermsRows(it); if (T.length) B.push(dyBox(n(), "이 단지 청약 조건", T.map(function (r) { return dyRow(r[0], r[1], ""); }), { wide: true, pri: 1, min: Math.min(T.length, 4), date: "공고문 기준" + (sbNote(it).asOf ? " · " + dyE(sbNote(it).asOf) + " 확인" : "") }));
@@ -8743,8 +8744,8 @@ var TPL = {
   aptNotice: { nm: "청약 단지 한 장", cat: "subs", fields: [["src", "출처·기준", "text", "모집공고일 2026년 9월 23일"], ["tag", "빨간 띠(핵심 자격)", "text", "서울시 거주자"], ["title", "단지명", "text", ""], ["cols", "표 머리(| 구분)", "text", "주택형 | 평형 | 분양가 | 공급"], ["rows", "표 줄(한 줄에 한 주택형, | 구분)", "rows", "84 | 32평 | 12.2억 | 1세대"], ["bullets", "핵심 목록(한 줄에 하나)", "lines", "2026년 9월 입주\n총 215세대"], ["side", "오른쪽 조건표(이름 | 값)", "rows", "분양가상한제 | 미적용\n재당첨제한 | 10년"], ["foot", "맨 아래 메모", "text", ""]],
     auto: function () { var it = typeof sbCardItem === "function" ? (sbCardItem() || (sbItems().filter(function (x) { return x.kind === "apt" && x.b && x.b >= sbToday() - 7; })[0]) || sbItems()[0]) : null; if (!it) return null; var N = typeof sbNote === "function" ? sbNote(it) : {}, P = typeof sbPriorRow === "function" ? sbPriorRow(it) : null;
       return { src: "모집공고일 " + (it.notice ? String(it.notice).replace(/(\d{4})(\d\d)(\d\d)/, "$1년 $2월 $3일") : "") + " · 청약홈", tag: N.res || (it.area ? String(it.area).replace(/특별시|광역시/g, "") + " 공급" : ""), title: it.nm,
-        cols: "주택형 | 공급면적 | 최고 분양가 | 공급", rows: (it.types || []).slice(0, 5).map(function (t) { return [sbTy(t.ty), t.area ? Math.round(t.area / 3.3058) + "평" : "", t.top ? eok(t.top) : "", t.n != null ? fmt(t.n) + "세대" : ""]; }),
-        bullets: [it.move ? String(it.move).replace(/^(\d{4})(\d\d)$/, "$1년 $2월 입주") : "", it.n ? "총 " + fmt(it.n) + "세대" : "", it.spB ? "특별공급 " + chMD(it.spB) + "(" + chWd(it.spB) + ")" : "", it.r1 ? "1순위 " + chMD(it.r1) + "(" + chWd(it.r1) + ")" + (P && P.length > 1 && /기타/.test(P[1][0]) ? " · 기타지역 " + chMD(it.r1x) : "") : (it.b ? "접수 " + chMD(it.b) + "(" + chWd(it.b) + ")" : ""), it.win ? "발표 " + chMD(it.win) + "(" + chWd(it.win) + ")" : "", N.firstRank ? N.firstRank : "", N.point ? N.point : ""].filter(Boolean),
+        cols: "주택형 | 평형 | 분양가(최고) | 공급 | 일반", rows: tprTypeRows(it),
+        bullets: [it.move ? String(it.move).replace(/^(\d{4})0?(\d+)$/, "$1년 $2월 입주 예정") : "", it.n ? "총 " + fmt(it.n) + "세대" + (it.dtl ? " · " + it.dtl : "") : "", N.down || N.mid ? "계약금 " + (N.down || "공고 확인") + (N.mid ? " · 중도금 " + N.mid : "") : "", it.spB ? "특별공급 " + chMD(it.spB) + "(" + chWd(it.spB) + ")" : "", it.r1 ? "1순위 " + chMD(it.r1) + "(" + chWd(it.r1) + ")" + (P && P.length > 1 && /기타/.test(P[1][0]) ? " · 기타지역 " + chMD(it.r1x) : "") : (it.b ? "접수 " + chMD(it.b) + "(" + chWd(it.b) + ")" : ""), it.win ? "발표 " + chMD(it.win) + "(" + chWd(it.win) + ")" : "", N.firstRank ? N.firstRank : "", N.point ? N.point : ""].filter(Boolean),
         side: [["분양가상한제", it.cap ? "적용" : "미적용"], ["규제지역", it.hot ? "투기과열" : it.adj ? "조정대상" : "해당 없음"], ["재당첨제한", N.rewin || "공고 확인"], ["전매제한", N.resale || "공고 확인"], ["거주의무", N.live || "공고 확인"]], foot: "일정·조건은 입주자모집공고문 기준 · 정정 공고 시 변경" }; },
     render: function (d) { var cols = tpRows(d.cols)[0] || [], R = tpRows(d.rows);
       return tpFrame("subs", d, '<table class="tp-tbl big"><tr>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr>" + cols.map(function (_, i) { return "<td>" + tpE(r[i] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>" +
@@ -8837,6 +8838,13 @@ function tprChunk(arr, per, maxp) { var n = Math.max(1, Math.ceil(arr.length / p
 function tprItems(base, items, per) { if (tprOne()) { var d1 = tprClone(base); d1.items = items.slice(0, 12); d1._off = 0; return [d1]; } var out = [], C = tprChunk(items, per, TP.o.maxp || 3), n = C.length; for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.items = C[i].rows; d._off = C[i].off; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
 function tprPaged(base, rows, per) { if (tprOne()) { var d1 = tprClone(base); d1.rows = rows.slice(0, 40); d1._off = 0; return [d1]; } var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(rows.length / per))); per = Math.max(1, Math.ceil(Math.min(rows.length, n * per) / n)); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.rows = rows.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
 /* 청약·금리 재료 도우미 (v9.31) */
+/* v9.36 주택형 표 — 같은 전용(84A·84B…)은 한 줄로: 평형 범위 · 최고 분양가 · 일반+특공 합산(괄호 일반) */
+function tprTypeRows(it) {
+  var by = {}, ord = [];
+  (it.types || []).forEach(function (t) { var k = String(sbTy(t.ty)).replace(/[A-Za-z].*$/, "").trim() || sbTy(t.ty); if (!by[k]) { by[k] = { k: k, py: [], top: 0, n: 0, sp: 0 }; ord.push(k); } var g = by[k]; if (t.area) g.py.push(Math.round(t.area / 3.3058)); if (t.top > g.top) g.top = t.top; g.n += t.n || 0; g.sp += t.sp || 0; });
+  return ord.map(function (k) { var g = by[k], lo = g.py.length ? Math.min.apply(null, g.py) : null, hi = g.py.length ? Math.max.apply(null, g.py) : null;
+    return [k, lo == null ? "" : lo === hi ? lo + "평" : lo + "~" + hi + "평", g.top ? eok(g.top) : "", g.n + g.sp ? fmt(g.n + g.sp) + "세대" : "", g.sp ? fmt(g.n) : ""]; }).slice(0, 9);
+}
 function tprSubs() { return (typeof DY !== "undefined" && DY.data && DY.data.subs) || null; }
 function tprSubsBasis() { var X = tprSubs(); return X ? "청약홈 " + dyYm(X.asOf) + " 수집" : "청약홈"; }
 function tprArea(it) { return String(it.area || "").replace(/특별시|광역시|특별자치시|특별자치도/g, ""); }

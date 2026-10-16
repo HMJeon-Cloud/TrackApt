@@ -1,14 +1,14 @@
 {
  "v": 1,
- "builtAt": "2026-10-15T20:59:11.011Z",
- "asOf": 20261016,
+ "builtAt": "2026-10-16T15:58:50.447Z",
+ "asOf": 20261017,
  "items": [
   {
    "kind": "loan",
    "name": "버팀목 전세대출",
    "manual": "2.3~3.3",
    "found": "2.20~3.30",
-   "date": "2026-10-16",
+   "date": "2026-10-17",
    "title": "버팀목 전세대출 금리 공고 연 2.20~3.30% (수동 2.3~3.3%)",
    "url": "https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020301.jsp",
    "src": "기금e든든",
@@ -19,6 +19,28 @@
   },
   {
    "kind": "policy",
+   "date": "2026-10-16",
+   "title": "10·15 대책 1년 서울 전세 반토막에 외곽 집값 상승 : 부동산",
+   "url": "https://news.google.com/rss/articles/CBMiS0FVX3lxTE1yWFNldnpaVDM3OFFjczdBNDBTSFQ3VmFSR05nVWNqOHZweXI1b003QWRudHg0OWE3Mnk5UWxPZDUwcDIweEx6NmQ3UQ?oc=5",
+   "src": "재경일보",
+   "official": false,
+   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
+   "firstSeen": "2026-10-17",
+   "isNew": true
+  },
+  {
+   "kind": "policy",
+   "date": "2026-10-16",
+   "title": "[10·15대책 1년]②공급도 규제도 '믿을 수 있나'",
+   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE0xU0JUTEU4d0JfckVxVkJYT3ltc2REelNtWGVqT1JXWXIxOG5ROEVreGNLQXBYM1p1Qzk0UHc2cV9GUWdVVndyeTgyTks4S3JwNFM5X1hhMjNoUzBVelYybDRWLWhxZVA0aWI2NDVBRWk?oc=5",
+   "src": "비즈워치",
+   "official": false,
+   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
+   "firstSeen": "2026-10-17",
+   "isNew": true
+  },
+  {
+   "kind": "policy",
    "date": "2026-10-15",
    "title": "10·15 부동산 대책 1년, 무엇이 실패했나…나경원 \"정책 실패부터 인정하라\"",
    "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE5DVjhMQk00aGpmNV9ET3ZlRkRVZ3F2RFhPeWQxeXZwUFdMd0dCMk1GbDd1aE4yNDg4WGg4cUpwVHhYc0JPZUR3N3FrTHpFdU9JYjF0TEpaR1paYUpXWG4zZEFzTHl6ZWZh?oc=5",
@@ -26,42 +48,7 @@
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-10-16",
-   "isNew": true
-  },
-  {
-   "kind": "policy",
-   "date": "2026-10-15",
-   "title": "10·15 부동산 대책 1주년...與 \"신속한 공급이 근본적 해답\"",
-   "url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE9JcGRJWlY2TTJVWlB2bXVLdzh5YWR6WVM2a3gzYXVYYXA5STNaRUNyaHJUbXZRR3RuOUxONjA3V0dzdGdqVDJXc1ZOLTNmZS1ORzAzaXpfQ2Naekt1amtF?oc=5",
-   "src": "조세일보",
-   "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-16",
-   "isNew": true
-  },
-  {
-   "kind": "policy",
-   "date": "2026-10-15",
-   "title": "10·15 대책 1년 서울 아파트 전세 거래 반토막 : 부동산",
-   "url": "https://news.google.com/rss/articles/CBMiS0FVX3lxTE9QR1RtSld4SjhpZ2lQZFBJeTVhVk93cXZWdVNNcW9XVi1fbVB5MTA2Ui1CY0Fhd1NYZThFR1VNM0JqZTdjc0cyVVdhTQ?oc=5",
-   "src": "재경일보",
-   "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-16",
-   "isNew": true
-  },
-  {
-   "kind": "transit",
-   "line": "GTX-A 운정중앙~서울역",
-   "what": "일정 변경",
-   "date": "2026-10-15",
-   "title": "오세훈 \"GTX-A 철근 누락 은폐 아냐…지연 배상책임, 국토부와 따져야\" - 머니투데이",
-   "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE1qY0FkQ0JqX1ZRWlA0TFo2NFpSbGlKRldubTdRakFhcGx0VmhRTEVSUF9pcHhNSUx0UDJtcWhoNjFvcDQtNGNoWTRnbUtNYUFQZnpxVEE0MFNPVjVfOGVLRGVXVDYxdmdZQXU4StIBckFVX3lxTE5SMnd4bHZtZVY3aG04T1I5WUFLRVJjYngzVnZ1clpBNmNtOEI1YjlTaEd0cEtCVnRCSGJJRi02OXhFVjJSYzEyanFoT2N2VlBNcW5adHNINGN5SjVyM3U3VHNDcncwcWdsREpqLXd4RHc4QQ?oc=5",
-   "src": "머니투데이",
-   "official": false,
-   "todo": "data/manual/transit.json 에서 'GTX-A 운정중앙~서울역' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-10-16",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "loan",
@@ -72,18 +59,7 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-16",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-10-15",
-   "title": "연체 3배 증가 보금자리론, 채무조정은 `유명무실`…벼랑 끝 내몰린 3040",
-   "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1wVHgxOXdCSzl6aTg1SkUyYlRPTWkzTkptcDRZOVlDaXNzR2N5QVdxcFhuMWhXYnZMSERZN3l6WlZHY0gwUGRQd21Lc1RMVEctaW54ODg0TnFwWVpaRHEzbnFB?oc=5",
-   "src": "매일신문",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-10-16",
-   "isNew": true
+   "isNew": false
   }
  ]
 }

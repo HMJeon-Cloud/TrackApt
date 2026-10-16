@@ -390,14 +390,16 @@ function rSummary(H) {
 if (require.main !== module) module.exports = { subsCompare: subsCompare, subsCode: subsCode, rSummary: rSummary, fssByCo: fssByCo };
 
 if (require.main === module) (async function () {
-  var out = { v: 1, builtAt: new Date().toISOString(), asOf: kst(), errors: [] };
-  async function step(nm, fn) { try { var r = await fn(); if (r) out[nm] = r; log(nm + (r ? " OK" : " 없음")); } catch (e) { out.errors.push(nm + ": " + e.message); log(nm + " 실패: " + e.message); } }
+  /* v9.37 ONLY=subs — 오후 추가 실행: 청약만 새로 받고 나머지(미분양·지수·금리)는 새벽 수집분을 그대로 둔다(호출 최소) */
+  var ONLY = String(process.env.ONLY || "").trim(), prevOut = ONLY ? readJson(OUT_P, null) : null;
+  var out = ONLY && prevOut ? Object.assign({}, prevOut, { builtAt: new Date().toISOString(), errors: [] }) : { v: 1, builtAt: new Date().toISOString(), asOf: kst(), errors: [] };
+  async function step(nm, fn) { if (ONLY && ONLY.split(",").indexOf(nm) < 0) { log(nm + " 건너뜀(ONLY=" + ONLY + ")"); return; } try { var r = await fn(); if (r) out[nm] = r; log(nm + (r ? " OK" : " 없음")); } catch (e) { out.errors.push(nm + ": " + e.message); log(nm + " 실패: " + e.message); } }
   await step("unsold", unsold);
   await step("index", priceIndex);
   await step("weekly", weekly);
   await step("subs", subs);
   await step("rates", rates);
-  out.calls = CALLS;
+  if (ONLY) { out.calls = (prevOut && prevOut.calls || 0) + CALLS; out.subsAt = new Date().toISOString(); } else out.calls = CALLS;
   fs.writeFileSync(OUT_P, JSON.stringify(out));
   fs.mkdirSync(path.join(ROOT, "data"), { recursive: true });
   fs.writeFileSync(CODES_P, JSON.stringify(CODES, null, 1));

@@ -4,6 +4,7 @@
 // POST { t, mode:"plan", facts:[{id,text}], purpose, topic, note, example? }  → { ok, plan:{hook, sub, kicker, layout, points:[{label,value,note,fact}], cta, visual} }
 // POST { t, mode:"read", image:"data:..." }                         → { ok, texts:[...] }   (카드 이미지에 실제로 찍힌 글자·숫자 받아 적기)
 // POST { t, mode:"fill", template:{name, fields:[{key,label,kind,example}]}, facts, note } → { ok, fill:{key: 값} } (v9.21 고정 양식)
+// POST { t, mode:"insight", facts, question, stances? }                → { ok, insight:{answer, because[], stances[], scenarios[], watch[], risk} } (v9.33 인사이트)
 // POST { t, mode:"extract", text:"공고문 텍스트" }                   → { ok, terms:{res,resPeriod,prior,resale,live,rewin,firstRank,point,down,mid,balance,option,move,etc} } (v9.20.3 단지별 청약 조건)
 const crypto = require("crypto");
 function tokenOf(key) { return crypto.createHmac("sha256", key).update("trackapt-owner-v1").digest("hex"); }
@@ -114,6 +115,25 @@ module.exports = async (req, res) => {
       var out2 = await withFallback(KEY, [{ role: "system", content: sys2 }, { role: "user", content: user2 }], { type: "json_schema", name: "tpl_fill", strict: true, schema: schema2 });
       return res.status(200).json({ ok: true, fill: JSON.parse(out2.text), model: out2.model });
     }
-    throw new Error("mode 는 plan · read · extract · fill");
+    if (b.mode === "insight") {   /* v9.33 인사이트(주인 전용) — 질문에 결론부터. 숫자는 facts 원문만 */
+      var factsI = (b.facts || []).slice(0, 80).map(function (f) { return f.id + ": " + String(f.text).slice(0, 300); }).join("\n");
+      if (!factsI) throw new Error("facts 가 비었습니다");
+      var qI = String(b.question || "어떤 상황이야?").slice(0, 300), whoI = (Array.isArray(b.stances) ? b.stances : []).slice(0, 6).map(String);
+      var schemaI = { type: "object", additionalProperties: false, required: ["answer", "because", "stances", "scenarios", "watch", "risk"], properties: {
+        answer: { type: "string", description: "질문에 대한 결론 3~5문장. 첫 문장이 답. 숫자는 facts 원문 그대로, 근거 id를 괄호로 (예: (F3))" },
+        because: { type: "array", minItems: 2, maxItems: 5, items: { type: "string" }, description: "그렇게 보는 이유 — 각 줄에 근거 id" },
+        stances: { type: "array", minItems: 0, maxItems: 6, items: { type: "object", additionalProperties: false, required: ["who", "todo", "why"], properties: { who: { type: "string" }, todo: { type: "string", description: "그 입장에서 지금 할 일 한 문장" }, why: { type: "string", description: "근거 한 줄(근거 id)" } } } },
+        scenarios: { type: "array", minItems: 2, maxItems: 3, items: { type: "object", additionalProperties: false, required: ["name", "cond", "then"], properties: { name: { type: "string", description: "기준/상방/하방 등" }, cond: { type: "string", description: "이 시나리오로 가는 조건(확인 가능한 숫자·사건)" }, then: { type: "string", description: "그때 벌어질 일" } } } },
+        watch: { type: "array", minItems: 2, maxItems: 5, items: { type: "string" }, description: "앞으로 확인할 신호 — 어느 지표가 어느 수준이면 생각을 바꾸는지" },
+        risk: { type: "string", description: "이 판단이 틀릴 수 있는 이유 1~2문장" } } };
+      var sysI = "너는 한국 아파트 시장을 오래 본 애널리스트이자 '우상향연구소' 운영자의 비공개 조언자다. 운영자가 묻는 말에 결론부터, 짧고 분명하게 답한다. " +
+        "원칙: (1) 숫자·날짜·퍼센트는 반드시 제공된 facts 원문에서 그대로 복사하고 근거 id를 붙인다. 반올림·환산·추정·새 숫자 금지. facts 에 없는 통계·사건을 아는 척하지 않는다. " +
+        "(2) 확률(%)을 매기지 않는다. 대신 '어떤 조건이면 어느 쪽'으로 말한다. (3) 비공개 메모이므로 의견을 분명히 말하되 단정(무조건·반드시) 대신 조건을 단다. " +
+        "(4) 과거 패턴(facts 의 회상 줄)은 '경향'으로만 쓰고 표본이 적음을 안다. (5) 한국어, 쉬운 말, 이모지 금지. 각 문장은 운영자가 그대로 메모에 옮길 수 있게 완결된 문장으로.";
+      var userI = "[질문] " + qI + (whoI.length ? "\n[입장 목록 — stances 는 이 중에서] " + whoI.join(" / ") : "") + "\n\n[facts — 이 안의 숫자만 쓸 것]\n" + factsI;
+      var outI = await withFallback(KEY, [{ role: "system", content: sysI }, { role: "user", content: userI }], { type: "json_schema", name: "insight", strict: true, schema: schemaI });
+      return res.status(200).json({ ok: true, insight: JSON.parse(outI.text), model: outI.model });
+    }
+    throw new Error("mode 는 plan · read · extract · fill · insight");
   } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); }
 };

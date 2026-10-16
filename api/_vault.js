@@ -28,7 +28,7 @@ async function redis(cmds) {
 }
 async function readIdx() { const [v] = await redis([["GET", P + "idx"]]); try { return v ? JSON.parse(v) : []; } catch (e) { return []; } }
 async function writeIdx(L) { await redis([["SET", P + "idx", JSON.stringify(L)]]); }
-const KINDS = { bg: 1, style: 1, preset: 1, icon: 1 };
+const KINDS = { bg: 1, style: 1, preset: 1, icon: 1, insight: 1 };   /* insight = 인사이트 예상 기록(v9.33) — 이미지 없음 */
 function clean(m) {
   const s = (v, n) => String(v == null ? "" : v).slice(0, n || 120);
   return { id: s(m.id, 40), kind: KINDS[m.kind] ? m.kind : "bg", name: s(m.name, 80), type: s(m.type, 20), form: s(m.form, 40), scope: s(m.scope, 40), cat: s(m.cat, 20), kw: (Array.isArray(m.kw) ? m.kw : []).slice(0, 40).map((x) => s(x, 20)), tags: (Array.isArray(m.tags) ? m.tags : []).slice(0, 10).map((x) => s(x, 30)),
@@ -65,7 +65,7 @@ module.exports = async (req, res) => {
     if (b.op === "update" || b.op === "use") {
       const L = await readIdx(), it = L.find((x) => x.id === String(b.id)); if (!it) return res.status(404).json({ ok: false, error: "없음" });
       if (b.op === "use") { it.uses = (it.uses || 0) + 1; it.lastUse = Date.now(); }
-      else { const p = b.patch || {}; if (p.name != null) it.name = String(p.name).slice(0, 80); if (p.fav != null) it.fav = !!p.fav; if (p.tags) it.tags = p.tags.slice(0, 10).map((x) => String(x).slice(0, 30)); if (p.cat != null) it.cat = String(p.cat).slice(0, 20);
+      else { const p = b.patch || {}; if (p.name != null) it.name = String(p.name).slice(0, 80); if (p.data && typeof p.data === "object" && JSON.stringify(p.data).length <= 60000) it.data = p.data; if (p.fav != null) it.fav = !!p.fav; if (p.tags) it.tags = p.tags.slice(0, 10).map((x) => String(x).slice(0, 30)); if (p.cat != null) it.cat = String(p.cat).slice(0, 20);
         if (p.pin != null) { it.pin = !!p.pin; if (it.pin && it.kind === "icon") L.forEach((x) => { if (x !== it && x.kind === "icon" && x.cat === it.cat) x.pin = false; }); } }   /* 카테고리마다 고정 아이콘은 하나 */
       await writeIdx(L); return res.status(200).json({ ok: true, item: it });
     }

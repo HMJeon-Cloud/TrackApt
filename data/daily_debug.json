@@ -1,15 +1,14 @@
 {
- "builtAt": "2026-10-16T15:59:19.681Z",
+ "builtAt": "2026-10-16T20:33:24.557Z",
  "steps": [
   "준공 후 미분양: 시도 18곳 합산",
   "unsold OK",
   "index OK",
   "weekly 없음",
-  "청약 getRemndrLttotPblancDetail: {\"currentCount\":0,\"data\":[],\"matchCount\":0,\"page\":1,\"perPage\":500,\"totalCount\":0}",
   "당첨 가점 행 1932 → 단지 86 (경쟁률 단지와 겹침 59)",
   "경쟁률 행 1852 → 단지 91 (이름 붙은 곳 47)",
   "분양가 비교 72단지 · 못 맞춘 곳 9 (아크메르 동탄 99, 아크메르 동탄 95, 한양립스 에듀포레(조합원 취소분), 진도 승원팰리체 더 테라스, 향남역 그로브 스위첸)",
-  "청약 공고 83건(접수 중 0 · 예정 16) · 경쟁률 80 · 분양가 있는 단지 83",
+  "청약 공고 138건(접수 중 0 · 예정 25) · 경쟁률 80 · 분양가 있는 단지 83",
   "subs OK",
   "금리 비교: 이번 주 수집분 유지(20261015)",
   "rates OK"
@@ -354,15 +353,36 @@
    "TOT_SUPLY_HSHLDCO": 792
   }
  ],
- "odc_getRemndrLttotPblancDetail": {
-  "currentCount": 0,
-  "data": [],
-  "matchCount": 0,
-  "page": 1,
-  "perPage": 500,
-  "totalCount": 0
- },
- "remSample": [],
+ "remSample": [
+  {
+   "BSNS_MBY_NM": "신극동아파트 가로주택정비사업조합",
+   "CNTRCT_CNCLS_BGNDE": "2026-10-28",
+   "CNTRCT_CNCLS_ENDDE": "2026-10-28",
+   "GNRL_RCEPT_BGNDE": null,
+   "GNRL_RCEPT_ENDDE": null,
+   "HMPG_ADRES": "http://efete-eungye.com/",
+   "HOUSE_MANAGE_NO": "2026910264",
+   "HOUSE_NM": "시흥 은계 에피트(조합원 취소분)",
+   "HOUSE_SECD": "04",
+   "HOUSE_SECD_NM": "무순위",
+   "HSSPLY_ADRES": "경기도 시흥시 은행동 289-31번지 일원",
+   "HSSPLY_ZIP": "14921",
+   "MDHS_TELNO": "0313184998",
+   "MVN_PREARNGE_YM": "202610",
+   "NSPRC_NM": null,
+   "PBLANC_NO": "2026910264",
+   "PBLANC_URL": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910264&pblancNo=2026910264",
+   "PRZWNER_PRESNATN_DE": "2026-10-23",
+   "RCRIT_PBLANC_DE": "2026-10-15",
+   "SPSPLY_RCEPT_BGNDE": null,
+   "SPSPLY_RCEPT_ENDDE": null,
+   "SUBSCRPT_AREA_CODE": "410",
+   "SUBSCRPT_AREA_CODE_NM": "경기",
+   "SUBSCRPT_RCEPT_BGNDE": "2026-10-20",
+   "SUBSCRPT_RCEPT_ENDDE": "2026-10-20",
+   "TOT_SUPLY_HSHLDCO": 16
+  }
+ ],
  "mdlSample": [
   {
    "ETC_HSHLDCO": 0,

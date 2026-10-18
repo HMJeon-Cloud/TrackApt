@@ -2682,6 +2682,16 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 .tp-card .tp-lead,.tp-card .tp-note{flex:none}
 .tp-card .tp-lead{display:block}.tp-card .tp-lead::before{display:inline}
 .tpr-chips button{white-space:nowrap}@media (max-width:700px){.tpr-grpbar{flex-direction:column;align-items:stretch}#tpr-q{min-width:0;width:100%}.tpr-chips{flex:none}}
+/* v9.40 분석 브리핑 */
+.rp2-doc{max-width:980px}.rp2-cover{background:#17181c;color:#f3efe6;border:0}.rp2-cover small{color:#d4af6a;font-size:12px;letter-spacing:.06em}.rp2-cover h1{margin:4px 0 10px;font-size:26px;letter-spacing:-.02em}.rp2-cover h4{margin:14px 0 6px;color:#d4af6a;font-size:12px}.rp2-sum{margin:0;padding-left:20px;font-size:14.5px;line-height:1.65}.rp2-sum b{color:#ffd98a}
+.rp2-temp{display:inline-flex;align-items:center;gap:10px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--c,#d4af6a)}.rp2-temp b{color:var(--c,#d4af6a);font-size:18px}.rp2-temp span{font-size:12px;color:#cfc8b8}
+.rp2-sec{margin-top:12px}.rp2-sec h3{margin:0 0 10px;font-size:17px;display:flex;align-items:baseline;gap:8px}.rp2-sec h3 small{font-weight:500;font-size:12px;color:var(--muted,#6b7280)}.rp2-sec h4{margin:14px 0 6px;font-size:13.5px}.rp2-sec p{font-size:14px;line-height:1.7}
+.rp2-ax td.nm small{display:block;font-weight:500;font-size:11px;color:var(--muted,#6b7280)}.rp2-ax td.s b{font-size:12px;padding:2px 8px;border-radius:6px;background:#f3f4f6;white-space:nowrap}.rp2-ax tr.scp td.s b{background:#fee2e2;color:#b91c1c}.rp2-ax tr.scn td.s b{background:#dbeafe;color:#1d4ed8}.rp2-ax td div{font-size:12.5px;line-height:1.5}
+.rp2-ol td{font-size:12.5px;line-height:1.5}.rp2-ol td.nm{white-space:nowrap}
+.rp2-topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:10px}.rp2-topics button{text-align:left;border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:9px 11px;background:var(--card,#fff);color:inherit;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:2px}.rp2-topics button.on{border-color:#17181c;box-shadow:inset 0 0 0 1px #17181c}.rp2-topics b{font-size:13.5px}.rp2-topics small{font-size:11px;color:var(--muted,#6b7280)}.rp2-topics em{font-style:normal;font-size:11px;color:#047857;margin-top:3px}.rp2-topics em.no{color:#9ca3af}
+.rp2-prompt{border:1px dashed var(--line,#d1d5db);border-radius:10px;padding:10px}.rp2-ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0}.rp2-ph b{font-size:13.5px}.rp2-ph small{flex:1;font-size:11.5px;color:var(--muted,#6b7280)}.rp2-prompt textarea{width:100%;box-sizing:border-box;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:8px;border:1px solid var(--line,#e5e7eb);border-radius:8px;background:var(--card,#fff);color:inherit}
+.rp2-extitem{border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:8px 12px;margin-top:8px}.rp2-extitem summary{cursor:pointer;font-size:13.5px}.rp2-extitem p{font-size:13px;margin:6px 0}
+@media (prefers-color-scheme:dark){.rp2-ax td.s b{background:rgba(255,255,255,.08)}}
 </style>
 </head>
 <body>
@@ -2689,7 +2699,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.39</span>
+    <span class="ver">v9.40</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -2776,6 +2786,7 @@ var GROUPS = [
     { id: "tpl", name: "카드 만들기", cat: "studio", ic: "🗂️", d: "데이터·지역·양식을 골라 4:5 카드 (직접 입력·AI)", build: buildTpl },
     { id: "reel", name: "릴스 카드", cat: "studio", ic: "🎬", d: "9:16 한 장 — 재료를 골라 AI가 설계, 숫자 검증", build: buildReel },
     { id: "insight", name: "인사이트", cat: "studio", ic: "🧭", d: "어떤 상황이고 어떻게 할지 — 데이터로 결론부터 (주인 전용)", build: buildInsight },
+    { id: "report", name: "분석 브리핑", cat: "studio", ic: "📑", d: "일곱 축 진단 · 과거 사례 · 전망 · 대응 — VIP 브리핑 형식 + AI 조사 프롬프트 (주인 전용)", build: buildReport },
     { id: "market",  name: "시장 흐름",   cat: "price",  ic: "📈", d: "연도별 상승률과 지수 흐름", build: buildMarket },
     { id: "vol",     name: "거래량",      cat: "price",  ic: "📊", d: "손바뀜으로 보는 지금 국면", build: buildVol },
     { id: "quad",    name: "매매·전세 흐름", cat: "price", ic: "🧭", d: "지역별 매매·전세 4분면", build: buildQuad },
@@ -2907,6 +2918,7 @@ function showTab(id) {
   if (id === "rates" && typeof renderRates === "function") renderRates();
   if (id === "tpl") renderTpl();
   if (id === "insight" && typeof renderInsight === "function") renderInsight();
+  if (id === "report" && typeof renderReport === "function") renderReport();
   if (typeof studioBar === "function") studioBar(id);
   if (id === "school" && DB) renderSchool();
   if (!DB) return;
@@ -5645,7 +5657,7 @@ function mcText() {
    잠금 해제: 주소 끝에 #owner 를 붙여 열고 비밀번호 입력 → /api/owner 가 Vercel 환경변수 OWNER_KEY 와 비교해
    맞으면 토큰을 준다. 토큰은 이 기기(브라우저)에만 저장되고, 앱이 열릴 때마다 서버에 다시 확인한다.
    잠겨 있으면 두 화면은 메뉴·홈·둘러보기·주소(#brief, #channel) 어디에서도 열리지 않는다. */
-var OWNER_LS = "trackapt_owner_v1", OWNER_TABS = ["brief", "channel", "reel", "tpl", "insight"];
+var OWNER_LS = "trackapt_owner_v1", OWNER_TABS = ["brief", "channel", "reel", "tpl", "insight", "report"];
 var OWNER = (function () { try { return !!localStorage.getItem(OWNER_LS); } catch (e) { return false; } })();
 if (!OWNER) {
   GROUPS.forEach(function (g) { g.tabs = g.tabs.filter(function (t) { return OWNER_TABS.indexOf(t.id) < 0; }); });
@@ -9418,7 +9430,7 @@ function tpApplyPreset(x) {
 
 /* ══ v9.24 콘텐츠 만들기 — 네 화면을 한 줄로 잇는 상단 바 ══
    지금 시장(보기) → 채널 브리핑(오늘 올리기) → 카드 만들기(4:5) → 릴스 카드(9:16). 각 화면 맨 위에 같은 바가 붙는다. */
-var STUDIO = [["brief", "지금 시장", "오늘 시장 보기"], ["channel", "채널 브리핑", "오늘 올릴 코너"], ["tpl", "카드 만들기", "4:5 카드"], ["reel", "릴스 카드", "9:16 한 장"], ["insight", "인사이트", "결론부터"]];
+var STUDIO = [["brief", "지금 시장", "오늘 시장 보기"], ["channel", "채널 브리핑", "오늘 올릴 코너"], ["tpl", "카드 만들기", "4:5 카드"], ["reel", "릴스 카드", "9:16 한 장"], ["insight", "인사이트", "결론부터"], ["report", "분석 브리핑", "VIP 보고서"]];
 function studioBar(id) {
   var isS = STUDIO.some(function (s) { return s[0] === id; });
   document.body.classList.toggle("stu-on", isS);
@@ -10073,7 +10085,7 @@ var IN = { ai: null, aiQ: "", journal: null, jErr: "", busy: "", metrics: null, 
 /* ══ 속사정(context) — 규칙·세금·대출·상승론·하락론 메모: data/manual/context.json(파일) + 앱에서 추가한 것(서버 보관함) ══ */
 var IN_KIND = { rule: "규칙", fact: "최근 사실", bull: "상승 논거", bear: "하락 논거" }, IN_TAG = { volume: "거래", price: "가격", buy: "무주택 매수", move: "갈아타기", gap: "전세 끼고", subs: "청약", sell: "매도", rent: "전월세", rate: "금리" };
 function inCtxLoad(cb) { if (IN.ctxFile) { cb && cb(); return; } fetch("data/manual/context.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { IN.ctxFile = j || { items: [] }; cb && cb(); }, function () { IN.ctxFile = { items: [] }; cb && cb(); }); }
-function inCtxAll() { var F = ((IN.ctxFile && IN.ctxFile.items) || []).map(function (x) { x = Object.assign({}, x); x.from = "file"; return x; }), M = (IN.ctxMine || []).map(function (j) { var d = Object.assign({}, j.data); d.id = j.id; d.from = "mine"; return d; }); return M.concat(F).filter(function (x) { return x.title; }); }
+function inCtxAll() { var F = ((IN.ctxFile && IN.ctxFile.items) || []).map(function (x) { x = Object.assign({}, x); x.from = "file"; return x; }), M = (IN.ctxMine || []).map(function (j) { var d = Object.assign({}, j.data); d.id = j.id; d.from = "mine"; return d; }); var X = typeof rpExtAsCtx === "function" ? rpExtAsCtx() : []; return M.concat(X).concat(F).filter(function (x) { return x.title; }); }
 function inCtxStale(x) { if (!x.asOf) return false; var d = Date.parse(x.asOf); return isFinite(d) && Date.now() - d > 60 * 86400000; }
 function inCtxEnded(x) { if (!x.until) return false; var d = Date.parse(x.until); return isFinite(d) && Date.now() > d + 86400000; }
 function inCtx(kind, tag, n) { return inCtxAll().filter(function (x) { return (!kind || x.kind === kind) && (!tag || (x.tags || []).indexOf(tag) >= 0) && !inCtxEnded(x); }).sort(function (a, b) { return String(b.asOf || "").localeCompare(String(a.asOf || "")); }).slice(0, n || 99); }
@@ -10310,9 +10322,9 @@ function inAnalogs() {
   cands.sort(function (a, b) { return a.d - b.d; });
   var pick = [], used = []; cands.forEach(function (c) { if (pick.length >= 5) return; if (used.some(function (u) { return Math.abs(u - c.i) < 6; })) return; used.push(c.i); pick.push(c); });
   var fwd = function (i, n) { return P[i + n] != null && P[i] ? (P[i + n] / P[i] - 1) * 100 : null; }, fv = function (i, n) { var a = inMean(V.slice(i + 1, i + n + 1)), b = inMean(V.slice(i - n + 1, i + 1)); return a && b ? (a / b - 1) * 100 : null; };
-  var rows = pick.map(function (c) { return { ym: inYmOf(c.i), yoy: c.f.yoy, vr: c.f.vr, dd: c.f.dd, p6: fwd(c.i, 6), p12: fwd(c.i, 12), v6: fv(c.i, 6) }; });
-  var m6 = inMean(rows.map(function (r) { return r.p6; })), m12 = inMean(rows.map(function (r) { return r.p12; })), up12 = rows.filter(function (r) { return r.p12 != null && r.p12 > 0; }).length;
-  return { now: now, nowYm: inProvYm(L), volYm: inYmOf(LV), rows: rows, m6: m6, m12: m12, up12: up12, n: rows.length };
+  var rows = pick.map(function (c) { return { ym: inYmOf(c.i), yoy: c.f.yoy, vr: c.f.vr, dd: c.f.dd, p3: fwd(c.i, 3), p6: fwd(c.i, 6), p12: fwd(c.i, 12), v6: fv(c.i, 6) }; });
+  var m3 = inMean(rows.map(function (r) { return r.p3; })), m6 = inMean(rows.map(function (r) { return r.p6; })), m12 = inMean(rows.map(function (r) { return r.p12; })), up12 = rows.filter(function (r) { return r.p12 != null && r.p12 > 0; }).length;
+  return { now: now, nowYm: inProvYm(L), volYm: inYmOf(LV), rows: rows, m3: m3, m6: m6, m12: m12, up12: up12, n: rows.length };
 }
 function inRateEvents() {
   var b = IN.metrics && IN.metrics.base; if (!b || !b.changes || !inMcOk() || typeof MC === "undefined") return null;
@@ -10450,7 +10462,7 @@ function inAiHtml() {
 /* ── 검증 일지 — 보관함 서버(kind insight) ── */
 function inJournalLoad() {
   if (typeof asApi !== "function" || typeof asTok !== "function" || !asTok()) { IN.journal = []; IN.jErr = "주인 인증 전 — 기록은 서버에 저장됩니다"; inJournalPaint(); return; }
-  asApi("list").then(function (j) { var all = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); var hadCtx = (IN.ctxMine || []).length; IN.ctxMine = all.filter(function (x) { return x.data.type === "ctx"; }); IN.journal = all.filter(function (x) { return x.data.type !== "ctx"; }); IN.jErr = ""; inJournalCheck(); inJournalPaint(); if (IN.ctxMine.length !== hadCtx) inPaint(); }, function (e) { IN.journal = []; IN.jErr = "서버 연결 안 됨: " + e.message; inJournalPaint(); });
+  asApi("list").then(function (j) { var all = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); var hadCtx = (IN.ctxMine || []).length; IN.ctxMine = all.filter(function (x) { return x.data.type === "ctx"; }); IN.journal = all.filter(function (x) { return x.data.type !== "ctx" && x.data.type !== "ext"; }); if (typeof RP2 !== "undefined") RP2.ext = all.filter(function (x) { return x.data.type === "ext"; }); IN.jErr = ""; inJournalCheck(); inJournalPaint(); if (IN.ctxMine.length !== hadCtx) inPaint(); }, function (e) { IN.journal = []; IN.jErr = "서버 연결 안 됨: " + e.message; inJournalPaint(); });
 }
 function inJournalPaint() { var el = document.getElementById("in-journal"); if (!el) return; el.innerHTML = '<div class="in-q"><i>Q</i>지난 예상은 맞았어? <small>예상을 적어 두면 기한이 왔을 때 데이터로 채점</small></div>' + inJournalHtml(); }
 function inJournalHtml() {
@@ -10522,6 +10534,163 @@ if (typeof TPR !== "undefined") {
     build: function (o, tid) { var se = inSeason(); if (!se) return []; var base = { _cat: "market", src: "국토부 실거래 · 서울 구별 균등 지수 · 전월 대비", title: se.m + "월, 서울 집값은 보통 어땠나", sub: se.n + "년 중 " + se.up + "년 상승 · 평균 " + inPct(se.avg, 2), badge: "시장흐름", cols: "해 | 전월 대비 | 거래(월평균 대비)", foot: "계절성은 경향 · 그해 금리·정책이 더 크게 작용" }; if (tid === "rankGrid") return tprItems(base, se.rows.map(function (r) { return [r.y + "년", inPct(r.mm, 1), r.vr ? "거래 " + r.vr.toFixed(2) + "배" : ""]; }), 12); return tprPaged(base, se.rows.map(function (r) { return [r.y + "년", inPct(r.mm, 2), r.vr ? r.vr.toFixed(2) + "배" : "–"]; }), 16); } };
   (function () { var i = TPR_ORDER.indexOf("terms"); TPR_ORDER.splice(i < 0 ? TPR_ORDER.length - 1 : i, 0, "inState", "inDebate", "inCompare", "inAnalog", "inRate", "inSeason"); })();
   if (typeof THR_TPQ !== "undefined") { THR_TPQ.inState = "지금 부동산 시장, 숫자로 보면 어떤 상황일까요?"; THR_TPQ.inDebate = "서울 집값, 더 오를까요 꺾일까요? 양쪽 근거를 놓고 봅니다"; THR_TPQ.inCompare = "서울 집값, 고점과 저점 사이 어디쯤일까요?"; THR_TPQ.inAnalog = "지금과 비슷했던 때, 그 뒤엔 어땠을까요?"; THR_TPQ.inRate = "기준금리가 바뀌면 서울 집값은 어떻게 움직였을까요?"; THR_TPQ.inSeason = "이달에 서울 집값은 보통 올랐을까요?"; }
+}
+
+/* ══ v9.40 분석 브리핑(주인 전용) — VIP 고객 브리핑 수준의 시장 분석·전망 ══
+   인사이트 엔진(신호·회상·비교·속사정)을 재료로, 전문가 보고서 틀(요약 → 7개 축 진단 → 과거 사례 → 사이클 위치 → 전망 → 대응 → 외부 조사 → 부록)로 묶는다.
+   앱이 모르는 것(입주 물량·심리지수·최신 대책 세부·금리 전망 등)은 'AI에게 물어보기' 프롬프트를 만들어 주고, 답을 붙여 넣으면 서버 보관함에 저장(kind insight · type ext)되어
+   이후 브리핑·인사이트·카드의 재료로 쓰인다. 숫자 원칙은 같다: 앱 데이터는 그대로, 외부 답은 '외부 조사(날짜·출처)' 표시로만. */
+var RP2 = { ext: [], busy: "", msg: "", topic: "supply" };
+function rpE(s) { return escHtml(String(s == null ? "" : s)); }
+function rpPct(v, d) { return v == null ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d == null ? 1 : d) + "%"; }
+function rpToday() { return typeof dyDate === "function" ? dyDate().txt : tpToday(); }
+
+/* ── 외부 조사(AI 답) — 보관함 kind insight · type ext ── */
+var RP_TOPICS = [
+  ["supply", "공급 — 입주·착공·인허가", ["서울·수도권 향후 2년 연도별 아파트 입주 예정 물량(세대)과 최근 5년 평균 대비", "최근 12개월 서울 착공·인허가 실적과 전년 대비", "정비사업(재건축·재개발) 이주·착공 예정 단지 수와 시기", "공급 부족/과잉 판단의 근거와 출처(국토부·부동산원·민간 리서치)"], ["price", "subs"]],
+  ["sentiment", "심리 — 소비자심리·매수우위·전망지수", ["한국은행 주택가격전망CSI 최근 3개월 값과 추세", "KB 매수우위지수·매매전망지수(서울) 최근 값", "부동산원 주간 매매수급지수(서울·수도권) 최근 값", "심리 지표가 과거 고점(2020~21)·저점(2022~23)과 비교해 어디쯤인지"], ["price", "volume"]],
+  ["policy", "정책 — 규제·세제·공급 대책 최신", ["최근 3개월 발표·시행된 부동산 대책과 핵심 수치(규제지역·LTV·DSR·세율·기한)", "국회 계류 중이거나 예고된 변경(법안·시행령)과 예상 시점", "토지거래허가구역·실거주 의무의 현재 범위와 예외, 종료일", "정책이 거래·가격에 미친 과거 유사 사례(발표 뒤 3·6개월 거래량·가격)"], ["buy", "gap", "move", "sell"]],
+  ["finance", "금융 — 금리 전망·가계대출·유동성", ["한국은행 기준금리 다음 결정 일정과 시장(국고채·선물) 기대", "5대 은행 주담대 금리 밴드(고정·변동) 최근 값과 한 달 전 대비", "가계대출·주담대 월별 증감(금융위 발표)과 은행 총량 관리 상황", "미국 금리·환율이 국내 금리에 주는 영향 요약"], ["rate", "buy"]],
+  ["rent", "전세 — 전세가·매물·월세 전환", ["서울 전세가격지수·전세 매물 건수 최근 추이", "전세→월세 전환 비율과 전월세 전환율", "입주 물량과 전세가의 관계(과거 사례)", "역전세·깡통전세 위험 지표"], ["rent", "gap"]],
+  ["macro", "거시 — 경기·고용·해외 부동산", ["GDP 성장률·실업률·물가 최근 값과 전망(한은·KDI)", "주식시장·환율·외국인 자금 흐름과 주택 시장의 연결 고리", "미국·일본·중국 주택시장 최근 흐름과 시사점", "경기 둔화/확장이 과거 서울 집값에 미친 사례"], ["price"]]
+];
+function rpTopic(id) { return RP_TOPICS.filter(function (t) { return t[0] === id; })[0] || RP_TOPICS[0]; }
+/* 앱이 아는 것 — 프롬프트와 브리핑이 같은 재료를 쓴다 */
+function rpKnown() {
+  var S = IN.S || (typeof inSignals === "function" ? inSignals() : []), T = IN.T || inTemp(S), L = [];
+  S.forEach(function (x) { L.push("- " + x.grp + " · " + x.nm + ": " + x.val + " (" + String(x.cmp).replace(/<[^>]+>/g, "") + ") · 기준 " + (x.at || "")); });
+  var cp = IN.cp || inCompare(); if (cp) cp.rows.forEach(function (r) { L.push("- 비교 " + r[0] + ": " + cp.cols.map(function (c, i) { return c + " " + r[i + 1]; }).join(" / ")); });
+  var an = IN.an || inAnalogs(); if (an) L.push("- 지금과 비슷했던 과거 " + an.n + "개 달(1년 상승률·거래량·고점 대비 기준): 12개월 뒤 상승 " + an.up12 + "번 · 평균 6개월 " + rpPct(an.m6) + " · 12개월 " + rpPct(an.m12));
+  var re = IN.re || inRateEvents(); if (re) re.slice(-4).forEach(function (r) { L.push("- 기준금리 " + r.dir + " " + r.at + " " + r.from.toFixed(2) + "→" + r.to.toFixed(2) + "% → 서울 지수 6개월 뒤 " + rpPct(r.p6) + " · 12개월 뒤 " + rpPct(r.p12)); });
+  inCtx(null, null, 12).forEach(function (x) { L.push("- [" + (IN_KIND[x.kind] || x.kind) + " · " + (x.src || "") + "] " + x.title); });
+  return { text: L.join("\n"), temp: T, n: S.length };
+}
+function rpPromptFor(id) {
+  var t = rpTopic(id), K = rpKnown(), today = rpToday();
+  return "당신은 한국 주택시장을 20년 이상 분석해 온 부동산·금융 애널리스트입니다. 아래 [앱이 아는 것]은 제가 운영하는 프로그램이 공공데이터로 집계한 사실이고, [모르는 것]은 프로그램이 수집하지 못하는 항목입니다. 두 가지를 합쳐 VIP 고객 브리핑에 쓸 수 있는 수준으로 정리해 주세요.\n\n" +
+    "[오늘] " + today + " · 주제: " + t[1] + "\n\n[앱이 아는 것 — 이 숫자는 그대로 쓰고 바꾸지 마세요]\n" + K.text + "\n\n" +
+    "[모르는 것 — 최신 공개 자료로 조사해 주세요. 각 항목마다 수치·기준일·출처(기관명과 자료명)를 붙이고, 확인되지 않으면 '확인 안 됨'이라고 쓰세요. 추정치는 추정이라고 표시]\n" + t[2].map(function (q, i) { return (i + 1) + ". " + q; }).join("\n") + "\n\n" +
+    "[분석 요청]\n- 조사한 내용과 [앱이 아는 것]을 합쳐 지금 국면을 진단하고, 과거 유사 국면(연도·당시 수치)과 비교해 앞으로 3·6·12개월에 벌어질 가능성이 큰 일을 '조건 → 결과' 형태로 적어 주세요. 확률 숫자는 쓰지 말고 조건으로 표현합니다.\n- 공급·수요·심리·정책·금융(금리·대출)이 각각 가격과 거래에 어느 방향으로 작용하는지 한 줄씩.\n- 이 판단이 틀릴 수 있는 이유와, 생각을 바꿔야 할 확인 신호(어느 지표가 어느 수준이면)를 적어 주세요.\n\n" +
+    "[출력 형식 — 반드시 아래 JSON 하나만, 다른 말 없이]\n" +
+    '{"topic":"' + id + '","asOf":"' + new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10) + '","findings":[{"q":"질문 번호 또는 항목","value":"핵심 수치·사실(단위 포함)","date":"기준일","src":"기관·자료명","note":"한 줄 해석"}],' +
+    '"diagnosis":"지금 국면 진단 3~5문장","analogs":[{"when":"예: 2013.하반기","why":"비슷한 점(수치)","then":"그 뒤 12개월에 벌어진 일(수치)"}],' +
+    '"outlook":[{"horizon":"3개월|6개월|12개월","base":"기준 전망 한 문장","cond_up":"상방 조건 → 결과","cond_down":"하방 조건 → 결과"}],' +
+    '"drivers":[{"axis":"공급|수요|심리|정책|금융","direction":"상승|하락|중립","why":"한 줄"}],"risks":["틀릴 수 있는 이유"],"watch":["확인 신호: 지표 · 수준 · 의미"]}';
+}
+function rpParseAnswer(txt) {
+  var s = String(txt || "").trim(), m = s.match(/\{[\s\S]*\}/); if (!m) return null;
+  try { var j = JSON.parse(m[0]); return j && typeof j === "object" ? j : null; } catch (e) { return null; }
+}
+function rpExtSave(topicId, txt) {
+  var J = rpParseAnswer(txt), t = rpTopic(topicId), today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+  if (!J) { RP2.msg = "JSON 을 찾지 못했습니다 — AI 답에서 { } 로 시작·끝나는 부분을 그대로 붙여 넣어 주세요(앞뒤 설명은 있어도 됩니다)."; rpPaint(); return; }
+  if (!Array.isArray(J.findings)) J.findings = [];
+  var d = { type: "ext", topic: topicId, topicNm: t[1], asOf: J.asOf || today, tags: t[3], j: J, raw: String(txt || "").slice(0, 20000) };
+  asApi("add", { item: { kind: "insight", type: "ext", name: t[1] + " · " + d.asOf, tags: ["외부 조사", topicId].concat(t[3]), data: d } }).then(function () { RP2.msg = "저장했습니다 — 브리핑 '외부 조사 반영'과 인사이트·카드 재료에 들어갑니다"; rpLoadExt(); }, function (e) { RP2.msg = "저장 실패: " + e.message; rpPaint(); });
+}
+function rpLoadExt(cb) {
+  if (typeof asApi !== "function" || typeof asTok !== "function" || !asTok()) { RP2.ext = []; rpPaint(); cb && cb(); return; }
+  asApi("list").then(function (j) { RP2.ext = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data && x.data.type === "ext"; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); rpPaint(); cb && cb(); }, function (e) { RP2.ext = []; RP2.msg = "서버 연결 안 됨: " + e.message; rpPaint(); cb && cb(); });
+}
+/* 외부 조사 결과를 속사정 메모처럼 쓴다(인사이트·카드 '함께 보면'·AI 재료) — 최신 주제당 1건, findings 를 fact 로 */
+function rpExtAsCtx() {
+  var seen = {}, out = [];
+  (RP2.ext || []).forEach(function (x) { var d = x.data; if (seen[d.topic]) return; seen[d.topic] = 1; (d.j.findings || []).slice(0, 4).forEach(function (f, i) { if (!f || !f.value) return; out.push({ id: x.id + ":" + i, kind: "fact", title: (f.q ? String(f.q).replace(/^\d+[.)]\s*/, "") + ": " : "") + f.value, body: f.note || "", src: "외부 조사(AI) · " + (f.src || d.topicNm) + (f.date ? " · " + f.date : ""), asOf: d.asOf, tags: d.tags || [], from: "ext" }); }); });
+  return out;
+}
+
+/* ══ 브리핑 — 7개 축 진단 ══ */
+var RP_AXES = [["수요", ["거래"], "거래량·신고가·청약 열기로 본 매수 수요"], ["가격", ["가격"], "실거래 지수·오른 지역 수·신고가 비율"], ["위치", ["위치"], "고점 대비·확산 단계 = 사이클 어디쯤"], ["금융", ["금리"], "기준금리·주담대·국고채가 말하는 방향"], ["공급", ["공급"], "미분양 + 외부 조사(입주·착공)"], ["전세", ["전세"], "전세가율 = 매매를 떠받치는 힘"], ["청약", ["청약"], "분양 시장 체감 온도"]];
+function rpAxes(S) {
+  return RP_AXES.map(function (a) { var L = S.filter(function (x) { return a[1].indexOf(x.grp) >= 0; }), sc = L.length ? L.reduce(function (p, x) { return p + x.sc; }, 0) / L.length : null;
+    var ext = (RP2.ext || []).filter(function (x) { return (x.data.tags || []).some(function (t) { return ({ 수요: "volume", 가격: "price", 금융: "rate", 공급: "price", 전세: "rent", 청약: "subs" })[a[0]] === t; }); })[0];
+    return { nm: a[0], desc: a[2], sc: sc, sig: L, dir: sc == null ? "자료 없음" : sc > 0.5 ? "상승 압력" : sc < -0.5 ? "하락 압력" : "중립", ext: ext }; });
+}
+function rpCycle() {
+  var cp = IN.cp || inCompare(), dd = typeof chMdd === "function" ? chMdd() : null; if (!cp) return null;
+  var ph = cp.chg.fromPk > 5 ? "전고점 돌파 후 확장" : cp.chg.fromPk > -3 ? "전고점 회복 시도" : cp.chg.fromTr > 10 ? "저점에서 회복 중" : "조정 국면";
+  return { ph: ph, pk: inYmOf(cp.pk), tr: inYmOf(cp.tr), fromPk: cp.chg.fromPk, fromTr: cp.chg.fromTr, rec: dd ? dd.recN + "/" + dd.seoulN : "", monthsSinceTr: cp.L - cp.tr, monthsSincePk: cp.L - cp.pk };
+}
+function rpOutlook(S, T, an, sc) {
+  var rows = []; if (!an) return rows;
+  var p3 = an.rows.map(function (r) { return r.p3; }).filter(function (v) { return v != null; }), p6 = an.rows.map(function (r) { return r.p6; }).filter(function (v) { return v != null; }), p12 = an.rows.map(function (r) { return r.p12; }).filter(function (v) { return v != null; });
+  var rng = function (A) { return A.length ? rpPct(Math.min.apply(null, A)) + " ~ " + rpPct(Math.max.apply(null, A)) : "–"; };
+  var base = (sc || [])[0], up = (sc || [])[1], dn = (sc || [])[2];
+  rows.push({ h: "3개월", base: (base ? base.nm.replace(/^기준 시나리오 — /, "") + " — " + base.how.split(".")[0] : "") + (an.m3 != null ? " · 비슷했던 때 3개월 뒤 평균 " + rpPct(an.m3) : ""), range: rng(p3), up: up ? up.watch[0] : "", dn: dn ? dn.watch[1] || dn.watch[0] : "" });
+  rows.push({ h: "6개월", base: "비슷했던 " + an.n + "번의 6개월 뒤 평균 " + rpPct(an.m6), range: rng(p6), up: up ? up.how.split(".")[0] : "", dn: dn ? dn.how.split(".")[0] : "" });
+  rows.push({ h: "12개월", base: "비슷했던 " + an.n + "번 중 " + an.up12 + "번 상승 · 평균 " + rpPct(an.m12), range: rng(p12), up: "금리 인하 전환 + 거래 회복이 겹치면 상단", dn: "규제 강화·금리 재인상·입주 증가가 겹치면 하단" });
+  return rows;
+}
+/* ── 화면 ── */
+function buildReport(sec) {
+  sec.innerHTML = '<div class="card in-hd"><div><h2>분석 브리핑 <small>주인 전용 · VIP 브리핑 형식</small></h2><p class="hint" id="rp2-basis"></p></div><div class="in-hdbtn"><button type="button" class="btn sm ghost" data-rp2="refresh">다시 계산</button><button type="button" class="btn sm ghost" data-rp2="copy">브리핑 글 복사</button><button type="button" class="btn sm ghost" data-rp2="md">파일로(.md)</button></div></div><div id="rp2-body"><p class="hint">데이터를 불러오는 중…</p></div>';
+  sec.addEventListener("click", rpClick);
+}
+function renderReport() {
+  if (typeof OWNER === "undefined" || !OWNER) { var b0 = document.getElementById("rp2-body"); if (b0) b0.innerHTML = '<p class="hint">주인 모드에서만 보입니다.</p>'; return; }
+  var n = 5, done = function () { if (--n === 0) { if (typeof inPaint === "function") { IN.S = inSignals(); IN.T = inTemp(IN.S); IN.cp = inCompare(); IN.an = inAnalogs(); IN.re = inRateEvents(); IN.se = inSeason(); IN.sc = inScenarios(IN.S, IN.T); IN.st = inStances(IN.S, IN.T); } rpPaint(); } };
+  if (typeof dyLoad === "function") dyLoad(done); else done();
+  if (typeof macroLoad === "function") macroLoad(done); else done();
+  if (typeof rcEnsure === "function") rcEnsure("channel", done); else done();
+  if (typeof inCtxLoad === "function") inCtxLoad(done); else done();
+  if (typeof inJournalLoad === "function" && !IN.journal) { inJournalLoad(); } rpLoadExt(done);
+}
+function rpPaint() {
+  var box = document.getElementById("rp2-body"); if (!box) return;
+  var S = IN.S || inSignals(), T = IN.T || inTemp(S), sit = inSituation(S, T), sc = IN.sc || inScenarios(S, T), an = IN.an || inAnalogs(), re = IN.re || inRateEvents(), se = IN.se || inSeason(), cp = IN.cp || inCompare(), st = IN.st || inStances(S, T);
+  var AX = rpAxes(S), cy = rpCycle(), OL = rpOutlook(S, T, an, sc), rep = inReport(S, T, sit, sc), d = rpToday();
+  var bl = document.getElementById("rp2-basis"); if (bl) bl.textContent = (typeof inBasisLine === "function" ? inBasisLine() : "") + " · 외부 조사 " + (RP2.ext || []).length + "건";
+  var h = '<div class="rp2-doc">';
+  /* 표지·요약 */
+  h += '<div class="card rp2-cover"><small>우상향연구소 · 시장 분석 브리핑</small><h1>' + rpE(d) + ' 서울·수도권 주택시장</h1><div class="rp2-temp" style="--c:' + T.col + '"><b>' + rpE(T.nm) + '</b><span>신호 ' + T.n + '개 · 점수 ' + (T.t >= 0 ? "+" : "") + T.t.toFixed(2) + '</span></div>' +
+    '<h4>요약</h4><ol class="rp2-sum"><li>' + rpE(sit) + '</li>' + (cy ? "<li>사이클 위치: <b>" + rpE(cy.ph) + "</b> — 서울 지수 고점(" + cy.pk + ") 대비 " + rpPct(cy.fromPk) + ", 저점(" + cy.tr + ") 대비 " + rpPct(cy.fromTr) + (cy.rec ? " · 전고점 회복 구 " + cy.rec : "") + "</li>" : "") +
+    (an ? "<li>과거 유사 국면 " + an.n + "번 중 12개월 뒤 상승 <b>" + an.up12 + "번</b>, 평균 " + rpPct(an.m12) + " — 다만 금리 인상 국면이라는 점이 다수 사례와 다름</li>" : "") + '</ol></div>';
+  /* 1 축별 진단 */
+  h += '<div class="card rp2-sec"><h3>1. 일곱 축 진단 <small>앱 데이터 + 외부 조사</small></h3><table class="in-tbl rp2-ax"><tr><th>축</th><th>방향</th><th>근거(지금 값)</th><th>읽기</th><th>외부 조사</th></tr>' + AX.map(function (a) { return '<tr class="' + (a.sc > 0.5 ? "scp" : a.sc < -0.5 ? "scn" : "scz") + '"><td class="nm">' + rpE(a.nm) + "<small>" + rpE(a.desc) + '</small></td><td class="s"><b>' + rpE(a.dir) + "</b></td><td>" + (a.sig.length ? a.sig.map(function (x) { return "<div>" + rpE(x.nm) + " <b>" + rpE(x.val) + "</b></div>"; }).join("") : '<span class="hint">앱 자료 없음</span>') + '</td><td class="r">' + a.sig.map(function (x) { return "<div>" + rpE(x.read.split(" — ")[0]) + "</div>"; }).join("") + "</td><td class=\"r\">" + (a.ext ? "<b>" + rpE(a.ext.data.topicNm) + "</b> " + rpE(a.ext.data.asOf) + "<div>" + rpE(((a.ext.data.j.findings || [])[0] || {}).value || a.ext.data.j.diagnosis || "") + "</div>" : '<span class="hint">아직 없음 — 아래 프롬프트로</span>') + "</td></tr>"; }).join("") + "</table></div>";
+  /* 2 속사정·정책 */
+  h += '<div class="card rp2-sec"><h3>2. 정책·대출·세금이 만든 구조 <small>출처 있는 규칙만</small></h3>' + rep.filter(function (p) { return /속사정|양쪽/.test(p.h); }).map(function (p) { return "<p>" + p.t + "</p>"; }).join("") + '<details class="in-det"><summary>규칙 원문</summary>' + inCtx("rule", null, 8).map(function (x) { return inCtxLine(x); }).join("") + "</details></div>";
+  /* 3 과거 사례 */
+  h += '<div class="card rp2-sec"><h3>3. 과거 사례와 비교</h3>';
+  if (cp) h += '<h4>지금 · 1년 전 · 고점 · 저점</h4><div class="in-tblw"><table class="in-tbl"><tr><th></th>' + cp.cols.map(function (c) { return "<th>" + rpE(c) + "</th>"; }).join("") + "</tr>" + cp.rows.map(function (r) { return "<tr>" + r.map(function (c, i) { return "<td" + (i ? "" : ' class="nm"') + ">" + rpE(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table></div>";
+  if (an) h += '<h4>지금과 비슷했던 달 ' + an.n + '개와 그 뒤</h4><div class="in-tblw"><table class="in-tbl sm"><tr><th>그때</th><th>1년 상승률</th><th>거래 배수</th><th>고점 대비</th><th>6개월 뒤</th><th>12개월 뒤</th></tr>' + an.rows.map(function (r) { return "<tr><td>" + r.ym + "</td><td>" + rpPct(r.yoy) + "</td><td>" + r.vr.toFixed(2) + "배</td><td>" + rpPct(r.dd) + "</td><td>" + inSgn(r.p6) + "</td><td>" + inSgn(r.p12) + "</td></tr>"; }).join("") + "</table></div>";
+  if (re) h += '<h4>기준금리 변경 뒤 서울 지수</h4><div class="in-tblw"><table class="in-tbl sm"><tr><th>결정</th><th>방향</th><th>3개월</th><th>6개월</th><th>12개월</th></tr>' + re.map(function (r) { return "<tr><td>" + rpE(r.at) + "</td><td>" + r.dir + " " + r.from.toFixed(2) + "→" + r.to.toFixed(2) + "%</td><td>" + inSgn(r.p3) + "</td><td>" + inSgn(r.p6) + "</td><td>" + inSgn(r.p12) + "</td></tr>"; }).join("") + "</table></div>";
+  var exA = []; (RP2.ext || []).forEach(function (x) { (x.data.j.analogs || []).forEach(function (a) { exA.push({ t: x.data.topicNm, a: a }); }); });
+  if (exA.length) h += '<h4>외부 조사가 든 유사 사례</h4><ul class="in-ul">' + exA.slice(0, 6).map(function (x) { return "<li><b>" + rpE(x.a.when) + "</b> — " + rpE(x.a.why) + " → " + rpE(x.a.then) + ' <i class="fid">' + rpE(x.t) + "</i></li>"; }).join("") + "</ul>";
+  h += "</div>";
+  /* 4 전망 */
+  h += '<div class="card rp2-sec"><h3>4. 전망 <small>확률 대신 조건 — 과거 유사 국면의 결과 범위를 참고 수치로</small></h3><div class="in-tblw"><table class="in-tbl rp2-ol"><tr><th>기간</th><th>기준 전망</th><th>과거 유사 국면 결과 범위</th><th>상방 조건</th><th>하방 조건</th></tr>' + OL.map(function (r) { return "<tr><td class=\"nm\">" + rpE(r.h) + "</td><td>" + rpE(r.base) + "</td><td>" + rpE(r.range) + "</td><td>" + rpE(r.up) + "</td><td>" + rpE(r.dn) + "</td></tr>"; }).join("") + "</table></div>" +
+    '<div class="in-sc">' + sc.map(function (o, k) { return '<div class="in-scc k' + k + '"><b>' + rpE(o.nm) + "</b><p>" + rpE(o.how) + "</p><small>확인 신호</small><ul>" + o.watch.map(function (w) { return "<li>" + rpE(w) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div>" +
+    (function () { var exO = []; (RP2.ext || []).forEach(function (x) { (x.data.j.outlook || []).forEach(function (o) { exO.push({ t: x.data.topicNm, d: x.data.asOf, o: o }); }); }); return exO.length ? '<h4>외부 조사의 전망</h4><ul class="in-ul">' + exO.slice(0, 6).map(function (x) { return "<li><b>" + rpE(x.o.horizon) + "</b> " + rpE(x.o.base) + " <small>↑ " + rpE(x.o.cond_up) + " / ↓ " + rpE(x.o.cond_down) + '</small> <i class="fid">' + rpE(x.t + " " + x.d) + "</i></li>"; }).join("") + "</ul>" : ""; })() + "</div>";
+  /* 5 대응 */
+  h += '<div class="card rp2-sec"><h3>5. 대응 전략 <small>입장별 · 주인 메모용</small></h3><div class="in-st">' + st.map(function (o) { return '<div class="in-stc"><b>' + rpE(o.who) + "</b><ul>" + o.todo.slice(0, 3).map(function (t) { return "<li>" + rpE(t) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div>" +
+    '<h4>이번 주·이번 달 확인할 것</h4><ul class="in-ul">' + sc.slice(1).map(function (o) { return o.watch.map(function (w) { return "<li>" + rpE(w) + "</li>"; }).join(""); }).join("") + "</ul></div>";
+  /* 6 외부 조사 반영 + 프롬프트 */
+  h += '<div class="card rp2-sec" id="rp2-ext"><h3>6. 외부 조사 — 프로그램이 모르는 것 <small>AI에게 묻고 답을 저장하면 다음 브리핑부터 재료로 쓴다</small></h3>' +
+    '<div class="rp2-topics">' + RP_TOPICS.map(function (t) { var has = (RP2.ext || []).filter(function (x) { return x.data.topic === t[0]; })[0]; return '<button type="button" data-rp2t="' + t[0] + '" class="' + (RP2.topic === t[0] ? "on" : "") + '"><b>' + rpE(t[1].split(" — ")[0]) + "</b><small>" + rpE(t[1].split(" — ")[1] || "") + "</small>" + (has ? '<em>저장 ' + rpE(has.data.asOf) + "</em>" : '<em class="no">아직 없음</em>') + "</button>"; }).join("") + "</div>" +
+    '<div class="rp2-prompt"><div class="rp2-ph"><b>프롬프트 — ' + rpE(rpTopic(RP2.topic)[1]) + '</b><small>앱이 아는 것 ' + rpKnown().n + '개 신호 + 모르는 것 ' + rpTopic(RP2.topic)[2].length + '개 질문 · ChatGPT·Claude·Gemini 어디든</small><button type="button" class="btn sm" data-rp2="pcopy">프롬프트 복사</button></div><textarea id="rp2-pt" rows="9" readonly>' + rpE(rpPromptFor(RP2.topic)) + '</textarea>' +
+    '<div class="rp2-ph"><b>답 붙여넣기</b><small>AI가 준 JSON(앞뒤 설명이 있어도 됨)</small><button type="button" class="btn sm" data-rp2="save">저장</button></div><textarea id="rp2-ans" rows="5" placeholder=\'{"topic":"...","findings":[...]}\'></textarea>' + (RP2.msg ? '<p class="hint">' + rpE(RP2.msg) + "</p>" : "") + "</div>" +
+    ((RP2.ext || []).length ? '<h4>저장된 외부 조사 ' + RP2.ext.length + '건</h4>' + RP2.ext.map(function (x) { var J = x.data.j || {}; return '<details class="rp2-extitem"><summary><b>' + rpE(x.data.topicNm) + "</b> · " + rpE(x.data.asOf) + " · 항목 " + ((J.findings || []).length) + '개 <button type="button" class="btn xs ghost" data-rp2del="' + rpE(x.id) + '">지움</button></summary>' + (J.diagnosis ? "<p><b>진단</b> " + rpE(J.diagnosis) + "</p>" : "") + ((J.findings || []).length ? '<table class="in-tbl sm"><tr><th>항목</th><th>값</th><th>기준일</th><th>출처</th><th>해석</th></tr>' + J.findings.map(function (f) { return "<tr><td>" + rpE(f.q) + "</td><td><b>" + rpE(f.value) + "</b></td><td>" + rpE(f.date) + "</td><td>" + rpE(f.src) + "</td><td>" + rpE(f.note) + "</td></tr>"; }).join("") + "</table>" : "") + ((J.drivers || []).length ? "<p><b>축별 방향</b> " + J.drivers.map(function (x) { return rpE(x.axis) + " " + rpE(x.direction) + "(" + rpE(x.why) + ")"; }).join(" · ") + "</p>" : "") + ((J.risks || []).length ? "<p><b>틀릴 이유</b> " + J.risks.map(rpE).join(" / ") + "</p>" : "") + ((J.watch || []).length ? "<p><b>확인 신호</b> " + J.watch.map(rpE).join(" / ") + "</p>" : "") + "</details>"; }).join("") : "") + "</div>";
+  /* 7 부록 */
+  h += '<div class="card rp2-sec"><h3>7. 부록 — 기준·출처</h3><p class="hint">' + rpE(typeof inBasisLine === "function" ? inBasisLine() : "") + '</p><details class="in-det"><summary>신호 ' + S.length + '개 원자료</summary><div class="in-tblw"><table class="in-tbl sm"><tr><th>신호</th><th>지금</th><th>비교</th><th>점수</th></tr>' + S.map(function (x) { return "<tr><td>" + rpE(x.nm) + "<small> " + rpE(x.at || "") + "</small></td><td><b>" + rpE(x.val) + "</b></td><td>" + x.cmp + "</td><td>" + x.sc + "</td></tr>"; }).join("") + "</table></div></details>" +
+    '<div class="in-srcs"><small>출처</small>' + (function () { var s = {}; inCtx(null, null, 40).forEach(function (x) { var k = String(x.src || "").split(" · ")[0]; if (k) s[k] = x.url || ""; }); return Object.keys(s).map(function (k) { return s[k] ? '<a href="' + rpE(s[k]) + '" target="_blank" rel="noopener">' + rpE(k) + "</a>" : "<span>" + rpE(k) + "</span>"; }).join(""); })() + '</div><p class="hint">앱 데이터는 공공데이터(국토부·청약홈·한국은행·금감원·부동산원) 집계, 외부 조사는 AI 답을 그대로 저장한 것이라 출처를 꼭 확인. 투자 판단과 책임은 본인에게.</p></div>';
+  box.innerHTML = h + "</div>";
+}
+/* 글(마크다운) — 복사·파일 */
+function rpMarkdown() {
+  var box = document.getElementById("rp2-body"); if (!box) return "";
+  var out = [], walk = function (el) { Array.prototype.forEach.call(el.children, function (c) { var tag = c.tagName; if (tag === "H1") out.push("# " + c.textContent.trim()); else if (tag === "H3") out.push("\n## " + c.textContent.trim()); else if (tag === "H4") out.push("\n### " + c.textContent.trim()); else if (tag === "P" || tag === "SMALL" && c.parentNode.className === "rp2-cover") out.push(c.textContent.trim()); else if (tag === "OL" || tag === "UL") Array.prototype.forEach.call(c.querySelectorAll(":scope > li"), function (li) { out.push("- " + li.textContent.trim()); }); else if (tag === "TABLE") Array.prototype.forEach.call(c.querySelectorAll("tr"), function (tr, i) { var cells = Array.prototype.map.call(tr.children, function (td) { return (td.innerText || td.textContent).trim().replace(/\s*\n+\s*/g, " · ").replace(/\|/g, "/"); }); out.push("| " + cells.join(" | ") + " |"); if (i === 0) out.push("|" + cells.map(function () { return "---"; }).join("|") + "|"); }); else if (tag === "TEXTAREA" || c.classList.contains("rp2-prompt") || c.classList.contains("rp2-topics")) return; else walk(c); }); };
+  walk(box); return out.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+function rpClick(ev) {
+  var t = ev.target; if (!t || !t.closest) return;
+  var tp = t.closest("[data-rp2t]"); if (tp) { RP2.topic = tp.dataset.rp2t; RP2.msg = ""; rpPaint(); var ex = document.getElementById("rp2-ext"); if (ex) ex.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  var dl = t.closest("[data-rp2del]"); if (dl) { if (!confirm("이 외부 조사 기록을 지울까요?")) return; asApi("del", { id: dl.dataset.rp2del }).then(function () { rpLoadExt(); }); return; }
+  var a = t.closest("[data-rp2]"); if (!a) return; var k = a.dataset.rp2;
+  if (k === "refresh") { IN.metrics = null; IN.S = inSignals(); IN.T = inTemp(IN.S); IN.cp = inCompare(); IN.an = inAnalogs(); rpLoadExt(); }
+  if (k === "pcopy") { var ta = document.getElementById("rp2-pt"); if (ta) { ta.select(); try { navigator.clipboard.writeText(ta.value); } catch (e) { document.execCommand("copy"); } RP2.msg = "프롬프트를 복사했습니다 — AI에 붙여 넣고, 돌아온 JSON 을 아래에 붙여 [저장]"; rpPaint(); } }
+  if (k === "save") { var an = document.getElementById("rp2-ans"); if (!an || !an.value.trim()) { alert("AI 답을 붙여 넣어 주세요"); return; } rpExtSave(RP2.topic, an.value); }
+  if (k === "copy") { var md = rpMarkdown(); try { navigator.clipboard.writeText(md); } catch (e) {} RP2.msg = "브리핑 글을 복사했습니다(" + md.length + "자)"; rpPaint(); }
+  if (k === "md") { var md2 = rpMarkdown(), b = new Blob([md2], { type: "text/markdown;charset=utf-8" }), u = URL.createObjectURL(b), el = document.createElement("a"); el.href = u; el.download = "브리핑_" + new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10) + ".md"; document.body.appendChild(el); el.click(); el.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 2000); }
 }
 
 /* ══ 시작 탭 ══════════════════════════════════ */

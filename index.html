@@ -2698,6 +2698,13 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 .rp2-phi .ms{font-size:12.5px;line-height:1.5;color:#374151}.rp2-phi .ms .hint{font-size:11.5px;margin-top:2px}.rp2-phi .ctx{font-size:11.5px;color:var(--muted,#6b7280)}.rp2-phi .ctx em{font-style:normal;color:#b45309}
 .rp2-phi .out{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;border-top:1px dashed var(--line,#e5e7eb);padding-top:6px}.rp2-phi .out .c{text-align:center}.rp2-phi .out small{display:block;font-size:10px;color:var(--muted,#6b7280)}.rp2-phi .out b{font-size:13px}
 @media (prefers-color-scheme:dark){.rp2-phi .ms{color:inherit}}
+/* v9.42 지역별 진단 · 표 세로 쌓기 */
+.rp2-rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}.rp2-rgi{border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:12px;background:var(--card,#fff);display:flex;flex-direction:column;gap:8px}
+.rp2-rgi .hd{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.rp2-rgi .hd b{font-size:16px}.rp2-rgi .hd small{width:100%;font-size:11px;color:var(--muted,#6b7280);line-height:1.4}
+.rp2-rgi .kp{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.rp2-rgi .kp .c{background:#f8f7f4;border-radius:8px;padding:6px 6px;text-align:center;min-width:0}.rp2-rgi .kp small{display:block;font-size:10px;color:var(--muted,#6b7280)}.rp2-rgi .kp b{font-size:13.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rp2-rgi .kp em{display:block;font-style:normal;font-size:9.5px;color:var(--muted,#9ca3af);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rp2-rgi .rd{margin:0;padding-left:16px;font-size:12.5px;line-height:1.55}.rp2-rgi .rd li{margin:3px 0}.rp2-rgi .why{margin:0;font-size:12px;color:#4b5563;line-height:1.5}.rp2-rgi .why b{color:#a8843f;margin-right:4px}.rp2-rgi .ol{margin:0;font-size:12.5px;line-height:1.5;padding:7px 9px;border-radius:8px;background:#17181c;color:#f3efe6}
+@media (max-width:700px){.rp2-stack tr:first-child{display:none}.rp2-stack tr{display:block;border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:8px 10px;margin:8px 0}.rp2-stack td{display:block;border:0;padding:2px 0;min-width:0!important}.rp2-stack td.nm{font-size:14px}.rp2-stack td.s{padding:2px 0 6px}.rp2-stack td.r{color:#374151}.in-tbl.rp2-stack{min-width:0}.rp2-rgi .kp{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-color-scheme:dark){.rp2-rgi .kp .c{background:rgba(255,255,255,.05)}.rp2-rgi .why{color:inherit}.rp2-stack td.r{color:inherit}}
 </style>
 </head>
 <body>
@@ -2705,7 +2712,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.41</span>
+    <span class="ver">v9.42</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -8367,7 +8374,7 @@ function sbResults(X) {
     /* 0점 가점 행(그 거주구분 가점 당첨자 없음)은 빼고 최저~최고를 다시 잡는다 — 예전 수집분 보정 */
     if (o.sc) { var L = o.sc.filter(function (t) { return t.lo > 0; }); if (!L.length) { delete o.sc; o.scLo = o.scHi = null; } else { var here = L.filter(function (t) { return /해당/.test(t.rs); }), B = here.length ? here : L; o.sc = L; o.scLo = Math.min.apply(null, B.map(function (t) { return t.lo; })); o.scHi = Math.max.apply(null, B.map(function (t) { return t.hi != null && t.hi > 0 ? t.hi : t.lo; })); o.scRs = here.length ? "해당지역" : (B[0].rs || "") + "지역"; } }
     if (!o.nm) o.nm = it ? it.nm : "관리번호 " + r.no;
-    if (!o.area && it) o.area = it.area;
+    if (!o.area && it) o.area = it.area; if (!o.addr && it) o.addr = it.addr;
     return o;
   });
 }
@@ -10574,8 +10581,8 @@ function rpPhOutcomes() {
   }).filter(function (o) { return o.known; });
 }
 function rpPhSimilar(n) {
-  var now = rpNowTags(), O = rpPhOutcomes().filter(function (o) { return o.e.date < "2025-10"; });
-  O.forEach(function (o) { var t = o.e.tags || [], same = t.filter(function (x) { return now.indexOf(x) >= 0; }), uni = {}; t.concat(now).forEach(function (x) { uni[x] = 1; }); o.same = same; o.diff = now.filter(function (x) { return t.indexOf(x) < 0; }); o.only = t.filter(function (x) { return now.indexOf(x) < 0; }); o.score = Object.keys(uni).length ? same.length / Object.keys(uni).length : 0; });
+  var now = rpNowTags(), O = rpPhOutcomes().filter(function (o) { return o.e.date < "2025-01"; });   /* 2025년 이후 대책은 '지금'의 일부라 과거 비교에서 뺀다 */
+  O.forEach(function (o) { var t = o.e.tags || [], same = t.filter(function (x) { return now.indexOf(x) >= 0; }), uni = {}; t.concat(now).forEach(function (x) { uni[x] = 1; }); o.same = same; o.diff = now.filter(function (x) { return t.indexOf(x) < 0; }); o.only = t.filter(function (x) { return now.indexOf(x) < 0; }); o.score = same.length * 10 + (Object.keys(uni).length ? same.length / Object.keys(uni).length : 0); });
   return O.filter(function (o) { return o.same.length; }).sort(function (a, b) { return b.score - a.score || b.e.date.localeCompare(a.e.date); }).slice(0, n || 5);
 }
 function rpPhAgg() {
@@ -10602,6 +10609,7 @@ function rpToday() { return typeof dyDate === "function" ? dyDate().txt : tpToda
 /* ── 외부 조사(AI 답) — 보관함 kind insight · type ext ── */
 var RP_TOPICS = [
   ["supply", "공급 — 입주·착공·인허가", ["서울·수도권 향후 2년 연도별 아파트 입주 예정 물량(세대)과 최근 5년 평균 대비", "최근 12개월 서울 착공·인허가 실적과 전년 대비", "정비사업(재건축·재개발) 이주·착공 예정 단지 수와 시기", "공급 부족/과잉 판단의 근거와 출처(국토부·부동산원·민간 리서치)"], ["price", "subs"]],
+  ["region", "지역별 — 경기 남부·북부·인천·지방", ["경기 남부(평택·안성·이천·화성·용인)·경기 북부(양주·파주·고양)·인천(검단·영종·송도)·지방 광역시(대구·부산·울산·세종)의 최근 시군구 미분양(호)과 전월 대비", "같은 권역의 2026~2028 연도별 입주 예정 물량과 과거 5년 평균 대비", "규제지역(서울·경기 12곳) 밖으로 수요가 옮겨 간 흔적(비규제 시군구 거래·가격 증가)이 있는지, 과거 8·2(2017)·6·17(2020) 뒤 풍선효과 사례와 비교", "권역별 전세가격·매물 추이와 역전세 위험"], ["price", "volume", "rent"]],
   ["sentiment", "심리 — 소비자심리·매수우위·전망지수", ["한국은행 주택가격전망CSI 최근 3개월 값과 추세", "KB 매수우위지수·매매전망지수(서울) 최근 값", "부동산원 주간 매매수급지수(서울·수도권) 최근 값", "심리 지표가 과거 고점(2020~21)·저점(2022~23)과 비교해 어디쯤인지"], ["price", "volume"]],
   ["policy", "정책 — 규제·세제·공급 대책 최신", ["최근 3개월 발표·시행된 부동산 대책과 핵심 수치(규제지역·LTV·DSR·세율·기한)", "국회 계류 중이거나 예고된 변경(법안·시행령)과 예상 시점", "토지거래허가구역·실거주 의무의 현재 범위와 예외, 종료일", "정책이 거래·가격에 미친 과거 유사 사례(발표 뒤 3·6개월 거래량·가격)"], ["buy", "gap", "move", "sell"]],
   ["finance", "금융 — 금리 전망·가계대출·유동성", ["한국은행 기준금리 다음 결정 일정과 시장(국고채·선물) 기대", "5대 은행 주담대 금리 밴드(고정·변동) 최근 값과 한 달 전 대비", "가계대출·주담대 월별 증감(금융위 발표)과 은행 총량 관리 상황", "미국 금리·환율이 국내 금리에 주는 영향 요약"], ["rate", "buy"]],
@@ -10618,6 +10626,7 @@ function rpKnown() {
   var an = IN.an || inAnalogs(); if (an) L.push("- 지금과 비슷했던 과거 " + an.n + "개 달(1년 상승률·거래량·고점 대비 기준): 12개월 뒤 상승 " + an.up12 + "번 · 평균 6개월 " + rpPct(an.m6) + " · 12개월 " + rpPct(an.m12));
   var re = IN.re || inRateEvents(); if (re) re.slice(-4).forEach(function (r) { L.push("- 기준금리 " + r.dir + " " + r.at + " " + r.from.toFixed(2) + "→" + r.to.toFixed(2) + "% → 서울 지수 6개월 뒤 " + rpPct(r.p6) + " · 12개월 뒤 " + rpPct(r.p12)); });
   inCtx(null, null, 12).forEach(function (x) { L.push("- [" + (IN_KIND[x.kind] || x.kind) + " · " + (x.src || "") + "] " + x.title); });
+  try { RP_GROUPS.forEach(function (g) { var o = rpRegionStats(g), vr = o.volM && o.volAvg ? o.volM / o.volAvg : null; L.push("- 지역 " + g.nm + "(" + (g.reg === "all" ? "전역 규제" : g.reg === "none" ? "규제 밖" : "규제 " + o.regN + "/" + o.n) + "): 1년 지수 " + rpPct(o.yoy) + " · 고점 대비 " + rpPct(o.fromPk) + " · 30일 거래 " + (o.d30 != null ? fmt(o.d30) + "건" : "–") + (o.d30chg != null ? "(" + rpPct(o.d30chg, 0) + ")" : "") + " · 월 거래 12개월 평균의 " + (vr != null ? vr.toFixed(2) + "배" : "–") + " · 신고가 비율 " + (o.hiRate != null ? o.hiRate.toFixed(1) + "%" : "–") + " · 전세가율 " + (o.jr != null ? o.jr.toFixed(0) + "%" : "–") + " · 청약 중위 " + (o.subsMed != null ? o.subsMed.toFixed(1) + ":1" : "–")); }); } catch (e) {}
   rpPhSimilar(3).forEach(function (o) { L.push("- 과거 비슷한 정책 " + o.e.name + "(" + o.e.date + "): 같은 점 " + o.same.map(function (t) { return RP_TAGNM[t] || t; }).join("·") + " → 서울 지수(앱 집계) 6개월 " + rpPct(o.p6) + " · 12개월 " + rpPct(o.p12) + " · 거래 3개월 " + rpPct(o.v3, 0)); });
   return { text: L.join("\n"), temp: T, n: S.length };
 }
@@ -10655,6 +10664,82 @@ function rpExtAsCtx() {
   return out;
 }
 
+/* ══ 지역별 진단 — 서울 / 경기 남부 1·2·3군 / 경기 북부 / 인천 송도·그 외 / 지방 광역시 ══
+   같은 숫자라도 규제지역(토허제·LTV 40%)이냐 아니냐에 따라 뜻이 다르다: 규제지역의 거래 감소 = 대출·실거주 의무로 '살 수 있는 사람'이 줄어든 것, 규제 밖의 감소 = 수요 자체가 식은 것. */
+var RP_REG = ["11", "41290", "41210", "41135", "41131", "41133", "41117", "41111", "41115", "41173", "41465", "41430", "41450"];   /* 10·15 규제지역(서울 전역 + 경기 12곳) */
+var RP_GROUPS = [
+  { id: "seoul", nm: "서울", sub: "25개 구 · 전역 규제지역·토허구역", pfx: ["11"], reg: "all", why: "실수요 중 현금 비중이 높은 수요만 움직일 수 있는 시장 — 상급지 조정이 외곽으로 번지는지가 관건" },
+  { id: "gs1", nm: "경기 남부 핵심", sub: "과천 · 분당(판교) · 안양 동안(평촌) · 용인 수지 · 화성 동탄 · 수원 영통(광교)", codes: ["41290", "41135", "41173", "41465", "41597", "41117"], reg: "most", why: "서울 대체 수요가 먼저 오는 곳. 동탄을 빼면 모두 규제지역이라 서울과 같은 규칙(토허제·LTV 40%) 아래 움직인다" },
+  { id: "gs2", nm: "경기 남부 주변", sub: "성남 수정·중원 · 의왕 · 군포 · 광명 · 하남 · 수원 장안·권선·팔달 · 용인 기흥 · 안양 만안 · 화성 병점·효행 · 광주 · 오산", codes: ["41131", "41133", "41430", "41410", "41210", "41450", "41111", "41113", "41115", "41463", "41171", "41595", "41593", "41610", "41370"], reg: "mixed", why: "규제지역과 비규제가 섞인 띠 — 규제 밖 동네로 수요가 옮겨 가는지(풍선효과)를 여기서 본다" },
+  { id: "gs3", nm: "경기 남부 그 외", sub: "평택 · 안성 · 이천 · 여주 · 안산 · 시흥 · 부천 · 용인 처인 · 화성 만세 · 양평", codes: ["41220", "41550", "41500", "41670", "41271", "41273", "41390", "41192", "41194", "41196", "41461", "41591", "41830"], reg: "none", why: "공급(입주·미분양)과 금리에 민감한 곳 — 평택·안성·이천은 미분양 부담을 따로 봐야 한다" },
+  { id: "gn", nm: "경기 북부", sub: "고양 · 파주 · 의정부 · 남양주 · 구리 · 양주 · 동두천 · 포천 · 김포 · 연천 · 가평", codes: ["41281", "41285", "41287", "41480", "41150", "41360", "41310", "41630", "41250", "41650", "41570", "41800", "41820"], reg: "none", why: "교통 재료(GTX·지하철 연장)와 입주 물량이 번갈아 작용 — 규제 밖이라 거래 감소는 수요 약화로 읽는다" },
+  { id: "songdo", nm: "인천 송도", sub: "연수구(송도 포함)", codes: ["28185"], reg: "none", why: "인천 안에서 따로 움직이는 시장 — 신축 비중·입주 물량·바이오 일자리가 변수" },
+  { id: "inc", nm: "인천 그 외", sub: "연수구 제외", pfx: ["28"], skip: ["28185"], reg: "none", why: "입주 물량(검단·영종 등)과 서울 외곽 가격 차이에 따라 움직인다" },
+  { id: "metro", nm: "지방 광역시", sub: "부산 · 대구 · 대전 · 울산 · 세종 · 광주", pfx: ["26", "27", "30", "31", "36"], codes: ["12210", "12240", "12270", "12300", "12330"], reg: "none", why: "미분양·인구가 먼저이고 금리 인하 효과는 늦게 온다 — 수도권 지표를 그대로 적용하면 틀린다" }
+];
+function rpGroupCodes(g) { var all = typeof tprReg === "function" ? Object.keys(tprReg()) : (typeof DB !== "undefined" && DB ? Object.keys(DB.sale.series) : []); var out = (g.codes || []).slice(); (g.pfx || []).forEach(function (p) { all.forEach(function (k) { if (k.indexOf(p) === 0 && out.indexOf(k) < 0 && !(g.skip || []).some(function (x) { return x === k; }) && !(typeof MC_GROUP !== "undefined" && MC_GROUP[k])) out.push(k); }); }); return out.filter(function (k) { return !(g.skip || []).some(function (x) { return x === k; }); }); }
+function rpIsReg(k) { return RP_REG.some(function (p) { return p.length === 2 ? k.indexOf(p) === 0 : k === p; }); }
+function rpRegionStats(g) {
+  var codes = rpGroupCodes(g), o = { g: g, codes: codes, regN: codes.filter(rpIsReg).length, n: codes.length };
+  try {
+    /* 가격 — 구별 균등 지수(채널 MDD 와 같은 방식), 1년·2020~22 고점 대비 */
+    if (typeof chGroupSer === "function" && inMcOk()) { var ser = chGroupSer(g.nm, codes); if (ser) { var L = inLastIdx(ser); o.idx = ser; o.yoy = L >= 12 && ser[L - 12] ? (ser[L] / ser[L - 12] - 1) * 100 : null; var t0 = ymNum(DB.sale.dates[0]), dd = typeof chDD === "function" ? chDD(g.id, (2020 * 12 + 1) - t0, (2022 * 12 + 12) - t0, ser) : null; if (dd) { o.fromPk = dd.now; o.pkYm = inYmOf(dd.pi); } } }
+    /* 월 거래(확정 달) — 코드별 합, 12개월 평균 대비 */
+    if (inMcOk()) { var V = null; codes.forEach(function (k) { var a = inSer("vol", k); if (!a.length) return; if (!V) V = a.map(function (v) { return v || 0; }); else a.forEach(function (v, i) { V[i] = (V[i] || 0) + (v || 0); }); }); if (V) { var LV = inLastIdx(V); o.volM = V[LV]; o.volAvg = inMean(V.slice(LV - 12, LV)); o.volYm = inYmOf(LV); } }
+    /* 30일 거래·신고가·오른 지역 */
+    if (typeof chOk === "function" && chOk()) { var sm = chSum(codes); o.d30 = sm.n; o.d30chg = sm.chg; var hi = chCollect(codes, "newHighAll").filter(function (t) { return t.upAll > 0; }); o.hiN = hi.length; o.hiRate = sm.n ? hi.length / sm.n * 100 : null; if (typeof cdMove === "function") { var mv = cdMove(codes).filter(function (r) { return r.pc != null; }); o.upN = mv.filter(function (r) { return r.pc > 0; }).length; o.mvN = mv.length; } }
+    if (g.reg === "mixed" && typeof chOk === "function" && chOk()) { var cr = codes.filter(rpIsReg), cn = codes.filter(function (k) { return !rpIsReg(k); }), a1 = chSum(cr), a2 = chSum(cn); o.split = { reg: { n: a1.n, chg: a1.chg }, non: { n: a2.n, chg: a2.chg } };
+      if (inMcOk()) { var vrOf = function (cs) { var V = null; cs.forEach(function (k) { var a = inSer("vol", k); if (!a.length) return; if (!V) V = a.map(function (v) { return v || 0; }); else a.forEach(function (v, i) { V[i] = (V[i] || 0) + (v || 0); }); }); if (!V) return null; var L = inLastIdx(V), av = inMean(V.slice(L - 12, L)); return av ? (V[L] / av - 1) * 100 : null; }; if (o.split.reg.chg == null) { o.split.reg.chg = vrOf(cr); o.split.reg.how = "12개월 평균 대비"; } if (o.split.non.chg == null) { o.split.non.chg = vrOf(cn); o.split.non.how = "12개월 평균 대비"; } } }
+    /* 전세가율 — 코드별 마지막 확정 달 평균 */
+    if (inMcOk()) { var J = []; codes.forEach(function (k) { var a = inSer("jr", k), L2 = inLastIdx(a); if (L2 >= 0 && a[L2]) J.push(a[L2]); }); o.jr = J.length ? inMean(J) : null; o.jrN = J.length; }
+    /* 청약 — 주소로 묶기 */
+    if (typeof sbChAll === "function" && typeof tprSubs === "function" && tprSubs()) { var nmRe = new RegExp(codes.map(function (k) { var nm = typeof tprNm === "function" ? tprNm(k) : k; return nm.replace(/^(서울|경기|인천|부산|대구|광주|대전|울산|세종|전광)\s+/, "").split(" ").pop(); }).filter(Boolean).map(function (x) { return x.replace(/[.*+?^${}()|[\]\\]/g, ""); }).join("|")); var t = sbToday(), S = sbChAll().filter(function (it) { return nmRe.test(it.addr || "") && (g.id !== "seoul" || /서울/.test(it.addr || "")) && (g.id !== "metro" || !/경기|인천|서울/.test(it.addr || "")); }); o.subsOpen = S.filter(function (it) { return Math.max(it.e || 0, it.r2 || 0) >= t; }).length; var RS = (typeof tprSubsRes === "function" ? tprSubsRes() : []).filter(function (r) { return nmRe.test(r.addr || "") || (r.area && g.id === "metro" && /부산|대구|대전|울산|세종|광주/.test(r.area)); }); o.subsN = RS.length; var rates = RS.filter(function (r) { return r.rate != null; }).map(function (r) { return r.rate; }).sort(function (a, b) { return a - b; }); o.subsMed = rates.length ? rates[Math.floor(rates.length / 2)] : null; o.subsShort = RS.filter(function (r) { return /미달/.test(r.status || ""); }).length; }
+    /* 미분양 — 시군구 자료는 수집하지 않으므로 권역 합계만 */
+    var U = (typeof DY !== "undefined" && DY.data && DY.data.unsold) || null; if (U) { var l = function (a) { var x = inLast(a); return x ? x[1] : null; }; if (g.id === "seoul") o.unsold = l(U.seoul); else if (/^g/.test(g.id)) { o.unsold = l(U.gg); o.unsoldNm = "경기 전체"; } else if (g.id === "songdo" || g.id === "inc") { var cp = l(U.cap), se = l(U.seoul), gg = l(U.gg); o.unsold = cp != null && se != null && gg != null ? cp - se - gg : null; o.unsoldNm = "인천 전체"; } else { var al = l(U.all), cp2 = l(U.cap); o.unsold = al != null && cp2 != null ? al - cp2 : null; o.unsoldNm = "지방 전체(비수도권)"; } }
+  } catch (e) { o.err = e.message; }
+  return o;
+}
+function rpRegionRead(o) {
+  var g = o.g, R = [], reg = g.reg === "all" || g.reg === "most", vr = o.volM && o.volAvg ? o.volM / o.volAvg : null, priceUp = (o.yoy != null && o.yoy > 3) || (o.hiRate != null && o.hiRate > 3.5), priceDn = o.yoy != null && o.yoy < -3;
+  var volDown = (o.d30chg != null && o.d30chg < -8) || (vr != null && vr < 0.85), volUp = (o.d30chg != null && o.d30chg > 8) || (vr != null && vr > 1.15);
+  /* 수요의 숨은 뜻 */
+  if (volDown && reg) R.push(priceUp ? "거래는 줄었는데 값은 버틴다 — 규제지역이라 LTV 40%·한도·2년 실거주가 '살 수 있는 사람'을 좁힌 결과이지 수요가 사라진 게 아니다. 매물도 같이 잠겨 소수 거래가 가격을 떠받치는 구조" : "거래 감소 + 가격 정체 — 규제가 수요를 눌렀고, 매도자도 2027년 세제 완화를 보고 버티는 중. 호가와 매수가가 벌어진 교착");
+  else if (g.reg === "mixed" && o.split) { var sr = o.split.reg, sn = o.split.non; R.push("규제 안 " + fmt(sr.n) + "건(" + (sr.chg != null ? rpPct(sr.chg, 0) + (sr.how ? " · " + sr.how : "") : "비교 없음") + ") vs 규제 밖 " + fmt(sn.n) + "건(" + (sn.chg != null ? rpPct(sn.chg, 0) + (sn.how ? " · " + sn.how : "") : "비교 없음") + ") — " + (sr.chg != null && sn.chg != null ? (sn.chg > sr.chg + 10 ? "규제 밖으로 수요가 옮겨 가는 풍선효과가 보인다" : sn.chg < -8 && sr.chg < -8 ? "양쪽 다 줄었다 = 규제보다 금리·심리가 원인" : sr.chg < -8 ? "규제지역만 줄었다 = 대출·실거주 의무 효과, 수요는 남아 있다" : "뚜렷한 이동은 아직") : "한 달 전 비교가 쌓이면 이동 여부를 알 수 있다") + (priceUp ? ". 값은 오르는 쪽" : "")); }
+  else if (volDown && !reg) R.push(priceUp ? "규제 밖인데 거래가 줄며 값만 오른다 — 신고가 몇 건이 평균을 끌어올리는 모양. 지속성은 약하다" : "규제 밖인데도 거래가 줄었다 — 대출 규제 탓이 아니라 금리·심리 때문. 수요 자체가 식은 신호로 읽어야 한다");
+  else if (volUp && !reg) R.push(priceUp ? "규제 밖으로 수요가 옮겨 오는 풍선효과 후보 — 거래와 값이 같이 는다. 규제지역과 가격 차가 좁혀지면 멈춘다" : "거래는 느는데 값은 아직 — 급매 소화 단계. 뒤따라 가격이 움직이는지 3개월 지켜볼 구간");
+  else if (volUp && reg) R.push("규제 안에서도 거래가 는다 — 현금 여력 있는 실수요가 들어오는 것. 상급지일수록 이런 거래가 먼저 나온다");
+  else R.push(reg ? "거래는 평년 수준이지만 규칙(토허제·LTV) 안의 거래라 매수층이 얇다" : "거래·가격 모두 뚜렷한 방향이 없다");
+  /* 공급 */
+  if (g.id === "seoul") R.push("공급: 서울은 미분양이 문제가 아니라 입주 절벽이 문제 — 착공 실적(외부 조사)으로 2~3년 뒤를 본다");
+  else if (g.id === "gs3") R.push("공급: 평택·안성·이천은 미분양·입주가 가격을 누르는 곳 — 시군구 미분양은 앱이 수집하지 않으니 외부 조사 '공급' 항목으로 채운다" + (o.unsold != null ? " (경기 전체 미분양 " + fmt(o.unsold) + "호)" : ""));
+  else if (g.id === "metro") R.push("공급: 지방은 미분양 소화가 먼저" + (o.unsold != null ? " — 비수도권 미분양 " + fmt(o.unsold) + "호" : "") + ". 대구·부산 입주 물량과 인구 흐름을 외부 조사로");
+  else if (g.id === "inc" || g.id === "songdo") R.push("공급: 인천은 입주 물량이 전세·매매를 같이 흔든다" + (o.unsold != null ? " — 인천 미분양 " + fmt(o.unsold) + "호" : ""));
+  else if (g.id === "gn") R.push("공급: 북부는 양주·파주 신도시 입주와 GTX 개통 시점이 엇갈려 지역별 편차가 크다");
+  /* 전세 */
+  if (o.jr != null) R.push("전세가율 " + o.jr.toFixed(0) + "%" + (o.jr > 65 ? " — 전세가 매매를 밀어 올리는 구조, 실수요 전환 압력" : o.jr < 50 ? " — 갭이 커 투자 수요는 들어오기 어렵고 실수요 체력에 달림" : " — 중간"));
+  /* 청약 */
+  if (o.subsN) R.push("청약: 최근 60일 " + o.subsN + "단지, 경쟁률 중위 " + (o.subsMed != null ? o.subsMed.toFixed(1) + ":1" : "–") + ", 미달 " + o.subsShort + "곳" + (o.subsMed != null && o.subsMed < 1 ? " — 분양 시장이 먼저 식었다" : o.subsMed != null && o.subsMed > 10 ? " — 분양가가 시세보다 싸다고 보는 곳" : ""));
+  return R;
+}
+function rpRegionOutlook(o) {
+  var g = o.g, reg = g.reg === "all" || g.reg === "most", b = IN.metrics && IN.metrics.base, up = b && b.dir === "인상";
+  if (g.id === "seoul") return "기준: 상급지 숨 고르기 + 중저가 외곽 키 맞추기. 금리 인상이 이어지면 외곽부터 거래가 끊긴다 · 확인: 강남3구 주간 하락 폭, 노도강 신고가 비율";
+  if (g.id === "gs1") return "기준: 서울과 동행(규칙이 같다). 서울 상급지가 더 조정되면 판교·분당이 먼저 따라가고, 동탄은 규제 밖이라 따로 움직임 · 확인: 분당 거래량, 동탄 신고가";
+  if (g.id === "gs2") return "기준: 풍선효과 관찰 지대 — 규제 밖 동네(군포·오산·광주 등)로 거래가 옮겨 가면 상승 신호, 같이 줄면 수요 약화 · 확인: 비규제 시군구 30일 거래 증감";
+  if (g.id === "gs3") return "기준: 공급 소화가 먼저 — 미분양·입주가 줄기 전엔 가격 반등이 늦다. 금리 인상기엔 가장 먼저 식는다 · 확인: 평택·안성 미분양(외부), 분양 미달 수";
+  if (g.id === "gn") return "기준: 교통 개통 재료가 있는 곳(고양·구리·남양주)만 선별 상승, 나머지는 보합 · 확인: GTX·지하철 개통 일정, 양주·파주 입주";
+  if (g.id === "songdo") return "기준: 신축·학군 수요로 인천 평균보다 강하지만 입주가 몰리는 해에는 먼저 조정 · 확인: 연수구 입주 물량, 전세가율";
+  if (g.id === "inc") return "기준: 서울 외곽과의 가격 차가 벌어지면 수요가 들어오고, 입주 물량이 몰리면 전세부터 밀린다 · 확인: 검단·영종 입주, 전세가율";
+  return "기준: 미분양이 줄어드는 도시(세종·울산 등)부터 선별 회복, 대구·부산은 소화 기간 필요 — 수도권 규제의 풍선효과는 제한적 · 확인: 비수도권 미분양 증감, 지방 청약 경쟁률";
+}
+function rpRegionsHtml() {
+  var all = RP_GROUPS.map(rpRegionStats), c = function (lb, v, sub) { return '<div class="c"><small>' + lb + "</small><b>" + v + "</b>" + (sub ? "<em>" + sub + "</em>" : "") + "</div>"; };
+  return '<div class="rp2-rg">' + all.map(function (o) { var g = o.g, vr = o.volM && o.volAvg ? o.volM / o.volAvg : null, R = rpRegionRead(o);
+    return '<div class="rp2-rgi"><div class="hd"><b>' + rpE(g.nm) + '</b><i class="fid ' + (g.reg === "all" || g.reg === "most" ? "on" : "") + '">' + (g.reg === "all" ? "전역 규제" : g.reg === "most" ? "대부분 규제(" + o.regN + "/" + o.n + ")" : g.reg === "mixed" ? "규제 " + o.regN + "/" + o.n + " 혼재" : "규제 밖") + "</i><small>" + rpE(g.sub) + "</small></div>" +
+      '<div class="kp">' + c("1년 지수", o.yoy != null ? inSgn(o.yoy) : "–") + c("고점 대비", o.fromPk != null ? inSgn(o.fromPk) : "–", o.pkYm || "") + c("30일 거래", o.d30 != null ? fmt(o.d30) + "건" : "–", o.d30chg != null ? inSgn(o.d30chg, 0) + " 한 달 전" : "") + c("월 거래", o.volM != null ? fmt(o.volM) + "건" : "–", vr != null ? "12개월 평균의 " + vr.toFixed(2) + "배" : "") + c("신고가 비율", o.hiRate != null ? o.hiRate.toFixed(1) + "%" : "–", o.hiN != null ? o.hiN + "건" : "") + c("오른 지역", o.mvN ? o.upN + "/" + o.mvN : "–", "거래 10건↑") + c("전세가율", o.jr != null ? o.jr.toFixed(0) + "%" : "–", o.jrN ? o.jrN + "곳 평균" : "") + c("청약 경쟁률", o.subsMed != null ? o.subsMed.toFixed(1) + ":1" : "–", (o.subsN ? o.subsN + "단지 · 미달 " + o.subsShort : "") + (o.subsOpen ? " · 접수 중 " + o.subsOpen : "")) + "</div>" +
+      '<ul class="rd">' + R.map(function (t) { return "<li>" + rpE(t) + "</li>"; }).join("") + '</ul><p class="why"><b>이 지역의 논리</b> ' + rpE(g.why) + '</p><p class="ol">' + rpE(rpRegionOutlook(o)) + "</p></div>"; }).join("") + "</div>" +
+    '<p class="hint">지수 = 권역 시군구 균등 지수(채널 MDD 방식) · 30일 거래는 계약일 기준 최근 30일(한 달 전 같은 시점 대비) · 월 거래는 마지막 확정 달 · 청약은 주소로 묶음 · 시군구 미분양은 수집하지 않아 권역 합계만 — 평택·대구 같은 곳은 외부 조사 "공급" 항목으로 채운다.</p>';
+}
 /* ══ 브리핑 — 7개 축 진단 ══ */
 var RP_AXES = [["수요", ["거래"], "거래량·신고가·청약 열기로 본 매수 수요"], ["가격", ["가격"], "실거래 지수·오른 지역 수·신고가 비율"], ["위치", ["위치"], "고점 대비·확산 단계 = 사이클 어디쯤"], ["금융", ["금리"], "기준금리·주담대·국고채가 말하는 방향"], ["공급", ["공급"], "미분양 + 외부 조사(입주·착공)"], ["전세", ["전세"], "전세가율 = 매매를 떠받치는 힘"], ["청약", ["청약"], "분양 시장 체감 온도"]];
 function rpAxes(S) {
@@ -10703,11 +10788,13 @@ function rpPaint() {
     (an ? "<li>과거 유사 국면 " + an.n + "번 중 12개월 뒤 상승 <b>" + an.up12 + "번</b>, 평균 " + rpPct(an.m12) + " — 다만 금리 인상 국면이라는 점이 다수 사례와 다름</li>" : "") +
     (function () { var S0 = rpPhSimilar(1)[0]; return S0 ? "<li>정책 조합이 가장 비슷했던 때는 <b>" + rpE(S0.e.name) + "(" + S0.e.date.slice(0, 7).replace("-", ".") + ")</b> — 같은 점 " + S0.same.map(function (t) { return RP_TAGNM[t] || t; }).join("·") + ", 그 뒤 6개월 " + rpPct(S0.p6) + " · 12개월 " + rpPct(S0.p12) + (S0.diff.length ? " · 지금은 " + S0.diff.map(function (t) { return RP_TAGNM[t] || t; }).join("·") + "까지 겹침" : "") + "</li>" : ""; })() + '</ol></div>';
   /* 1 축별 진단 */
-  h += '<div class="card rp2-sec"><h3>1. 일곱 축 진단 <small>앱 데이터 + 외부 조사</small></h3><table class="in-tbl rp2-ax"><tr><th>축</th><th>방향</th><th>근거(지금 값)</th><th>읽기</th><th>외부 조사</th></tr>' + AX.map(function (a) { return '<tr class="' + (a.sc > 0.5 ? "scp" : a.sc < -0.5 ? "scn" : "scz") + '"><td class="nm">' + rpE(a.nm) + "<small>" + rpE(a.desc) + '</small></td><td class="s"><b>' + rpE(a.dir) + "</b></td><td>" + (a.sig.length ? a.sig.map(function (x) { return "<div>" + rpE(x.nm) + " <b>" + rpE(x.val) + "</b></div>"; }).join("") : '<span class="hint">앱 자료 없음</span>') + '</td><td class="r">' + a.sig.map(function (x) { return "<div>" + rpE(x.read.split(" — ")[0]) + "</div>"; }).join("") + "</td><td class=\"r\">" + (a.ext ? "<b>" + rpE(a.ext.data.topicNm) + "</b> " + rpE(a.ext.data.asOf) + "<div>" + rpE(((a.ext.data.j.findings || [])[0] || {}).value || a.ext.data.j.diagnosis || "") + "</div>" : '<span class="hint">아직 없음 — 아래 프롬프트로</span>') + "</td></tr>"; }).join("") + "</table></div>";
-  /* 2 속사정·정책 */
-  h += '<div class="card rp2-sec"><h3>2. 정책·대출·세금이 만든 구조 <small>출처 있는 규칙만</small></h3>' + rep.filter(function (p) { return /속사정|양쪽/.test(p.h); }).map(function (p) { return "<p>" + p.t + "</p>"; }).join("") + '<details class="in-det"><summary>규칙 원문</summary>' + inCtx("rule", null, 8).map(function (x) { return inCtxLine(x); }).join("") + "</details></div>";
+  h += '<div class="card rp2-sec"><h3>1. 일곱 축 진단 <small>앱 데이터 + 외부 조사</small></h3><div class="in-tblw"><table class="in-tbl rp2-ax rp2-stack"><tr><th>축</th><th>방향</th><th>근거(지금 값)</th><th>읽기</th><th>외부 조사</th></tr>' + AX.map(function (a) { return '<tr class="' + (a.sc > 0.5 ? "scp" : a.sc < -0.5 ? "scn" : "scz") + '"><td class="nm">' + rpE(a.nm) + "<small>" + rpE(a.desc) + '</small></td><td class="s"><b>' + rpE(a.dir) + "</b></td><td>" + (a.sig.length ? a.sig.map(function (x) { return "<div>" + rpE(x.nm) + " <b>" + rpE(x.val) + "</b></div>"; }).join("") : '<span class="hint">앱 자료 없음</span>') + '</td><td class="r">' + a.sig.map(function (x) { return "<div>" + rpE(x.read.split(" — ")[0]) + "</div>"; }).join("") + "</td><td class=\"r\">" + (a.ext ? "<b>" + rpE(a.ext.data.topicNm) + "</b> " + rpE(a.ext.data.asOf) + "<div>" + rpE(((a.ext.data.j.findings || [])[0] || {}).value || a.ext.data.j.diagnosis || "") + "</div>" : '<span class="hint">아직 없음 — 아래 프롬프트로</span>') + "</td></tr>"; }).join("") + "</table></div></div>";
+  /* 2 지역별 */
+  h += '<div class="card rp2-sec"><h3>2. 지역별 진단 <small>같은 숫자라도 규제지역이냐 아니냐에 따라 뜻이 다르다</small></h3>' + rpRegionsHtml() + "</div>";
+  /* 3 속사정·정책 */
+  h += '<div class="card rp2-sec"><h3>3. 정책·대출·세금이 만든 구조 <small>출처 있는 규칙만</small></h3>' + rep.filter(function (p) { return /속사정|양쪽/.test(p.h); }).map(function (p) { return "<p>" + p.t + "</p>"; }).join("") + '<details class="in-det"><summary>규칙 원문</summary>' + inCtx("rule", null, 8).map(function (x) { return inCtxLine(x); }).join("") + "</details></div>";
   /* 3 과거 사례 */
-  h += '<div class="card rp2-sec"><h3>3. 과거 사례와 비교</h3>';
+  h += '<div class="card rp2-sec"><h3>4. 과거 사례와 비교</h3>';
   if (cp) h += '<h4>지금 · 1년 전 · 고점 · 저점</h4><div class="in-tblw"><table class="in-tbl"><tr><th></th>' + cp.cols.map(function (c) { return "<th>" + rpE(c) + "</th>"; }).join("") + "</tr>" + cp.rows.map(function (r) { return "<tr>" + r.map(function (c, i) { return "<td" + (i ? "" : ' class="nm"') + ">" + rpE(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table></div>";
   if (an) h += '<h4>지금과 비슷했던 달 ' + an.n + '개와 그 뒤</h4><div class="in-tblw"><table class="in-tbl sm"><tr><th>그때</th><th>1년 상승률</th><th>거래 배수</th><th>고점 대비</th><th>6개월 뒤</th><th>12개월 뒤</th></tr>' + an.rows.map(function (r) { return "<tr><td>" + r.ym + "</td><td>" + rpPct(r.yoy) + "</td><td>" + r.vr.toFixed(2) + "배</td><td>" + rpPct(r.dd) + "</td><td>" + inSgn(r.p6) + "</td><td>" + inSgn(r.p12) + "</td></tr>"; }).join("") + "</table></div>";
   h += '<h4>비슷한 정책을 폈을 때 <small>부동산·금융·대출 정책 조합이 지금과 겹치는 과거 대책 — 그 뒤 서울은</small></h4>' + rpPhHtml(false);
@@ -10716,20 +10803,20 @@ function rpPaint() {
   if (exA.length) h += '<h4>외부 조사가 든 유사 사례</h4><ul class="in-ul">' + exA.slice(0, 6).map(function (x) { return "<li><b>" + rpE(x.a.when) + "</b> — " + rpE(x.a.why) + " → " + rpE(x.a.then) + ' <i class="fid">' + rpE(x.t) + "</i></li>"; }).join("") + "</ul>";
   h += "</div>";
   /* 4 전망 */
-  h += '<div class="card rp2-sec"><h3>4. 전망 <small>확률 대신 조건 — 과거 유사 국면의 결과 범위를 참고 수치로</small></h3><div class="in-tblw"><table class="in-tbl rp2-ol"><tr><th>기간</th><th>기준 전망</th><th>과거 유사 국면 결과 범위</th><th>상방 조건</th><th>하방 조건</th></tr>' + OL.map(function (r) { return "<tr><td class=\"nm\">" + rpE(r.h) + "</td><td>" + rpE(r.base) + "</td><td>" + rpE(r.range) + "</td><td>" + rpE(r.up) + "</td><td>" + rpE(r.dn) + "</td></tr>"; }).join("") + "</table></div>" +
+  h += '<div class="card rp2-sec"><h3>5. 전망 <small>확률 대신 조건 — 과거 유사 국면의 결과 범위를 참고 수치로</small></h3><div class="in-tblw"><table class="in-tbl rp2-ol rp2-stack"><tr><th>기간</th><th>기준 전망</th><th>과거 유사 국면 결과 범위</th><th>상방 조건</th><th>하방 조건</th></tr>' + OL.map(function (r) { return "<tr><td class=\"nm\">" + rpE(r.h) + "</td><td>" + rpE(r.base) + "</td><td>" + rpE(r.range) + "</td><td>" + rpE(r.up) + "</td><td>" + rpE(r.dn) + "</td></tr>"; }).join("") + "</table></div>" +
     '<div class="in-sc">' + sc.map(function (o, k) { return '<div class="in-scc k' + k + '"><b>' + rpE(o.nm) + "</b><p>" + rpE(o.how) + "</p><small>확인 신호</small><ul>" + o.watch.map(function (w) { return "<li>" + rpE(w) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div>" +
     (function () { var exO = []; (RP2.ext || []).forEach(function (x) { (x.data.j.outlook || []).forEach(function (o) { exO.push({ t: x.data.topicNm, d: x.data.asOf, o: o }); }); }); return exO.length ? '<h4>외부 조사의 전망</h4><ul class="in-ul">' + exO.slice(0, 6).map(function (x) { return "<li><b>" + rpE(x.o.horizon) + "</b> " + rpE(x.o.base) + " <small>↑ " + rpE(x.o.cond_up) + " / ↓ " + rpE(x.o.cond_down) + '</small> <i class="fid">' + rpE(x.t + " " + x.d) + "</i></li>"; }).join("") + "</ul>" : ""; })() + "</div>";
   /* 5 대응 */
-  h += '<div class="card rp2-sec"><h3>5. 대응 전략 <small>입장별 · 주인 메모용</small></h3><div class="in-st">' + st.map(function (o) { return '<div class="in-stc"><b>' + rpE(o.who) + "</b><ul>" + o.todo.slice(0, 3).map(function (t) { return "<li>" + rpE(t) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div>" +
+  h += '<div class="card rp2-sec"><h3>6. 대응 전략 <small>입장별 · 주인 메모용</small></h3><div class="in-st">' + st.map(function (o) { return '<div class="in-stc"><b>' + rpE(o.who) + "</b><ul>" + o.todo.slice(0, 3).map(function (t) { return "<li>" + rpE(t) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div>" +
     '<h4>이번 주·이번 달 확인할 것</h4><ul class="in-ul">' + sc.slice(1).map(function (o) { return o.watch.map(function (w) { return "<li>" + rpE(w) + "</li>"; }).join(""); }).join("") + "</ul></div>";
   /* 6 외부 조사 반영 + 프롬프트 */
-  h += '<div class="card rp2-sec" id="rp2-ext"><h3>6. 외부 조사 — 프로그램이 모르는 것 <small>AI에게 묻고 답을 저장하면 다음 브리핑부터 재료로 쓴다</small></h3>' +
+  h += '<div class="card rp2-sec" id="rp2-ext"><h3>7. 외부 조사 — 프로그램이 모르는 것 <small>AI에게 묻고 답을 저장하면 다음 브리핑부터 재료로 쓴다</small></h3>' +
     '<div class="rp2-topics">' + RP_TOPICS.map(function (t) { var has = (RP2.ext || []).filter(function (x) { return x.data.topic === t[0]; })[0]; return '<button type="button" data-rp2t="' + t[0] + '" class="' + (RP2.topic === t[0] ? "on" : "") + '"><b>' + rpE(t[1].split(" — ")[0]) + "</b><small>" + rpE(t[1].split(" — ")[1] || "") + "</small>" + (has ? '<em>저장 ' + rpE(has.data.asOf) + "</em>" : '<em class="no">아직 없음</em>') + "</button>"; }).join("") + "</div>" +
     '<div class="rp2-prompt"><div class="rp2-ph"><b>프롬프트 — ' + rpE(rpTopic(RP2.topic)[1]) + '</b><small>앱이 아는 것 ' + rpKnown().n + '개 신호 + 모르는 것 ' + rpTopic(RP2.topic)[2].length + '개 질문 · ChatGPT·Claude·Gemini 어디든</small><button type="button" class="btn sm" data-rp2="pcopy">프롬프트 복사</button></div><textarea id="rp2-pt" rows="9" readonly>' + rpE(rpPromptFor(RP2.topic)) + '</textarea>' +
     '<div class="rp2-ph"><b>답 붙여넣기</b><small>AI가 준 JSON(앞뒤 설명이 있어도 됨)</small><button type="button" class="btn sm" data-rp2="save">저장</button></div><textarea id="rp2-ans" rows="5" placeholder=\'{"topic":"...","findings":[...]}\'></textarea>' + (RP2.msg ? '<p class="hint">' + rpE(RP2.msg) + "</p>" : "") + "</div>" +
     ((RP2.ext || []).length ? '<h4>저장된 외부 조사 ' + RP2.ext.length + '건</h4>' + RP2.ext.map(function (x) { var J = x.data.j || {}; return '<details class="rp2-extitem"><summary><b>' + rpE(x.data.topicNm) + "</b> · " + rpE(x.data.asOf) + " · 항목 " + ((J.findings || []).length) + '개 <button type="button" class="btn xs ghost" data-rp2del="' + rpE(x.id) + '">지움</button></summary>' + (J.diagnosis ? "<p><b>진단</b> " + rpE(J.diagnosis) + "</p>" : "") + ((J.findings || []).length ? '<table class="in-tbl sm"><tr><th>항목</th><th>값</th><th>기준일</th><th>출처</th><th>해석</th></tr>' + J.findings.map(function (f) { return "<tr><td>" + rpE(f.q) + "</td><td><b>" + rpE(f.value) + "</b></td><td>" + rpE(f.date) + "</td><td>" + rpE(f.src) + "</td><td>" + rpE(f.note) + "</td></tr>"; }).join("") + "</table>" : "") + ((J.drivers || []).length ? "<p><b>축별 방향</b> " + J.drivers.map(function (x) { return rpE(x.axis) + " " + rpE(x.direction) + "(" + rpE(x.why) + ")"; }).join(" · ") + "</p>" : "") + ((J.risks || []).length ? "<p><b>틀릴 이유</b> " + J.risks.map(rpE).join(" / ") + "</p>" : "") + ((J.watch || []).length ? "<p><b>확인 신호</b> " + J.watch.map(rpE).join(" / ") + "</p>" : "") + "</details>"; }).join("") : "") + "</div>";
   /* 7 부록 */
-  h += '<div class="card rp2-sec"><h3>7. 부록 — 기준·출처</h3><p class="hint">' + rpE(typeof inBasisLine === "function" ? inBasisLine() : "") + '</p><details class="in-det"><summary>신호 ' + S.length + '개 원자료</summary><div class="in-tblw"><table class="in-tbl sm"><tr><th>신호</th><th>지금</th><th>비교</th><th>점수</th></tr>' + S.map(function (x) { return "<tr><td>" + rpE(x.nm) + "<small> " + rpE(x.at || "") + "</small></td><td><b>" + rpE(x.val) + "</b></td><td>" + x.cmp + "</td><td>" + x.sc + "</td></tr>"; }).join("") + "</table></div></details>" +
+  h += '<div class="card rp2-sec"><h3>8. 부록 — 기준·출처</h3><p class="hint">' + rpE(typeof inBasisLine === "function" ? inBasisLine() : "") + '</p><details class="in-det"><summary>신호 ' + S.length + '개 원자료</summary><div class="in-tblw"><table class="in-tbl sm"><tr><th>신호</th><th>지금</th><th>비교</th><th>점수</th></tr>' + S.map(function (x) { return "<tr><td>" + rpE(x.nm) + "<small> " + rpE(x.at || "") + "</small></td><td><b>" + rpE(x.val) + "</b></td><td>" + x.cmp + "</td><td>" + x.sc + "</td></tr>"; }).join("") + "</table></div></details>" +
     '<div class="in-srcs"><small>출처</small>' + (function () { var s = {}; inCtx(null, null, 40).forEach(function (x) { var k = String(x.src || "").split(" · ")[0]; if (k) s[k] = x.url || ""; }); return Object.keys(s).map(function (k) { return s[k] ? '<a href="' + rpE(s[k]) + '" target="_blank" rel="noopener">' + rpE(k) + "</a>" : "<span>" + rpE(k) + "</span>"; }).join(""); })() + '</div><p class="hint">앱 데이터는 공공데이터(국토부·청약홈·한국은행·금감원·부동산원) 집계, 외부 조사는 AI 답을 그대로 저장한 것이라 출처를 꼭 확인. 투자 판단과 책임은 본인에게.</p></div>';
   box.innerHTML = h + "</div>";
 }

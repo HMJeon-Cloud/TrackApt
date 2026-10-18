@@ -1,14 +1,14 @@
 {
  "v": 1,
- "builtAt": "2026-10-17T20:08:12.263Z",
- "asOf": 20261018,
+ "builtAt": "2026-10-18T20:06:59.261Z",
+ "asOf": 20261019,
  "items": [
   {
    "kind": "loan",
    "name": "버팀목 전세대출",
    "manual": "2.3~3.3",
    "found": "2.20~3.30",
-   "date": "2026-10-18",
+   "date": "2026-10-19",
    "title": "버팀목 전세대출 금리 공고 연 2.20~3.30% (수동 2.3~3.3%)",
    "url": "https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020301.jsp",
    "src": "기금e든든",
@@ -18,26 +18,15 @@
    "isNew": false
   },
   {
-   "kind": "policy",
-   "date": "2026-10-16",
-   "title": "[10·15대책 1년]②공급도 규제도 '믿을 수 있나'",
-   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE0xU0JUTEU4d0JfckVxVkJYT3ltc2REelNtWGVqT1JXWXIxOG5ROEVreGNLQXBYM1p1Qzk0UHc2cV9GUWdVVndyeTgyTks4S3JwNFM5X1hhMjNoUzBVelYybDRWLWhxZVA0aWI2NDVBRWk?oc=5",
-   "src": "비즈워치",
+   "kind": "loan",
+   "date": "2026-10-18",
+   "title": "19일부터 신혼부부 보금자리론 요건 완화…실수요자 숨통 트이나",
+   "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTFBZVndCOHhXcVM5WnBwcEtzbldOUkNvUy1OV3g2eUtzWHhCYTlydzNBWEV1Zm9nbFV6Vnl3U2w1N1FJdGNkc1p2QWpsRnYyOWVYTnBoX1hNTEFjanAyQVZIR09HOHU?oc=5",
+   "src": "매일일보",
    "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-17",
-   "isNew": false
-  },
-  {
-   "kind": "policy",
-   "date": "2026-10-15",
-   "title": "10·15 부동산 대책 1년, 무엇이 실패했나…나경원 \"정책 실패부터 인정하라\"",
-   "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE5DVjhMQk00aGpmNV9ET3ZlRkRVZ3F2RFhPeWQxeXZwUFdMd0dCMk1GbDd1aE4yNDg4WGg4cUpwVHhYc0JPZUR3N3FrTHpFdU9JYjF0TEpaR1paYUpXWG4zZEFzTHl6ZWZh?oc=5",
-   "src": "창업일보",
-   "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-16",
-   "isNew": false
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-10-19",
+   "isNew": true
   },
   {
    "kind": "loan",
@@ -49,17 +38,6 @@
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-16",
    "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-10-15",
-   "title": "연체 3배 증가 보금자리론, 채무조정은 `유명무실`…벼랑 끝 내몰린 3040",
-   "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1wVHgxOXdCSzl6aTg1SkUyYlRPTWkzTkptcDRZOVlDaXNzR2N5QVdxcFhuMWhXYnZMSERZN3l6WlZHY0gwUGRQd21Lc1RMVEctaW54ODg0TnFwWVpaRHEzbnFB?oc=5",
-   "src": "매일신문",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-10-18",
-   "isNew": true
   }
  ]
 }

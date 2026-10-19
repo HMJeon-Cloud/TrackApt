@@ -2712,7 +2712,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.42</span>
+    <span class="ver">v9.43</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -10164,6 +10164,8 @@ function inSignals() {
     read: v.chg > 8 ? "거래가 늘고 있다 — 매수자가 움직이는 국면. 가격은 보통 거래량보다 늦게 따라온다" : v.chg < -8 ? "거래가 줄고 있다 — 호가와 매수 희망가가 벌어진 상태. 급매 위주로만 체결" : "거래량은 평소 수준" });
   var vm = M.seoulVolM; if (vm && vm.avg12) { var vr = vm.v / vm.avg12; add({ id: "F2", grp: "거래", nm: "서울 월 매매(" + vm.at + ")", val: fmt(vm.v) + "건", cmp: "최근 12개월 평균 " + fmt(Math.round(vm.avg12)) + "건의 " + vr.toFixed(2) + "배", sc: vr > 1.5 ? 2 : vr > 1.15 ? 1 : vr < 0.6 ? -2 : vr < 0.85 ? -1 : 0, w: 1, at: vm.at + " 확정분",
     read: vr > 1.15 ? "확정된 달 기준으로도 거래가 평소보다 많다" : vr < 0.85 ? "확정된 달 기준 거래가 평소보다 적다 — 신고 지연을 감안해도 한산" : "확정된 달 기준 거래량은 평년 수준" }); }
+  if (inMcOk()) { var VV = inSer("vol"), LVV = inLastIdx(VV), st = 0; for (var q = LVV; q > 0 && VV[q] != null && VV[q - 1] != null && VV[q] < VV[q - 1]; q--) st++; if (st >= 2) add({ id: "F2b", grp: "거래", nm: "서울 월 거래 연속 감소", val: st + "개월째", cmp: VV.slice(LVV - st, LVV + 1).map(function (v) { return fmt(v); }).join(" → ") + "건 (" + inYmOf(LVV - st) + "~" + inYmOf(LVV) + ")", sc: st >= 4 ? -2 : -1, w: 0.8, at: inYmOf(LVV) + " 확정분",
+    read: st >= 4 ? "넉 달 넘게 거래가 줄고 있다 — 2021년 하반기처럼 '거래는 마르는데 값은 오르는' 국면과 같은 모양. 과거엔 이 조합 뒤에 조정이 왔다(아래 회상 '거래 급감 + 가격 상승' 참고)" : "거래가 두 달 넘게 줄고 있다 — 매수자가 관망으로 돌아선 초기 신호" }); }
   if (typeof cdMove === "function" && typeof chOk === "function" && chOk()) { var mv = cdMove(chScopes().metro).filter(function (r) { return r.pc != null; }), up = mv.filter(function (r) { return r.pc > 0; }).length, dn = mv.length - up;
     if (mv.length) add({ id: "F3", grp: "가격", nm: "수도권 ㎡당 중위, 오른 지역 수", val: up + " vs " + dn, cmp: "오른 곳 " + up + " · 내린 곳 " + dn + " (거래 10건↑ 지역 " + mv.length + "곳)", sc: up / mv.length > 0.7 ? 2 : up / mv.length > 0.55 ? 1 : up / mv.length < 0.3 ? -2 : up / mv.length < 0.45 ? -1 : 0, w: 1, at: (typeof chCmpLabel === "function" ? chCmpLabel() : ""),
       read: up / mv.length > 0.55 ? "오른 동네가 더 많다 — 상승이 넓게 퍼진 상태" : up / mv.length < 0.45 ? "내린 동네가 더 많다 — 조정이 넓게 퍼진 상태" : "오른 곳·내린 곳이 반반 — 지역별로 갈리는 장" }); }
@@ -10184,7 +10186,7 @@ function inSignals() {
   var u = M.unsold; if (u) { var ud = u.prev != null ? u.v - u.prev : null, uy = u.y != null ? (u.v / u.y - 1) * 100 : null; add({ id: "F11", grp: "공급", nm: "전국 미분양", val: fmt(u.v) + "호", cmp: (ud != null ? inSgn(ud, 0, "호") + " 전월" : "") + (uy != null ? " · " + inPct(uy, 0) + " 1년 전" : "") + (M.unsoldDone ? " · " + (M.unsoldDone.nm || "준공 후") + " " + fmt(M.unsoldDone.v) + "호" : ""), sc: ud == null ? 0 : ud < -1500 ? 2 : ud < -300 ? 1 : ud > 1500 ? -2 : ud > 300 ? -1 : 0, w: 0.7, at: u.at,
     read: u.v > 65000 ? "미분양 6만 호대 — 지방 중심으로 공급 부담이 남아 있다(서울·수도권과 온도 차)" : "미분양은 부담스러운 수준은 아니다" }); }
   var j = M.jr; if (j) add({ id: "F12", grp: "전세", nm: "서울 84㎡ 전세가율", val: j.v.toFixed(0) + "%", cmp: "매매 " + eok(j.sale) + " · 전세 " + eok(j.rent) + (j.prev != null ? " · 전월 " + j.prev.toFixed(0) + "%" : ""), sc: j.v > 60 ? 1 : j.v < 45 ? -1 : 0, w: 0.7, at: j.ym || j.at,
-    read: j.v > 60 ? "전세가율이 높다 — 전세가 매매를 밀어 올리는 구조(갭 작음)" : j.v < 50 ? "전세가율이 낮다 — 매매가가 전세보다 많이 앞서 있어 갭이 크다. 전세 끼고 사기엔 자기자본이 많이 필요" : "전세가율은 중간 수준" });
+    read: j.v > 60 ? "전세가율이 높다 — 전세가 매매를 밀어 올리는 구조(갭 작음). 단, 토허제 실거주 의무로 세 놓을 집이 줄어 전세가 오른 몫이 섞여 있어 '매매 체력'으로만 읽으면 안 된다" : j.v < 50 ? "전세가율이 낮다 — 매매가가 전세보다 많이 앞서 있어 갭이 크다. 전세 끼고 사기엔 자기자본이 많이 필요" : "전세가율은 중간 수준" });
   var s = M.subsMed; if (s) add({ id: "F13", grp: "청약", nm: "청약 1순위 경쟁률 중위", val: s.v.toFixed(1) + ":1", cmp: "최근 60일 " + s.n + "단지 · 미달 " + s.short + "곳", sc: s.v > 20 ? 2 : s.v > 5 ? 1 : s.v < 1 ? -2 : s.v < 2 ? -1 : 0, w: 0.6, at: s.at,
     read: s.v > 5 ? "청약 열기가 있다 — 분양가가 주변보다 싸다고 보는 사람이 많다는 뜻" : s.v < 2 ? "청약 경쟁이 식었다 — 미달 단지의 무순위를 노릴 수 있는 시기" : "청약은 단지별로 갈린다" });
   return S;
@@ -10221,6 +10223,7 @@ function inReport(S, T, sit, sc) {
   if (v1 && p1 && v1.sc < 0 && p1.sc > 0) t2 += "즉 <b>가격 신호는 살아 있는데 거래가 받쳐 주지 않는</b> 모양이다 — 이런 장은 적은 거래가 평균을 끌어올리기 쉬워 지수만 보면 실제보다 뜨거워 보인다.";
   else if (v1 && p1 && v1.sc > 0 && p1.sc > 0) t2 += "가격과 거래가 같이 오르는 전형적인 상승 국면이다.";
   else if (v1 && p1 && v1.sc < 0 && p1.sc < 0) t2 += "가격도 거래도 식는 조정 국면이다.";
+  var dv0 = IN.dv || (typeof inDivergence === "function" ? inDivergence() : null); if (dv0 && dv0.past.length) t2 += " 반론도 있다 — '거래가 줄어도 값은 올랐던 적이 많다'는 쪽과 '2021년처럼 거래가 먼저 마르고 값이 뒤따라 꺾였다'는 쪽. 우리 데이터로 거래 급감+가격 상승 국면 " + dv0.past.length + "번을 보면 12개월 뒤 하락이 " + dv0.dn12 + "번(" + dv0.past.filter(function (e) { return e.p12 < 0; }).map(function (e) { return e.ym; }).join(", ") + ")이었다 — 모두 기준금리 인상 사이클(2010~11·2021~23) 뒤의 국면이고, 저금리 때(2016~17·2020)는 이어서 올랐다" + (dv0.now ? ". 지금은 인상기라는 점에서 전자에 가깝다" : "") + ".";
   P.push({ h: "숫자가 말하는 것", t: t2 });
   /* 3 속사정 */
   var R = inCtx("rule", "volume", 5), F = inCtx("fact", null, 3), t3 = "";
@@ -10339,6 +10342,16 @@ function inAnalogs() {
   var m3 = inMean(rows.map(function (r) { return r.p3; })), m6 = inMean(rows.map(function (r) { return r.p6; })), m12 = inMean(rows.map(function (r) { return r.p12; })), up12 = rows.filter(function (r) { return r.p12 != null && r.p12 > 0; }).length;
   return { now: now, nowYm: inProvYm(L), volYm: inYmOf(LV), rows: rows, m3: m3, m6: m6, m12: m12, up12: up12, n: rows.length };
 }
+/* 거래 급감 + 가격 상승 국면 — 한문도 교수식 반론("2021년에도 거래는 줄고 값은 올랐다") 검증: 거래가 12개월 평균의 75% 아래인데 지수가 3개월 전보다 오른 달들, 그 뒤 6·12개월 */
+function inDivergence() {
+  if (!inMcOk()) return null; var P = inIdx(), V = inSer("vol"), LP = inLastIdx(P), LV = inLastIdx(V); if (LV < 24) return null;
+  var hits = [], i; for (i = 15; i <= LV; i++) { var av = inMean(V.slice(i - 12, i)); if (!av || !V[i] || P[i] == null || P[i - 3] == null) continue; var vr = V[i] / av, p3 = (P[i] / P[i - 3] - 1) * 100; if (vr < 0.75 && p3 > 0.5) hits.push({ i: i, vr: vr, p3: p3, p6: P[i + 6] != null ? (P[i + 6] / P[i] - 1) * 100 : null, p12: P[i + 12] != null ? (P[i + 12] / P[i] - 1) * 100 : null }); }
+  if (!hits.length) return null;
+  /* 연속된 달은 한 국면으로 묶는다(첫 달 기준) */
+  var eps = [], cur = null; hits.forEach(function (h) { if (cur && h.i - cur.last <= 2) { cur.last = h.i; cur.n++; cur.minVr = Math.min(cur.minVr, h.vr); } else { cur = { i: h.i, last: h.i, n: 1, minVr: h.vr, p3: h.p3, p6: h.p6, p12: h.p12 }; eps.push(cur); } });
+  var now = eps.length && eps[eps.length - 1].last >= LV - 1 ? eps[eps.length - 1] : null, past = eps.filter(function (e) { return e !== now && e.p12 != null; });
+  return { now: now, past: past.map(function (e) { return { ym: inYmOf(e.i), to: inYmOf(e.last), n: e.n, vr: e.minVr, p3: e.p3, p6: e.p6, p12: e.p12 }; }), m6: inMean(past.map(function (e) { return e.p6; })), m12: inMean(past.map(function (e) { return e.p12; })), dn12: past.filter(function (e) { return e.p12 < 0; }).length };
+}
 function inRateEvents() {
   var b = IN.metrics && IN.metrics.base; if (!b || !b.changes || !inMcOk() || typeof MC === "undefined") return null;
   var P = inIdx(), V = inSer("vol"), y0 = Math.floor(MC.m0 / 100), m0 = MC.m0 % 100, idx = function (ymd) { var s = String(ymd); var y = Number(s.slice(0, 4)), m = Number(s.slice(4, 6)); return (y - y0) * 12 + (m - m0); };
@@ -10423,6 +10436,8 @@ function inPaint() {
     '<div class="in-tblw"><table class="in-tbl sm"><tr><th>그때</th><th>1년 상승률</th><th>거래 배수</th><th>고점 대비</th><th>6개월 뒤</th><th>12개월 뒤</th><th>거래(6개월)</th></tr>' + an.rows.map(function (r) { return "<tr><td>" + r.ym + "</td><td>" + inPct(r.yoy) + "</td><td>" + r.vr.toFixed(2) + "배</td><td>" + inPct(r.dd) + "</td><td>" + inSgn(r.p6) + "</td><td>" + inSgn(r.p12) + "</td><td>" + inSgn(r.v6, 0) + "</td></tr>"; }).join("") + '</table></div><p class="hint">표본 5개 — 경향이지 예측이 아니다. 2010년대는 대체로 오른 시기라 상승 쪽으로 치우칠 수 있다.</p>';
   else h += '<p class="hint">월별 집계가 부족해 비슷했던 달을 찾지 못했습니다.</p>';
   if (typeof rpPhHtml === "function" && RP2.ph) h += '<h4>비슷한 정책을 폈을 때 <small>정책 조합이 지금과 겹치는 과거 대책 — 그 뒤 서울은</small></h4>' + rpPhHtml(true);
+  var dv = inDivergence(); IN.dv = dv;
+  if (dv && dv.past.length) h += '<h4>거래 급감 + 가격 상승 국면 <small>거래가 12개월 평균의 75% 아래인데 지수는 3개월 전보다 오른 달 — "2021년에도 그랬다"는 반론 검증</small></h4><p class="in-a">과거 이런 국면 ' + dv.past.length + '번' + (dv.now ? " · <b>지금도 이 국면(" + inYmOf(dv.now.i) + "~)</b>" : "") + ' — 12개월 뒤 내려간 경우 <b>' + dv.dn12 + "번</b>, 평균 6개월 뒤 " + inPct(dv.m6) + " · 12개월 뒤 " + inPct(dv.m12) + '.</p><div class="in-tblw"><table class="in-tbl sm"><tr><th>국면</th><th>달 수</th><th>거래 배수(최저)</th><th>직전 3개월</th><th>6개월 뒤</th><th>12개월 뒤</th></tr>' + dv.past.map(function (e) { return "<tr><td>" + e.ym + (e.n > 1 ? "~" + e.to : "") + "</td><td>" + e.n + "</td><td>" + e.vr.toFixed(2) + "배</td><td>" + inSgn(e.p3) + "</td><td>" + inSgn(e.p6) + "</td><td>" + inSgn(e.p12) + "</td></tr>"; }).join("") + '</table></div><p class="hint">같은 조합이라도 금리·공급이 달랐다. 2021~22년은 금리 인상 전환과 겹쳐 조정이 왔고, 2016~17년은 저금리라 이어서 올랐다 — 지금은 금리 인상기라는 점에서 2021년 쪽에 가깝다.</p>';
   if (re) h += '<h4>기준금리가 바뀐 뒤 서울은 <small>결정 달 지수 대비 · 거래는 직전 3개월 평균 대비</small></h4><div class="in-tblw"><table class="in-tbl sm"><tr><th>결정</th><th>방향</th><th>3개월 뒤</th><th>6개월 뒤</th><th>12개월 뒤</th><th>거래 3개월</th></tr>' + re.map(function (r) { return "<tr><td>" + inE(r.at) + "</td><td>" + r.dir + " " + r.from.toFixed(2) + "→" + r.to.toFixed(2) + "%</td><td>" + inSgn(r.p3) + "</td><td>" + inSgn(r.p6) + "</td><td>" + inSgn(r.p12) + "</td><td>" + inSgn(r.v3, 0) + "</td></tr>"; }).join("") + '</table></div><p class="hint">한국은행 결정 목록은 수집 범위(최근 몇 년) 안의 것만. 빈칸은 아직 그 달이 오지 않은 것.</p>';
   if (se) h += '<h4>' + se.m + '월의 계절성 <small>' + se.n + '년치 · 지수 전월 대비 · 거래는 그해 월평균 대비</small></h4><p class="in-a">' + se.m + '월에 서울 지수가 전월보다 오른 해는 ' + se.n + '년 중 <b>' + se.up + '년</b>, 평균 ' + inPct(se.avg, 2) + (se.vavg ? ' · 거래량은 그해 월평균의 ' + se.vavg.toFixed(2) + '배' : '') + '.</p><div class="in-seas">' + se.rows.map(function (r) { return '<span class="' + (r.mm > 0 ? "p" : r.mm < 0 ? "n" : "") + '"><b>' + r.y + "</b>" + inPct(r.mm, 1) + (r.vr ? "<small>" + r.vr.toFixed(2) + "배</small>" : "") + "</span>"; }).join("") + '</div>';
   h += '</div>';
@@ -10447,6 +10462,7 @@ function inFacts() {
   if (IN.re) IN.re.forEach(function (r) { add("기준금리 " + r.dir + " " + r.at + " " + r.from.toFixed(2) + "→" + r.to.toFixed(2) + "% → 서울 3개월 뒤 " + inPct(r.p3) + " · 6개월 뒤 " + inPct(r.p6) + " · 12개월 뒤 " + inPct(r.p12)); });
   inCtx(null, null, 20).forEach(function (x) { add("[" + (IN_KIND[x.kind] || x.kind) + (x.src ? " · " + x.src : "") + "] " + x.title + (x.body ? " — " + x.body : "")); });
   ["policy", "bull", "bear", "rate"].forEach(function (k) { inHeads(k, 4).forEach(function (h) { add("[기사 제목 · " + { policy: "정책", bull: "상승", bear: "하락", rate: "금리" }[k] + (h.d ? " " + h.d : "") + (h.s ? " " + h.s : "") + "] " + h.t); }); });
+  if (IN.dv && IN.dv.past.length) add("거래 급감+가격 상승 국면 과거 " + IN.dv.past.length + "번: 12개월 뒤 하락 " + IN.dv.dn12 + "번 · 평균 6개월 " + inPct(IN.dv.m6) + " · 12개월 " + inPct(IN.dv.m12) + (IN.dv.now ? " · 지금도 같은 국면" : ""));
   if (IN.se) add(IN.se.m + "월 계절성: " + IN.se.n + "년 중 " + IN.se.up + "년 상승 · 평균 " + inPct(IN.se.avg, 2));
   (IN.journal || []).filter(function (j) { return j.data && j.data.result; }).slice(0, 5).forEach(function (j) { add("지난 예상 '" + (j.data.text || j.name) + "' → " + (j.data.result.ok ? "맞음" : "틀림")); });
   return F.slice(0, 120);
@@ -10670,7 +10686,7 @@ var RP_REG = ["11", "41290", "41210", "41135", "41131", "41133", "41117", "41111
 var RP_GROUPS = [
   { id: "seoul", nm: "서울", sub: "25개 구 · 전역 규제지역·토허구역", pfx: ["11"], reg: "all", why: "실수요 중 현금 비중이 높은 수요만 움직일 수 있는 시장 — 상급지 조정이 외곽으로 번지는지가 관건" },
   { id: "gs1", nm: "경기 남부 핵심", sub: "과천 · 분당(판교) · 안양 동안(평촌) · 용인 수지 · 화성 동탄 · 수원 영통(광교)", codes: ["41290", "41135", "41173", "41465", "41597", "41117"], reg: "most", why: "서울 대체 수요가 먼저 오는 곳. 동탄을 빼면 모두 규제지역이라 서울과 같은 규칙(토허제·LTV 40%) 아래 움직인다" },
-  { id: "gs2", nm: "경기 남부 주변", sub: "성남 수정·중원 · 의왕 · 군포 · 광명 · 하남 · 수원 장안·권선·팔달 · 용인 기흥 · 안양 만안 · 화성 병점·효행 · 광주 · 오산", codes: ["41131", "41133", "41430", "41410", "41210", "41450", "41111", "41113", "41115", "41463", "41171", "41595", "41593", "41610", "41370"], reg: "mixed", why: "규제지역과 비규제가 섞인 띠 — 규제 밖 동네로 수요가 옮겨 가는지(풍선효과)를 여기서 본다" },
+  { id: "gs2", nm: "경기 남부 주변", sub: "성남 수정·중원 · 의왕 · 군포 · 광명 · 하남 · 수원 장안·권선·팔달 · 용인 기흥 · 안양 만안 · 화성 병점·효행 · 광주 · 오산", codes: ["41131", "41133", "41430", "41410", "41210", "41450", "41111", "41113", "41115", "41463", "41171", "41595", "41593", "41610", "41370"], reg: "mixed", why: "규제지역과 비규제가 섞인 띠 — 풍선효과를 여기서 본다. 단, 연구(양지영 2026)대로 풍선효과는 '인접'이 아니라 입지·가격 격차·개발 기대가 겹친 곳(동탄·광교·판교 급)으로 선택적으로 가고, 비강남이 먼저 오른 뒤 강남으로 돌아오는 U자형이었다" },
   { id: "gs3", nm: "경기 남부 그 외", sub: "평택 · 안성 · 이천 · 여주 · 안산 · 시흥 · 부천 · 용인 처인 · 화성 만세 · 양평", codes: ["41220", "41550", "41500", "41670", "41271", "41273", "41390", "41192", "41194", "41196", "41461", "41591", "41830"], reg: "none", why: "공급(입주·미분양)과 금리에 민감한 곳 — 평택·안성·이천은 미분양 부담을 따로 봐야 한다" },
   { id: "gn", nm: "경기 북부", sub: "고양 · 파주 · 의정부 · 남양주 · 구리 · 양주 · 동두천 · 포천 · 김포 · 연천 · 가평", codes: ["41281", "41285", "41287", "41480", "41150", "41360", "41310", "41630", "41250", "41650", "41570", "41800", "41820"], reg: "none", why: "교통 재료(GTX·지하철 연장)와 입주 물량이 번갈아 작용 — 규제 밖이라 거래 감소는 수요 약화로 읽는다" },
   { id: "songdo", nm: "인천 송도", sub: "연수구(송도 포함)", codes: ["28185"], reg: "none", why: "인천 안에서 따로 움직이는 시장 — 신축 비중·입주 물량·바이오 일자리가 변수" },
@@ -10688,6 +10704,8 @@ function rpRegionStats(g) {
     if (inMcOk()) { var V = null; codes.forEach(function (k) { var a = inSer("vol", k); if (!a.length) return; if (!V) V = a.map(function (v) { return v || 0; }); else a.forEach(function (v, i) { V[i] = (V[i] || 0) + (v || 0); }); }); if (V) { var LV = inLastIdx(V); o.volM = V[LV]; o.volAvg = inMean(V.slice(LV - 12, LV)); o.volYm = inYmOf(LV); } }
     /* 30일 거래·신고가·오른 지역 */
     if (typeof chOk === "function" && chOk()) { var sm = chSum(codes); o.d30 = sm.n; o.d30chg = sm.chg; var hi = chCollect(codes, "newHighAll").filter(function (t) { return t.upAll > 0; }); o.hiN = hi.length; o.hiRate = sm.n ? hi.length / sm.n * 100 : null; if (typeof cdMove === "function") { var mv = cdMove(codes).filter(function (r) { return r.pc != null; }); o.upN = mv.filter(function (r) { return r.pc > 0; }).length; o.mvN = mv.length; } }
+    if (g.id === "seoul" && typeof chOk === "function" && chOk()) { var TOP = ["11680", "11650", "11710", "11170"], OUT = ["11350", "11320", "11305", "11545", "11530", "11620"], t1 = chSum(TOP), t2 = chSum(OUT); o.tiers = { top: { n: t1.n, chg: t1.chg }, out: { n: t2.n, chg: t2.chg } };
+      if (inMcOk()) { var vrOf2 = function (cs) { var V = null; cs.forEach(function (k) { var a = inSer("vol", k); if (!a.length) return; if (!V) V = a.map(function (v) { return v || 0; }); else a.forEach(function (v, i) { V[i] = (V[i] || 0) + (v || 0); }); }); if (!V) return null; var L = inLastIdx(V), av = inMean(V.slice(L - 12, L)); return av ? (V[L] / av - 1) * 100 : null; }; if (o.tiers.top.chg == null) { o.tiers.top.chg = vrOf2(TOP); o.tiers.how = "12개월 평균 대비"; } if (o.tiers.out.chg == null) o.tiers.out.chg = vrOf2(OUT); } }
     if (g.reg === "mixed" && typeof chOk === "function" && chOk()) { var cr = codes.filter(rpIsReg), cn = codes.filter(function (k) { return !rpIsReg(k); }), a1 = chSum(cr), a2 = chSum(cn); o.split = { reg: { n: a1.n, chg: a1.chg }, non: { n: a2.n, chg: a2.chg } };
       if (inMcOk()) { var vrOf = function (cs) { var V = null; cs.forEach(function (k) { var a = inSer("vol", k); if (!a.length) return; if (!V) V = a.map(function (v) { return v || 0; }); else a.forEach(function (v, i) { V[i] = (V[i] || 0) + (v || 0); }); }); if (!V) return null; var L = inLastIdx(V), av = inMean(V.slice(L - 12, L)); return av ? (V[L] / av - 1) * 100 : null; }; if (o.split.reg.chg == null) { o.split.reg.chg = vrOf(cr); o.split.reg.how = "12개월 평균 대비"; } if (o.split.non.chg == null) { o.split.non.chg = vrOf(cn); o.split.non.how = "12개월 평균 대비"; } } }
     /* 전세가율 — 코드별 마지막 확정 달 평균 */
@@ -10709,6 +10727,7 @@ function rpRegionRead(o) {
   else if (volUp && !reg) R.push(priceUp ? "규제 밖으로 수요가 옮겨 오는 풍선효과 후보 — 거래와 값이 같이 는다. 규제지역과 가격 차가 좁혀지면 멈춘다" : "거래는 느는데 값은 아직 — 급매 소화 단계. 뒤따라 가격이 움직이는지 3개월 지켜볼 구간");
   else if (volUp && reg) R.push("규제 안에서도 거래가 는다 — 현금 여력 있는 실수요가 들어오는 것. 상급지일수록 이런 거래가 먼저 나온다");
   else R.push(reg ? "거래는 평년 수준이지만 규칙(토허제·LTV) 안의 거래라 매수층이 얇다" : "거래·가격 모두 뚜렷한 방향이 없다");
+  if (g.id === "seoul" && o.tiers) R.push("상급지(강남3구·용산) 30일 " + fmt(o.tiers.top.n) + "건(" + (o.tiers.top.chg != null ? rpPct(o.tiers.top.chg, 0) : "–") + ") vs 외곽(노도강·금관구) " + fmt(o.tiers.out.n) + "건(" + (o.tiers.out.chg != null ? rpPct(o.tiers.out.chg, 0) : "–") + ")" + (o.tiers.how ? " · " + o.tiers.how : "") + " — " + (o.tiers.top.chg != null && o.tiers.out.chg != null ? (o.tiers.out.chg > o.tiers.top.chg + 10 ? "고가는 세금, 중저가는 대출에 움직이는 '양분' 구조. 외곽 거래가 더 버틴다 = 규제가 고가부터 눌렀다" : o.tiers.out.chg < o.tiers.top.chg - 10 ? "외곽부터 거래가 끊긴다 = 대출(LTV 40%·DSR) 압박이 중저가 수요를 먼저 멈춘 것, 금리 민감 신호" : "두 층이 비슷하게 움직인다") : "비교 기준이 쌓이면 양분 여부를 본다"));
   /* 공급 */
   if (g.id === "seoul") R.push("공급: 서울은 미분양이 문제가 아니라 입주 절벽이 문제 — 착공 실적(외부 조사)으로 2~3년 뒤를 본다");
   else if (g.id === "gs3") R.push("공급: 평택·안성·이천은 미분양·입주가 가격을 누르는 곳 — 시군구 미분양은 앱이 수집하지 않으니 외부 조사 '공급' 항목으로 채운다" + (o.unsold != null ? " (경기 전체 미분양 " + fmt(o.unsold) + "호)" : ""));
@@ -10786,13 +10805,14 @@ function rpPaint() {
   h += '<div class="card rp2-cover"><small>우상향연구소 · 시장 분석 브리핑</small><h1>' + rpE(d) + ' 서울·수도권 주택시장</h1><div class="rp2-temp" style="--c:' + T.col + '"><b>' + rpE(T.nm) + '</b><span>신호 ' + T.n + '개 · 점수 ' + (T.t >= 0 ? "+" : "") + T.t.toFixed(2) + '</span></div>' +
     '<h4>요약</h4><ol class="rp2-sum"><li>' + rpE(sit) + '</li>' + (cy ? "<li>사이클 위치: <b>" + rpE(cy.ph) + "</b> — 서울 지수 고점(" + cy.pk + ") 대비 " + rpPct(cy.fromPk) + ", 저점(" + cy.tr + ") 대비 " + rpPct(cy.fromTr) + (cy.rec ? " · 전고점 회복 구 " + cy.rec : "") + "</li>" : "") +
     (an ? "<li>과거 유사 국면 " + an.n + "번 중 12개월 뒤 상승 <b>" + an.up12 + "번</b>, 평균 " + rpPct(an.m12) + " — 다만 금리 인상 국면이라는 점이 다수 사례와 다름</li>" : "") +
+    (function () { var dv = IN.dv || (typeof inDivergence === "function" ? inDivergence() : null); return dv && dv.past.length ? "<li>거래 급감+가격 상승 국면: 과거 " + dv.past.length + "번 중 12개월 뒤 하락 <b>" + dv.dn12 + "번</b>" + (dv.now ? " — 지금도 같은 국면(" + inYmOf(dv.now.i) + "~)" : "") + ". 반론('2021년처럼 거래가 먼저 마른다')을 데이터로 확인한 결과</li>" : ""; })() +
     (function () { var S0 = rpPhSimilar(1)[0]; return S0 ? "<li>정책 조합이 가장 비슷했던 때는 <b>" + rpE(S0.e.name) + "(" + S0.e.date.slice(0, 7).replace("-", ".") + ")</b> — 같은 점 " + S0.same.map(function (t) { return RP_TAGNM[t] || t; }).join("·") + ", 그 뒤 6개월 " + rpPct(S0.p6) + " · 12개월 " + rpPct(S0.p12) + (S0.diff.length ? " · 지금은 " + S0.diff.map(function (t) { return RP_TAGNM[t] || t; }).join("·") + "까지 겹침" : "") + "</li>" : ""; })() + '</ol></div>';
   /* 1 축별 진단 */
   h += '<div class="card rp2-sec"><h3>1. 일곱 축 진단 <small>앱 데이터 + 외부 조사</small></h3><div class="in-tblw"><table class="in-tbl rp2-ax rp2-stack"><tr><th>축</th><th>방향</th><th>근거(지금 값)</th><th>읽기</th><th>외부 조사</th></tr>' + AX.map(function (a) { return '<tr class="' + (a.sc > 0.5 ? "scp" : a.sc < -0.5 ? "scn" : "scz") + '"><td class="nm">' + rpE(a.nm) + "<small>" + rpE(a.desc) + '</small></td><td class="s"><b>' + rpE(a.dir) + "</b></td><td>" + (a.sig.length ? a.sig.map(function (x) { return "<div>" + rpE(x.nm) + " <b>" + rpE(x.val) + "</b></div>"; }).join("") : '<span class="hint">앱 자료 없음</span>') + '</td><td class="r">' + a.sig.map(function (x) { return "<div>" + rpE(x.read.split(" — ")[0]) + "</div>"; }).join("") + "</td><td class=\"r\">" + (a.ext ? "<b>" + rpE(a.ext.data.topicNm) + "</b> " + rpE(a.ext.data.asOf) + "<div>" + rpE(((a.ext.data.j.findings || [])[0] || {}).value || a.ext.data.j.diagnosis || "") + "</div>" : '<span class="hint">아직 없음 — 아래 프롬프트로</span>') + "</td></tr>"; }).join("") + "</table></div></div>";
   /* 2 지역별 */
   h += '<div class="card rp2-sec"><h3>2. 지역별 진단 <small>같은 숫자라도 규제지역이냐 아니냐에 따라 뜻이 다르다</small></h3>' + rpRegionsHtml() + "</div>";
   /* 3 속사정·정책 */
-  h += '<div class="card rp2-sec"><h3>3. 정책·대출·세금이 만든 구조 <small>출처 있는 규칙만</small></h3>' + rep.filter(function (p) { return /속사정|양쪽/.test(p.h); }).map(function (p) { return "<p>" + p.t + "</p>"; }).join("") + '<details class="in-det"><summary>규칙 원문</summary>' + inCtx("rule", null, 8).map(function (x) { return inCtxLine(x); }).join("") + "</details></div>";
+  h += '<div class="card rp2-sec"><h3>3. 정책·대출·세금이 만든 구조 <small>출처 있는 규칙만</small></h3>' + rep.filter(function (p) { return /속사정|양쪽/.test(p.h); }).map(function (p) { return "<p>" + p.t + "</p>"; }).join("") + '<p class="hint"><b>주의</b> — 아래 "대책 뒤 지수가 올랐다"는 표는 「규제가 없었다면 얼마나 더 올랐을까」를 말해 주지 않는다. 합성대조군 연구(양지영 2026)는 토허제가 지정 지역 가격을 없었을 때보다 평균 9.6% 낮췄고 2~4년 뒤 약해진다고 본다. 즉 규제는 "안 통한 것"이 아니라 "덜 오르게 했지만 방향을 바꾸진 못한 것"으로 읽는 게 정확하다.</p><details class="in-det"><summary>규칙 원문</summary>' + inCtx("rule", null, 8).map(function (x) { return inCtxLine(x); }).join("") + "</details></div>";
   /* 3 과거 사례 */
   h += '<div class="card rp2-sec"><h3>4. 과거 사례와 비교</h3>';
   if (cp) h += '<h4>지금 · 1년 전 · 고점 · 저점</h4><div class="in-tblw"><table class="in-tbl"><tr><th></th>' + cp.cols.map(function (c) { return "<th>" + rpE(c) + "</th>"; }).join("") + "</tr>" + cp.rows.map(function (r) { return "<tr>" + r.map(function (c, i) { return "<td" + (i ? "" : ' class="nm"') + ">" + rpE(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table></div>";

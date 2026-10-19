@@ -2714,6 +2714,30 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 /* v9.45 불러오기 실패 상자 */
 .app-fail{border:1px solid #dc2626;border-radius:12px;padding:10px 12px;margin:0 0 10px;background:#fef2f2;font-size:13px}.app-fail ul{margin:6px 0;padding-left:18px}.app-fail small{color:#7f1d1d}
 @media (prefers-color-scheme:dark){.app-fail{background:rgba(220,38,38,.12)}}
+/* v9.46 표·그래프 다듬기 — 숫자 열 오른쪽 정렬·같은 폭 숫자·줄무늬·머리글 고정 */
+.in-tbl.sm td:not(:first-child),.in-tbl.sm th:not(:first-child),.in-tbl.cmp td:not(:first-child),.in-tbl.cmp th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.in-tbl.sm tr:nth-child(even) td,.in-tbl.cmp tr:nth-child(even) td{background:rgba(0,0,0,.018)}.in-tbl.sm th,.in-tbl.cmp th{position:sticky;top:0;background:var(--card,#fff);letter-spacing:.02em}
+.in-tbl.sm td:first-child{font-weight:600;color:var(--ink,#111827)}
+.in-sigtbl .in-tbl.sig td.s{min-width:92px}
+/* 점수 막대 — 가운데 0, 글자는 막대 옆 */
+.f-sb{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;font-size:12px;white-space:nowrap}.f-sb b{font-weight:800;color:#374151}.f-sb.up b{color:#b91c1c}.f-sb.dn b{color:#1d4ed8}.f-sb.none{color:var(--muted,#6b7280)}
+.f-sbar{position:relative;display:inline-block;width:84px;height:10px;border-radius:5px;background:var(--line,#eef0f3);overflow:hidden}.f-sbar::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,0,0,.22)}.f-sbar i{position:absolute;top:0;bottom:0;background:#9ca3af}.f-sb.up .f-sbar i{background:#dc2626}.f-sb.dn .f-sbar i{background:#2563eb}
+.f-sbar{position:relative;display:inline-flex;align-items:center;justify-content:center;width:120px;height:18px;border-radius:9px;background:var(--line,#eef0f3);overflow:hidden;vertical-align:middle;font-size:11px}.f-sbar::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,0,0,.18)}.f-sbar i{position:absolute;top:0;bottom:0;background:#9ca3af;opacity:.9}.f-sbar.up i{background:#dc2626}.f-sbar.dn i{background:#2563eb}.f-sbar b{position:relative;z-index:1;font-weight:700;color:#111827;text-shadow:0 0 2px #fff,0 0 2px #fff}.f-sbar.none{color:var(--muted,#6b7280)}
+.f-spark{display:inline-block;vertical-align:middle}
+/* 일곱 축 — 한 줄 카드 */
+.rp2-axl{display:flex;flex-direction:column;gap:6px}.rp2-axi{display:grid;grid-template-columns:150px 1fr;gap:4px 12px;padding:10px 12px;border:1px solid var(--line,#e5e7eb);border-radius:12px;background:var(--card,#fff);align-items:start}.rp2-axi .ax-h{display:flex;flex-direction:column;gap:5px;grid-row:span 3}.rp2-axi .ax-h b{font-size:14px}.rp2-axi.scp{border-left:3px solid #dc2626}.rp2-axi.scn{border-left:3px solid #2563eb}.rp2-axi.scz{border-left:3px solid #d1d5db}
+.rp2-axi .ax-sig{display:flex;flex-wrap:wrap;gap:4px}.rp2-axi .chip{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:999px;background:#f3f4f6;color:#374151;border:1px solid transparent}.rp2-axi .chip.p{background:#fef2f2;color:#991b1b;border-color:#fecaca}.rp2-axi .chip.n{background:#eff6ff;color:#1e40af;border-color:#bfdbfe}.rp2-axi .chip b{font-weight:800}
+.rp2-axi .ax-r{font-size:12.5px;line-height:1.5}.rp2-axi .ax-r small{color:var(--muted,#6b7280)}.rp2-axi .ax-x{font-size:12px;color:#374151;background:#f8f7f4;border-radius:8px;padding:6px 8px}.rp2-axi .ax-x small{display:block;color:var(--muted,#6b7280);margin-bottom:2px}
+@media (max-width:700px){.rp2-axi{grid-template-columns:1fr}.rp2-axi .ax-h{grid-row:auto;flex-direction:row;align-items:center;justify-content:space-between}}
+/* 전망 — 기간별 카드 */
+.rp2-oll{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin-bottom:10px}.rp2-oli{border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:10px 12px;background:var(--card,#fff)}.rp2-oli .h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}.rp2-oli .h b{font-size:15px}.rp2-oli .h span{font-size:11.5px;color:var(--muted,#6b7280)}.rp2-oli p{margin:6px 0;font-size:13px;line-height:1.5}.rp2-oli .ud{display:flex;flex-direction:column;gap:3px;font-size:12px}.rp2-oli .u{color:#991b1b}.rp2-oli .d{color:#1e40af}
+/* 인사이트 회상 요약 · 지역 카드 추세선 */
+.in-recap{margin:4px 0 10px;padding-left:18px;font-size:13.5px;line-height:1.65}.in-recap li{margin:4px 0}
+.rp2-rgi .hd .spk{margin-left:auto;display:inline-flex;align-items:center}
+.rp2-watch li{margin:3px 0}
+@media (prefers-color-scheme:dark){.in-tbl.sm tr:nth-child(even) td,.in-tbl.cmp tr:nth-child(even) td{background:rgba(255,255,255,.03)}.rp2-axi .chip{background:rgba(255,255,255,.07);color:inherit}.rp2-axi .ax-x{background:rgba(255,255,255,.05)}.f-sb b{color:#e5e7eb}.f-sb.up b{color:#fca5a5}.f-sb.dn b{color:#93c5fd}.in-tbl.sm td:first-child{color:inherit}}
+.in-gbar em.eq{position:absolute;top:-3px;width:2px;height:18px;margin-left:-1px;background:#111827;opacity:.55;border-radius:1px}
+@media (prefers-color-scheme:dark){.in-gbar em.eq{background:#fff}}
 </style>
 </head>
 <body>
@@ -2721,7 +2745,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.45.2</span>
+    <span class="ver">v9.46</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -7816,6 +7840,16 @@ function fE(s) { return escHtml(String(s == null ? "" : s)); }
 function fPct(v, d) { return v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d == null ? 1 : d) + "%"; }
 function fSgn(v, d, unit) { if (v == null || !isFinite(v)) return ""; return '<i class="' + (v > 0.0001 ? "up" : v < -0.0001 ? "down" : "flat") + '">' + (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d == null ? 1 : d) + (unit == null ? "%" : unit) + "</i>"; }
 function fYm(t) { t = Number(t); if (!t) return ""; if (t > 999999) return Math.floor(t / 10000) + "." + ("0" + (Math.floor(t / 100) % 100)).slice(-2) + "." + ("0" + t % 100).slice(-2); return Math.floor(t / 100) + "." + ("0" + t % 100).slice(-2); }
+/* 작은 추세선(SVG) — 지역 카드·비교표용. 값 배열(null 허용), 마지막 점 강조 */
+function fSpark(arr, w, h, col) {
+  var A = (arr || []).map(function (v) { return v == null || !isFinite(v) ? null : Number(v); }), V = A.filter(function (v) { return v != null; }); if (V.length < 3) return "";
+  w = w || 72; h = h || 22; var mn = Math.min.apply(null, V), mx = Math.max.apply(null, V), sp = mx - mn || 1, n = A.length, pts = [], last = null;
+  A.forEach(function (v, i) { if (v == null) return; var x = (i / (n - 1)) * (w - 2) + 1, y = h - 2 - (v - mn) / sp * (h - 4); pts.push(x.toFixed(1) + "," + y.toFixed(1)); last = [x, y]; });
+  var c = col || (V[V.length - 1] >= V[0] ? "#dc2626" : "#2563eb");
+  return '<svg class="f-spark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true"><polyline fill="none" stroke="' + c + '" stroke-width="1.6" stroke-linejoin="round" points="' + pts.join(" ") + '"/><circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.2" fill="' + c + '"/></svg>';
+}
+/* −2~+2 점수를 가운데 0 기준 막대로 — 축 진단·신호표용 */
+function fScoreBar(sc, lb) { if (sc == null || !isFinite(sc)) return '<span class="f-sb none">–</span>'; var p = Math.max(-2, Math.min(2, sc)) / 2 * 50; return '<span class="f-sb' + (p > 0 ? " up" : p < 0 ? " dn" : "") + '" title="' + sc.toFixed(2) + '"><span class="f-sbar"><i style="' + (p >= 0 ? "left:50%;width:" + p + "%" : "left:" + (50 + p) + "%;width:" + (-p) + "%") + '"></i></span><b>' + fE(lb || (sc > 0 ? "+" : "") + sc.toFixed(1)) + "</b></span>"; }
 function fNum(v, unit) { return v == null || !isFinite(v) ? "–" : fmt(v) + (unit || ""); }
 
 /* ══ v9.19 오늘 한 장 — 실거래·금리·시장 체온·확산·정책·교통·일정·청약·용어를 한 장(1080×1350)으로 ══
@@ -8965,6 +8999,8 @@ function tprOne() { return TP.o.size === "one"; }
 /* v9.35 장마다 고르게 — 28개·12개씩이면 12/12/4 가 아니라 10/9/9 (장마다 칸·표 높이가 같아진다) */
 function tprChunk(arr, per, maxp) { var n = Math.max(1, Math.ceil(arr.length / per)); if (maxp) n = Math.min(maxp, n); var tot = Math.min(arr.length, n * per), each = Math.ceil(tot / n), out = [], off = 0; for (var i = 0; i < n && off < tot; i++) { var take = Math.min(each, tot - off); out.push({ off: off, rows: arr.slice(off, off + take) }); off += take; } return out; }
 function tprItems(base, items, per) { if (tprOne()) { var d1 = tprClone(base); d1.items = items.slice(0, 12); d1._off = 0; return [d1]; } var out = [], C = tprChunk(items, per, TP.o.maxp || 3), n = C.length; for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.items = C[i].rows; d._off = C[i].off; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
+/* v9.46 긴 이름 줄이기 — 괄호 설명(회차·공공분양·인터넷뱅킹 등)을 떼고 n자에서 자른다. 표 줄이 3~4줄로 늘어나 카드가 접히던 원인 */
+function tpShort(s, n) { s = String(s || "").replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim(); n = n || 18; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
 function tprPaged(base, rows, per) { if (tprOne()) { var d1 = tprClone(base); d1.rows = rows.slice(0, 40); d1._off = 0; return [d1]; } var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(rows.length / per))); per = Math.max(1, Math.ceil(Math.min(rows.length, n * per) / n)); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.rows = rows.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
 /* 청약·금리 재료 도우미 (v9.31) */
 /* v9.36 주택형 표 — 같은 전용(84A·84B…)은 한 줄로: 평형 범위 · 최고 분양가 · 일반+특공 합산(괄호 일반) */
@@ -8985,7 +9021,7 @@ function tprRateRows(k, o, title) {
   return tprPaged({ _cat: "rate", src: tprRateBasis(D), title: title, sub: (g !== "all" ? g + " · " : "") + (loan ? "최저 금리 낮은 순" : "우대 포함 최고 금리 높은 순"), badge: "금리비교",
     cols: loan ? "금융사 | 상품 | 최저 | 최고 | 지난주" : "금융사 | 상품 | 최고(우대) | 기본 | 지난주",
     foot: loan ? "우대 조건을 모두 채웠을 때 최저 · 실제 금리는 신용도·소득에 따라 다름" : "고금리 특판은 월 납입 한도·우대 조건 확인 · 예금자보호 1인당 1억(금융사별)" },
-    L.map(function (c) { return loan ? [rtCo(c.co), c.loPrd || "", rtP(c.lo), rtP(c.hi), d(c)] : [rtCo(c.co), c.hiPrd || "", rtP(c.hi), rtP(c.lo), d(c)]; }), o.per);
+    L.map(function (c) { return loan ? [rtCo(c.co), tpShort(c.loPrd, 16), rtP(c.lo), rtP(c.hi), d(c)] : [rtCo(c.co), tpShort(c.hiPrd, 16), rtP(c.hi), rtP(c.lo), d(c)]; }), o.per);
 }
 var TPR = {
   regionPrice: { nm: "지역별 실거래 시세", grp: "실거래", opts: ["scope", "band"], tpls: ["denseTable", "lineTable"], per: 26,
@@ -9057,7 +9093,7 @@ var TPR = {
     hint: "접수 중·예정 단지의 분양가(주택형 최고가)와 같은 시군구 실거래(같은 면적) 비교 — 차이 큰 순",
     build: function () { if (!tprSubs() || typeof sbChAll !== "function") return []; var t = sbToday(), L = sbChAll().filter(function (it) { return it.cmp && Math.max(it.e || 0, it.r2 || 0, it.win || 0) >= t; }).sort(function (a, b) { return b.cmp.diff - a.cmp.diff; }); if (!L.length) return [];
       return tprPaged({ _cat: "subs", src: tprSubsBasis() + " · 국토부 실거래(같은 시군구·같은 면적대 ㎡당 중위)", title: "새 분양가, 주변보다 얼마나 비쌀까", sub: "같은 면적 기준 · 차이 큰 순", badge: "청약", cols: "단지 | 주택형 | 분양가 | 주변 같은 면적 | 차이", foot: "분양가는 최고층 기준·발코니 확장 별도 · 주변 값은 구축 포함 중위라 새 아파트끼리 비교는 아님" },
-        L.map(function (it) { var x = sbCmpLine(it); return [it.nm + " (" + it.cmp.gu.replace(/^\S+\s/, "") + ")", sbTy(it.cmp.ty), eok(x.sale), eok(x.near), (x.diff > 0 ? "+" : "") + x.diff.toFixed(1) + "%"]; }), 10); } },
+        L.map(function (it) { var x = sbCmpLine(it); return [tpShort(it.nm, 16) + " · " + it.cmp.gu.replace(/^\S+\s/, ""), sbTy(it.cmp.ty), eok(x.sale), eok(x.near), (x.diff > 0 ? "+" : "") + x.diff.toFixed(1) + "%"]; }), 10); } },
   subsShort: { nm: "미달 난 청약 단지", grp: "청약·일정", opts: [], tpls: ["denseTable", "lineTable"], per: 14,
     hint: "최근 60일 발표 단지 중 신청이 공급보다 적었던 주택형이 있는 곳 (무순위·잔여세대로 다시 나올 수 있음)",
     build: function () { var L = tprSubsRes().filter(function (r) { return /미달/.test(r.status || ""); }).sort(function (a, b) { return (a.req || 0) / (a.sup || 1) - (b.req || 0) / (b.sup || 1); }); if (!L.length) return [];
@@ -10192,8 +10228,8 @@ function inPy(pm) { return pm == null ? null : pm * 3.3058; }
 /* v9.44 자료 신선도 — 월(YYYYMM) 또는 일(YYYYMMDD) 숫자가 지금부터 몇 달 전인지. 오래된 자료는 신호에 넣지 않고 '데이터 상태' 띠에 이유를 적는다 */
 function inAgeM(t) { t = Number(t); if (!t) return null; var k = chKstDate(), ym = t > 999999 ? Math.floor(t / 100) : t; return (k.y * 12 + k.m) - (Math.floor(ym / 100) * 12 + ym % 100); }
 /* v9.45.2 부동산원 지수 표 신뢰 — 수집기가 표 번호(tbl)를 적어 준 것만 쓰고, 오피스텔 번호대(DT_08002)는 거부. 10.19 실행이 오피스텔 지수를 아파트 지수로 받아 왔던 일의 재발 방지 */
-function inIdxTrust(o) { return !!(o && o.tbl && !/^DT_08002/.test(o.tbl) && !/오피스텔/.test(o.src || "")); }
-function inIdxWhy(o) { return !o ? "없음" : !o.tbl ? "표 번호 없는 옛 수집분 — 표 확인 전이라 쓰지 않음" : /^DT_08002/.test(o.tbl) || /오피스텔/.test(o.src || "") ? "오피스텔 표(" + o.tbl + ") — 아파트 지수가 아니라 제외" : ""; }
+function inIdxTrust(o) { return !!(o && o.tbl && o.kind === "apt" && !/^DT_08002/.test(o.tbl) && !/오피스텔|준전세|준월세|월세/.test(o.src || "")); }
+function inIdxWhy(o) { return !o ? "없음" : !o.tbl ? "표 번호 없는 옛 수집분 — 표 확인 전이라 쓰지 않음" : /^DT_08002/.test(o.tbl) || /오피스텔/.test(o.src || "") ? "오피스텔 표(" + o.tbl + ") — 아파트 지수가 아니라 제외" : /준전세|준월세|월세/.test(o.src || "") ? "준전세·월세 표(" + o.tbl + ") — 전세지수가 아니라 제외" : o.kind !== "apt" ? "아파트 행이 확인되지 않은 수집분(" + o.tbl + ") — 종합주택일 수 있어 제외" : ""; }
 function inFresh(ser, maxAge) { var l = inLast(ser); return !!l && inAgeM(l[0]) != null && inAgeM(l[0]) <= maxAge; }
 function inYmFromIdx(i) { if (typeof MC === "undefined" || !MC) return null; var y0 = Math.floor(MC.m0 / 100), m0 = MC.m0 % 100, t = y0 * 12 + (m0 - 1) + i; return Math.floor(t / 12) * 100 + (t % 12) + 1; }
 function inYmL(t) { t = Number(t); if (!t) return ""; if (t > 999999) return Math.floor(t / 10000) + "." + ("0" + (Math.floor(t / 100) % 100)).slice(-2) + "." + ("0" + t % 100).slice(-2); return Math.floor(t / 100) + "." + ("0" + t % 100).slice(-2); }
@@ -10424,7 +10460,7 @@ function inStances(S, T) {
 
 /* ══ ②-2 상승론 vs 하락론 — 데이터 근거 + 전문가·기사 논거를 양쪽에 ══ */
 function inDebate(S) {
-  var side = function (pos) { return { data: S.filter(function (x) { return pos ? x.sc > 0 : x.sc < 0; }).sort(function (a, b) { return pos ? b.sc - a.sc : a.sc - b.sc; }), views: inCtx(pos ? "bull" : "bear", null, 6), heads: inHeads(pos ? "bull" : "bear", 6) }; };
+  var side = function (pos) { return { data: S.filter(function (x) { return pos ? x.sc > 0 : x.sc < 0; }).sort(function (a, b) { return pos ? b.sc * b.w - a.sc * a.w : a.sc * a.w - b.sc * b.w; }).slice(0, 4), views: inCtx(pos ? "bull" : "bear", null, 4), heads: inHeads(pos ? "bull" : "bear", 4) }; };   /* v9.46 진영마다 센 것 4개씩만 — 전체는 근거 신호 표에 */
   return { bull: side(true), bear: side(false) };
 }
 function inDebateHtml(S, sc) {
@@ -10537,14 +10573,14 @@ function inPaint() {
   IN.S = S; IN.T = T; IN.an = an; IN.re = re; IN.se = se; IN.cp = cp; IN.sit = sit; IN.sc = sc; IN.st = st;
   var bl = document.getElementById("in-basis"); if (bl) bl.textContent = inBasisLine();
   var grpOrder = ["거래", "가격", "위치", "금리", "공급", "전세", "청약"];
-  var sigRows = grpOrder.map(function (g) { return S.filter(function (x) { return x.grp === g; }).map(function (x) { return '<tr class="sc' + (x.sc > 0 ? "p" : x.sc < 0 ? "n" : "z") + '"><td class="g">' + inE(g) + '</td><td class="nm">' + inE(x.nm) + '<small>' + inE(x.at || "") + '</small></td><td class="v">' + inE(x.val) + '</td><td class="c">' + x.cmp + '</td><td class="s"><b>' + (x.sc > 0 ? "+" + x.sc : x.sc) + '</b></td><td class="r">' + inE(x.read) + ' <i class="fid">' + x.id + "</i></td></tr>"; }).join(""); }).join("");
+  var sigRows = grpOrder.map(function (g) { return S.filter(function (x) { return x.grp === g; }).map(function (x) { return '<tr class="sc' + (x.sc > 0 ? "p" : x.sc < 0 ? "n" : "z") + '"><td class="g">' + inE(g) + '</td><td class="nm">' + inE(x.nm) + '<small>' + inE(x.at || "") + '</small></td><td class="v">' + inE(x.val) + '</td><td class="c">' + x.cmp + '</td><td class="s">' + (typeof fScoreBar === "function" ? fScoreBar(x.sc) : (x.sc > 0 ? "+" + x.sc : x.sc)) + '</td><td class="r">' + inE(x.read) + ' <i class="fid">' + x.id + "</i></td></tr>"; }).join(""); }).join("");
   var h = (typeof appFailHtml === "function" ? appFailHtml(IN.ready) : "") + inStatusHtml();
   /* ① 상황판 */
   h += '<div class="card in-sec"><div class="in-q"><i>Q</i>어떤 상황이야?</div>' +
-    '<div class="in-temp"><div class="in-gauge"><div class="in-gbar"><i style="left:' + T.pct + '%;background:' + T.col + '"></i></div><div class="in-glb"><span>냉각</span><span>관망</span><span>과열</span></div></div><div class="in-tsum"><b style="color:' + T.col + '">' + inE(T.nm) + '</b><small>신호 ' + T.n + '개 · 더운 쪽 ' + T.up + ' · 식는 쪽 ' + T.dn + ' · 점수 ' + (T.t >= 0 ? "+" : "") + T.t.toFixed(2) + ' · 가중치 없이 ' + (T.tEq >= 0 ? "+" : "") + T.tEq.toFixed(2) + '(' + inE(T.nmEq) + ')' + (T.sens ? ' <em>— 가중치에 따라 이름이 바뀐다, 경계 구간</em>' : '') + (T.drop ? ' · ' + inE(T.drop.id) + ' 하나를 빼면 「' + inE(T.drop.to) + '」' : '') + '</small></div></div>' +
+    '<div class="in-temp"><div class="in-gauge"><div class="in-gbar"><em class="eq" style="left:' + Math.round((T.tEq + 1) / 2 * 100) + '%" title="가중치 없이"></em><i style="left:' + T.pct + '%;background:' + T.col + '"></i></div><div class="in-glb"><span>냉각</span><span>관망</span><span>과열</span></div></div><div class="in-tsum"><b style="color:' + T.col + '">' + inE(T.nm) + '</b><small>신호 ' + T.n + '개 · 더운 쪽 ' + T.up + ' · 식는 쪽 ' + T.dn + ' · 점수 ' + (T.t >= 0 ? "+" : "") + T.t.toFixed(2) + ' · 가중치 없이 ' + (T.tEq >= 0 ? "+" : "") + T.tEq.toFixed(2) + '(' + inE(T.nmEq) + ')' + (T.sens ? ' <em>— 가중치에 따라 이름이 바뀐다, 경계 구간</em>' : '') + (T.drop ? ' · ' + inE(T.drop.id) + ' 하나를 빼면 「' + inE(T.drop.to) + '」' : '') + '</small></div></div>' +
     inReportHtml(S, T, sit, sc) +
     '<details class="in-det"><summary>속사정 메모 · 최근 사실 · 정책 기사 제목 <small>리포트에 쓴 재료 원문</small></summary>' + inWhyHtml(S, T) + '</details>' +
-    '<details class="in-det"><summary>근거 신호 ' + S.length + '개 <small>점수 −2~+2 × 가중치 · 규칙은 코드에 그대로</small></summary><div class="in-siglist">' + grpOrder.map(function (g) { return S.filter(function (x) { return x.grp === g; }).map(function (x) { return '<div class="in-sig sc' + (x.sc > 0 ? "p" : x.sc < 0 ? "n" : "z") + '"><div class="t"><small>' + inE(g) + '</small><b>' + inE(x.nm) + '</b><span class="v">' + inE(x.val) + '</span><em>' + (x.sc > 0 ? "+" + x.sc : x.sc) + '</em></div><div class="c">' + x.cmp + ' <small>' + inE(x.at || "") + '</small></div><div class="r">' + inE(x.read) + '</div></div>'; }).join(""); }).join("") + '</div><div class="in-tblw in-sigtbl"><table class="in-tbl sig"><tr><th></th><th>신호</th><th>지금</th><th>비교</th><th>점수</th><th>읽기</th></tr>' + sigRows + '</table></div></details></div>';
+    '<details class="in-det"><summary>근거 신호 ' + S.length + '개 <small>점수 −2~+2 × 가중치 · 규칙은 코드에 그대로</small></summary><div class="in-tblw in-sigtbl"><table class="in-tbl sig"><tr><th></th><th>신호</th><th>지금</th><th>비교</th><th>점수</th><th>읽기</th></tr>' + sigRows + '</table></div></details></div>';
   /* ② 판단 */
   h += '<div class="card in-sec"><div class="in-q"><i>Q</i>어떻게 하면 좋을 것 같아?</div><p class="hint">입장별로 다르다. 주인 메모용 판단 — 공개 글에는 투자 권유 문구를 쓰지 않는다.</p><div class="in-st">' + st.map(function (o) { return '<div class="in-stc"><b>' + inE(o.who) + '</b><ul>' + o.todo.map(function (t) { return "<li>" + inE(t) + "</li>"; }).join("") + "</ul>" + (o.rules && o.rules.length ? '<details class="in-det"><summary>걸려 있는 규칙 ' + o.rules.length + '개</summary>' + o.rules.map(function (x) { return inCtxLine(x); }).join("") + "</details>" : "") + "</div>"; }).join("") + '</div></div>';
   /* ②-2 상승론 vs 하락론 */
@@ -10552,8 +10588,17 @@ function inPaint() {
   /* ③ 앞으로 */
   h += '<div class="card in-sec"><div class="in-q"><i>Q</i>앞으로 어떤 일이 벌어질 것 같아?</div><div class="in-sc">' + sc.map(function (o, k) { return '<div class="in-scc k' + k + '"><b>' + inE(o.nm) + '</b><p>' + inE(o.how) + '</p><small>확인 신호</small><ul>' + o.watch.map(function (w) { return "<li>" + inE(w) + "</li>"; }).join("") + "</ul></div>"; }).join("") + '</div>' +
     '<p class="hint">시나리오는 지금 신호에서 규칙으로 고른 것이고 확률을 매기지 않는다. 아래 회상(과거 데이터)과 같이 본다.</p></div>';
-  /* ④ 회상 */
-  h += '<div class="card in-sec"><div class="in-q"><i>Q</i>과거엔 어땠어? <small>서울 매매지수(구별 균등) ' + (inMcOk() ? inYmOf(0) + "~" + inProvYm(inLastIdx(inIdx())) : "") + ' · 거래량은 확정 달까지</small></div>';
+  /* ④ 회상 — v9.46 표는 분석 브리핑 4장(과거 사례와 비교)에만 두고, 여기는 한 줄 답만(같은 표가 두 화면에 있던 중복 제거) */
+  var dv = inDivergence(); IN.dv = dv;
+  h += '<div class="card in-sec"><div class="in-q"><i>Q</i>과거엔 어땠어? <small>표·그래프는 분석 브리핑 4장에</small></div><ul class="in-recap">' +
+    (an ? '<li><b>비슷했던 달 ' + an.n + '개</b> — 12개월 뒤 올라 있던 경우 ' + an.up12 + '/' + an.n12 + ', 중위 ' + inPct(an.m12) + (an.r12 ? ' (범위 ' + inPct(an.r12[0]) + '~' + inPct(an.r12[1]) + ')' : '') + (an.near < 5 ? ' · 정말 가까운 표본은 ' + an.near + '개뿐' : '') + '</li>' : '') +
+    (dv && dv.past.length ? '<li><b>거래 급감 + 가격 상승 국면 ' + dv.past.length + '번</b>' + (dv.now ? ' · 지금도 이 국면(' + inYmOf(dv.now.i) + '~)' : '') + ' — 12개월 뒤 내려간 경우 ' + dv.dn12 + '번, 모두 금리 인상 사이클 뒤</li>' : '') +
+    (function () { var S0 = typeof rpPhSimilar === "function" && RP2.ph ? rpPhSimilar(1)[0] : null; return S0 ? '<li><b>정책 조합이 가장 비슷했던 때 ' + inE(S0.e.name) + '(' + S0.e.date.slice(0, 7).replace("-", ".") + ')</b> — 그 뒤 6개월 ' + inPct(S0.p6) + ' · 12개월 ' + inPct(S0.p12) + '</li>' : ''; })() +
+    (re && re.length ? '<li><b>최근 기준금리 결정 ' + inE(re[re.length - 1].at) + ' ' + inE(re[re.length - 1].dir) + '</b>' + (re[re.length - 1].p3 != null ? ' — 3개월 뒤 ' + inPct(re[re.length - 1].p3) : ' — 아직 3개월이 안 됨') + '</li>' : '') +
+    (se ? '<li><b>' + se.m + '월 계절성</b> — ' + se.n + '년 중 ' + se.up + '년 상승, 평균 ' + inPct(se.avg, 2) + '</li>' : '') +
+    (cp ? '<li><b>지금 위치</b> — 고점(' + inYmOf(cp.pk) + ') 대비 ' + inPct(cp.chg.fromPk) + ', 저점(' + inYmOf(cp.tr) + ') 대비 ' + inPct(cp.chg.fromTr) + '</li>' : '') +
+    '</ul><button type="button" class="btn sm ghost" data-in="report">표로 보기 — 분석 브리핑 4장</button></div>';
+  if (false) {
   if (an) h += '<h4>지금과 비슷했던 달 <small>1년 상승률 · 거래량(12개월 평균 대비) · 3년 고점 대비, 세 가지가 가까운 달 ' + an.n + '개(6개월 이상 떨어진 달끼리) · 가까운 순</small></h4>' +
     '<p class="in-a">지금(지수 ' + an.nowYm + ' · 거래 ' + an.volYm + '): 1년 ' + inPct(an.now.yoy) + ' · 거래 ' + an.now.vr.toFixed(2) + '배 · 3년 고점 대비 ' + inPct(an.now.dd) + '. 비슷했던 ' + an.n + '번 중 12개월 뒤 올라 있던 경우 <b>' + an.up12 + '/' + an.n12 + '번</b> · 12개월 뒤 중위 <b>' + inPct(an.m12) + '</b>(평균 ' + inPct(an.avg12) + ', 범위 ' + (an.r12 ? inPct(an.r12[0]) + '~' + inPct(an.r12[1]) : '–') + ') · 6개월 뒤 중위 ' + inPct(an.m6) + '(범위 ' + (an.r6 ? inPct(an.r6[0]) + '~' + inPct(an.r6[1]) : '–') + ').' + (an.near < 5 ? ' <em>정말 가까운 달(거리 1.5 안)은 ' + an.near + '개뿐 — 표본이 얇다.</em>' : '') + '</p>' +
     '<div class="in-tblw"><table class="in-tbl sm"><tr><th>그때</th><th>1년 상승률</th><th>거래 배수</th><th>고점 대비</th><th>6개월 뒤</th><th>12개월 뒤</th><th>거래(6개월)</th></tr>' + an.rows.map(function (r) { return "<tr><td>" + r.ym + "</td><td>" + inPct(r.yoy) + "</td><td>" + r.vr.toFixed(2) + "배</td><td>" + inPct(r.dd) + "</td><td>" + inSgn(r.p6) + "</td><td>" + inSgn(r.p12) + "</td><td>" + inSgn(r.v6, 0) + "</td></tr>"; }).join("") + '</table></div><p class="hint">대표값은 중위(한 건에 끌려가지 않게) — 경향이지 예측이 아니다. 2010년대는 대체로 오른 시기라 상승 쪽으로 치우칠 수 있고, 2021~22년처럼 금리 방향이 바뀐 때는 같은 모양이라도 결과가 달랐다.</p>';
@@ -10563,9 +10608,9 @@ function inPaint() {
   if (dv && dv.past.length) h += '<h4>거래 급감 + 가격 상승 국면 <small>거래가 12개월 평균의 75% 아래인데 지수는 3개월 전보다 오른 달 — "2021년에도 그랬다"는 반론 검증</small></h4><p class="in-a">과거 이런 국면 ' + dv.past.length + '번' + (dv.now ? " · <b>지금도 이 국면(" + inYmOf(dv.now.i) + "~)</b>" : "") + ' — 12개월 뒤 내려간 경우 <b>' + dv.dn12 + "번</b>, 평균 6개월 뒤 " + inPct(dv.m6) + " · 12개월 뒤 " + inPct(dv.m12) + '.</p><div class="in-tblw"><table class="in-tbl sm"><tr><th>국면</th><th>달 수</th><th>거래 배수(최저)</th><th>직전 3개월</th><th>6개월 뒤</th><th>12개월 뒤</th></tr>' + dv.past.map(function (e) { return "<tr><td>" + e.ym + (e.n > 1 ? "~" + e.to : "") + "</td><td>" + e.n + "</td><td>" + e.vr.toFixed(2) + "배</td><td>" + inSgn(e.p3) + "</td><td>" + inSgn(e.p6) + "</td><td>" + inSgn(e.p12) + "</td></tr>"; }).join("") + '</table></div><p class="hint">같은 조합이라도 금리·공급이 달랐다. 2021~22년은 금리 인상 전환과 겹쳐 조정이 왔고, 2016~17년은 저금리라 이어서 올랐다 — 지금은 금리 인상기라는 점에서 2021년 쪽에 가깝다.</p>';
   if (re) h += '<h4>기준금리가 바뀐 뒤 서울은 <small>결정 달 지수 대비 · 거래는 직전 3개월 평균 대비</small></h4><div class="in-tblw"><table class="in-tbl sm"><tr><th>결정</th><th>방향</th><th>3개월 뒤</th><th>6개월 뒤</th><th>12개월 뒤</th><th>거래 3개월</th></tr>' + re.map(function (r) { return "<tr><td>" + inE(r.at) + "</td><td>" + r.dir + " " + r.from.toFixed(2) + "→" + r.to.toFixed(2) + "%</td><td>" + inSgn(r.p3) + "</td><td>" + inSgn(r.p6) + "</td><td>" + inSgn(r.p12) + "</td><td>" + inSgn(r.v3, 0) + "</td></tr>"; }).join("") + '</table></div><p class="hint">한국은행 결정 목록은 수집 범위(최근 몇 년) 안의 것만. 빈칸은 아직 그 달이 오지 않은 것.</p>';
   if (se) h += '<h4>' + se.m + '월의 계절성 <small>' + se.n + '년치 · 지수 전월 대비 · 거래는 그해 월평균 대비</small></h4><p class="in-a">' + se.m + '월에 서울 지수가 전월보다 오른 해는 ' + se.n + '년 중 <b>' + se.up + '년</b>, 평균 ' + inPct(se.avg, 2) + (se.vavg ? ' · 거래량은 그해 월평균의 ' + se.vavg.toFixed(2) + '배' : '') + '.</p><div class="in-seas">' + se.rows.map(function (r) { return '<span class="' + (r.mm > 0 ? "p" : r.mm < 0 ? "n" : "") + '"><b>' + r.y + "</b>" + inPct(r.mm, 1) + (r.vr ? "<small>" + r.vr.toFixed(2) + "배</small>" : "") + "</span>"; }).join("") + '</div>';
-  h += '</div>';
-  /* ⑤ 비교 */
-  if (cp) h += '<div class="card in-sec"><div class="in-q"><i>Q</i>지금은 어디쯤이야? <small>지금 · 1년 전 · 2020~22 고점 · 그 뒤 저점</small></div><p class="in-a">서울 매매지수는 고점(' + inYmOf(cp.pk) + ') 대비 <b>' + inPct(cp.chg.fromPk) + '</b>, 저점(' + inYmOf(cp.tr) + ') 대비 <b>' + inPct(cp.chg.fromTr) + '</b>.</p><div class="in-tblw"><table class="in-tbl"><tr><th></th>' + cp.cols.map(function (c) { return "<th>" + inE(c) + "</th>"; }).join("") + '</tr>' + cp.rows.map(function (r) { return "<tr>" + r.map(function (c, i) { return "<td" + (i ? "" : ' class="nm"') + ">" + inE(c) + "</td>"; }).join("") + "</tr>"; }).join("") + '</table></div><p class="hint">지수 = 서울 25개 구 ㎡당 중위(3개월 이동) 지수의 균등 평균(채널 MDD 코너와 같은 기준). 84㎡ 중위는 그 달 팔린 집의 중위라 어느 동네가 많이 팔렸느냐에 따라 지수와 다르게 움직인다 — 참고로만. 빈칸(–)은 그 시점 자료를 수집하지 않은 것. 추정하지 않는다.</p></div>';
+  h += '</div>'; }
+  /* ⑤ 비교 — v9.46 브리핑 4장으로 이동 */
+  if (false) h += '<div class="card in-sec"><div class="in-q"><i>Q</i>지금은 어디쯤이야? <small>지금 · 1년 전 · 2020~22 고점 · 그 뒤 저점</small></div><p class="in-a">서울 매매지수는 고점(' + inYmOf(cp.pk) + ') 대비 <b>' + inPct(cp.chg.fromPk) + '</b>, 저점(' + inYmOf(cp.tr) + ') 대비 <b>' + inPct(cp.chg.fromTr) + '</b>.</p><div class="in-tblw"><table class="in-tbl"><tr><th></th>' + cp.cols.map(function (c) { return "<th>" + inE(c) + "</th>"; }).join("") + '</tr>' + cp.rows.map(function (r) { return "<tr>" + r.map(function (c, i) { return "<td" + (i ? "" : ' class="nm"') + ">" + inE(c) + "</td>"; }).join("") + "</tr>"; }).join("") + '</table></div><p class="hint">지수 = 서울 25개 구 ㎡당 중위(3개월 이동) 지수의 균등 평균(채널 MDD 코너와 같은 기준). 84㎡ 중위는 그 달 팔린 집의 중위라 어느 동네가 많이 팔렸느냐에 따라 지수와 다르게 움직인다 — 참고로만. 빈칸(–)은 그 시점 자료를 수집하지 않은 것. 추정하지 않는다.</p></div>';
   /* AI */
   h += '<div class="card in-sec in-ai"><div class="in-q"><i>AI</i>넌 어떻게 생각하는데? <small>누를 때만 OpenAI 호출 · 재료 = 위 숫자 전부 · 답의 숫자는 재료와 대조</small></div>' +
     '<div class="in-aiq">' + ["어떤 상황이야?", "어떻게 하면 좋을 것 같아?", "넌 어떻게 생각하는데?", "앞으로 어떤 일이 벌어질 것 같아?"].map(function (q) { return '<button type="button" class="btn sm' + (IN.aiQ === q ? "" : " ghost") + '" data-inai="' + inE(q) + '">' + inE(q) + "</button>"; }).join("") + '</div>' +
@@ -10658,6 +10703,7 @@ function inClick(ev) {
     asApi("add", { item: { kind: "insight", type: "ctx", name: d.title.slice(0, 80), tags: ["메모", d.kind].concat(tags), data: d } }).then(function () { inJournalLoad(); }, function (e) { alert("저장 실패: " + e.message); }); }
   if (k === "jadd") { var tx = (document.getElementById("in-jt") || {}).value || ""; if (!tx.trim()) { alert("예상을 적어 주세요"); return; } inJournalAdd("me", tx, (document.getElementById("in-jm") || {}).value, (document.getElementById("in-jd") || {}).value, (document.getElementById("in-jh") || {}).value); }
   if (k === "saveai" && IN.ai) { var r = IN.ai.r, sc0 = (r.scenarios || [])[0]; inJournalAdd("ai", "[" + IN.ai.q + "] " + (r.answer || "").slice(0, 300) + (sc0 ? " / " + sc0.name + ": " + sc0.then : ""), null, null, 3); }
+  if (k === "report") { if (typeof showTab === "function") showTab("report"); return; }
   if (k === "cards") { if (typeof showTab !== "function" || typeof TPR === "undefined") return; TP.r = "inState"; TP.id = "denseTable"; TP.o.size = "one"; showTab("tpl"); setTimeout(function () { if (typeof tprRebuild === "function") tprRebuild(); }, 300); }
 }
 /* ── 카드 만들기 재료: 상황판 · 비교표 · 비슷했던 달 (Exhibit 식) + 대립 카드 ── */
@@ -10886,7 +10932,8 @@ function rpRegionOutlook(o) {
 function rpRegionsHtml() {
   var all = RP_GROUPS.map(rpRegionStats), c = function (lb, v, sub) { return '<div class="c"><small>' + lb + "</small><b>" + v + "</b>" + (sub ? "<em>" + sub + "</em>" : "") + "</div>"; };
   return '<div class="rp2-rg">' + all.map(function (o) { var g = o.g, vr = o.volM && o.volAvg ? o.volM / o.volAvg : null, R = rpRegionRead(o);
-    return '<div class="rp2-rgi"><div class="hd"><b>' + rpE(g.nm) + '</b><i class="fid ' + (g.reg === "all" || g.reg === "most" ? "on" : "") + '">' + (g.reg === "all" ? "전역 규제" : g.reg === "most" ? "대부분 규제(" + o.regN + "/" + o.n + ")" : g.reg === "mixed" ? "규제 " + o.regN + "/" + o.n + " 혼재" : "규제 밖") + "</i><small>" + rpE(g.sub) + "</small></div>" +
+    var spk = o.idx && typeof fSpark === "function" ? (function () { var L = inLastIdx(o.idx); return L >= 13 ? fSpark(o.idx.slice(L - 12, L + 1), 84, 24) : ""; })() : "";
+    return '<div class="rp2-rgi"><div class="hd"><b>' + rpE(g.nm) + '</b>' + (spk ? '<span class="spk" title="최근 12개월 균등 지수">' + spk + '</span>' : '') + '<i class="fid ' + (g.reg === "all" || g.reg === "most" ? "on" : "") + '">' + (g.reg === "all" ? "전역 규제" : g.reg === "most" ? "대부분 규제(" + o.regN + "/" + o.n + ")" : g.reg === "mixed" ? "규제 " + o.regN + "/" + o.n + " 혼재" : "규제 밖") + "</i><small>" + rpE(g.sub) + "</small></div>" +
       '<div class="kp">' + c("1년 지수", o.yoy != null ? inSgn(o.yoy) : "–", o.yoyW != null ? "거래 가중 " + inPct(o.yoyW) : "") + c("고점 대비", o.fromPk != null ? inSgn(o.fromPk) : "–", o.pkYm || "") + c("30일 거래", o.d30 != null ? fmt(o.d30) + "건" : "–", o.d30chg != null ? inSgn(o.d30chg, 0) + " 한 달 전" : "") + c("월 거래", o.volM != null ? fmt(o.volM) + "건" : "–", vr != null ? "12개월 평균의 " + vr.toFixed(2) + "배" : "") + c("신고가 비율", o.hiRate != null ? o.hiRate.toFixed(1) + "%" : "–", o.hiN != null ? o.hiN + "건" : "") + c("오른 지역", o.mvN ? o.upN + "/" + o.mvN : "–", "거래 10건↑") + c("전세가율", o.jr != null ? o.jr.toFixed(0) + "%" : "–", o.jrN ? o.jrN + "곳 평균" : "") + c("청약 경쟁률", o.subsMed != null ? o.subsMed.toFixed(1) + ":1" : "–", (o.subsN ? o.subsN + "단지 · 미달 " + o.subsShort : "") + (o.subsOpen ? " · 접수 중 " + o.subsOpen : "")) + "</div>" +
       (o.cities && o.cities.length ? '<div class="in-tblw"><table class="in-tbl sm rp2-city"><tr><th>도시</th><th>1년 지수</th><th>30일 거래</th><th>월 거래(확정)</th><th>공식지수 전월</th></tr>' + o.cities.map(function (r) { return "<tr><td>" + rpE(r.nm) + "</td><td>" + (r.yoy != null ? inSgn(r.yoy) : "–") + "</td><td>" + (r.d30 != null ? fmt(r.d30) + "건" + (r.d30chg != null ? " <small>" + inSgn(r.d30chg, 0) + "</small>" : "") : "–") + "</td><td>" + (r.volM != null ? fmt(r.volM) + "건" + (r.vr != null ? " <small>" + r.vr.toFixed(2) + "배</small>" : "") : "–") + "</td><td>" + (r.ix != null ? inSgn(r.ix, 2) : "–") + "</td></tr>"; }).join("") + '</table></div>' : "") +
       '<ul class="rd">' + R.map(function (t) { return "<li>" + rpE(t) + "</li>"; }).join("") + '</ul><p class="why"><b>이 지역의 논리</b> ' + rpE(g.why) + '</p><p class="ol">' + rpE(rpRegionOutlook(o)) + "</p></div>"; }).join("") + "</div>" +
@@ -10938,14 +10985,18 @@ function rpPaint() {
     (function () { var dv = IN.dv || (typeof inDivergence === "function" ? inDivergence() : null); return dv && dv.past.length ? "<li>거래 급감+가격 상승 국면: 과거 " + dv.past.length + "번 중 12개월 뒤 하락 <b>" + dv.dn12 + "번</b>" + (dv.now ? " — 지금도 같은 국면(" + inYmOf(dv.now.i) + "~)" : "") + ". 반론('2021년처럼 거래가 먼저 마른다')을 데이터로 확인한 결과</li>" : ""; })() +
     (function () { var S0 = rpPhSimilar(1)[0]; return S0 ? "<li>정책 조합이 가장 비슷했던 때는 <b>" + rpE(S0.e.name) + "(" + S0.e.date.slice(0, 7).replace("-", ".") + ")</b> — 같은 점 " + S0.same.map(function (t) { return RP_TAGNM[t] || t; }).join("·") + ", 그 뒤 6개월 " + rpPct(S0.p6) + " · 12개월 " + rpPct(S0.p12) + (S0.diff.length ? " · 지금은 " + S0.diff.map(function (t) { return RP_TAGNM[t] || t; }).join("·") + "까지 겹침" : "") + "</li>" : ""; })() + '</ol></div>';
   /* 1 축별 진단 */
-  h += '<div class="card rp2-sec"><h3>1. 일곱 축 진단 <small>앱 데이터 + 외부 조사</small></h3><div class="in-tblw"><table class="in-tbl rp2-ax rp2-stack"><tr><th>축</th><th>방향</th><th>근거(지금 값)</th><th>읽기</th><th>외부 조사</th></tr>' + AX.map(function (a) { return '<tr class="' + (a.sc > 0.5 ? "scp" : a.sc < -0.5 ? "scn" : "scz") + '"><td class="nm">' + rpE(a.nm) + "<small>" + rpE(a.desc) + '</small></td><td class="s"><b>' + rpE(a.dir) + "</b></td><td>" + (a.sig.length ? a.sig.map(function (x) { return "<div>" + rpE(x.nm) + " <b>" + rpE(x.val) + "</b></div>"; }).join("") : '<span class="hint">앱 자료 없음</span>') + '</td><td class="r">' + a.sig.map(function (x) { return "<div>" + rpE(x.read.split(" — ")[0]) + "</div>"; }).join("") + "</td><td class=\"r\">" + (a.ext ? "<b>" + rpE(a.ext.data.topicNm) + "</b> " + rpE(a.ext.data.asOf) + "<div>" + rpE(((a.ext.data.j.findings || [])[0] || {}).value || a.ext.data.j.diagnosis || "") + "</div>" : '<span class="hint">아직 없음 — 아래 프롬프트로</span>') + "</td></tr>"; }).join("") + "</table></div></div>";
+  /* v9.46 표가 가로로 넘쳐 '읽기·외부 조사' 열이 잘리던 것 → 축마다 한 줄 카드: 이름 · 점수 막대 · 근거 칩 · 읽기 한 줄 · 외부 조사(있을 때만) */
+  h += '<div class="card rp2-sec"><h3>1. 일곱 축 진단 <small>점수 −2~+2 · 앱 데이터 + 외부 조사</small></h3><div class="rp2-axl">' + AX.map(function (a) { return '<div class="rp2-axi ' + (a.sc > 0.5 ? "scp" : a.sc < -0.5 ? "scn" : "scz") + '"><div class="ax-h"><b>' + rpE(a.nm) + '</b>' + (typeof fScoreBar === "function" ? fScoreBar(a.sc, a.dir) : '<span>' + rpE(a.dir) + '</span>') + '</div>' +
+      '<div class="ax-sig">' + (a.sig.length ? a.sig.map(function (x) { return '<span class="chip ' + (x.sc > 0 ? "p" : x.sc < 0 ? "n" : "z") + '" title="' + rpE(x.at || "") + '">' + rpE(x.nm) + ' <b>' + rpE(x.val) + '</b></span>'; }).join("") : '<span class="hint">앱 자료 없음 — ' + rpE(a.desc) + '</span>') + '</div>' +
+      (a.sig.length ? '<div class="ax-r">' + rpE(a.sig.slice().sort(function (p, q) { return Math.abs(q.sc * q.w) - Math.abs(p.sc * p.w); })[0].read.split(" — ")[0]) + (a.sig.length > 1 ? ' <small>외 ' + (a.sig.length - 1) + '개 신호</small>' : '') + '</div>' : '') +
+      (a.ext ? '<div class="ax-x"><small>외부 조사 · ' + rpE(a.ext.data.topicNm) + ' ' + rpE(a.ext.data.asOf) + '</small> ' + rpE(((a.ext.data.j.findings || [])[0] || {}).value || a.ext.data.j.diagnosis || "") + '</div>' : '') + '</div>'; }).join("") + '</div><p class="hint">막대는 축 안 신호 점수의 평균(−2 하락 압력 ~ +2 상승 압력). 신호 하나하나는 인사이트 → 근거 신호 표에.</p></div>';
   /* 2 지역별 */
   h += '<div class="card rp2-sec"><h3>2. 지역별 진단 <small>같은 숫자라도 규제지역이냐 아니냐에 따라 뜻이 다르다</small></h3>' + rpRegionsHtml() + "</div>";
   /* 3 속사정·정책 */
   h += '<div class="card rp2-sec"><h3>3. 정책·대출·세금이 만든 구조 <small>출처 있는 규칙만</small></h3>' + rep.filter(function (p) { return /속사정|양쪽/.test(p.h); }).map(function (p) { return "<p>" + p.t + "</p>"; }).join("") + '<p class="hint"><b>주의</b> — 아래 "대책 뒤 지수가 올랐다"는 표는 「규제가 없었다면 얼마나 더 올랐을까」를 말해 주지 않는다. 합성대조군 연구(양지영 2026)는 토허제가 지정 지역 가격을 없었을 때보다 평균 9.6% 낮췄고 2~4년 뒤 약해진다고 본다. 즉 규제는 "안 통한 것"이 아니라 "덜 오르게 했지만 방향을 바꾸진 못한 것"으로 읽는 게 정확하다.</p><details class="in-det"><summary>규칙 원문</summary>' + inCtx("rule", null, 8).map(function (x) { return inCtxLine(x); }).join("") + "</details></div>";
   /* 3 과거 사례 */
   h += '<div class="card rp2-sec"><h3>4. 과거 사례와 비교</h3>';
-  if (cp) h += '<h4>지금 · 1년 전 · 고점 · 저점</h4><div class="in-tblw"><table class="in-tbl"><tr><th></th>' + cp.cols.map(function (c) { return "<th>" + rpE(c) + "</th>"; }).join("") + "</tr>" + cp.rows.map(function (r) { return "<tr>" + r.map(function (c, i) { return "<td" + (i ? "" : ' class="nm"') + ">" + rpE(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table></div>";
+  if (cp) h += '<h4>지금 · 1년 전 · 고점 · 저점</h4><div class="in-tblw"><table class="in-tbl cmp"><tr><th></th>' + cp.cols.map(function (c) { return "<th>" + rpE(c) + "</th>"; }).join("") + "</tr>" + cp.rows.map(function (r) { return "<tr>" + r.map(function (c, i) { return "<td" + (i ? "" : ' class="nm"') + ">" + rpE(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table></div>";
   if (an) h += '<h4>지금과 비슷했던 달 ' + an.n + '개와 그 뒤</h4><div class="in-tblw"><table class="in-tbl sm"><tr><th>그때</th><th>1년 상승률</th><th>거래 배수</th><th>고점 대비</th><th>6개월 뒤</th><th>12개월 뒤</th></tr>' + an.rows.map(function (r) { return "<tr><td>" + r.ym + "</td><td>" + rpPct(r.yoy) + "</td><td>" + r.vr.toFixed(2) + "배</td><td>" + rpPct(r.dd) + "</td><td>" + inSgn(r.p6) + "</td><td>" + inSgn(r.p12) + "</td></tr>"; }).join("") + "</table></div>";
   h += '<h4>비슷한 정책을 폈을 때 <small>부동산·금융·대출 정책 조합이 지금과 겹치는 과거 대책 — 그 뒤 서울은</small></h4>' + rpPhHtml(false);
   if (re) h += '<h4>기준금리 변경 뒤 서울 지수</h4><div class="in-tblw"><table class="in-tbl sm"><tr><th>결정</th><th>방향</th><th>3개월</th><th>6개월</th><th>12개월</th></tr>' + re.map(function (r) { return "<tr><td>" + rpE(r.at) + "</td><td>" + r.dir + " " + r.from.toFixed(2) + "→" + r.to.toFixed(2) + "%</td><td>" + inSgn(r.p3) + "</td><td>" + inSgn(r.p6) + "</td><td>" + inSgn(r.p12) + "</td></tr>"; }).join("") + "</table></div>";
@@ -10953,12 +11004,13 @@ function rpPaint() {
   if (exA.length) h += '<h4>외부 조사가 든 유사 사례</h4><ul class="in-ul">' + exA.slice(0, 6).map(function (x) { return "<li><b>" + rpE(x.a.when) + "</b> — " + rpE(x.a.why) + " → " + rpE(x.a.then) + ' <i class="fid">' + rpE(x.t) + "</i></li>"; }).join("") + "</ul>";
   h += "</div>";
   /* 4 전망 */
-  h += '<div class="card rp2-sec"><h3>5. 전망 <small>확률 대신 조건 — 과거 유사 국면의 결과 범위를 참고 수치로</small></h3><div class="in-tblw"><table class="in-tbl rp2-ol rp2-stack"><tr><th>기간</th><th>기준 전망</th><th>과거 유사 국면 결과 범위</th><th>상방 조건</th><th>하방 조건</th></tr>' + OL.map(function (r) { return "<tr><td class=\"nm\">" + rpE(r.h) + "</td><td>" + rpE(r.base) + "</td><td>" + rpE(r.range) + "</td><td>" + rpE(r.up) + "</td><td>" + rpE(r.dn) + "</td></tr>"; }).join("") + "</table></div>" +
-    '<div class="in-sc">' + sc.map(function (o, k) { return '<div class="in-scc k' + k + '"><b>' + rpE(o.nm) + "</b><p>" + rpE(o.how) + "</p><small>확인 신호</small><ul>" + o.watch.map(function (w) { return "<li>" + rpE(w) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div>" +
+  /* v9.46 시나리오 카드 3장은 인사이트 ③과 같아 뺌 — 기간 카드의 ↑/↓ 조건이 그 내용을 담는다 */
+  h += '<div class="card rp2-sec"><h3>5. 전망 <small>확률 대신 조건 — 과거 유사 국면의 결과 범위를 참고 수치로 · 시나리오 전문은 인사이트 ③</small></h3><div class="rp2-oll">' + OL.map(function (r) { return '<div class="rp2-oli"><div class="h"><b>' + rpE(r.h) + '</b><span>유사 국면 범위 ' + rpE(r.range) + '</span></div><p>' + rpE(r.base) + '</p><div class="ud"><span class="u">↑ ' + rpE(r.up) + '</span><span class="d">↓ ' + rpE(r.dn) + '</span></div></div>'; }).join("") + '</div>' +
     (function () { var exO = []; (RP2.ext || []).forEach(function (x) { (x.data.j.outlook || []).forEach(function (o) { exO.push({ t: x.data.topicNm, d: x.data.asOf, o: o }); }); }); return exO.length ? '<h4>외부 조사의 전망</h4><ul class="in-ul">' + exO.slice(0, 6).map(function (x) { return "<li><b>" + rpE(x.o.horizon) + "</b> " + rpE(x.o.base) + " <small>↑ " + rpE(x.o.cond_up) + " / ↓ " + rpE(x.o.cond_down) + '</small> <i class="fid">' + rpE(x.t + " " + x.d) + "</i></li>"; }).join("") + "</ul>" : ""; })() + "</div>";
   /* 5 대응 */
-  h += '<div class="card rp2-sec"><h3>6. 대응 전략 <small>입장별 · 주인 메모용</small></h3><div class="in-st">' + st.map(function (o) { return '<div class="in-stc"><b>' + rpE(o.who) + "</b><ul>" + o.todo.slice(0, 3).map(function (t) { return "<li>" + rpE(t) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div>" +
-    '<h4>이번 주·이번 달 확인할 것</h4><ul class="in-ul">' + sc.slice(1).map(function (o) { return o.watch.map(function (w) { return "<li>" + rpE(w) + "</li>"; }).join(""); }).join("") + "</ul></div>";
+  /* v9.46 입장별 대응은 인사이트 ②와 같은 내용 → 화면에선 접어 두고(복사·md 에는 그대로), '확인할 것'만 펼쳐 둔다 */
+  h += '<div class="card rp2-sec"><h3>6. 대응 전략 <small>입장별 · 주인 메모용</small></h3><h4>이번 주·이번 달 확인할 것</h4><ul class="in-ul rp2-watch">' + sc.slice(1).map(function (o) { return o.watch.map(function (w) { return "<li>" + rpE(w) + "</li>"; }).join(""); }).join("") + "</ul>" +
+    '<details class="in-det"><summary>입장별 할 일 ' + st.length + '가지 <small>인사이트 「어떻게 하면 좋을 것 같아?」와 같은 내용</small></summary><div class="in-st">' + st.map(function (o) { return '<div class="in-stc"><b>' + rpE(o.who) + "</b><ul>" + o.todo.slice(0, 3).map(function (t) { return "<li>" + rpE(t) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div></details></div>";
   /* 6 외부 조사 반영 + 프롬프트 */
   h += '<div class="card rp2-sec" id="rp2-ext"><h3>7. 외부 조사 — 프로그램이 모르는 것 <small>AI에게 묻고 답을 저장하면 다음 브리핑부터 재료로 쓴다</small></h3>' +
     '<div class="rp2-topics">' + RP_TOPICS.map(function (t) { var has = (RP2.ext || []).filter(function (x) { return x.data.topic === t[0]; })[0]; return '<button type="button" data-rp2t="' + t[0] + '" class="' + (RP2.topic === t[0] ? "on" : "") + '"><b>' + rpE(t[1].split(" — ")[0]) + "</b><small>" + rpE(t[1].split(" — ")[1] || "") + "</small>" + (has ? '<em>저장 ' + rpE(has.data.asOf) + "</em>" : '<em class="no">아직 없음</em>') + "</button>"; }).join("") + "</div>" +

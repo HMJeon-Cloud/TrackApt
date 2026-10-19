@@ -110,7 +110,7 @@ function deCum(ser) {
 async function kosisFind(key, validate) {
   var cands = []; if (CODES[key]) cands.push(CODES[key]); cands.push(DEF[key]);
   /* v9.45.2 전국주택가격동향조사 표는 408/DT_30404_N00xx 번호대(N0010 전환율·N0012 전월세통합지수가 거기 있었다) — 검색이 못 찾으면 번호를 훑는다 */
-  if (/^idx/.test(key)) for (var sc = 1; sc <= 16; sc++) cands.push({ orgId: "408", tblId: "DT_30404_N" + ("000" + sc).slice(-4), nm: "전국주택가격동향 후보 " + sc, scan: true });
+  if (/^idx/.test(key)) for (var sc = 1; sc <= 30; sc++) cands.push({ orgId: "408", tblId: "DT_30404_N" + ("000" + sc).slice(-4), nm: "전국주택가격동향 후보 " + sc, scan: true });
   var tried = {};
   for (var pass = 0; pass < 2; pass++) {
     if (pass === 1) {
@@ -516,3 +516,4 @@ if (require.main === module) (async function () {
   DBG.errors = out.errors; fs.writeFileSync(DEBUG_P, JSON.stringify(DBG, null, 1));
   log("완료 — 호출 " + CALLS + "회 · 오류 " + out.errors.length + "건");
 })().catch(function (e) { console.error(e); process.exit(1); });
+ 

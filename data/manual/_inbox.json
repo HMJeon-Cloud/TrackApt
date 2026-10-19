@@ -1,8 +1,21 @@
 {
  "v": 1,
- "builtAt": "2026-10-18T20:06:59.261Z",
+ "builtAt": "2026-10-19T07:57:47.484Z",
  "asOf": 20261019,
  "items": [
+  {
+   "kind": "transit",
+   "line": "GTX-B 인천대입구~마석",
+   "what": "개통 소식",
+   "date": "2026-10-19",
+   "title": "GTX-B 청학역 신설, 중앙투자심사 통과…2034년 개통",
+   "url": "https://news.google.com/rss/articles/CBMiekFVX3lxTE1iaVhwUEM4SUIxdkZSdUpUVUlxNDk1T3drRHRIcjhQMU16VV9BTF9NcGRFdVgwOXBGSkhFWUtiYnNVZ3FZZnJBMUUtN2g3QXlxS0o4dnZycGM5dERyWUg5WVM4R2JablNSa0dURlZHeGlaR1FRZkEwZmtn0gF_QVVfeXFMTi1zdDlWY2t3T2V1U1gyN0hkVENrMkktQlBwU256bWNCdWwtaFdNUllDR0o1cVgtRERlTkJWMHdaWVV3ZHUyaXZMcXFGMUl0dFlsbWZZZXI2a3lXZkc0bmVOanExcDB1dlZCaGVYUVdjcTJBZU5PaVNKcHNncGlLMA?oc=5",
+   "src": "뉴데일리",
+   "official": false,
+   "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
+   "firstSeen": "2026-10-19",
+   "isNew": true
+  },
   {
    "kind": "loan",
    "name": "버팀목 전세대출",
@@ -26,17 +39,6 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-19",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-10-15",
-   "title": "[단독] 보금자리론 채무조정 올들어 1.4만건…5년 새 4배 이상 급증",
-   "url": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE5jUU96RjIxLVBVVXk2SmZQTzEtZ1RqQ1Q4YXRLRUNKQVc1ZFFkeG9yNklwVnk4a1dRbDg1QTJWUlNQZnJRRGlmOUJ4N1Y5THFVd051bjBRNEJjUQ?oc=5",
-   "src": "한국경제",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-10-16",
    "isNew": false
   }
  ]

@@ -18,5 +18,20 @@
   "orgId": "116",
   "tblId": "DT_MLTM_2082",
   "nm": "공사완료후 미분양현황"
+ },
+ "permits": {
+  "orgId": "116",
+  "tblId": "DT_MLTM_1948",
+  "nm": "주택유형별 주택건설 인허가실적(월별 누계)"
+ },
+ "starts": {
+  "orgId": "116",
+  "tblId": "DT_MLTM_5387",
+  "nm": "주택유형별 주택건설 착공실적(월계)"
+ },
+ "completes": {
+  "orgId": "116",
+  "tblId": "DT_MLTM_5373",
+  "nm": "주택유형별 주택건설 준공실적(월계)"
  }
 }

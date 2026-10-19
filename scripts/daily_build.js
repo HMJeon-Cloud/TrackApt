@@ -56,20 +56,61 @@ async function kosisProbe(c, months) {
   return null;
 }
 /* 표 찾기: 기억한 코드 → 기본 코드 → 이름 검색 후보 순으로 1개월치를 받아 보고, validate 를 통과하는 첫 표를 쓴다 */
-var DEF_SEARCH = { unsold: ["미분양주택현황", /미분양주택현황/], unsoldDone: ["공사완료후 미분양", /공사완료후.*미분양|준공.*미분양/], idxSale: ["아파트 매매가격지수", /매매가격지수/], idxRent: ["아파트 전세가격지수", /전세가격지수/],
-  permits: ["주택건설인허가실적", /인허가/], starts: ["주택착공실적", /착공/], completes: ["주택준공실적", /준공/] };
+/* v9.45 검색어는 여러 개(합쳐서 후보 20개까지) — 10.19 실행 로그: 408 기관 표는 '주간(WEEK)'·'전월세전환율'만 잡혔고 월간 시도별 표는 검색어 하나로는 안 나왔다 */
+var DEF_SEARCH = { unsold: [["미분양주택현황"], /미분양주택현황/], unsoldDone: [["공사완료후 미분양"], /공사완료후.*미분양|준공.*미분양/],
+  idxSale: [["아파트 매매가격지수", "아파트매매가격지수", "월간 아파트 매매가격지수", "매매가격지수 지역별", "전국주택가격동향조사 매매가격지수"], /매매가격지수/],
+  idxRent: [["아파트 전세가격지수", "아파트전세가격지수", "월간 아파트 전세가격지수", "전세가격지수 지역별", "전국주택가격동향조사 전세가격지수"], /전세가격지수/],
+  permits: [["주택건설인허가실적", "주택 인허가실적", "인허가실적 월별"], /인허가/], starts: [["주택착공실적", "주택 착공실적", "착공실적 월별"], /착공/], completes: [["주택준공실적", "주택 준공실적", "준공실적 월별"], /준공/] };
+var K_BAD_NM = /주간|연령|규모|변동률|증감률|월세|전환율|통합|평균가격|중위/;
+/* ── 표 모양에 기대지 않는 행 고르기(v9.45) ──
+   10.19 로그에서 본 것: 지역이 C1 이 아니라 C3 에 있는 표(착공실적/총계·총계·전국), 주택유형이 ITM 에 있는 표(계/전국, 아파트/전국), '총 계'처럼 띄어 쓴 합계.
+   그래서 행의 모든 분류(ITM_NM·C1~C4)를 훑어 ① 지역 칸 하나를 찾고 ② 나머지 칸은 합계(또는 want='아파트' 한 칸)여야 한다. ITM 값이 표 전체에서 하나뿐이면(지표 이름) 무시. */
+var K_TOT = /^(총\s*합|총\s*계|계|합\s*계|소\s*계|전\s*체|종\s*합)$/;
+function kDims(r) { return [["ITM", r.ITM_NM], ["C1", r.C1_NM], ["C2", r.C2_NM], ["C3", r.C3_NM], ["C4", r.C4_NM]].filter(function (d) { return d[1] != null && String(d[1]).trim() !== ""; }).map(function (d) { return [d[0], String(d[1]).trim()]; }); }
+function kItmSingle(rows) { var m = {}; rows.forEach(function (r) { m[String(r.ITM_NM || "")] = 1; }); return Object.keys(m).length <= 1; }
+function kIsRegion(v, region) { return region === "전국" ? /^(전국|전\s*국)$/.test(v) : sidoNm(v) === region; }
+function kRowIs(r, region, want, itmSingle) {
+  var D = kDims(r).filter(function (d) { return !(itmSingle && d[0] === "ITM"); });
+  var ri = -1; D.forEach(function (d, i) { if (ri < 0 && kIsRegion(d[1], region)) ri = i; });
+  if (ri < 0 && region === "전국") D.forEach(function (d, i) { if (ri < 0 && K_TOT.test(d[1]) && d[0] !== "ITM") ri = i; });   /* '전국' 칸이 없으면 지역 칸의 '계' 를 전국으로 */
+  if (ri < 0) return false;
+  var hitWant = false;
+  for (var i = 0; i < D.length; i++) { if (i === ri) continue; var v = D[i][1]; if (want && !hitWant && v === want) { hitWant = true; continue; } if (K_TOT.test(v)) continue; return false; }
+  return !want || hitWant;
+}
+function kHasRegion(rows, region) { return rows.some(function (r) { return kDims(r).some(function (d) { return kIsRegion(d[1], region); }); }); }
+function kSer(rows, region, want) { var single = kItmSingle(rows); var a = seriesOf(rows, function (r) { return kRowIs(r, region, want, single); }); return a.length ? a : null; }
+/* 40,000셀 제한 — 지역이 아닌 분류 단은 '계'(와 '아파트') 코드만 청한다. objL 은 code1+code2 로 여러 개 가능 */
+function kNarrow(rows) {
+  var over = {};
+  [1, 2, 3, 4].forEach(function (k) { var nmK = "C" + k + "_NM", cdK = "C" + k, vals = {}; rows.forEach(function (r) { if (r[nmK] != null && r[cdK] != null) vals[String(r[nmK]).trim()] = String(r[cdK]); }); var names = Object.keys(vals); if (!names.length) return;
+    if (names.some(function (v) { return sidoNm(v) === "서울"; })) return;   /* 지역 단은 전부 */
+    var pick = names.filter(function (v) { return K_TOT.test(v) || /^(전국|전\s*국)$/.test(v) || v === "아파트"; }).map(function (v) { return vals[v]; });
+    if (pick.length && pick.length < names.length) over["objL" + k] = pick.join("+"); });
+  return Object.keys(over).length ? over : null;
+}
+/* 누계 표 → 월값. 한 해 안에서 거의 늘기만 하고 1월에 뚝 떨어지면 누계로 보고 차분한다 */
+function deCum(ser) {
+  if (!ser || ser.length < 14) return { ser: ser, cum: false };
+  var inc = 0, dec = 0, janDrop = 0, jan = 0;
+  for (var i = 1; i < ser.length; i++) { var m = ser[i][0] % 100; if (m === 1) { jan++; if (ser[i][1] < ser[i - 1][1] * 0.5) janDrop++; } else if (ser[i][1] >= ser[i - 1][1]) inc++; else dec++; }
+  if (!(jan && janDrop === jan && inc >= (inc + dec) * 0.9)) return { ser: ser, cum: false };
+  var out = ser.map(function (p, i) { return [p[0], p[0] % 100 === 1 || i === 0 ? p[1] : Math.max(0, p[1] - ser[i - 1][1])]; });
+  return { ser: out, cum: true };
+}
 async function kosisFind(key, validate) {
   var cands = []; if (CODES[key]) cands.push(CODES[key]); cands.push(DEF[key]);
   var tried = {};
   for (var pass = 0; pass < 2; pass++) {
     if (pass === 1) {
-      var sr = DEF_SEARCH[key], found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: sr[0] }));
-      var list = (kArr(found) || []).filter(function (x) { return sr[1].test(x.TBL_NM || ""); });
-      var score = function (x) { var nm = x.TBL_NM || ""; return (String(x.ORG_ID) === String(DEF[key].orgId) ? 4 : 0) + (/아파트/.test(nm) ? 2 : 0) + (/시도|시·도|지역별/.test(nm) ? 1 : 0) - (/주간|연령|규모|변동률|증감률|월세|전환율|통합|평균가격|중위/.test(nm) ? 8 : 0); };
+      var sr = DEF_SEARCH[key], list = [], seen = {}, lastErr = "";
+      for (var qi = 0; qi < sr[0].length; qi++) { var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: sr[0][qi] })); var arr = kArr(found); if (!arr) { lastErr = kErr(found); continue; } arr.forEach(function (x) { var id = x.ORG_ID + "/" + x.TBL_ID; if (seen[id] || !sr[1].test(x.TBL_NM || "")) return; seen[id] = 1; list.push(x); }); }
+      var score = function (x) { var nm = x.TBL_NM || "", id = String(x.TBL_ID || ""); return (String(x.ORG_ID) === String(DEF[key].orgId) ? 4 : 0) + (/아파트/.test(nm) ? 2 : 0) + (/시도|시·도|지역별|월간|월별/.test(nm) ? 2 : 0) - (K_BAD_NM.test(nm) ? 8 : 0) - (/누계/.test(nm) ? 3 : 0) - (/WEEK|_W_|주간/i.test(id) ? 8 : 0); };
       list.sort(function (a, b) { return score(b) - score(a); });
-      DBG[key + "Search"] = list.slice(0, 10).map(function (x) { return x.ORG_ID + "/" + x.TBL_ID + " " + x.TBL_NM; });
-      if (!list.length) log("KOSIS 검색 결과 없음 " + sr[0] + ": " + kErr(found));
-      cands = list.slice(0, 8).map(function (x) { return { orgId: x.ORG_ID, tblId: x.TBL_ID, nm: x.TBL_NM }; });
+      DBG[key + "Search"] = list.slice(0, 30).map(function (x) { return x.ORG_ID + "/" + x.TBL_ID + " " + x.TBL_NM; });
+      log("KOSIS " + key + " 검색 후보 " + list.length + "개: " + list.slice(0, 12).map(function (x) { return x.ORG_ID + "/" + x.TBL_ID + " " + (x.TBL_NM || "").slice(0, 28); }).join(" | "));
+      if (!list.length) log("KOSIS 검색 결과 없음 " + sr[0].join(",") + ": " + lastErr);
+      cands = list.filter(function (x) { return score(x) > -4; }).slice(0, 12).map(function (x) { return { orgId: x.ORG_ID, tblId: x.TBL_ID, nm: x.TBL_NM }; });
     }
     for (var i = 0; i < cands.length; i++) {
       var c = cands[i], id = c.orgId + "/" + c.tblId; if (tried[id]) continue; tried[id] = 1;
@@ -87,7 +128,7 @@ function seriesOf(rows, filt) {
 }
 async function kosisSeries(key, validate, months, narrow) {
   var f = await kosisFind(key, validate); if (!f) { log("KOSIS " + key + " 쓸 수 있는 표를 못 찾음"); return null; }
-  var over = { newEstPrdCnt: String(months) }, nr = narrow ? narrow(f.p.rows) : null; if (nr) Object.keys(nr).forEach(function (k) { over[k] = nr[k]; });
+  var over = { newEstPrdCnt: String(months) }, nr = narrow ? narrow(f.p.rows) : kNarrow(f.p.rows); if (nr) { Object.keys(nr).forEach(function (k) { over[k] = nr[k]; }); log("KOSIS " + key + " 좁혀 받기: " + JSON.stringify(nr)); }
   var rows = null, tries = [months, 12, 6];
   for (var ti = 0; ti < tries.length && !rows; ti++) {
     over.newEstPrdCnt = String(tries[ti]);
@@ -135,35 +176,36 @@ async function priceIndex() {
   var out = {};
   for (var kk = 0; kk < 2; kk++) {
     var key = kk ? "idxRent" : "idxSale", re = kk ? /전세가격지수/ : /매매가격지수/;
-    var s = await kosisSeries(key, function (rows) { if (!(String(rows[0].PRD_DE || "").length === 6 && rows.some(function (r) { return /^(전국|수도권)$/.test(c1(r)) && re.test(r.ITM_NM || "") && !/증감|변동|평균|중위/.test(r.ITM_NM || ""); }))) return false;
-      /* v9.44 서울 행이 있고 최신 달이 4개월 안인 표만 — 전국만 있거나 늦게 갱신되는 표(e-나라지표)는 거른다 */
-      if (!rows.some(function (r) { return sidoNm(c1(r)) === "서울"; })) { log("KOSIS " + key + " 후보에 서울 행 없음"); return false; }
-      if (!kFresh(rows, 4)) { log("KOSIS " + key + " 후보 최신 달 " + kLatest(rows) + " — 너무 오래됨"); return false; }
+    var s = await kosisSeries(key, function (rows) {
+      if (String(rows[0].PRD_DE || "").length !== 6) return false;
+      if (K_BAD_NM.test(rows[0].TBL_NM || "") || /WEEK/i.test(rows[0].TBL_ID || "")) { log("KOSIS " + key + " 후보 " + rows[0].TBL_ID + " 는 주간·규모별·전환율 표"); return false; }
+      if (!rows.some(function (r) { return re.test((r.ITM_NM || "") + (r.TBL_NM || "")) && !/증감|변동|평균|중위/.test(r.ITM_NM || ""); })) return false;
+      if (!kHasRegion(rows, "서울")) { log("KOSIS " + key + " 후보 " + rows[0].TBL_ID + " 에 서울 행 없음"); return false; }
+      if (!kFresh(rows, 4)) { log("KOSIS " + key + " 후보 " + rows[0].TBL_ID + " 최신 달 " + kLatest(rows) + " — 너무 오래됨"); return false; }
       return true; }, 25);
     if (!s) continue;
-    var R = s.rows, idxRow = function (nm) { return function (r) { return (c1(r) === nm || sidoNm(c1(r)) === nm) && restAll(r) && re.test(r.ITM_NM || "") && !/증감|변동/.test(r.ITM_NM || ""); }; };
-    var g = function (nm) { var a = seriesOf(R, idxRow(nm)); return a.length ? a : null; };
+    var R = s.rows.filter(function (r) { return !/증감|변동|평균|중위/.test(r.ITM_NM || ""); });
+    var g = function (nm) { return kSer(R, nm, null) || kSer(R, nm, "아파트"); };
     out[kk ? "rent" : "sale"] = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), ic: g("인천"), busan: g("부산"), daegu: g("대구"), daejeon: g("대전"), ulsan: g("울산"), sejong: g("세종"), gwangju: g("광주"), src: s.nm };
+    if (!out[kk ? "rent" : "sale"].seoul) log("KOSIS " + key + " 서울 행을 못 골라냄 — 표본: " + R.slice(0, 3).map(function (r) { return r.ITM_NM + "/" + kNames(r); }).join(", "));
   }
   return Object.keys(out).length ? out : null;
 }
-
-/* v9.44 공급 파이프라인 — 인허가·착공·준공(월, 호). 전체 주택 '계' 행을 쓰고, 아파트 행이 따로 있으면 apt 로 같이 둔다. 못 찾으면 null(앱은 외부 조사 항목으로 남긴다) */
+/* v9.44 공급 파이프라인 — 인허가·착공·준공(월, 호). v9.45: 표 모양에 기대지 않는 행 고르기(kRowIs) · 40,000셀은 '계' 코드로 좁혀 받기 · 누계 표는 차분해서 월값으로 */
 async function supply() {
   if (!KOSIS) return null;
   var out = {}, keys = ["permits", "starts", "completes"];
   for (var ki = 0; ki < keys.length; ki++) {
     var key = keys[ki];
     try {
-      var s = await kosisSeries(key, function (rows) { return String(rows[0].PRD_DE || "").length === 6 && rows.some(function (r) { return sidoNm(c1(r)) === "서울"; }) && rows.some(function (r) { return /^(전국|계|합계|총계)$/.test(c1(r)); }) && kFresh(rows, 5); }, 37);
+      var s = await kosisSeries(key, function (rows) { return String(rows[0].PRD_DE || "").length === 6 && kHasRegion(rows, "서울") && (kHasRegion(rows, "전국") || rows.some(function (r) { return kDims(r).some(function (d) { return d[0] !== "ITM" && K_TOT.test(d[1]); }); })) && kFresh(rows, 5); }, 37);
       if (!s) continue;
-      var R = s.rows, tot = function (r) { return [r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).every(function (x) { return /^(총합|계|합계|소계|전체|종합)$/.test(String(x).trim()); }); };
-      var apt = function (r) { var L = [r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).map(function (x) { return String(x).trim(); }); return L.indexOf("아파트") >= 0 && L.every(function (x) { return /^(총합|계|합계|소계|전체|종합|아파트)$/.test(x); }); };
-      var g = function (nm, f) { var a = seriesOf(R, function (r) { return (nm === "전국" ? /^(전국|계|합계|총계)$/.test(c1(r)) : sidoNm(c1(r)) === nm) && f(r); }); return a.length ? a : null; };
-      var o = { all: g("전국", tot), seoul: g("서울", tot), gg: g("경기", tot), ic: g("인천", tot), src: s.nm };
+      var R = s.rows, cum = false, g = function (nm, want) { var a = kSer(R, nm, want); if (!a) return null; var d = deCum(a); if (d.cum) cum = true; return d.ser; };
+      var o = { all: g("전국"), seoul: g("서울"), gg: g("경기"), ic: g("인천") };
       if (o.seoul && o.gg && o.ic) o.cap = sumSeries([o.seoul, o.gg, o.ic]);
-      var aa = g("전국", apt), as = g("서울", apt); if (aa || as) o.apt = { all: aa, seoul: as, gg: g("경기", apt) };
-      if (o.all || o.seoul) out[key] = o;
+      var aa = g("전국", "아파트"), as = g("서울", "아파트"); if (aa || as) o.apt = { all: aa, seoul: as, gg: g("경기", "아파트") };
+      o.src = s.nm + (cum ? "(누계→월)" : ""); if (cum) log("KOSIS " + key + " 는 누계 표 → 월값으로 차분");
+      if (o.all || o.seoul) out[key] = o; else log("KOSIS " + key + " 행을 못 골라냄 — 표본: " + R.slice(0, 4).map(function (r) { return r.ITM_NM + "/" + kNames(r); }).join(", "));
     } catch (e) { log("KOSIS " + key + " 실패: " + e.message); }
   }
   return Object.keys(out).length ? out : null;
@@ -435,7 +477,7 @@ function rSummary(H) {
   });
   return out;
 }
-if (require.main !== module) module.exports = { subsCompare: subsCompare, subsCode: subsCode, rSummary: rSummary, fssByCo: fssByCo, warnings: warnings, sumSeries: sumSeries, sidoNm: sidoNm, kMonthsAgo: kMonthsAgo };
+if (require.main !== module) module.exports = { subsCompare: subsCompare, subsCode: subsCode, rSummary: rSummary, fssByCo: fssByCo, warnings: warnings, sumSeries: sumSeries, sidoNm: sidoNm, kMonthsAgo: kMonthsAgo, kRowIs: kRowIs, kSer: kSer, kNarrow: kNarrow, deCum: deCum, kHasRegion: kHasRegion };
 
 if (require.main === module) (async function () {
   /* v9.37 ONLY=subs — 오후 추가 실행: 청약만 새로 받고 나머지(미분양·지수·금리)는 새벽 수집분을 그대로 둔다(호출 최소) */

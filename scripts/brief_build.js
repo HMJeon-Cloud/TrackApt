@@ -425,6 +425,7 @@ async function summarize(lawd, today) {
   var oddW = dropOdd(lawd, busyRent(wolCur, true), rentAll, "월세", thisYear);
   return {
     count: cur.length, prevCount: prv.length, weekCount: week, rentCount: rentCur.length, wolCount: wolCur.length, _tk: tk,
+    byDay: (function () { var m = {}; cur.forEach(function (t) { var d = dnum(t); m[d] = (m[d] || 0) + 1; }); return m; })(),   /* v9.45 계약일별 건수 — 신고 지연이 큰 최근 열흘을 뺀 신고가 비율 계산용 */
     dayOut: sale.filter(function (t) { return dnum(t) === d0; }).length,      /* v8.2: 어제 창에는 있었는데 오늘 창에서 빠진 날(30일 전)의 거래 수 — 하루 새 신고 추정용 */
     busyJ: oddJ.keep, busyW: oddW.keep, busyOdd: oddS.odd.concat(oddJ.odd, oddW.odd),
     pm: median(curP.map(function (t) { return t.amount / t.area; })),

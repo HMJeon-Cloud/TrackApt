@@ -51,15 +51,16 @@ function kArr(j) { return Array.isArray(j) ? j : (j && Array.isArray(j.list) ? j
 function kErr(j) { return j ? (j.errMsg || j.err || (j._raw ? j._raw.slice(0, 120) : JSON.stringify(j).slice(0, 120))) : "빈 응답"; }
 function kNames(r) { return [r.C1_NM, r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).join(" "); }
 async function kosisProbe(c, months) {
-  function q(n, over) { var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: "ALL", prdSe: "M", newEstPrdCnt: String(months || 1) }; for (var k = 1; k <= n; k++) o["objL" + k] = "ALL"; Object.keys(over || {}).forEach(function (k) { o[k] = over[k]; }); return o; }
+  function q(n, over) { var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: "ALL", prdSe: c.prdSe || "M", newEstPrdCnt: String(months || 1) }; for (var k = 1; k <= n; k++) o["objL" + k] = "ALL"; Object.keys(over || {}).forEach(function (k) { o[k] = over[k]; }); return o; }
   for (var n = 1; n <= 5; n++) { var j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n))); var a = kArr(j); if (a && a.length) return { rows: a, nLev: n, q: q }; if (!/objL/.test(kErr(j))) log("KOSIS " + c.nm + " 탐색 " + n + "단계: " + kErr(j)); }   /* objL 누락은 분류 단수를 더듬는 정상 과정 */
   return null;
 }
 /* 표 찾기: 기억한 코드 → 기본 코드 → 이름 검색 후보 순으로 1개월치를 받아 보고, validate 를 통과하는 첫 표를 쓴다 */
 /* v9.45 검색어는 여러 개(합쳐서 후보 20개까지) — 10.19 실행 로그: 408 기관 표는 '주간(WEEK)'·'전월세전환율'만 잡혔고 월간 시도별 표는 검색어 하나로는 안 나왔다 */
 var DEF_SEARCH = { unsold: [["미분양주택현황"], /미분양주택현황/], unsoldDone: [["공사완료후 미분양"], /공사완료후.*미분양|준공.*미분양/],
-  idxSale: [["아파트 매매가격지수", "아파트매매가격지수", "월간 아파트 매매가격지수", "매매가격지수 지역별", "전국주택가격동향조사 매매가격지수"], /매매가격지수/],
-  idxRent: [["아파트 전세가격지수", "아파트전세가격지수", "월간 아파트 전세가격지수", "전세가격지수 지역별", "전국주택가격동향조사 전세가격지수"], /전세가격지수/],
+  /* v9.45.3 10.19 3차 로그: 전국주택가격동향(월간) 폴더의 표 이름은 '유형별 매매가격지수'·'유형별 전세가격지수'(아파트 행은 유형 칸에) — '아파트'가 이름에 없어 검색에 안 잡혔다 */
+  idxSale: [["유형별 매매가격지수", "매매가격지수", "아파트 매매가격지수", "아파트매매가격지수"], /매매가격지수/],
+  idxRent: [["유형별 전세가격지수", "전세가격지수", "아파트 전세가격지수", "아파트전세가격지수"], /전세가격지수/],
   permits: [["주택건설인허가실적", "주택 인허가실적", "인허가실적 월별"], /인허가/], starts: [["주택착공실적", "주택 착공실적", "착공실적 월별"], /착공/], completes: [["주택준공실적", "주택 준공실적", "준공실적 월별"], /준공/] };
 var K_BAD_NM = /주간|연령|규모|변동률|증감률|월세|전환율|통합|평균가격|중위/;
 /* ── 표 모양에 기대지 않는 행 고르기(v9.45) ──
@@ -74,7 +75,8 @@ function kIsRegion(v, region) { return region === "전국" ? /^(전국|전\s*국
 function kRowIs(r, region, want, itmSingle) {
   var D = kDims(r).filter(function (d) { return !(itmSingle && d[0] === "ITM"); });
   var ri = -1; D.forEach(function (d, i) { if (ri < 0 && kIsRegion(d[1], region)) ri = i; });
-  if (ri < 0 && region === "전국") D.forEach(function (d, i) { if (ri < 0 && kTot(d[1]) && d[0] !== "ITM") ri = i; });   /* '전국' 칸이 없으면 지역 칸의 '계' 를 전국으로 */
+  /* '전국' 칸이 없으면 '첫 분류 칸'(지역 단)이 계/총계인 행만 전국으로 — v9.45.3: 아무 단의 '계'나 잡으면 (제주, 계, 계, 계) 같은 행이 전국으로 둔갑한다(3차 실행에서 전국 착공이 239호로 나온 원인) */
+  if (ri < 0 && region === "전국") { var c0 = -1; D.forEach(function (d, i) { if (c0 < 0 && d[0] !== "ITM") c0 = i; }); if (c0 >= 0 && kTot(D[c0][1])) ri = c0; }
   if (ri < 0) return false;
   var hitWant = false;
   for (var i = 0; i < D.length; i++) { if (i === ri) continue; var v = D[i][1];
@@ -115,8 +117,10 @@ async function kosisFind(key, validate) {
   for (var pass = 0; pass < 2; pass++) {
     if (pass === 1) {
       var sr = DEF_SEARCH[key], list = [], seen = {}, lastErr = "";
-      for (var qi = 0; qi < sr[0].length; qi++) { var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: sr[0][qi] })); var arr = kArr(found); if (!arr) { lastErr = kErr(found); continue; } if (!DBG.searchKeys && arr[0]) DBG.searchKeys = Object.keys(arr[0]); arr.forEach(function (x) { var id = x.ORG_ID + "/" + x.TBL_ID; x._path = [x.MT_ATITLE, x.STAT_NM, x.VW_NM].filter(Boolean).join(" > "); if (seen[id] || !sr[1].test(x.TBL_NM || "")) return; if (/오피스텔|상업용|임대|지가|토지|공동주택실거래/.test(x._path + " " + x.TBL_NM)) return; seen[id] = 1; list.push(x); }); }
-      var score = function (x) { var nm = x.TBL_NM || "", id = String(x.TBL_ID || ""); return (String(x.ORG_ID) === String(DEF[key].orgId) ? 4 : 0) + (/아파트/.test(nm) ? 2 : 0) + (/시도|시·도|지역별|월간|월별/.test(nm) ? 2 : 0) - (K_BAD_NM.test(nm) ? 8 : 0) - (/누계/.test(nm) ? 3 : 0) - (/WEEK|_W_|주간/i.test(id) ? 8 : 0); };
+      for (var qi = 0; qi < sr[0].length; qi++) { var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: sr[0][qi] })); var arr = kArr(found); if (!arr) { lastErr = kErr(found); continue; } if (!DBG.searchKeys && arr[0]) DBG.searchKeys = Object.keys(arr[0]); arr.forEach(function (x) { var id = x.ORG_ID + "/" + x.TBL_ID; x._path = [x.MT_ATITLE, x.STAT_NM, x.VW_NM].filter(Boolean).join(" > "); if (seen[id] || !sr[1].test(x.TBL_NM || "")) return; if (/오피스텔|상업용|임대|지가|토지|공동주택실거래/.test(x._path + " " + x.TBL_NM)) return;
+          var end = String(x.END_PRD_DE || ""); if (end.length === 6 && kMonthsAgo(Number(end)) > 6) { DBG[key + "Old"] = (DBG[key + "Old"] || []).concat([id + " ~" + end]); return; }   /* 검색 결과의 마지막 수록 달이 6개월 넘게 지난 표는 열어 보지 않는다(호출 절약) */
+          seen[id] = 1; list.push(x); }); }
+      var score = function (x) { var nm = x.TBL_NM || "", id = String(x.TBL_ID || ""), pt = x._path || ""; return (String(x.ORG_ID) === String(DEF[key].orgId) ? 4 : 0) + (/아파트|유형별/.test(nm) ? 2 : 0) + (/시도|시·도|지역별|월간|월별/.test(nm) ? 2 : 0) + (/전국주택가격동향|주택건설실적/.test(pt) ? 3 : 0) - (K_BAD_NM.test(nm) ? 8 : 0) - (/누계/.test(nm) ? 3 : 0) - (/WEEK|_W_|주간/i.test(id + pt) ? 8 : 0); };
       list.sort(function (a, b) { return score(b) - score(a); });
       DBG[key + "Search"] = list.slice(0, 30).map(function (x) { return x.ORG_ID + "/" + x.TBL_ID + " " + x.TBL_NM; });
       log("KOSIS " + key + " 검색 후보 " + list.length + "개: " + list.slice(0, 12).map(function (x) { return x.ORG_ID + "/" + x.TBL_ID + " " + (x.TBL_NM || "").slice(0, 28) + (x._path ? " [" + x._path.slice(0, 40) + "]" : ""); }).join(" | "));
@@ -220,6 +224,7 @@ async function supply() {
       if (!s) continue;
       var R = s.rows, cum = false, g = function (nm, want) { var a = kSer(R, nm, want); if (!a) return null; var d = deCum(a); if (d.cum) cum = true; return d.ser; };
       var o = { all: g("전국"), seoul: g("서울"), gg: g("경기"), ic: g("인천") };
+      if (o.all && o.seoul) { var bad = o.all.filter(function (p) { var q = o.seoul.filter(function (x) { return x[0] === p[0]; })[0]; return q && q[1] > p[1]; }).length; if (bad) { log("KOSIS " + key + " 전국 < 서울 인 달이 " + bad + "개 — 전국 행을 잘못 고른 것, 전국 값 버림"); o.all = null; } }
       if (o.seoul && o.gg && o.ic) o.cap = sumSeries([o.seoul, o.gg, o.ic]);
       var aa = g("전국", "아파트"), as = g("서울", "아파트"); if (aa || as) o.apt = { all: aa, seoul: as, gg: g("경기", "아파트") };
       o.src = s.nm + (cum ? "(누계→월)" : ""); if (cum) log("KOSIS " + key + " 는 누계 표 → 월값으로 차분");
@@ -240,6 +245,26 @@ function warnings(out) {
   chk("준공", last(out.supply && out.supply.completes && out.supply.completes.all), 5, "KOSIS 주택건설실적 표 못 찾음 → 외부 조사");
   if (out.index && out.index.sale && !out.index.sale.seoul) W.push({ src: "부동산원 매매지수", msg: "서울 값 없음(전국만) — 서울 신호 F5 제외" });
   return W.filter(function (w) { return w.msg || w.at; });
+}
+/* v9.45.3 주간 아파트 매매가격지수 — R-ONE 이 안 되면 KOSIS(408/DT_304004_WEEK_002_*, 주기 '일'로 등록돼 있어 prdSe=D)로. 3차 실행 검색 결과에서 확인한 표 */
+async function weeklyKosis() {
+  if (!KOSIS) return null;
+  try {
+    var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: "주간 아파트 매매가격지수" })), arr = kArr(found) || [];
+    var cands = arr.filter(function (x) { return /^주간 아파트 매매가격지수$/.test(String(x.TBL_NM || "").trim()) && String(x.ORG_ID) === "408"; }).sort(function (a, b) { return String(b.END_PRD_DE || "").localeCompare(String(a.END_PRD_DE || "")); });
+    if (!cands.length) { log("KOSIS 주간 표 없음"); return null; }
+    var today = kst(), lim = Number(new Date(Date.UTC(Math.floor(today / 10000), Math.floor(today / 100) % 100 - 1, today % 100) - 21 * 86400000).toISOString().slice(0, 10).replace(/-/g, ""));
+    for (var i = 0; i < Math.min(3, cands.length); i++) {
+      var c = { orgId: "408", tblId: cands[i].TBL_ID, nm: cands[i].TBL_NM, prdSe: "D" }, p = await kosisProbe(c, 1); if (!p) continue;
+      var latest = kLatest(p.rows); if (String(latest).length !== 8 || latest < lim) { log("KOSIS 주간 " + c.tblId + " 최신 " + latest + " — 오래됨"); continue; }
+      if (!kHasRegion(p.rows, "서울")) continue;
+      var j = await getJson(kosisUrl("Param/statisticsParameterData.do", p.q(p.nLev, { newEstPrdCnt: "60" }))), rows = kArr(j); if (!rows) { log("KOSIS 주간 2차 실패: " + kErr(j)); continue; }
+      var R = rows.filter(function (r) { return !/변동률|증감/.test(r.ITM_NM || ""); }), g = function (nm) { return kSer(R, nm, null); };
+      var out = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), src: "한국부동산원 주간아파트가격동향 (KOSIS " + c.tblId + ")" + (R[0] && R[0].UNIT_NM ? " · 기준 " + String(R[0].UNIT_NM).replace(/＝/g, "=") : ""), tbl: c.tblId };
+      if (out.seoul) { CODES.weeklyKosis = c; log("KOSIS 주간 표 선택: " + c.tblId + " ~" + latest); return out; }
+    }
+  } catch (e) { log("KOSIS 주간 실패: " + e.message); }
+  return null;
 }
 /* R-ONE 주간 지수 (선택) */
 async function weekly() {
@@ -505,7 +530,7 @@ if (require.main === module) (async function () {
   await step("unsold", unsold);
   await step("index", priceIndex);
   await step("supply", supply);
-  await step("weekly", weekly);
+  await step("weekly", async function () { var w = await weekly(); return w || await weeklyKosis(); });
   await step("subs", subs);
   await step("rates", rates);
   if (ONLY) { out.calls = (prevOut && prevOut.calls || 0) + CALLS; out.subsAt = new Date().toISOString(); } else out.calls = CALLS;
@@ -516,4 +541,3 @@ if (require.main === module) (async function () {
   DBG.errors = out.errors; fs.writeFileSync(DEBUG_P, JSON.stringify(DBG, null, 1));
   log("완료 — 호출 " + CALLS + "회 · 오류 " + out.errors.length + "건");
 })().catch(function (e) { console.error(e); process.exit(1); });
- 

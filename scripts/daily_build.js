@@ -65,7 +65,7 @@ var K_BAD_NM = /주간|연령|규모|변동률|증감률|월세|전환율|통합
 /* ── 표 모양에 기대지 않는 행 고르기(v9.45) ──
    10.19 로그에서 본 것: 지역이 C1 이 아니라 C3 에 있는 표(착공실적/총계·총계·전국), 주택유형이 ITM 에 있는 표(계/전국, 아파트/전국), '총 계'처럼 띄어 쓴 합계.
    그래서 행의 모든 분류(ITM_NM·C1~C4)를 훑어 ① 지역 칸 하나를 찾고 ② 나머지 칸은 합계(또는 want='아파트' 한 칸)여야 한다. ITM 값이 표 전체에서 하나뿐이면(지표 이름) 무시. */
-var K_TOT = /^(총\s*합|총\s*계|계|합\s*계|소\s*계|전\s*체|종\s*합)$/;
+var K_TOT = /^(총\s*합\s*계?|총\s*계|계|합\s*계|소\s*계|전\s*체|종\s*합|주택\s*계|전\s*주택|총\s*주택|주택\s*합계|총\s*호수)$/;
 function kDims(r) { return [["ITM", r.ITM_NM], ["C1", r.C1_NM], ["C2", r.C2_NM], ["C3", r.C3_NM], ["C4", r.C4_NM]].filter(function (d) { return d[1] != null && String(d[1]).trim() !== ""; }).map(function (d) { return [d[0], String(d[1]).trim()]; }); }
 function kItmSingle(rows) { var m = {}; rows.forEach(function (r) { m[String(r.ITM_NM || "")] = 1; }); return Object.keys(m).length <= 1; }
 function kIsRegion(v, region) { return region === "전국" ? /^(전국|전\s*국)$/.test(v) : sidoNm(v) === region; }
@@ -86,9 +86,13 @@ function kNarrow(rows) {
   [1, 2, 3, 4].forEach(function (k) { var nmK = "C" + k + "_NM", cdK = "C" + k, vals = {}; rows.forEach(function (r) { if (r[nmK] != null && r[cdK] != null) vals[String(r[nmK]).trim()] = String(r[cdK]); }); var names = Object.keys(vals); if (!names.length) return;
     if (names.some(function (v) { return sidoNm(v) === "서울"; })) return;   /* 지역 단은 전부 */
     var pick = names.filter(function (v) { return K_TOT.test(v) || /^(전국|전\s*국)$/.test(v) || v === "아파트"; }).map(function (v) { return vals[v]; });
+    /* v9.45.1 합계 이름을 못 알아보면 그 단의 가장 앞 코드(KOSIS 는 '계'를 보통 맨 앞에 둔다)도 같이 청한다 — 행 고르기(kRowIs)가 이름을 다시 보므로 틀린 값이 들어가진 않는다 */
+    if (!names.some(function (v) { return K_TOT.test(v) || /^(전국|전\s*국)$/.test(v); })) { var first = names.map(function (v) { return vals[v]; }).sort()[0]; if (first && pick.indexOf(first) < 0) pick.push(first); }
     if (pick.length && pick.length < names.length) over["objL" + k] = pick.join("+"); });
   return Object.keys(over).length ? over : null;
 }
+/* 표의 분류 단마다 어떤 이름들이 있는지 — 로그·debug 로 남겨 다음에 규칙을 맞출 수 있게 */
+function kLevels(rows) { var out = {}; ["ITM_NM", "C1_NM", "C2_NM", "C3_NM", "C4_NM"].forEach(function (k) { var m = {}; rows.forEach(function (r) { if (r[k] != null && String(r[k]).trim()) m[String(r[k]).trim()] = 1; }); var L = Object.keys(m); if (L.length) out[k] = L.slice(0, 14).join("/") + (L.length > 14 ? " …" + L.length : ""); }); return out; }
 /* 누계 표 → 월값. 한 해 안에서 거의 늘기만 하고 1월에 뚝 떨어지면 누계로 보고 차분한다 */
 function deCum(ser) {
   if (!ser || ser.length < 14) return { ser: ser, cum: false };
@@ -128,7 +132,7 @@ function seriesOf(rows, filt) {
 }
 async function kosisSeries(key, validate, months, narrow) {
   var f = await kosisFind(key, validate); if (!f) { log("KOSIS " + key + " 쓸 수 있는 표를 못 찾음"); return null; }
-  var over = { newEstPrdCnt: String(months) }, nr = narrow ? narrow(f.p.rows) : kNarrow(f.p.rows); if (nr) { Object.keys(nr).forEach(function (k) { over[k] = nr[k]; }); log("KOSIS " + key + " 좁혀 받기: " + JSON.stringify(nr)); }
+  var over = { newEstPrdCnt: String(months) }, nr = narrow ? narrow(f.p.rows) : kNarrow(f.p.rows); DBG[key + "Levels"] = kLevels(f.p.rows); log("KOSIS " + key + " 분류 단: " + JSON.stringify(DBG[key + "Levels"])); if (nr) { Object.keys(nr).forEach(function (k) { over[k] = nr[k]; }); log("KOSIS " + key + " 좁혀 받기: " + JSON.stringify(nr)); }
   var rows = null, tries = [months, 12, 6];
   for (var ti = 0; ti < tries.length && !rows; ti++) {
     over.newEstPrdCnt = String(tries[ti]);
@@ -186,7 +190,8 @@ async function priceIndex() {
     if (!s) continue;
     var R = s.rows.filter(function (r) { return !/증감|변동|평균|중위/.test(r.ITM_NM || ""); });
     var g = function (nm) { return kSer(R, nm, null) || kSer(R, nm, "아파트"); };
-    out[kk ? "rent" : "sale"] = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), ic: g("인천"), busan: g("부산"), daegu: g("대구"), daejeon: g("대전"), ulsan: g("울산"), sejong: g("세종"), gwangju: g("광주"), src: s.nm };
+    var tb = (CODES[key] || {}).tblId || "", un = (R[0] && R[0].UNIT_NM) || "";
+    out[kk ? "rent" : "sale"] = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), ic: g("인천"), busan: g("부산"), daegu: g("대구"), daejeon: g("대전"), ulsan: g("울산"), sejong: g("세종"), gwangju: g("광주"), src: "한국부동산원 " + s.nm + (tb ? " (KOSIS " + tb + ")" : "") + (un ? " · 기준 " + un.replace(/＝/g, "=") : ""), tbl: tb };
     if (!out[kk ? "rent" : "sale"].seoul) log("KOSIS " + key + " 서울 행을 못 골라냄 — 표본: " + R.slice(0, 3).map(function (r) { return r.ITM_NM + "/" + kNames(r); }).join(", "));
   }
   return Object.keys(out).length ? out : null;

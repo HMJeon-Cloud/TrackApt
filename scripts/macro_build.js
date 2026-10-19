@@ -403,9 +403,11 @@ async function rss(feeds, days, max, mustRe) {
   for (var li = 0; li < progs.length; li++) {
     var pg = progs[li]; if (!pg.src) continue;
     try {
-      var html = (await getText(pg.src)).replace(/<[^>]+>/g, " "), rr = /연\s*([0-9]\.[0-9]{1,2})\s*%?\s*[~∼～]\s*(?:연\s*)?([0-9]\.[0-9]{1,2})\s*%/g, mm, lo = null, hi = null, cnt = 0;
+      /* v9.47 "대출금리 연 2.85% ∼ 연 4.15%" · "대출금리 1.8% ~ 4.5%"(연 없음) 둘 다 — 10.19 실행에서 디딤돌·신생아를 못 읽던 원인. 엔티티(&nbsp;)도 공백으로 */
+      var html = (await getText(pg.src)).replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/g, " ").replace(/\s+/g, " "), rr = /(?:연\s*)?([0-9]\.[0-9]{1,2})\s*%?\s*[~∼～\-–]\s*(?:연\s*)?([0-9]\.[0-9]{1,2})\s*%/g, mm, lo = null, hi = null, cnt = 0;
+      var rateIdx = html.indexOf("대출금리"); if (rateIdx >= 0) html = html.slice(rateIdx, rateIdx + 4000) + " " + html;   /* '대출금리' 요약 줄을 먼저 보게 */
       while ((mm = rr.exec(html))) { var a = Number(mm[1]), b = Number(mm[2]); if (!(a >= 0.5 && b <= 9 && a < b)) continue; cnt++; lo = lo == null ? a : Math.min(lo, a); hi = hi == null ? b : Math.max(hi, b); }
-      if (!cnt) { log("대출 금리 페이지에서 범위를 못 찾음: " + pg.name); continue; }
+      if (!cnt) { DBG["loan_" + pg.name] = html.slice(0, 600); log("대출 금리 페이지에서 범위를 못 찾음: " + pg.name + " — 받은 글 앞부분: " + html.slice(0, 120)); continue; }
       var found = lo.toFixed(2) + "~" + hi.toFixed(2), man = String(pg.rate || "").replace(/\s/g, "");
       out.loans.auto[pg.name] = { rate: found, t: out.asOf, src: pg.src, n: cnt };
       var same = man.split("~").map(Number).join("~") === found.split("~").map(Number).join("~");

@@ -2745,7 +2745,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.46</span>
+    <span class="ver">v9.47</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -5667,7 +5667,7 @@ function mcCards(codes, scopeNm) {
       how: "표는 직접 관리 목록(data/manual/policy.json) · 세부 조건·예외는 공식 보도자료로 확인" + (pt.verify ? " · '확인 전' = 아직 공식 자료와 대조하지 않은 표" : "") });
   }
   /* 10 (v8.3) 정책대출 금리표 — 소득구간 × 만기 + 우대 조건 */
-  pr.filter(function (p) { return p.rateTable && p.rateTable.rows; }).slice(0, 4).forEach(function (p) {
+  pr.filter(function (p) { return p.rateTable && p.rateTable.rows; }).slice(0, 5).forEach(function (p) {
     var rt = p.rateTable, auto2 = (D.loans.auto || {})[p.name];
     var lo = Math.min.apply(null, rt.rows.map(function (r) { return Math.min.apply(null, r.slice(1).map(function (x) { return parseFloat(x) || 99; })); }));
     var hi = Math.max.apply(null, rt.rows.map(function (r) { return Math.max.apply(null, r.slice(1).map(function (x) { var m = String(x).match(/[\d.]+(?!.*[\d.])/); return m ? parseFloat(m[0]) : 0; })); }));
@@ -10200,7 +10200,12 @@ function rcLocalPlan(c, F) {
 var IN = { ai: null, aiQ: "", journal: null, jErr: "", busy: "", metrics: null, ctxFile: null, ctxMine: [] };
 /* ══ 속사정(context) — 규칙·세금·대출·상승론·하락론 메모: data/manual/context.json(파일) + 앱에서 추가한 것(서버 보관함) ══ */
 var IN_KIND = { rule: "규칙", fact: "최근 사실", bull: "상승 논거", bear: "하락 논거" }, IN_TAG = { volume: "거래", price: "가격", buy: "무주택 매수", move: "갈아타기", gap: "전세 끼고", subs: "청약", sell: "매도", rent: "전월세", rate: "금리" };
-function inCtxLoad(cb) { if (IN.ctxFile) { cb && cb(); return; } fetch("data/manual/context.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { IN.ctxFile = j || { items: [] }; cb && cb(); }, function () { IN.ctxFile = { items: [] }; cb && cb(); }); }
+function inCtxLoad(cb) { if (IN.ctxFile) { cb && cb(); return; } var n = 2, done = function () { if (--n === 0) cb && cb(); };
+  fetch("data/manual/context.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { IN.ctxFile = j || { items: [] }; done(); }, function () { IN.ctxFile = { items: [] }; done(); });
+  /* v9.47 손으로 적는 심리·수급 지표(KB 매수우위·매물·낙찰가율·CSI) — 공개 API 가 없는 것들 */
+  fetch("data/manual/sentiment.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { IN.sent = j || null; done(); }, function () { IN.sent = null; done(); }); }
+function inSentAgeD(at) { var d = Date.parse(at || ""); return isFinite(d) ? Math.round((Date.now() - d) / 86400000) : null; }
+function inSentItems(maxDays) { var L = (IN.sent && IN.sent.items) || []; return L.filter(function (x) { return x.v != null && isFinite(Number(x.v)) && x.at && inSentAgeD(x.at) != null && inSentAgeD(x.at) <= (maxDays || 21); }); }
 function inCtxAll() { var F = ((IN.ctxFile && IN.ctxFile.items) || []).map(function (x) { x = Object.assign({}, x); x.from = "file"; return x; }), M = (IN.ctxMine || []).map(function (j) { var d = Object.assign({}, j.data); d.id = j.id; d.from = "mine"; return d; }); var X = typeof rpExtAsCtx === "function" ? rpExtAsCtx() : []; return M.concat(X).concat(F).filter(function (x) { return x.title; }); }
 function inCtxStale(x) { if (!x.asOf) return false; var d = Date.parse(x.asOf); return isFinite(d) && Date.now() - d > 60 * 86400000; }
 function inCtxEnded(x) { if (!x.until) return false; var d = Date.parse(x.until); return isFinite(d) && Date.now() > d + 86400000; }
@@ -10246,6 +10251,7 @@ function inDataStatus() {
   var SP = D && D.supply; ["permits", "starts", "completes"].forEach(function (key, i) { var nm = ["인허가", "착공", "준공"][i], o = SP && SP[key], a = o && (o.seoul || o.all); if (a) { var sl = inLast(a); add(nm, inYmL(sl[0]), inFresh(a, 5) ? "ok" : "stale", inFresh(a, 5) ? (o.seoul ? "" : "전국만") : "오래돼 신호에서 뺌"); } else add(nm, "", "miss", "수집 안 됨 — 외부 조사로"); });
   var R = (typeof MACRO !== "undefined" && MACRO.data && MACRO.data.rates) || null; if (R && R.base) add("금리", (R.mortgage ? "주담대 " + inYmL(R.mortgage.t) : "") + (R.base ? " · 기준 " + inYmL(R.base.t) : ""), R.mortgage && inAgeM(R.mortgage.t) > 3 ? "stale" : "ok", "ECOS · 주담대는 전월 평균이라 한 달 늦다"); else add("금리", "", "miss", "macro_data 없음");
   if (D && D.subs) add("청약", D.subsAt ? "수집 " + String(D.subsAt).slice(5, 16).replace("T", " ") : (D.subs.asOf ? inYmL(D.subs.asOf) : ""), "ok", "청약홈 · 새벽 3시·오후 3시"); else add("청약", "", "miss", "");
+  var SE = IN.sent; if (SE) { var fresh = inSentItems(21).length, all = (SE.items || []).length, filled = (SE.items || []).filter(function (x) { return x.v != null; }).length; add("심리·수급(수동)", fresh ? fresh + "/" + all + "개 사용" : (filled ? "모두 21일 넘음" : "비어 있음"), fresh ? "ok" : "miss", fresh ? "" : "data/manual/sentiment.json 에 KB 매수우위·매물·낙찰가율·CSI 를 적으면 신호 F14~F17 로 들어감"); }
   var cx = IN.ctxFile; if (cx) { var ca2 = cx.asOf ? Math.round((Date.now() - Date.parse(cx.asOf)) / 86400000) : null; add("속사정 메모", cx.asOf || "", ca2 != null && ca2 > 21 ? "warn" : "ok", ca2 != null && ca2 > 21 ? ca2 + "일 전 정리 — 규칙이 바뀌었는지 확인" : ""); }
   var T = typeof CH !== "undefined" && CH.data && CH.data.news; if (T && T.topicsAt) add("정책·기사 제목", String(T.topicsAt).slice(0, 10), "ok", ""); 
   var V = typeof CH !== "undefined" && CH.val; if (V && V.checks) { var bad = V.checks.filter(function (c) { return c.level === "error" || c.level === "warn"; }); add("자료 점검(validate)", V.checks.length + "항목", bad.length ? "warn" : "ok", bad.length ? bad.map(function (c) { return c.title; }).slice(0, 4).join(" · ") : "모두 통과"); }
@@ -10330,6 +10336,14 @@ function inSignals() {
     read: stt.yoy < -10 ? "착공이 줄고 있다 — 2~3년 뒤 입주가 줄어 공급 부족 쪽. 서울은 미분양이 아니라 이 숫자가 공급 지표" : stt.yoy > 10 ? "착공이 늘고 있다 — 2~3년 뒤 입주 증가, 전세부터 눌리는 요인" : "착공은 평년 수준" });
   var rx = M.rentIdx; if (rx && rx.prev != null) { var rmm = (rx.v / rx.prev - 1) * 100, rm3 = rx.p3 != null ? (rx.v / rx.p3 - 1) * 100 : null; add({ id: "F12b", grp: "전세", nm: "부동산원 서울 전세지수", val: rx.v.toFixed(2), cmp: inSgn(rmm, 2) + " 전월" + (rm3 != null ? " · " + inPct(rm3, 2) + " 3개월" : ""), sc: rmm > 0.4 ? 2 : rmm > 0.1 ? 1 : rmm < -0.4 ? -2 : rmm < -0.1 ? -1 : 0, w: 0.8, at: rx.at,
     read: rmm > 0.1 ? "전세가 오르는 중 — 전세가율(수준)과 별개로 '방향'이 위. 실거주 의무로 전세 매물이 줄어든 몫이 섞여 있다" : rmm < -0.1 ? "전세가 내리는 중 — 입주 물량이나 월세 전환이 원인일 수 있고, 매매를 떠받치는 힘이 약해진다" : "전세는 보합" }); }
+  /* v9.47 심리·수급(수동 입력, 21일 안의 값만) */
+  inSentItems(21).forEach(function (x) { var v = Number(x.v), pv = x.prev != null ? Number(x.prev) : null, chg = pv ? (v / pv - 1) * 100 : null, sc = 0, read = "", nm = x.nm;
+    if (x.id === "kb-buy-seoul") { sc = v > 120 ? 2 : v > 100 ? 1 : v < 60 ? -2 : v < 80 ? -1 : 0; read = v > 100 ? "사려는 사람이 팔려는 사람보다 많다 — 매수 우위" : v < 80 ? "팔려는 사람이 훨씬 많다 — 매도자 우위, 호가가 눌린다" : "매수·매도 균형 근처"; }
+    else if (x.id === "listing-seoul") { sc = chg == null ? 0 : chg > 10 ? -1 : chg < -10 ? 1 : 0; read = chg == null ? "매물 수준만 기록됨" : chg > 10 ? "매물이 늘고 있다 — 호가 경쟁이 시작되는 신호" : chg < -10 ? "매물이 잠기고 있다 — 적은 거래가 가격을 떠받치기 쉬운 구조" : "매물은 제자리"; }
+    else if (x.id === "auction-seoul") { sc = v > 100 ? 2 : v > 95 ? 1 : v < 80 ? -2 : v < 85 ? -1 : 0; read = v > 95 ? "경매에서도 시세 가까이 주고 산다 — 매수 심리가 강하다" : v < 85 ? "경매 낙찰가가 시세보다 많이 낮다 — 급매 가격의 바닥을 보여 준다" : "낙찰가율은 보통 수준"; }
+    else if (x.id === "csi-house") { sc = v > 115 ? 2 : v > 105 ? 1 : v < 90 ? -2 : v < 98 ? -1 : 0; read = v > 105 ? "1년 뒤 오른다고 보는 사람이 더 많다" : v < 98 ? "내린다고 보는 사람이 더 많다" : "전망은 반반"; }
+    else return;
+    add({ id: "F" + (14 + ["kb-buy-seoul", "listing-seoul", "auction-seoul", "csi-house"].indexOf(x.id)), grp: "심리", nm: nm, val: (x.unit === "건" ? fmt(v) : v.toFixed(x.unit === "%" ? 1 : 1)) + (x.unit || ""), cmp: (pv != null ? "직전 " + (x.unit === "건" ? fmt(pv) : pv) + (x.unit || "") + (chg != null ? " (" + inPct(chg, 1) + ")" : "") + " · " : "") + inE(x.src) + " · 손으로 적은 값", sc: sc, w: 0.7, at: x.at, read: read + " — " + x.how }); });
   var j = M.jr; if (j) add({ id: "F12", grp: "전세", nm: "서울 84㎡ 전세가율", val: j.v.toFixed(0) + "%", cmp: "매매 " + eok(j.sale) + " · 전세 " + eok(j.rent) + (j.prev != null ? " · 전월 " + j.prev.toFixed(0) + "%" : ""), sc: j.v > 60 ? 1 : j.v < 45 ? -1 : 0, w: 0.7, at: j.ym || j.at,
     read: j.v > 60 ? "전세가율이 높다 — 전세가 매매를 밀어 올리는 구조(갭 작음). 단, 토허제 실거주 의무로 세 놓을 집이 줄어 전세가 오른 몫이 섞여 있어 '매매 체력'으로만 읽으면 안 된다" : j.v < 50 ? "전세가율이 낮다 — 매매가가 전세보다 많이 앞서 있어 갭이 크다. 전세 끼고 사기엔 자기자본이 많이 필요" : "전세가율은 중간 수준" });
   var s = M.subsMed; if (s) add({ id: "F13", grp: "청약", nm: "청약 1순위 경쟁률 중위", val: s.v.toFixed(1) + ":1", cmp: "최근 60일 " + s.n + "단지 · 미달 " + s.short + "곳", sc: s.v > 20 ? 2 : s.v > 5 ? 1 : s.v < 1 ? -2 : s.v < 2 ? -1 : 0, w: 0.6, at: s.at,
@@ -10572,7 +10586,7 @@ function inPaint() {
   var S = inSignals(), T = inTemp(S), sit = inSituation(S, T), st = inStances(S, T), sc = inScenarios(S, T), an = inAnalogs(), re = inRateEvents(), se = inSeason(), cp = inCompare();
   IN.S = S; IN.T = T; IN.an = an; IN.re = re; IN.se = se; IN.cp = cp; IN.sit = sit; IN.sc = sc; IN.st = st;
   var bl = document.getElementById("in-basis"); if (bl) bl.textContent = inBasisLine();
-  var grpOrder = ["거래", "가격", "위치", "금리", "공급", "전세", "청약"];
+  var grpOrder = ["거래", "가격", "위치", "금리", "공급", "전세", "청약", "심리"];
   var sigRows = grpOrder.map(function (g) { return S.filter(function (x) { return x.grp === g; }).map(function (x) { return '<tr class="sc' + (x.sc > 0 ? "p" : x.sc < 0 ? "n" : "z") + '"><td class="g">' + inE(g) + '</td><td class="nm">' + inE(x.nm) + '<small>' + inE(x.at || "") + '</small></td><td class="v">' + inE(x.val) + '</td><td class="c">' + x.cmp + '</td><td class="s">' + (typeof fScoreBar === "function" ? fScoreBar(x.sc) : (x.sc > 0 ? "+" + x.sc : x.sc)) + '</td><td class="r">' + inE(x.read) + ' <i class="fid">' + x.id + "</i></td></tr>"; }).join(""); }).join("");
   var h = (typeof appFailHtml === "function" ? appFailHtml(IN.ready) : "") + inStatusHtml();
   /* ① 상황판 */
@@ -10940,7 +10954,7 @@ function rpRegionsHtml() {
     '<p class="hint">지수 = 권역 시군구 균등 지수(채널 MDD 방식) · 작은 글씨 "거래 가중"은 최근 12개월 거래량 가중 — 둘이 2%p 이상 다르면 읽기 줄에 적는다 · 30일 거래는 계약일 기준 최근 30일(한 달 전 같은 시점 대비) · 월 거래는 마지막 확정 달 · 청약은 주소로 묶음 · 시군구 미분양은 수집하지 않아 권역 합계만 — 평택·대구 같은 곳은 외부 조사 "공급" 항목으로 채운다.</p>';
 }
 /* ══ 브리핑 — 7개 축 진단 ══ */
-var RP_AXES = [["수요", ["거래"], "거래량·신고가로 본 매수 수요 — 매물 수·매수우위지수·낙찰가율은 공개 API가 없어 외부 조사(심리)로"], ["가격", ["가격"], "실거래 지수·오른 지역 수·신고가 비율"], ["위치", ["위치"], "고점 대비·확산 단계 = 사이클 어디쯤"], ["금융", ["금리"], "기준금리·주담대·국고채가 말하는 방향"], ["공급", ["공급"], "미분양(지방) + 착공(서울 2~3년 뒤 입주) + 외부 조사(입주 예정)"], ["전세", ["전세"], "전세가율 = 매매를 떠받치는 힘"], ["청약", ["청약"], "분양 시장 체감 온도"]];
+var RP_AXES = [["수요", ["거래", "심리"], "거래량·신고가 + 손으로 적은 심리·수급(KB 매수우위·매물·낙찰가율·CSI, data/manual/sentiment.json)"], ["가격", ["가격"], "실거래 지수·오른 지역 수·신고가 비율"], ["위치", ["위치"], "고점 대비·확산 단계 = 사이클 어디쯤"], ["금융", ["금리"], "기준금리·주담대·국고채가 말하는 방향"], ["공급", ["공급"], "미분양(지방) + 착공(서울 2~3년 뒤 입주) + 외부 조사(입주 예정)"], ["전세", ["전세"], "전세가율 = 매매를 떠받치는 힘"], ["청약", ["청약"], "분양 시장 체감 온도"]];
 function rpAxes(S) {
   return RP_AXES.map(function (a) { var L = S.filter(function (x) { return a[1].indexOf(x.grp) >= 0; }), sc = L.length ? L.reduce(function (p, x) { return p + x.sc; }, 0) / L.length : null;
     var ext = (RP2.ext || []).filter(function (x) { return (x.data.tags || []).some(function (t) { return ({ 수요: "volume", 가격: "price", 금융: "rate", 공급: "supply", 전세: "rent", 청약: "subs" })[a[0]] === t; }); })[0];

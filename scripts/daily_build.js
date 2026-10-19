@@ -26,8 +26,17 @@ var DEF = {
   unsoldDone: { orgId: "116", tblId: "DT_MLTM_2082", nm: "공사완료후 미분양현황" },
   idxSale: { orgId: "408", tblId: "DT_30404_N0010", nm: "아파트 매매가격지수" },
   idxRent: { orgId: "408", tblId: "DT_30404_N0012", nm: "아파트 전세가격지수" },
-  roneWeekly: { sale: "A_2024_00901", nm: "주간아파트 매매가격지수" }
+  roneWeekly: { sale: "A_2024_00901", nm: "주간아파트 매매가격지수" },
+  /* v9.44 공급 파이프라인 — 국토부 주택건설실적(인허가·착공·준공). 표 번호는 바뀔 수 있어 이름 검색으로 다시 찾는다 */
+  permits: { orgId: "116", tblId: "DT_MLTM_5403", nm: "주택건설인허가실적" },
+  starts: { orgId: "116", tblId: "DT_MLTM_5407", nm: "주택착공실적" },
+  completes: { orgId: "116", tblId: "DT_MLTM_5409", nm: "주택준공실적" }
 };
+/* 표가 '살아 있는지' — 최신 달이 지금부터 maxAge 개월 안이어야 한다(e-나라지표처럼 늦게 갱신되는 표를 걸러 낸다) */
+function kLatest(rows) { var mx = 0; (rows || []).forEach(function (r) { var t = Number(r.PRD_DE); if (t > mx) mx = t; }); return mx; }
+function kMonthsAgo(prd) { if (!prd || String(prd).length !== 6) return null; var k = kst(), y = Math.floor(k / 10000), m = Math.floor(k / 100) % 100; return (y * 12 + m) - (Math.floor(prd / 100) * 12 + prd % 100); }
+function kFresh(rows, maxAge) { var a = kMonthsAgo(kLatest(rows)); return a != null && a <= maxAge; }
+function sidoNm(s) { return String(s || "").trim().replace(/특별자치시|특별자치도|특별시|광역시|도$/g, "").replace(/^(충청북|충청남|전라북|전라남|경상북|경상남)$/, function (x) { return x[0] + x[2]; }); }
 async function getText(url) {
   CALLS++;
   var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, 25000);
@@ -47,7 +56,8 @@ async function kosisProbe(c, months) {
   return null;
 }
 /* 표 찾기: 기억한 코드 → 기본 코드 → 이름 검색 후보 순으로 1개월치를 받아 보고, validate 를 통과하는 첫 표를 쓴다 */
-var DEF_SEARCH = { unsold: ["미분양주택현황", /미분양주택현황/], unsoldDone: ["공사완료후 미분양", /공사완료후.*미분양|준공.*미분양/], idxSale: ["아파트 매매가격지수", /매매가격지수/], idxRent: ["아파트 전세가격지수", /전세가격지수/] };
+var DEF_SEARCH = { unsold: ["미분양주택현황", /미분양주택현황/], unsoldDone: ["공사완료후 미분양", /공사완료후.*미분양|준공.*미분양/], idxSale: ["아파트 매매가격지수", /매매가격지수/], idxRent: ["아파트 전세가격지수", /전세가격지수/],
+  permits: ["주택건설인허가실적", /인허가/], starts: ["주택착공실적", /착공/], completes: ["주택준공실적", /준공/] };
 async function kosisFind(key, validate) {
   var cands = []; if (CODES[key]) cands.push(CODES[key]); cands.push(DEF[key]);
   var tried = {};
@@ -93,7 +103,7 @@ function c1(r) { return String(r.C1_NM || "").trim(); }
 function restAll(r) { return [r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).every(function (x) { return /^(총합|계|합계|소계|전체|종합|아파트)$/.test(String(x).trim()); }); }
 function isTotalRow(r) { return /^(전국|계|합계|총계)$/.test(c1(r)) && restAll(r); }
 function levelRow(r, nm) { return c1(r) === nm && restAll(r); }
-function sumSeries(list) { var m = {}, cnt = {}; list.forEach(function (s) { (s || []).forEach(function (p) { m[p[0]] = (m[p[0]] || 0) + p[1]; cnt[p[0]] = (cnt[p[0]] || 0) + 1; }); }); return Object.keys(m).filter(function (t) { return cnt[t] === list.length; }).map(Number).sort().map(function (t) { return [t, m[t]]; }); }
+function sumSeries(list) { var m = {}, cnt = {}; list.forEach(function (s) { (s || []).forEach(function (p) { m[p[0]] = (m[p[0]] || 0) + p[1]; cnt[p[0]] = (cnt[p[0]] || 0) + 1; }); }); var need = Math.max.apply(null, Object.keys(cnt).map(function (t) { return cnt[t]; }).concat([0])); return Object.keys(m).filter(function (t) { return cnt[t] === need && need >= Math.max(1, list.filter(Boolean).length - 1); }).map(Number).sort().map(function (t) { return [t, m[t]]; }); }
 
 async function unsold() {
   if (!KOSIS) { log("KOSIS_KEY 없음 → 미분양 건너뜀"); return null; }
@@ -125,13 +135,51 @@ async function priceIndex() {
   var out = {};
   for (var kk = 0; kk < 2; kk++) {
     var key = kk ? "idxRent" : "idxSale", re = kk ? /전세가격지수/ : /매매가격지수/;
-    var s = await kosisSeries(key, function (rows) { return String(rows[0].PRD_DE || "").length === 6 && rows.some(function (r) { return /^(전국|수도권)$/.test(c1(r)) && re.test(r.ITM_NM || "") && !/증감|변동|평균|중위/.test(r.ITM_NM || "") && restAll(r); }); }, 26);
+    var s = await kosisSeries(key, function (rows) { if (!(String(rows[0].PRD_DE || "").length === 6 && rows.some(function (r) { return /^(전국|수도권)$/.test(c1(r)) && re.test(r.ITM_NM || "") && !/증감|변동|평균|중위/.test(r.ITM_NM || ""); }))) return false;
+      /* v9.44 서울 행이 있고 최신 달이 4개월 안인 표만 — 전국만 있거나 늦게 갱신되는 표(e-나라지표)는 거른다 */
+      if (!rows.some(function (r) { return sidoNm(c1(r)) === "서울"; })) { log("KOSIS " + key + " 후보에 서울 행 없음"); return false; }
+      if (!kFresh(rows, 4)) { log("KOSIS " + key + " 후보 최신 달 " + kLatest(rows) + " — 너무 오래됨"); return false; }
+      return true; }, 25);
     if (!s) continue;
-    var R = s.rows, idxRow = function (nm) { return function (r) { return c1(r) === nm && restAll(r) && re.test(r.ITM_NM || "") && !/증감|변동/.test(r.ITM_NM || ""); }; };
+    var R = s.rows, idxRow = function (nm) { return function (r) { return (c1(r) === nm || sidoNm(c1(r)) === nm) && restAll(r) && re.test(r.ITM_NM || "") && !/증감|변동/.test(r.ITM_NM || ""); }; };
     var g = function (nm) { var a = seriesOf(R, idxRow(nm)); return a.length ? a : null; };
-    out[kk ? "rent" : "sale"] = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), src: s.nm };
+    out[kk ? "rent" : "sale"] = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), ic: g("인천"), busan: g("부산"), daegu: g("대구"), daejeon: g("대전"), ulsan: g("울산"), sejong: g("세종"), gwangju: g("광주"), src: s.nm };
   }
   return Object.keys(out).length ? out : null;
+}
+
+/* v9.44 공급 파이프라인 — 인허가·착공·준공(월, 호). 전체 주택 '계' 행을 쓰고, 아파트 행이 따로 있으면 apt 로 같이 둔다. 못 찾으면 null(앱은 외부 조사 항목으로 남긴다) */
+async function supply() {
+  if (!KOSIS) return null;
+  var out = {}, keys = ["permits", "starts", "completes"];
+  for (var ki = 0; ki < keys.length; ki++) {
+    var key = keys[ki];
+    try {
+      var s = await kosisSeries(key, function (rows) { return String(rows[0].PRD_DE || "").length === 6 && rows.some(function (r) { return sidoNm(c1(r)) === "서울"; }) && rows.some(function (r) { return /^(전국|계|합계|총계)$/.test(c1(r)); }) && kFresh(rows, 5); }, 37);
+      if (!s) continue;
+      var R = s.rows, tot = function (r) { return [r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).every(function (x) { return /^(총합|계|합계|소계|전체|종합)$/.test(String(x).trim()); }); };
+      var apt = function (r) { var L = [r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).map(function (x) { return String(x).trim(); }); return L.indexOf("아파트") >= 0 && L.every(function (x) { return /^(총합|계|합계|소계|전체|종합|아파트)$/.test(x); }); };
+      var g = function (nm, f) { var a = seriesOf(R, function (r) { return (nm === "전국" ? /^(전국|계|합계|총계)$/.test(c1(r)) : sidoNm(c1(r)) === nm) && f(r); }); return a.length ? a : null; };
+      var o = { all: g("전국", tot), seoul: g("서울", tot), gg: g("경기", tot), ic: g("인천", tot), src: s.nm };
+      if (o.seoul && o.gg && o.ic) o.cap = sumSeries([o.seoul, o.gg, o.ic]);
+      var aa = g("전국", apt), as = g("서울", apt); if (aa || as) o.apt = { all: aa, seoul: as, gg: g("경기", apt) };
+      if (o.all || o.seoul) out[key] = o;
+    } catch (e) { log("KOSIS " + key + " 실패: " + e.message); }
+  }
+  return Object.keys(out).length ? out : null;
+}
+/* v9.44 자료 경고 — 앱 '데이터 상태' 띠가 그대로 보여 준다. 틀린 자료를 조용히 쓰지 않도록 오래된 것·빠진 것을 적는다 */
+function warnings(out) {
+  var W = [], last = function (a) { return a && a.length ? a[a.length - 1][0] : null; }, chk = function (nm, prd, maxAge, note) { if (!prd) { W.push({ src: nm, at: null, msg: nm + " 자료 없음" + (note ? " — " + note : "") }); return; } var age = kMonthsAgo(prd); W.push({ src: nm, at: prd, age: age, stale: age != null && age > maxAge, msg: age != null && age > maxAge ? nm + " 최신 달 " + prd + " (" + age + "개월 전) — 오래돼 신호에서 뺌" : "" }); };
+  chk("미분양", last(out.unsold && out.unsold.all), 4, "KOSIS 미분양주택현황");
+  chk("준공 후 미분양(전국)", last(out.unsold && out.unsold.done), 4, "시도 합산 실패");
+  chk("부동산원 매매지수", last(out.index && out.index.sale && (out.index.sale.seoul || out.index.sale.all)), 4, "KOSIS 표 없음");
+  chk("부동산원 전세지수", last(out.index && out.index.rent && (out.index.rent.seoul || out.index.rent.all)), 4, "KOSIS 표 없음");
+  chk("인허가", last(out.supply && out.supply.permits && out.supply.permits.all), 5, "KOSIS 주택건설실적 표 못 찾음 → 외부 조사");
+  chk("착공", last(out.supply && out.supply.starts && out.supply.starts.all), 5, "KOSIS 주택건설실적 표 못 찾음 → 외부 조사");
+  chk("준공", last(out.supply && out.supply.completes && out.supply.completes.all), 5, "KOSIS 주택건설실적 표 못 찾음 → 외부 조사");
+  if (out.index && out.index.sale && !out.index.sale.seoul) W.push({ src: "부동산원 매매지수", msg: "서울 값 없음(전국만) — 서울 신호 F5 제외" });
+  return W.filter(function (w) { return w.msg || w.at; });
 }
 /* R-ONE 주간 지수 (선택) */
 async function weekly() {
@@ -387,7 +435,7 @@ function rSummary(H) {
   });
   return out;
 }
-if (require.main !== module) module.exports = { subsCompare: subsCompare, subsCode: subsCode, rSummary: rSummary, fssByCo: fssByCo };
+if (require.main !== module) module.exports = { subsCompare: subsCompare, subsCode: subsCode, rSummary: rSummary, fssByCo: fssByCo, warnings: warnings, sumSeries: sumSeries, sidoNm: sidoNm, kMonthsAgo: kMonthsAgo };
 
 if (require.main === module) (async function () {
   /* v9.37 ONLY=subs — 오후 추가 실행: 청약만 새로 받고 나머지(미분양·지수·금리)는 새벽 수집분을 그대로 둔다(호출 최소) */
@@ -396,10 +444,12 @@ if (require.main === module) (async function () {
   async function step(nm, fn) { if (ONLY && ONLY.split(",").indexOf(nm) < 0) { log(nm + " 건너뜀(ONLY=" + ONLY + ")"); return; } try { var r = await fn(); if (r) out[nm] = r; log(nm + (r ? " OK" : " 없음")); } catch (e) { out.errors.push(nm + ": " + e.message); log(nm + " 실패: " + e.message); } }
   await step("unsold", unsold);
   await step("index", priceIndex);
+  await step("supply", supply);
   await step("weekly", weekly);
   await step("subs", subs);
   await step("rates", rates);
   if (ONLY) { out.calls = (prevOut && prevOut.calls || 0) + CALLS; out.subsAt = new Date().toISOString(); } else out.calls = CALLS;
+  try { out.warn = warnings(out); out.warn.filter(function (w) { return w.msg; }).forEach(function (w) { log("경고: " + w.msg); }); } catch (e) { log("경고 계산 실패: " + e.message); }
   fs.writeFileSync(OUT_P, JSON.stringify(out));
   fs.mkdirSync(path.join(ROOT, "data"), { recursive: true });
   fs.writeFileSync(CODES_P, JSON.stringify(CODES, null, 1));

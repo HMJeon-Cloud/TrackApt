@@ -65,17 +65,22 @@ var K_BAD_NM = /주간|연령|규모|변동률|증감률|월세|전환율|통합
 /* ── 표 모양에 기대지 않는 행 고르기(v9.45) ──
    10.19 로그에서 본 것: 지역이 C1 이 아니라 C3 에 있는 표(착공실적/총계·총계·전국), 주택유형이 ITM 에 있는 표(계/전국, 아파트/전국), '총 계'처럼 띄어 쓴 합계.
    그래서 행의 모든 분류(ITM_NM·C1~C4)를 훑어 ① 지역 칸 하나를 찾고 ② 나머지 칸은 합계(또는 want='아파트' 한 칸)여야 한다. ITM 값이 표 전체에서 하나뿐이면(지표 이름) 무시. */
-var K_TOT = /^(총\s*합\s*계?|총\s*계|계|합\s*계|소\s*계|전\s*체|종\s*합|주택\s*계|전\s*주택|총\s*주택|주택\s*합계|총\s*호수)$/;
+/* v9.45.2 '합계(가구수기준)'·'계(다가구구수기준)' 처럼 괄호가 붙은 합계도 인정. 단 '동수' 기준(건물 수)은 호수가 아니므로 제외 */
+var K_TOT = /^(총\s*합\s*계?|총\s*계|계|합\s*계|소\s*계|전\s*체|종\s*합|주택\s*계|전\s*주택|총\s*주택|주택\s*합계|총\s*호수)\s*(\([^)]*\))?$/;
+function kTot(v) { return K_TOT.test(v) && !/동수/.test(v); }
 function kDims(r) { return [["ITM", r.ITM_NM], ["C1", r.C1_NM], ["C2", r.C2_NM], ["C3", r.C3_NM], ["C4", r.C4_NM]].filter(function (d) { return d[1] != null && String(d[1]).trim() !== ""; }).map(function (d) { return [d[0], String(d[1]).trim()]; }); }
 function kItmSingle(rows) { var m = {}; rows.forEach(function (r) { m[String(r.ITM_NM || "")] = 1; }); return Object.keys(m).length <= 1; }
 function kIsRegion(v, region) { return region === "전국" ? /^(전국|전\s*국)$/.test(v) : sidoNm(v) === region; }
 function kRowIs(r, region, want, itmSingle) {
   var D = kDims(r).filter(function (d) { return !(itmSingle && d[0] === "ITM"); });
   var ri = -1; D.forEach(function (d, i) { if (ri < 0 && kIsRegion(d[1], region)) ri = i; });
-  if (ri < 0 && region === "전국") D.forEach(function (d, i) { if (ri < 0 && K_TOT.test(d[1]) && d[0] !== "ITM") ri = i; });   /* '전국' 칸이 없으면 지역 칸의 '계' 를 전국으로 */
+  if (ri < 0 && region === "전국") D.forEach(function (d, i) { if (ri < 0 && kTot(d[1]) && d[0] !== "ITM") ri = i; });   /* '전국' 칸이 없으면 지역 칸의 '계' 를 전국으로 */
   if (ri < 0) return false;
   var hitWant = false;
-  for (var i = 0; i < D.length; i++) { if (i === ri) continue; var v = D[i][1]; if (want && !hitWant && v === want) { hitWant = true; continue; } if (K_TOT.test(v)) continue; return false; }
+  for (var i = 0; i < D.length; i++) { if (i === ri) continue; var v = D[i][1];
+    if (i < ri && D[i][0] !== "ITM") continue;                 /* 지역 칸 앞의 분류 칸은 상위 권역(수도권 > 서울 > 소계) — 무시. ITM 은 예외 */
+    if (want && v === want) { hitWant = true; continue; }      /* 아파트/아파트/아파트 처럼 같은 값이 여러 단에 반복돼도 됨 */
+    if (kTot(v)) continue; return false; }
   return !want || hitWant;
 }
 function kHasRegion(rows, region) { return rows.some(function (r) { return kDims(r).some(function (d) { return kIsRegion(d[1], region); }); }); }
@@ -85,9 +90,9 @@ function kNarrow(rows) {
   var over = {};
   [1, 2, 3, 4].forEach(function (k) { var nmK = "C" + k + "_NM", cdK = "C" + k, vals = {}; rows.forEach(function (r) { if (r[nmK] != null && r[cdK] != null) vals[String(r[nmK]).trim()] = String(r[cdK]); }); var names = Object.keys(vals); if (!names.length) return;
     if (names.some(function (v) { return sidoNm(v) === "서울"; })) return;   /* 지역 단은 전부 */
-    var pick = names.filter(function (v) { return K_TOT.test(v) || /^(전국|전\s*국)$/.test(v) || v === "아파트"; }).map(function (v) { return vals[v]; });
+    var pick = names.filter(function (v) { return kTot(v) || /^(전국|전\s*국)$/.test(v) || v === "아파트"; }).map(function (v) { return vals[v]; });
     /* v9.45.1 합계 이름을 못 알아보면 그 단의 가장 앞 코드(KOSIS 는 '계'를 보통 맨 앞에 둔다)도 같이 청한다 — 행 고르기(kRowIs)가 이름을 다시 보므로 틀린 값이 들어가진 않는다 */
-    if (!names.some(function (v) { return K_TOT.test(v) || /^(전국|전\s*국)$/.test(v); })) { var first = names.map(function (v) { return vals[v]; }).sort()[0]; if (first && pick.indexOf(first) < 0) pick.push(first); }
+    if (!names.some(function (v) { return kTot(v) || /^(전국|전\s*국)$/.test(v); })) { var first = names.map(function (v) { return vals[v]; }).sort()[0]; if (first && pick.indexOf(first) < 0) pick.push(first); }
     if (pick.length && pick.length < names.length) over["objL" + k] = pick.join("+"); });
   return Object.keys(over).length ? over : null;
 }
@@ -104,22 +109,25 @@ function deCum(ser) {
 }
 async function kosisFind(key, validate) {
   var cands = []; if (CODES[key]) cands.push(CODES[key]); cands.push(DEF[key]);
+  /* v9.45.2 전국주택가격동향조사 표는 408/DT_30404_N00xx 번호대(N0010 전환율·N0012 전월세통합지수가 거기 있었다) — 검색이 못 찾으면 번호를 훑는다 */
+  if (/^idx/.test(key)) for (var sc = 1; sc <= 16; sc++) cands.push({ orgId: "408", tblId: "DT_30404_N" + ("000" + sc).slice(-4), nm: "전국주택가격동향 후보 " + sc, scan: true });
   var tried = {};
   for (var pass = 0; pass < 2; pass++) {
     if (pass === 1) {
       var sr = DEF_SEARCH[key], list = [], seen = {}, lastErr = "";
-      for (var qi = 0; qi < sr[0].length; qi++) { var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: sr[0][qi] })); var arr = kArr(found); if (!arr) { lastErr = kErr(found); continue; } arr.forEach(function (x) { var id = x.ORG_ID + "/" + x.TBL_ID; if (seen[id] || !sr[1].test(x.TBL_NM || "")) return; seen[id] = 1; list.push(x); }); }
+      for (var qi = 0; qi < sr[0].length; qi++) { var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: sr[0][qi] })); var arr = kArr(found); if (!arr) { lastErr = kErr(found); continue; } if (!DBG.searchKeys && arr[0]) DBG.searchKeys = Object.keys(arr[0]); arr.forEach(function (x) { var id = x.ORG_ID + "/" + x.TBL_ID; x._path = [x.MT_ATITLE, x.STAT_NM, x.VW_NM].filter(Boolean).join(" > "); if (seen[id] || !sr[1].test(x.TBL_NM || "")) return; if (/오피스텔|상업용|임대|지가|토지|공동주택실거래/.test(x._path + " " + x.TBL_NM)) return; seen[id] = 1; list.push(x); }); }
       var score = function (x) { var nm = x.TBL_NM || "", id = String(x.TBL_ID || ""); return (String(x.ORG_ID) === String(DEF[key].orgId) ? 4 : 0) + (/아파트/.test(nm) ? 2 : 0) + (/시도|시·도|지역별|월간|월별/.test(nm) ? 2 : 0) - (K_BAD_NM.test(nm) ? 8 : 0) - (/누계/.test(nm) ? 3 : 0) - (/WEEK|_W_|주간/i.test(id) ? 8 : 0); };
       list.sort(function (a, b) { return score(b) - score(a); });
       DBG[key + "Search"] = list.slice(0, 30).map(function (x) { return x.ORG_ID + "/" + x.TBL_ID + " " + x.TBL_NM; });
-      log("KOSIS " + key + " 검색 후보 " + list.length + "개: " + list.slice(0, 12).map(function (x) { return x.ORG_ID + "/" + x.TBL_ID + " " + (x.TBL_NM || "").slice(0, 28); }).join(" | "));
+      log("KOSIS " + key + " 검색 후보 " + list.length + "개: " + list.slice(0, 12).map(function (x) { return x.ORG_ID + "/" + x.TBL_ID + " " + (x.TBL_NM || "").slice(0, 28) + (x._path ? " [" + x._path.slice(0, 40) + "]" : ""); }).join(" | "));
       if (!list.length) log("KOSIS 검색 결과 없음 " + sr[0].join(",") + ": " + lastErr);
-      cands = list.filter(function (x) { return score(x) > -4; }).slice(0, 12).map(function (x) { return { orgId: x.ORG_ID, tblId: x.TBL_ID, nm: x.TBL_NM }; });
+      cands = list.filter(function (x) { return score(x) > -4; }).slice(0, 12).map(function (x) { return { orgId: x.ORG_ID, tblId: x.TBL_ID, nm: x.TBL_NM, path: x._path }; });
     }
     for (var i = 0; i < cands.length; i++) {
       var c = cands[i], id = c.orgId + "/" + c.tblId; if (tried[id]) continue; tried[id] = 1;
       var p = await kosisProbe(c, 1); if (!p) continue;
-      if (validate && !validate(p.rows)) { log("KOSIS " + key + " 표 " + id + " 는 모양이 다름 — " + p.rows.slice(0, 4).map(function (r) { return r.ITM_NM + "/" + kNames(r); }).join(", ")); continue; }
+      if (c.scan) c.nm = p.rows[0].TBL_NM || c.nm;
+      if (validate && !validate(p.rows, c)) { log("KOSIS " + key + " 표 " + id + " " + (c.nm || "") + " 는 모양이 다름 — " + p.rows.slice(0, 4).map(function (r) { return r.ITM_NM + "/" + kNames(r); }).join(", ")); continue; }
       if (!CODES[key] || CODES[key].tblId !== c.tblId) log("KOSIS 표 선택 " + key + ": " + id + " " + c.nm);
       CODES[key] = c; return { c: c, p: p };
     }
@@ -180,9 +188,14 @@ async function priceIndex() {
   var out = {};
   for (var kk = 0; kk < 2; kk++) {
     var key = kk ? "idxRent" : "idxSale", re = kk ? /전세가격지수/ : /매매가격지수/;
-    var s = await kosisSeries(key, function (rows) {
+    var s = await kosisSeries(key, function (rows, c) {
       if (String(rows[0].PRD_DE || "").length !== 6) return false;
-      if (K_BAD_NM.test(rows[0].TBL_NM || "") || /WEEK/i.test(rows[0].TBL_ID || "")) { log("KOSIS " + key + " 후보 " + rows[0].TBL_ID + " 는 주간·규모별·전환율 표"); return false; }
+      var tb = String(rows[0].TBL_ID || ""), nm = String(rows[0].TBL_NM || ""), path = (c && c.path) || "";
+      /* v9.45.2 10.19 실행이 고른 DT_08002_01_001A 는 '오피스텔가격동향조사'였다(KOSIS 화면으로 확인). 오피스텔 번호대와 경로는 거부 */
+      if (/^DT_08002/.test(tb) || /오피스텔/.test(path + nm)) { log("KOSIS " + key + " 후보 " + tb + " 는 오피스텔 표 — 제외"); return false; }
+      /* 아파트라는 증거: 표 이름·경로에 '아파트' 가 있거나, 분류 칸에 '아파트' 값이 있어야 한다(없으면 주택종합일 수 있어 제외) */
+      if (!/아파트/.test(nm + path) && !rows.some(function (r) { return kDims(r).some(function (d) { return d[1] === "아파트"; }); })) { log("KOSIS " + key + " 후보 " + tb + " " + nm + " 는 아파트 표인지 알 수 없음(주택종합 가능성) — 제외"); return false; }
+      if (K_BAD_NM.test(nm) || /WEEK/i.test(tb)) { log("KOSIS " + key + " 후보 " + tb + " 는 주간·규모별·전환율 표"); return false; }
       if (!rows.some(function (r) { return re.test((r.ITM_NM || "") + (r.TBL_NM || "")) && !/증감|변동|평균|중위/.test(r.ITM_NM || ""); })) return false;
       if (!kHasRegion(rows, "서울")) { log("KOSIS " + key + " 후보 " + rows[0].TBL_ID + " 에 서울 행 없음"); return false; }
       if (!kFresh(rows, 4)) { log("KOSIS " + key + " 후보 " + rows[0].TBL_ID + " 최신 달 " + kLatest(rows) + " — 너무 오래됨"); return false; }
@@ -203,7 +216,7 @@ async function supply() {
   for (var ki = 0; ki < keys.length; ki++) {
     var key = keys[ki];
     try {
-      var s = await kosisSeries(key, function (rows) { return String(rows[0].PRD_DE || "").length === 6 && kHasRegion(rows, "서울") && (kHasRegion(rows, "전국") || rows.some(function (r) { return kDims(r).some(function (d) { return d[0] !== "ITM" && K_TOT.test(d[1]); }); })) && kFresh(rows, 5); }, 37);
+      var s = await kosisSeries(key, function (rows) { return String(rows[0].PRD_DE || "").length === 6 && kHasRegion(rows, "서울") && (kHasRegion(rows, "전국") || rows.some(function (r) { return kDims(r).some(function (d) { return d[0] !== "ITM" && kTot(d[1]); }); })) && kFresh(rows, 5); }, 37);
       if (!s) continue;
       var R = s.rows, cum = false, g = function (nm, want) { var a = kSer(R, nm, want); if (!a) return null; var d = deCum(a); if (d.cum) cum = true; return d.ser; };
       var o = { all: g("전국"), seoul: g("서울"), gg: g("경기"), ic: g("인천") };

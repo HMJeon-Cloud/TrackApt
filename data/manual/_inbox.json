@@ -1,6 +1,6 @@
 {
  "v": 1,
- "builtAt": "2026-10-19T22:03:06.297Z",
+ "builtAt": "2026-10-19T23:47:17.782Z",
  "asOf": 20261020,
  "items": [
   {
@@ -36,17 +36,6 @@
    "title": "청년주택드림 청약통장 가입 기준 완화··· 디딤돌대출·버팀목대출 소득기준도 완화 : 네이버 블로그",
    "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNZDI4Ylhnem45TEZ0V2ZUUEo4LW5QOGhBdE5kY3pBNlpGempGYUN6VVpyeGRJOE9td2Z5c0Rya0NPWk5maXVZaHpQRW0wN1c2cHA5Ql9rM3pPejVPTmFSa0pGa25wX0N6QWhtZE90MXBQb2V6T2lIMWt5ZlNIajlLbW1mQ3JjUWVtcThkLVp3?oc=5",
    "src": "Naver Blog",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-10-19",
-   "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-10-18",
-   "title": "19일부터 신혼부부 보금자리론 요건 완화…실수요자 숨통 트이나",
-   "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTFBZVndCOHhXcVM5WnBwcEtzbldOUkNvUy1OV3g2eUtzWHhCYTlydzNBWEV1Zm9nbFV6Vnl3U2w1N1FJdGNkc1p2QWpsRnYyOWVYTnBoX1hNTEFjanAyQVZIR09HOHU?oc=5",
-   "src": "매일일보",
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-19",

@@ -24,8 +24,9 @@ var CODES = readJson(CODES_P, {});
 var DEF = {
   unsold: { orgId: "116", tblId: "DT_MLTM_2080", nm: "미분양주택현황보고" },
   unsoldDone: { orgId: "116", tblId: "DT_MLTM_2082", nm: "공사완료후 미분양현황" },
-  idxSale: { orgId: "408", tblId: "DT_30404_N0010", nm: "아파트 매매가격지수" },
-  idxRent: { orgId: "408", tblId: "DT_30404_N0012", nm: "아파트 전세가격지수" },
+  /* v9.45.4 10.19 4차 실행에서 확인한 진짜 표: 전국주택가격동향(기준월 2026.06) 유형별 매매가격지수 C012 · 유형별 전세가격지수 C013 (C004 는 '준전세'라 틀림). 유형 칸(종합/아파트/…)에서 아파트 행만 쓴다 */
+  idxSale: { orgId: "408", tblId: "DT_30404_C012", nm: "유형별 매매가격지수" },
+  idxRent: { orgId: "408", tblId: "DT_30404_C013", nm: "유형별 전세가격지수" },
   roneWeekly: { sale: "A_2024_00901", nm: "주간아파트 매매가격지수" },
   /* v9.44 공급 파이프라인 — 국토부 주택건설실적(인허가·착공·준공). 표 번호는 바뀔 수 있어 이름 검색으로 다시 찾는다 */
   permits: { orgId: "116", tblId: "DT_MLTM_5403", nm: "주택건설인허가실적" },
@@ -60,9 +61,9 @@ async function kosisProbe(c, months) {
 var DEF_SEARCH = { unsold: [["미분양주택현황"], /미분양주택현황/], unsoldDone: [["공사완료후 미분양"], /공사완료후.*미분양|준공.*미분양/],
   /* v9.45.3 10.19 3차 로그: 전국주택가격동향(월간) 폴더의 표 이름은 '유형별 매매가격지수'·'유형별 전세가격지수'(아파트 행은 유형 칸에) — '아파트'가 이름에 없어 검색에 안 잡혔다 */
   idxSale: [["유형별 매매가격지수", "매매가격지수", "아파트 매매가격지수", "아파트매매가격지수"], /매매가격지수/],
-  idxRent: [["유형별 전세가격지수", "전세가격지수", "아파트 전세가격지수", "아파트전세가격지수"], /전세가격지수/],
+  idxRent: [["유형별 전세가격지수", "전세가격지수", "아파트 전세가격지수", "아파트전세가격지수"], /(^|[^준])전세가격지수/],
   permits: [["주택건설인허가실적", "주택 인허가실적", "인허가실적 월별"], /인허가/], starts: [["주택착공실적", "주택 착공실적", "착공실적 월별"], /착공/], completes: [["주택준공실적", "주택 준공실적", "준공실적 월별"], /준공/] };
-var K_BAD_NM = /주간|연령|규모|변동률|증감률|월세|전환율|통합|평균가격|중위/;
+var K_BAD_NM = /주간|연령|규모|변동률|증감률|월세|준전세|전환율|통합|평균가격|중위/;
 /* ── 표 모양에 기대지 않는 행 고르기(v9.45) ──
    10.19 로그에서 본 것: 지역이 C1 이 아니라 C3 에 있는 표(착공실적/총계·총계·전국), 주택유형이 ITM 에 있는 표(계/전국, 아파트/전국), '총 계'처럼 띄어 쓴 합계.
    그래서 행의 모든 분류(ITM_NM·C1~C4)를 훑어 ① 지역 칸 하나를 찾고 ② 나머지 칸은 합계(또는 want='아파트' 한 칸)여야 한다. ITM 값이 표 전체에서 하나뿐이면(지표 이름) 무시. */
@@ -80,11 +81,13 @@ function kRowIs(r, region, want, itmSingle) {
   if (ri < 0) return false;
   var hitWant = false;
   for (var i = 0; i < D.length; i++) { if (i === ri) continue; var v = D[i][1];
-    if (i < ri && D[i][0] !== "ITM") continue;                 /* 지역 칸 앞의 분류 칸은 상위 권역(수도권 > 서울 > 소계) — 무시. ITM 은 예외 */
-    if (want && v === want) { hitWant = true; continue; }      /* 아파트/아파트/아파트 처럼 같은 값이 여러 단에 반복돼도 됨 */
+    if (want && v === want) { hitWant = true; continue; }      /* 아파트/아파트/아파트 처럼 같은 값이 여러 단에 반복돼도 됨 — 지역 칸 앞에 있어도 먼저 본다 */
+    if (i < ri && D[i][0] !== "ITM" && kRegionish(v)) continue;   /* 지역 칸 앞의 '상위 권역' 칸(수도권 > 서울 > 소계)만 무시 — 유형(종합·연립)은 무시하지 않는다 */   /* 지역 칸 앞의 분류 칸은 상위 권역(수도권 > 서울 > 소계) — 무시. 단 want 가 있는데 그 자리에 '종합'이 오면 다른 유형이므로 탈락 */
     if (kTot(v)) continue; return false; }
   return !want || hitWant;
 }
+var K_SIDO = ["서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종", "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"];
+function kRegionish(v) { v = String(v || "").trim(); return /전국|수도권|지방|권역|광역시|개도|소계|총계$/.test(v) || K_SIDO.indexOf(sidoNm(v)) >= 0 || /(시|군|구|도)$/.test(v) && v.length <= 6; }
 function kHasRegion(rows, region) { return rows.some(function (r) { return kDims(r).some(function (d) { return kIsRegion(d[1], region); }); }); }
 function kSer(rows, region, want) { var single = kItmSingle(rows); var a = seriesOf(rows, function (r) { return kRowIs(r, region, want, single); }); return a.length ? a : null; }
 /* 40,000셀 제한 — 지역이 아닌 분류 단은 '계'(와 '아파트') 코드만 청한다. objL 은 code1+code2 로 여러 개 가능 */
@@ -112,7 +115,6 @@ function deCum(ser) {
 async function kosisFind(key, validate) {
   var cands = []; if (CODES[key]) cands.push(CODES[key]); cands.push(DEF[key]);
   /* v9.45.2 전국주택가격동향조사 표는 408/DT_30404_N00xx 번호대(N0010 전환율·N0012 전월세통합지수가 거기 있었다) — 검색이 못 찾으면 번호를 훑는다 */
-  if (/^idx/.test(key)) for (var sc = 1; sc <= 30; sc++) cands.push({ orgId: "408", tblId: "DT_30404_N" + ("000" + sc).slice(-4), nm: "전국주택가격동향 후보 " + sc, scan: true });
   var tried = {};
   for (var pass = 0; pass < 2; pass++) {
     if (pass === 1) {
@@ -191,7 +193,7 @@ async function priceIndex() {
   if (!KOSIS) return null;
   var out = {};
   for (var kk = 0; kk < 2; kk++) {
-    var key = kk ? "idxRent" : "idxSale", re = kk ? /전세가격지수/ : /매매가격지수/;
+    var key = kk ? "idxRent" : "idxSale", re = kk ? /(^|[^준])전세가격(지수)?/ : /매매가격(지수)?/;
     var s = await kosisSeries(key, function (rows, c) {
       if (String(rows[0].PRD_DE || "").length !== 6) return false;
       var tb = String(rows[0].TBL_ID || ""), nm = String(rows[0].TBL_NM || ""), path = (c && c.path) || "";
@@ -206,9 +208,11 @@ async function priceIndex() {
       return true; }, 25);
     if (!s) continue;
     var R = s.rows.filter(function (r) { return !/증감|변동|평균|중위/.test(r.ITM_NM || ""); });
-    var g = function (nm) { return kSer(R, nm, null) || kSer(R, nm, "아파트"); };
+    /* 아파트 행을 먼저(유형 칸이 있는 표). 없을 때만 전체 행 — 그때는 kind 를 "all" 로 적어 앱이 아파트 지수로 쓰지 않게 */
+    var hasApt = R.some(function (r) { return kDims(r).some(function (d) { return d[1] === "아파트"; }); });
+    var g = function (nm) { return hasApt ? kSer(R, nm, "아파트") : kSer(R, nm, null); };
     var tb = (CODES[key] || {}).tblId || "", un = (R[0] && R[0].UNIT_NM) || "";
-    out[kk ? "rent" : "sale"] = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), ic: g("인천"), busan: g("부산"), daegu: g("대구"), daejeon: g("대전"), ulsan: g("울산"), sejong: g("세종"), gwangju: g("광주"), src: "한국부동산원 " + s.nm + (tb ? " (KOSIS " + tb + ")" : "") + (un ? " · 기준 " + un.replace(/＝/g, "=") : ""), tbl: tb };
+    out[kk ? "rent" : "sale"] = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), ic: g("인천"), busan: g("부산"), daegu: g("대구"), daejeon: g("대전"), ulsan: g("울산"), sejong: g("세종"), gwangju: g("광주"), src: "한국부동산원 " + s.nm + (hasApt ? " 아파트" : "") + (tb ? " (KOSIS " + tb + ")" : "") + (un ? " · 기준 " + un.replace(/＝/g, "=") : ""), tbl: tb, kind: hasApt ? "apt" : "all" };
     if (!out[kk ? "rent" : "sale"].seoul) log("KOSIS " + key + " 서울 행을 못 골라냄 — 표본: " + R.slice(0, 3).map(function (r) { return r.ITM_NM + "/" + kNames(r); }).join(", "));
   }
   return Object.keys(out).length ? out : null;

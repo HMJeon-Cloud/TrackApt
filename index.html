@@ -10205,7 +10205,7 @@ function inCtxLoad(cb) { if (IN.ctxFile) { cb && cb(); return; } var n = 2, done
   /* v9.47 손으로 적는 심리·수급 지표(KB 매수우위·매물·낙찰가율·CSI) — 공개 API 가 없는 것들 */
   fetch("data/manual/sentiment.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { IN.sent = j || null; done(); }, function () { IN.sent = null; done(); }); }
 function inSentAgeD(at) { var d = Date.parse(at || ""); return isFinite(d) ? Math.round((Date.now() - d) / 86400000) : null; }
-function inSentItems(maxDays) { var L = (IN.sent && IN.sent.items) || []; return L.filter(function (x) { return x.v != null && isFinite(Number(x.v)) && x.at && inSentAgeD(x.at) != null && inSentAgeD(x.at) <= (maxDays || 21); }); }
+function inSentItems(maxDays) { var L = (IN.sent && IN.sent.items) || []; return L.filter(function (x) { var lim = Number(x.maxDays) || maxDays || 21; return x.v != null && isFinite(Number(x.v)) && x.at && inSentAgeD(x.at) != null && inSentAgeD(x.at) <= lim; }); }
 function inCtxAll() { var F = ((IN.ctxFile && IN.ctxFile.items) || []).map(function (x) { x = Object.assign({}, x); x.from = "file"; return x; }), M = (IN.ctxMine || []).map(function (j) { var d = Object.assign({}, j.data); d.id = j.id; d.from = "mine"; return d; }); var X = typeof rpExtAsCtx === "function" ? rpExtAsCtx() : []; return M.concat(X).concat(F).filter(function (x) { return x.title; }); }
 function inCtxStale(x) { if (!x.asOf) return false; var d = Date.parse(x.asOf); return isFinite(d) && Date.now() - d > 60 * 86400000; }
 function inCtxEnded(x) { if (!x.until) return false; var d = Date.parse(x.until); return isFinite(d) && Date.now() > d + 86400000; }

@@ -1,6 +1,6 @@
 {
  "v": 1,
- "builtAt": "2026-10-19T07:57:47.484Z",
+ "builtAt": "2026-10-19T13:37:27.512Z",
  "asOf": 20261019,
  "items": [
   {
@@ -14,7 +14,7 @@
    "official": false,
    "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
    "firstSeen": "2026-10-19",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "loan",
@@ -29,6 +29,17 @@
    "todo": "data/manual/loans.json 의 rate 와 asOf 를 고쳐 주세요 (카드에는 공고값을 먼저 보여 줍니다)",
    "firstSeen": "2026-10-02",
    "isNew": false
+  },
+  {
+   "kind": "loan",
+   "date": "2026-10-19",
+   "title": "청년주택드림 청약통장 가입 기준 완화··· 디딤돌대출·버팀목대출 소득기준도 완화 : 네이버 블로그",
+   "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNZDI4Ylhnem45TEZ0V2ZUUEo4LW5QOGhBdE5kY3pBNlpGempGYUN6VVpyeGRJOE9td2Z5c0Rya0NPWk5maXVZaHpQRW0wN1c2cHA5Ql9rM3pPejVPTmFSa0pGa25wX0N6QWhtZE90MXBQb2V6T2lIMWt5ZlNIajlLbW1mQ3JjUWVtcThkLVp3?oc=5",
+   "src": "Naver Blog",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-10-19",
+   "isNew": true
   },
   {
    "kind": "loan",

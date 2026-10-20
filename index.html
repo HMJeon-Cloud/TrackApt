@@ -2817,6 +2817,11 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 /* v9.57 격자 칸 이름·보조 글이 칸 폭에서 잘리지 않게 줄바꿈(최대 2줄) */
 .tp-card.ub .tp-cell b{white-space:normal;overflow-wrap:anywhere;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.15}
 .tp-card.ub .tp-cell span{white-space:normal;overflow-wrap:anywhere;line-height:1.2;max-height:2.45em;overflow:hidden;text-align:center}
+/* v9.57.1 순위 격자: 칸마다 자리를 고정 — 순위 / 이름(남는 높이, 가운데) / % 띠 / 아래 글(두 줄 높이 고정). 이름이 한 줄이든 두 줄이든 같은 줄의 % 띠가 같은 높이에 온다 */
+.tp-card.ub .tp-cell{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;justify-content:stretch;justify-items:center;align-items:center}
+.tp-card.ub .tp-cell small{justify-self:start}
+.tp-card.ub .tp-cell em{justify-self:stretch}
+.tp-card.ub .tp-cell span{justify-self:stretch;height:2.4em;max-height:2.4em;line-height:1.2;display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
@@ -2824,7 +2829,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.57</span>
+    <span class="ver">v9.57.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -9089,7 +9094,7 @@ var TPL = {
       return { src: "국토부 실거래 월별 집계 · " + DB.sale.dates[1].replace("-", ".") + "까지 · 수도권·광역시 시·구 · 1년 전 대비 ㎡당 중위", title: "1년 새 많이 오른 동네 TOP 12", items: rows.map(function (r) { return [chName(r.k), (r.v > 0 ? "+" : "") + r.v.toFixed(1) + "%", "1년 상승률"]; }), foot: "㎡당 중위값 비교 · 어떤 단지가 팔렸느냐에 따라 출렁일 수 있음" }; },
     render: function (d) { var R = tpRows(d.items).slice(0, tpReel() ? 20 : 12), gc = R.length <= 6 || R.length === 9 ? 3 : R.length === 10 || R.length === 15 ? 5 : 4;
       if (R.length > gc && R.length % gc) R = R.slice(0, R.length - R.length % gc);   /* v9.57 마지막 줄이 비지 않게 열 수의 배수로(순위 위쪽부터 남김) */
-      return tpFrame(d._cat || "market", d, '<div class="tp-grid c' + gc + '">' + R.map(function (r, i) { return '<div class="tp-cell"><small>' + ((d._off || 0) + i + 1) + "위</small><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em>" + (r[2] ? "<span>" + tpE(r[2]) + "</span>" : "") + "</div>"; }).join("") + "</div>"); } },
+      return tpFrame(d._cat || "market", d, '<div class="tp-grid c' + gc + '">' + R.map(function (r, i) { return '<div class="tp-cell"><small>' + ((d._off || 0) + i + 1) + "위</small><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em><span>" + tpE(r[2] || "") + "</span></div>"; }).join("") + "</div>"); } },   /* v9.57.1 아래 글이 없어도 빈 칸을 둬서 % 띠 높이를 맞춘다 */
   beforeAfter: { nm: "작년 · 올해 비교", cat: "deal", fields: [["src", "출처·기준", "text", "국토부 실거래가 공개"], ["title", "제목", "text", "신고가 전·후 비교"], ["colA", "왼쪽 머리", "text", "직전 최고"], ["colB", "오른쪽 머리", "text", "이번 신고가"], ["items", "항목(이름 | 보조 | 전 값 | 전 날짜 | 후 값 | 후 날짜 | 변화)", "rows", "창동주공1단지 | 19평 | 4.4억 | 2025.1.21 | 6.1억 | 2026.10.3 | +39%"], ["foot", "맨 아래 메모", "text", ""]],
     auto: function () { if (typeof CH === "undefined" || !chOk() || typeof chHighsBetween !== "function") return null; var t1 = chDayKey(chKstNow()), L = chHighsBetween(t1 - 30, t1).filter(function (t) { return t.allPrev && t.max; }).slice(0, tpReel() ? 6 : 4); if (L.length < 2) return null;
       return { src: "국토부 실거래 · 최근 30일 신고가 · " + tpToday() + " 조회", title: "신고가, 직전 최고가와 비교", colA: "직전 최고가", colB: "이번 신고가", items: L.map(function (t) { return [t.apt, chShortGu(t.k) + " · " + (t.area ? t.area + "㎡" : t.band + "㎡대"), eok(t.allPrev[0]), String(t.allPrev[1]).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), eok(t.max.amount), String(t.max.d).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), "+" + t.u.toFixed(0) + "%"]; }), foot: "같은 단지·같은 면적대 역대 최고가끼리 비교 · 직거래 제외" }; },

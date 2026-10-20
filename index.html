@@ -2745,7 +2745,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.47</span>
+    <span class="ver">v9.48</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -9000,8 +9000,9 @@ function tprOne() { return TP.o.size === "one"; }
 function tprChunk(arr, per, maxp) { var n = Math.max(1, Math.ceil(arr.length / per)); if (maxp) n = Math.min(maxp, n); var tot = Math.min(arr.length, n * per), each = Math.ceil(tot / n), out = [], off = 0; for (var i = 0; i < n && off < tot; i++) { var take = Math.min(each, tot - off); out.push({ off: off, rows: arr.slice(off, off + take) }); off += take; } return out; }
 function tprItems(base, items, per) { if (tprOne()) { var d1 = tprClone(base); d1.items = items.slice(0, 12); d1._off = 0; return [d1]; } var out = [], C = tprChunk(items, per, TP.o.maxp || 3), n = C.length; for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.items = C[i].rows; d._off = C[i].off; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
 /* v9.46 긴 이름 줄이기 — 괄호 설명(회차·공공분양·인터넷뱅킹 등)을 떼고 n자에서 자른다. 표 줄이 3~4줄로 늘어나 카드가 접히던 원인 */
+function tpYmdK(d) { var m = String(d || "").match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? m[1] + "." + Number(m[2]) + "." + Number(m[3]) : String(d || ""); }
 function tpShort(s, n) { s = String(s || "").replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim(); n = n || 18; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
-function tprPaged(base, rows, per) { if (tprOne()) { var d1 = tprClone(base); d1.rows = rows.slice(0, 40); d1._off = 0; return [d1]; } var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(rows.length / per))); per = Math.max(1, Math.ceil(Math.min(rows.length, n * per) / n)); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.rows = rows.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
+function tprPaged(base, rows, per) { if (tprOne()) { var d1 = tprClone(base); d1.rows = rows.slice(0, Math.min(40, Math.max(6, per || 12))); d1._off = 0; if (rows.length > d1.rows.length) d1.foot = (d1.foot ? d1.foot + " · " : "") + "상위 " + d1.rows.length + "/" + rows.length + " — 전체는 여러 장"; return [d1]; }   /* v9.48 한 장 = 요약(상위 한 장 분량), 여러 장 = 전체 */ var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(rows.length / per))); per = Math.max(1, Math.ceil(Math.min(rows.length, n * per) / n)); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.rows = rows.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
 /* 청약·금리 재료 도우미 (v9.31) */
 /* v9.36 주택형 표 — 같은 전용(84A·84B…)은 한 줄로: 평형 범위 · 최고 분양가 · 일반+특공 합산(괄호 일반) */
 function tprTypeRows(it) {
@@ -9125,10 +9126,26 @@ var TPR = {
         C.map(function (x) { var l = rtIsLoan(x.k); return [rtCo(x.c.co), x.nm + (l ? " 최저" : " 최고"), rtP(l ? x.c.lo : x.c.hi), (x.d > 0 ? "+" : "") + x.d.toFixed(2) + "%p"]; }), 14); } },
   aptNotice: { nm: "청약 단지 한 장", grp: "청약·일정", opts: ["item"], tpls: ["aptNotice"], build: function () { var d = TPL.aptNotice.auto(); return d ? [d] : []; } },
   calendar: { nm: "부동산 달력", grp: "청약·일정", opts: [], tpls: ["calendar"], build: function () { var d = TPL.calendar.auto(); return d ? [d] : []; } },
-  policy: { nm: "대책 총정리", grp: "정책·대출·교통", opts: [], tpls: ["policyTimeline"], build: function () { var d = TPL.policyTimeline.auto(); return d ? [d] : []; } },
-  loans: { nm: "정책대출 비교", grp: "정책·대출·교통", opts: [], tpls: ["compareTable"], build: function () { var d = TPL.compareTable.auto(); return d ? [d] : []; } },
-  transit: { nm: "교통 노선 현황", grp: "정책·대출·교통", opts: [], tpls: ["lineTable"], build: function () { var d = TPL.lineTable.auto(); return d ? [d] : []; } },
-  terms: { nm: "부동산 단어", grp: "상식·이슈", opts: [], tpls: ["listArrow"], build: function () { var d = TPL.listArrow.auto(); return d ? [d] : []; } },
+  policy: { nm: "대책 총정리", grp: "정책·대출·교통", opts: [], tpls: ["policyTimeline"], hint: "한 장 = 최근 대책 4개 요점 · 여러 장 = 표지 + 대책마다 한 장(요점 전부·변경 전후 표·누구에게 무슨 뜻)", build: function () { var d = TPL.policyTimeline.auto(); return d ? [d] : []; },
+    detail: function (o) { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, pm = (D.policy && D.policy.manual && D.policy.manual.items) || []; if (!pm.length) return null; var cover = TPL.policyTimeline.auto(); var N = Math.min(pm.length, Math.max(2, (o.maxp || 3) * 2)), P = pm.slice(0, N), out = cover ? [cover] : [];
+      P.forEach(function (p, i) { var tb = p.table && p.table.cols && p.table.rows ? p.table : null; out.push({ _tpl: "issue", _cat: "policy", src: "국토부·금융위 보도자료 · 직접 관리 목록" + (p.verify ? " · 세부 수치 확인 전" : ""), badge: "대책 " + (i + 1) + "/" + P.length, tag: p.tag || "정책", title: p.title, sub: tpYmdK(p.date) + " 발표" + (p.effective && p.effective !== p.date ? " · " + tpYmdK(p.effective) + " 시행" : ""), body: (p.points || []).slice(0, 5).concat((p.who || []).slice(0, 2).map(function (w) { return "→ " + w; })).join("\n"), relHd: tb ? "변경 전 · 후" : "", cols: tb ? tb.cols.join(" | ") : "", rows: tb ? tb.rows.slice(0, 6).map(function (r) { return r.join(" | "); }).join("\n") : "", foot: "세부 조건·예외는 공식 자료 · 투자 권유 아님" }); });
+      return out; } },
+  loans: { nm: "정책대출 비교", grp: "정책·대출·교통", opts: [], tpls: ["compareTable"], hint: "한 장 = 3개 상품 비교표 · 여러 장 = 비교표 + 상품마다 한 장(금리표 전체·우대·핵심 조건)", build: function () { var d = TPL.compareTable.auto(); return d ? [d] : []; },
+    detail: function (o) { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, pr = (D.loans && D.loans.manual && D.loans.manual.programs) || []; if (!pr.length) return null; var cover = TPL.compareTable.auto(), out = cover ? [cover] : [], P = pr.filter(function (p) { return p.rateTable && p.rateTable.rows; });
+      P.forEach(function (p, i) { var rt = p.rateTable, dc = (p.discounts || []).map(function (x) { return x[0] + " " + x[1]; }), src = "주택도시기금·주택금융공사 " + (D.loans.manual.asOf || "") + " 확인" + (rt.verify ? " · 확인 전" : ""), sub = "연 " + (p.rate || "") + "% · 한도 " + (p.limit ? eok(p.limit) : "–") + (p.limitNote ? "(" + p.limitNote.split(" (")[0] + ")" : "") + " · " + (p.who || ""), cols = ["부부합산 소득"].concat(rt.cols).join(" | "), big = rt.rows.length > 6;
+        /* 금리표가 길면(신생아 특례 9구간) 조건 장 + 금리·우대 장으로 나눈다 — 한 장에 다 넣으면 접힌다 */
+        out.push({ _tpl: "issue", _cat: "loan", src: src, badge: "정책대출 " + p.name, tag: "대출", title: p.name, sub: sub, body: (p.detail || []).slice(0, big ? 5 : 4).concat(!big && dc.length ? ["우대: " + dc.slice(0, 8).join(" · ")] : []).concat(!big && p.discountNote ? [p.discountNote] : []).join("\n"), relHd: big ? "소득 구간 × 만기 금리(연 %) — 1/2" : "소득 구간 × 만기 금리(연 %)", cols: cols, rows: rt.rows.slice(0, big ? 5 : 6).map(function (r) { return r.join(" | "); }).join("\n"), foot: rt.note || "" });
+        if (big) out.push({ _tpl: "issue", _cat: "loan", src: src, badge: "정책대출 " + p.name + " 2", tag: "대출", title: p.name + " — 금리표 계속 · 우대", sub: sub, body: (dc.length ? ["우대: " + dc.slice(0, 8).join(" · ")] : []).concat(p.discountNote ? [p.discountNote] : []).concat(p.note ? [p.note] : []).join("\n"), relHd: "소득 구간 × 만기 금리(연 %) — 2/2", cols: cols, rows: rt.rows.slice(5).map(function (r) { return r.join(" | "); }).join("\n"), foot: rt.note || "" }); });
+      out.forEach(function (d, i) { if (i) d.badge = "정책대출 " + i + "/" + (out.length - 1); });
+      return out; } },
+  transit: { nm: "교통 노선 현황", grp: "정책·대출·교통", opts: [], tpls: ["lineTable"], hint: "한 장 = 노선 표 · 여러 장 = 표 + 노선마다 한 장(상태·개통·비고·지나는 지역)", build: function () { var d = TPL.lineTable.auto(); return d ? [d] : []; },
+    detail: function (o) { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, L = (D.transit && D.transit.manual && D.transit.manual.lines) || []; if (!L.length) return null; var cover = TPL.lineTable.auto(), out = cover ? [cover] : [], P = L.slice(0, Math.max(2, (o.maxp || 3) * 3));
+      P.forEach(function (l, i) { var regs = (l.regions || []).map(function (k) { return typeof tprNm === "function" ? tprNm(k) : k; }).filter(Boolean); out.push({ _tpl: "issue", _cat: "transit", src: "국토부·국가철도공단 발표 · 직접 관리 목록", badge: "노선 " + (i + 1) + "/" + P.length, tag: l.status || "교통", title: l.name, sub: (l.status || "") + (l.open ? " · " + String(l.open).replace(/^(\d{4})-(\d{2})$/, function (_, y, m) { return m === "00" ? y + "년" : y + "." + Number(m); }) : ""), body: [l.note || ""].concat(regs.length ? ["지나는 지역: " + regs.join(" · ")] : []).filter(Boolean).join("\n"), foot: "개통 예정은 공정에 따라 미뤄질 수 있음" }); });
+      return out; } },
+  terms: { nm: "부동산 단어", grp: "상식·이슈", opts: [], tpls: ["listArrow"], hint: "한 장 = 단어 6개 한 줄 뜻 · 여러 장 = 단어마다 한 장(뜻 + 풀이)", build: function () { var d = TPL.listArrow.auto(); return d ? [d] : []; },
+    detail: function (o) { var T = (typeof DY !== "undefined" && DY.terms) || null; if (!T) return null; var cover = TPL.listArrow.auto(), out = cover ? [cover] : [], R = cover ? tpRows(cover.rows) : [];
+      R.forEach(function (r, i) { var t = T.filter(function (x) { return x[0] === r[0]; })[0] || [r[0], r[1], []]; out.push({ _tpl: "issue", _cat: "term", src: "우상향연구소 용어 사전", badge: "단어 " + (i + 1) + "/" + R.length, tag: "단어", title: t[0], sub: t[1], body: (t[2] || []).join("\n"), foot: "" }); });
+      return out; } },
   free: { nm: "직접 입력 (빈 양식)", grp: "직접", opts: ["tpl"], tpls: null, build: function () { return []; } }
 };
 var TPR_ORDER = ["regionPrice", "topDeal", "leaders", "busy", "newHigh", "beforeAfter", "priceBand", "volRank", "yoy", "gaps", "subsWeek", "subsRate", "subsScore", "subsPrice", "subsShort", "aptNotice", "calendar", "rateMort", "rateJeonse", "rateDep", "rateSav", "rateBank", "rateChange", "policy", "loans", "transit", "terms", "free"];
@@ -9231,7 +9248,8 @@ function tprRebuild() {
   if (R.tpls && R.tpls.indexOf(TP.id) < 0) TP.id = R.tpls[0];
   if (TP.id === "rankGrid") TP.o.per = 12; if (TP.id === "leaderGrid" && TP.o.per > 8) TP.o.per = 7; if (TP.id === "lineTable" && TP.o.per > 16) TP.o.per = 16; if (TP.id === "denseTable" && TP.o.per < 12 && (TPR[TP.r].per || 0) >= 14) TP.o.per = TPR[TP.r].per;
   var pages = [];
-  try { pages = R.build(TP.o, TP.id) || []; } catch (e) { if (window.console) console.error(e); }
+  /* v9.48 여러 장 = 상세본: 레시피에 detail 이 있으면 그것을(표지 + 항목별 상세 장), 없으면 build 의 전체 장 */
+  try { pages = (!tprOne() && R.detail ? R.detail(TP.o, TP.id) : null) || R.build(TP.o, TP.id) || []; } catch (e) { if (window.console) console.error(e); }
   if (xto) { pages = pages.map(function (d) { return tpConvert(d, xto); }); TP.id = xto;
     if (!tprOne()) { var XP = { issue: 7, lineTable: 10, rankGrid: 12, listArrow: 10, denseTable: 16 }[xto] || 12, k0 = xto === "rankGrid" ? "items" : "rows", np = [];   /* 옮긴 줄이 한 장에 넘치면 장을 나눈다 */
       /* 같은 재료의 장들이면 줄을 전부 모아 다시 고르게 나눈다(14/14/14 → 12 로 옮길 때 7/7/7/7/7/7 이 되지 않게) */
@@ -9254,10 +9272,10 @@ function tpFormHtml(t, d) {
   return t.fields.map(function (f) { var v = d[f[0]], txt = f[2] === "text" ? String(v || "") : (Array.isArray(v) ? v.map(function (r) { return Array.isArray(r) ? r.join(" | ") : r; }).join("\n") : String(v || ""));
     return '<label class="tp-f"><span>' + tpE(f[1]) + "</span>" + (f[2] === "text" ? '<input data-tf="' + f[0] + '" value="' + tpE(txt) + '" placeholder="' + tpE(f[3]) + '">' : '<textarea data-tf="' + f[0] + '" rows="' + (f[2] === "rows" ? 6 : 3) + '" placeholder="' + tpE(f[3]) + '">' + tpE(txt) + "</textarea>") + "</label>"; }).join("");
 }
-function tpReadForm() { var old = tpData(), o = {}, t = TPL[TP.id]; ["_cat", "_off", "badge", "_icon", "lead", "note", "noteSrc"].forEach(function (k) { if (old[k] != null) o[k] = old[k]; }); t.fields.forEach(function (f) { var el = document.querySelector('#tp-form [data-tf="' + f[0] + '"]'); if (!el) return; o[f[0]] = f[2] === "text" ? el.value : (f[2] === "rows" ? tpRows(el.value) : tpLines(el.value)); }); return o; }
+function tpReadForm() { var old = tpData(), o = {}, t = tpTplOf(old); ["_cat", "_off", "badge", "_icon", "lead", "note", "noteSrc"].forEach(function (k) { if (old[k] != null) o[k] = old[k]; }); t.fields.forEach(function (f) { var el = document.querySelector('#tp-form [data-tf="' + f[0] + '"]'); if (!el) return; o[f[0]] = f[2] === "text" ? el.value : (f[2] === "rows" ? tpRows(el.value) : tpLines(el.value)); }); return o; }
 function tpPaint() {
   var form = document.getElementById("tp-form"); if (!form) return;
-  var t = TPL[TP.id], d = tpData(), n = (TP.pages || []).length;
+  var d = tpData(), t = tpTplOf(d), n = (TP.pages || []).length;
   form.innerHTML = tpFormHtml(t, d);
   var pgs = document.getElementById("tpr-pages"); if (pgs) pgs.innerHTML = n > 1 ? '<small>고칠 장</small>' + TP.pages.map(function (_, i) { return '<button type="button" data-tppg="' + i + '" class="' + (i === TP.pg ? "on" : "") + '">' + (i + 1) + "장</button>"; }).join("") : "";
   var msg = document.getElementById("tp-msg"); if (msg) msg.textContent = TP.r === "free" ? "빈 양식 — 직접 적거나 AI로 채우기" : TP.autoOk ? (TP.auto ? "앱 데이터로 채움 · 칸을 고치면 바로 반영" : "직접 고친 내용") : "이 조건에 맞는 자료가 없습니다 — 지역·평형을 바꾸거나 직접 적으세요";
@@ -9303,10 +9321,12 @@ function tpIconGen() {
     });
   });
 }
+/* v9.48 장마다 다른 양식 — 상세 장(d._tpl = "issue" 등)은 그 양식으로 그린다 */
+function tpTplOf(d) { return d && d._tpl && TPL[d._tpl] ? TPL[d._tpl] : TPL[TP.id]; }
 function tpPaintCard() {
   var box = document.getElementById("tp-cards"); if (!box) return;
   var t = TPL[TP.id], P = TP.pages || [tpData()];
-  box.innerHTML = P.map(function (d, i) { var html = ""; try { html = t.render(d); } catch (e) { html = '<p class="hint">그리기 오류: ' + tpE(e.message) + "</p>"; } return '<div class="chcardWrap' + (i === TP.pg ? " on" : "") + '" data-tppg="' + i + '"><div class="tp-scale">' + html + '</div><button type="button" class="btn sm ghost" data-chsave="' + tpE((TPR[TP.r] ? TPR[TP.r].nm : t.nm) + (P.length > 1 ? "_" + (i + 1) : "")) + '">이미지 저장</button></div>'; }).join("");
+  box.innerHTML = P.map(function (d, i) { var html = ""; try { html = tpTplOf(d).render(d); } catch (e) { html = '<p class="hint">그리기 오류: ' + tpE(e.message) + "</p>"; } return '<div class="chcardWrap' + (i === TP.pg ? " on" : "") + '" data-tppg="' + i + '"><div class="tp-scale">' + html + '</div><button type="button" class="btn sm ghost" data-chsave="' + tpE((TPR[TP.r] ? TPR[TP.r].nm : t.nm) + (P.length > 1 ? "_" + (i + 1) : "")) + '">이미지 저장</button></div>'; }).join("");
   var cnt = document.getElementById("tp-cnt"); if (cnt) cnt.textContent = P.length + "장";
   tpLeadPaint(P); if (typeof tpStepsPaint === "function") tpStepsPaint();
   tpDrawPaint(box, P);
@@ -10200,12 +10220,7 @@ function rcLocalPlan(c, F) {
 var IN = { ai: null, aiQ: "", journal: null, jErr: "", busy: "", metrics: null, ctxFile: null, ctxMine: [] };
 /* ══ 속사정(context) — 규칙·세금·대출·상승론·하락론 메모: data/manual/context.json(파일) + 앱에서 추가한 것(서버 보관함) ══ */
 var IN_KIND = { rule: "규칙", fact: "최근 사실", bull: "상승 논거", bear: "하락 논거" }, IN_TAG = { volume: "거래", price: "가격", buy: "무주택 매수", move: "갈아타기", gap: "전세 끼고", subs: "청약", sell: "매도", rent: "전월세", rate: "금리" };
-function inCtxLoad(cb) { if (IN.ctxFile) { cb && cb(); return; } var n = 2, done = function () { if (--n === 0) cb && cb(); };
-  fetch("data/manual/context.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { IN.ctxFile = j || { items: [] }; done(); }, function () { IN.ctxFile = { items: [] }; done(); });
-  /* v9.47 손으로 적는 심리·수급 지표(KB 매수우위·매물·낙찰가율·CSI) — 공개 API 가 없는 것들 */
-  fetch("data/manual/sentiment.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { IN.sent = j || null; done(); }, function () { IN.sent = null; done(); }); }
-function inSentAgeD(at) { var d = Date.parse(at || ""); return isFinite(d) ? Math.round((Date.now() - d) / 86400000) : null; }
-function inSentItems(maxDays) { var L = (IN.sent && IN.sent.items) || []; return L.filter(function (x) { var lim = Number(x.maxDays) || maxDays || 21; return x.v != null && isFinite(Number(x.v)) && x.at && inSentAgeD(x.at) != null && inSentAgeD(x.at) <= lim; }); }
+function inCtxLoad(cb) { if (IN.ctxFile) { cb && cb(); return; } fetch("data/manual/context.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { IN.ctxFile = j || { items: [] }; cb && cb(); }, function () { IN.ctxFile = { items: [] }; cb && cb(); }); }
 function inCtxAll() { var F = ((IN.ctxFile && IN.ctxFile.items) || []).map(function (x) { x = Object.assign({}, x); x.from = "file"; return x; }), M = (IN.ctxMine || []).map(function (j) { var d = Object.assign({}, j.data); d.id = j.id; d.from = "mine"; return d; }); var X = typeof rpExtAsCtx === "function" ? rpExtAsCtx() : []; return M.concat(X).concat(F).filter(function (x) { return x.title; }); }
 function inCtxStale(x) { if (!x.asOf) return false; var d = Date.parse(x.asOf); return isFinite(d) && Date.now() - d > 60 * 86400000; }
 function inCtxEnded(x) { if (!x.until) return false; var d = Date.parse(x.until); return isFinite(d) && Date.now() > d + 86400000; }
@@ -10251,7 +10266,6 @@ function inDataStatus() {
   var SP = D && D.supply; ["permits", "starts", "completes"].forEach(function (key, i) { var nm = ["인허가", "착공", "준공"][i], o = SP && SP[key], a = o && (o.seoul || o.all); if (a) { var sl = inLast(a); add(nm, inYmL(sl[0]), inFresh(a, 5) ? "ok" : "stale", inFresh(a, 5) ? (o.seoul ? "" : "전국만") : "오래돼 신호에서 뺌"); } else add(nm, "", "miss", "수집 안 됨 — 외부 조사로"); });
   var R = (typeof MACRO !== "undefined" && MACRO.data && MACRO.data.rates) || null; if (R && R.base) add("금리", (R.mortgage ? "주담대 " + inYmL(R.mortgage.t) : "") + (R.base ? " · 기준 " + inYmL(R.base.t) : ""), R.mortgage && inAgeM(R.mortgage.t) > 3 ? "stale" : "ok", "ECOS · 주담대는 전월 평균이라 한 달 늦다"); else add("금리", "", "miss", "macro_data 없음");
   if (D && D.subs) add("청약", D.subsAt ? "수집 " + String(D.subsAt).slice(5, 16).replace("T", " ") : (D.subs.asOf ? inYmL(D.subs.asOf) : ""), "ok", "청약홈 · 새벽 3시·오후 3시"); else add("청약", "", "miss", "");
-  var SE = IN.sent; if (SE) { var fresh = inSentItems(21).length, all = (SE.items || []).length, filled = (SE.items || []).filter(function (x) { return x.v != null; }).length; add("심리·수급(수동)", fresh ? fresh + "/" + all + "개 사용" : (filled ? "모두 21일 넘음" : "비어 있음"), fresh ? "ok" : "miss", fresh ? "" : "data/manual/sentiment.json 에 KB 매수우위·매물·낙찰가율·CSI 를 적으면 신호 F14~F17 로 들어감"); }
   var cx = IN.ctxFile; if (cx) { var ca2 = cx.asOf ? Math.round((Date.now() - Date.parse(cx.asOf)) / 86400000) : null; add("속사정 메모", cx.asOf || "", ca2 != null && ca2 > 21 ? "warn" : "ok", ca2 != null && ca2 > 21 ? ca2 + "일 전 정리 — 규칙이 바뀌었는지 확인" : ""); }
   var T = typeof CH !== "undefined" && CH.data && CH.data.news; if (T && T.topicsAt) add("정책·기사 제목", String(T.topicsAt).slice(0, 10), "ok", ""); 
   var V = typeof CH !== "undefined" && CH.val; if (V && V.checks) { var bad = V.checks.filter(function (c) { return c.level === "error" || c.level === "warn"; }); add("자료 점검(validate)", V.checks.length + "항목", bad.length ? "warn" : "ok", bad.length ? bad.map(function (c) { return c.title; }).slice(0, 4).join(" · ") : "모두 통과"); }
@@ -10336,14 +10350,6 @@ function inSignals() {
     read: stt.yoy < -10 ? "착공이 줄고 있다 — 2~3년 뒤 입주가 줄어 공급 부족 쪽. 서울은 미분양이 아니라 이 숫자가 공급 지표" : stt.yoy > 10 ? "착공이 늘고 있다 — 2~3년 뒤 입주 증가, 전세부터 눌리는 요인" : "착공은 평년 수준" });
   var rx = M.rentIdx; if (rx && rx.prev != null) { var rmm = (rx.v / rx.prev - 1) * 100, rm3 = rx.p3 != null ? (rx.v / rx.p3 - 1) * 100 : null; add({ id: "F12b", grp: "전세", nm: "부동산원 서울 전세지수", val: rx.v.toFixed(2), cmp: inSgn(rmm, 2) + " 전월" + (rm3 != null ? " · " + inPct(rm3, 2) + " 3개월" : ""), sc: rmm > 0.4 ? 2 : rmm > 0.1 ? 1 : rmm < -0.4 ? -2 : rmm < -0.1 ? -1 : 0, w: 0.8, at: rx.at,
     read: rmm > 0.1 ? "전세가 오르는 중 — 전세가율(수준)과 별개로 '방향'이 위. 실거주 의무로 전세 매물이 줄어든 몫이 섞여 있다" : rmm < -0.1 ? "전세가 내리는 중 — 입주 물량이나 월세 전환이 원인일 수 있고, 매매를 떠받치는 힘이 약해진다" : "전세는 보합" }); }
-  /* v9.47 심리·수급(수동 입력, 21일 안의 값만) */
-  inSentItems(21).forEach(function (x) { var v = Number(x.v), pv = x.prev != null ? Number(x.prev) : null, chg = pv ? (v / pv - 1) * 100 : null, sc = 0, read = "", nm = x.nm;
-    if (x.id === "kb-buy-seoul") { sc = v > 120 ? 2 : v > 100 ? 1 : v < 60 ? -2 : v < 80 ? -1 : 0; read = v > 100 ? "사려는 사람이 팔려는 사람보다 많다 — 매수 우위" : v < 80 ? "팔려는 사람이 훨씬 많다 — 매도자 우위, 호가가 눌린다" : "매수·매도 균형 근처"; }
-    else if (x.id === "listing-seoul") { sc = chg == null ? 0 : chg > 10 ? -1 : chg < -10 ? 1 : 0; read = chg == null ? "매물 수준만 기록됨" : chg > 10 ? "매물이 늘고 있다 — 호가 경쟁이 시작되는 신호" : chg < -10 ? "매물이 잠기고 있다 — 적은 거래가 가격을 떠받치기 쉬운 구조" : "매물은 제자리"; }
-    else if (x.id === "auction-seoul") { sc = v > 100 ? 2 : v > 95 ? 1 : v < 80 ? -2 : v < 85 ? -1 : 0; read = v > 95 ? "경매에서도 시세 가까이 주고 산다 — 매수 심리가 강하다" : v < 85 ? "경매 낙찰가가 시세보다 많이 낮다 — 급매 가격의 바닥을 보여 준다" : "낙찰가율은 보통 수준"; }
-    else if (x.id === "csi-house") { sc = v > 115 ? 2 : v > 105 ? 1 : v < 90 ? -2 : v < 98 ? -1 : 0; read = v > 105 ? "1년 뒤 오른다고 보는 사람이 더 많다" : v < 98 ? "내린다고 보는 사람이 더 많다" : "전망은 반반"; }
-    else return;
-    add({ id: "F" + (14 + ["kb-buy-seoul", "listing-seoul", "auction-seoul", "csi-house"].indexOf(x.id)), grp: "심리", nm: nm, val: (x.unit === "건" ? fmt(v) : v.toFixed(x.unit === "%" ? 1 : 1)) + (x.unit || ""), cmp: (pv != null ? "직전 " + (x.unit === "건" ? fmt(pv) : pv) + (x.unit || "") + (chg != null ? " (" + inPct(chg, 1) + ")" : "") + " · " : "") + inE(x.src) + " · 손으로 적은 값", sc: sc, w: 0.7, at: x.at, read: read + " — " + x.how }); });
   var j = M.jr; if (j) add({ id: "F12", grp: "전세", nm: "서울 84㎡ 전세가율", val: j.v.toFixed(0) + "%", cmp: "매매 " + eok(j.sale) + " · 전세 " + eok(j.rent) + (j.prev != null ? " · 전월 " + j.prev.toFixed(0) + "%" : ""), sc: j.v > 60 ? 1 : j.v < 45 ? -1 : 0, w: 0.7, at: j.ym || j.at,
     read: j.v > 60 ? "전세가율이 높다 — 전세가 매매를 밀어 올리는 구조(갭 작음). 단, 토허제 실거주 의무로 세 놓을 집이 줄어 전세가 오른 몫이 섞여 있어 '매매 체력'으로만 읽으면 안 된다" : j.v < 50 ? "전세가율이 낮다 — 매매가가 전세보다 많이 앞서 있어 갭이 크다. 전세 끼고 사기엔 자기자본이 많이 필요" : "전세가율은 중간 수준" });
   var s = M.subsMed; if (s) add({ id: "F13", grp: "청약", nm: "청약 1순위 경쟁률 중위", val: s.v.toFixed(1) + ":1", cmp: "최근 60일 " + s.n + "단지 · 미달 " + s.short + "곳", sc: s.v > 20 ? 2 : s.v > 5 ? 1 : s.v < 1 ? -2 : s.v < 2 ? -1 : 0, w: 0.6, at: s.at,
@@ -10586,7 +10592,7 @@ function inPaint() {
   var S = inSignals(), T = inTemp(S), sit = inSituation(S, T), st = inStances(S, T), sc = inScenarios(S, T), an = inAnalogs(), re = inRateEvents(), se = inSeason(), cp = inCompare();
   IN.S = S; IN.T = T; IN.an = an; IN.re = re; IN.se = se; IN.cp = cp; IN.sit = sit; IN.sc = sc; IN.st = st;
   var bl = document.getElementById("in-basis"); if (bl) bl.textContent = inBasisLine();
-  var grpOrder = ["거래", "가격", "위치", "금리", "공급", "전세", "청약", "심리"];
+  var grpOrder = ["거래", "가격", "위치", "금리", "공급", "전세", "청약"];
   var sigRows = grpOrder.map(function (g) { return S.filter(function (x) { return x.grp === g; }).map(function (x) { return '<tr class="sc' + (x.sc > 0 ? "p" : x.sc < 0 ? "n" : "z") + '"><td class="g">' + inE(g) + '</td><td class="nm">' + inE(x.nm) + '<small>' + inE(x.at || "") + '</small></td><td class="v">' + inE(x.val) + '</td><td class="c">' + x.cmp + '</td><td class="s">' + (typeof fScoreBar === "function" ? fScoreBar(x.sc) : (x.sc > 0 ? "+" + x.sc : x.sc)) + '</td><td class="r">' + inE(x.read) + ' <i class="fid">' + x.id + "</i></td></tr>"; }).join(""); }).join("");
   var h = (typeof appFailHtml === "function" ? appFailHtml(IN.ready) : "") + inStatusHtml();
   /* ① 상황판 */
@@ -10737,6 +10743,17 @@ if (typeof TPR !== "undefined") {
       return [Object.assign(base, { colA: "상승론", colB: "하락론", rowsA: A.slice(0, 5), rowsB: B.slice(0, 5), ask: "당신은 어느 쪽? 댓글로 근거와 함께" })]; } };
   TPR.inState = { nm: "시장 온도 · 상황판", grp: "인사이트", opts: [], tpls: ["denseTable", "lineTable", "issue"], per: 14, hint: "인사이트 화면의 신호표 — 신호 | 지금 | 비교 | 읽기 (주인 판단 문장은 뺀다)",
     build: function () { var S = IN.S || inSignals(), T = inTemp(S); if (!S.length) return []; return tprPaged({ _cat: "market", src: inBasisLine().slice(0, 60), title: "지금 시장, 숫자로 보면", sub: "신호 " + S.length + "개 · 더운 쪽 " + T.up + " · 식는 쪽 " + T.dn, badge: "시장흐름", cols: "신호 | 지금 | 비교 | 읽기", foot: "각 숫자의 기준일은 지표마다 다름 · 투자 판단과 책임은 본인에게" }, S.map(function (x) { return [x.nm, x.val, String(x.cmp).replace(/<[^>]+>/g, ""), x.read.split(" — ")[0]]; }), 14); } };
+  /* v9.48 여러 장 = 상세본: 상황판은 표지(온도·그룹별 평균) + 그룹마다 한 장(신호 표 + 읽기 문장), 토론은 진영마다 한 장(데이터 근거 + 논거 원문) + 갈림길 */
+  TPR.inState.detail = function (o) { var S = IN.S || inSignals(), T = inTemp(S); if (!S.length) return null; var G = ["거래", "가격", "위치", "금리", "공급", "전세", "청약"].map(function (g) { return { g: g, L: S.filter(function (x) { return x.grp === g; }) }; }).filter(function (q) { return q.L.length; });
+    var avg = function (L) { return L.reduce(function (a, x) { return a + x.sc; }, 0) / L.length; }, lab = function (v) { return v > 0.5 ? "상승 압력" : v < -0.5 ? "하락 압력" : "중립"; };
+    var out = [{ _cat: "market", src: inBasisLine().slice(0, 60), badge: "시장흐름 표지", title: "지금 시장, 숫자로 보면 — " + T.nm, sub: "신호 " + S.length + "개 · 더운 쪽 " + T.up + " · 식는 쪽 " + T.dn + " · 점수 " + (T.t >= 0 ? "+" : "") + T.t.toFixed(2), cols: "축 | 신호 수 | 평균 점수 | 방향", rows: G.map(function (q) { var v = avg(q.L); return [q.g, q.L.length + "개", (v > 0 ? "+" : "") + v.toFixed(2), lab(v)]; }), foot: "점수 −2(식음)~+2(더움) · 다음 장부터 축별 상세" }];
+    G.forEach(function (q, i) { var v = avg(q.L); out.push({ _tpl: "issue", _cat: "market", src: inBasisLine().slice(0, 60), badge: "시장흐름 " + (i + 1) + "/" + G.length, tag: q.g, title: q.g + " — " + lab(v), sub: q.L.map(function (x) { return x.nm + " " + x.val; }).join(" · ").slice(0, 90), body: q.L.map(function (x) { return x.nm + ": " + x.read; }).join("\n"), relHd: "숫자 · 비교 · 기준", cols: "신호 | 지금 | 비교 | 기준", rows: q.L.map(function (x) { return [x.nm, x.val, String(x.cmp).replace(/<[^>]+>/g, "").slice(0, 60), x.at || ""].join(" | "); }).join("\n"), foot: "점수 " + q.L.map(function (x) { return x.id + " " + (x.sc > 0 ? "+" : "") + x.sc; }).join(" · ") }); });
+    return out; };
+  TPR.inDebate.detail = function (o) { var S = IN.S || inSignals(), D = inDebate(S), T = inTemp(S); if (!D.bull.data.length && !D.bear.data.length) return null;
+    var side = function (nm, X, tag) { return { _tpl: "issue", _cat: "issue", src: "국토부 실거래·청약홈·한국은행 + 기사(출처 표기) · " + tpToday(), badge: "부동산이슈", tag: tag, title: nm + " — 근거 " + (X.data.length + X.views.length) + "개", sub: X.data.map(function (x) { return x.nm + " " + x.val; }).join(" · ").slice(0, 90), body: X.data.map(function (x) { return "[데이터] " + x.nm + " " + x.val + " — " + x.read.split(" — ")[0]; }).concat(X.views.map(function (v) { return "[" + (v.src || "논거").split(" · ")[0] + "] " + v.title + (v.body ? " — " + String(v.body).slice(0, 90) : ""); })).slice(0, 6).join("\n"), foot: "기사·전문가 의견은 원문 기준 · 데이터는 앱 집계" }; };
+    var pages = TPR.inDebate.build(o, "versus"); pages.push(side("상승론", D.bull, "상승")); pages.push(side("하락론", D.bear, "하락"));
+    var sc = IN.sc || inScenarios(S, T); pages.push({ _tpl: "issue", _cat: "issue", src: "앱 데이터 신호 · " + tpToday(), badge: "부동산이슈", tag: "갈림길", title: "어느 쪽이 맞는지, 이 신호를 보면 안다", sub: "확인 신호 — 시나리오별", body: sc.map(function (x) { return x.nm.split(" — ")[0] + ": " + x.watch.slice(0, 2).join(" / "); }).join("\n"), foot: "시나리오는 확률이 아니라 조건 · 투자 권유 아님" });
+    return pages; };
   TPR.inCompare = { nm: "지금 · 1년 전 · 고점 · 저점", grp: "인사이트", opts: [], tpls: ["denseTable", "lineTable"], per: 8, hint: "서울 가격·거래·전세가율·금리·미분양을 네 시점으로",
     build: function () { var cp = inCompare(); if (!cp) return []; return tprPaged({ _cat: "market", src: "국토부 실거래 월별 집계 · 한국은행 · 국토부 미분양", title: "서울 지수, 고점 대비 " + inPct(cp.chg.fromPk) + " · 저점 대비 " + inPct(cp.chg.fromTr), sub: "지금 · 1년 전 · 2020~22 고점 · 그 뒤 저점", badge: "시장흐름", cols: "항목 | " + cp.cols.join(" | "), foot: "– 는 그 시점 자료를 수집하지 않은 것 · 잠정 달 제외" }, cp.rows, 8); } };
   TPR.inAnalog = { nm: "지금과 비슷했던 달", grp: "인사이트", opts: [], tpls: ["denseTable", "lineTable"], per: 8, hint: "1년 상승률·거래량·고점 대비가 비슷했던 과거 5개 달의 6·12개월 뒤",
@@ -10954,7 +10971,7 @@ function rpRegionsHtml() {
     '<p class="hint">지수 = 권역 시군구 균등 지수(채널 MDD 방식) · 작은 글씨 "거래 가중"은 최근 12개월 거래량 가중 — 둘이 2%p 이상 다르면 읽기 줄에 적는다 · 30일 거래는 계약일 기준 최근 30일(한 달 전 같은 시점 대비) · 월 거래는 마지막 확정 달 · 청약은 주소로 묶음 · 시군구 미분양은 수집하지 않아 권역 합계만 — 평택·대구 같은 곳은 외부 조사 "공급" 항목으로 채운다.</p>';
 }
 /* ══ 브리핑 — 7개 축 진단 ══ */
-var RP_AXES = [["수요", ["거래", "심리"], "거래량·신고가 + 손으로 적은 심리·수급(KB 매수우위·매물·낙찰가율·CSI, data/manual/sentiment.json)"], ["가격", ["가격"], "실거래 지수·오른 지역 수·신고가 비율"], ["위치", ["위치"], "고점 대비·확산 단계 = 사이클 어디쯤"], ["금융", ["금리"], "기준금리·주담대·국고채가 말하는 방향"], ["공급", ["공급"], "미분양(지방) + 착공(서울 2~3년 뒤 입주) + 외부 조사(입주 예정)"], ["전세", ["전세"], "전세가율 = 매매를 떠받치는 힘"], ["청약", ["청약"], "분양 시장 체감 온도"]];
+var RP_AXES = [["수요", ["거래"], "거래량·신고가로 본 매수 수요 — 매물 수·매수우위지수·낙찰가율은 공개 API가 없어 외부 조사(심리)로"], ["가격", ["가격"], "실거래 지수·오른 지역 수·신고가 비율"], ["위치", ["위치"], "고점 대비·확산 단계 = 사이클 어디쯤"], ["금융", ["금리"], "기준금리·주담대·국고채가 말하는 방향"], ["공급", ["공급"], "미분양(지방) + 착공(서울 2~3년 뒤 입주) + 외부 조사(입주 예정)"], ["전세", ["전세"], "전세가율 = 매매를 떠받치는 힘"], ["청약", ["청약"], "분양 시장 체감 온도"]];
 function rpAxes(S) {
   return RP_AXES.map(function (a) { var L = S.filter(function (x) { return a[1].indexOf(x.grp) >= 0; }), sc = L.length ? L.reduce(function (p, x) { return p + x.sc; }, 0) / L.length : null;
     var ext = (RP2.ext || []).filter(function (x) { return (x.data.tags || []).some(function (t) { return ({ 수요: "volume", 가격: "price", 금융: "rate", 공급: "supply", 전세: "rent", 청약: "subs" })[a[0]] === t; }); })[0];

@@ -2753,7 +2753,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.49</span>
+    <span class="ver">v9.50</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -7843,6 +7843,49 @@ function appStatusList() { return Object.keys(APP.st).map(function (k) { var s =
 /* "불러오는 중" 대신 실패 이유를 보여 주는 공통 상자 */
 function appFailHtml(st) { if (!st || st.ok) return ""; return '<div class="app-fail"><b>일부 자료를 불러오지 못했습니다</b><ul>' + st.fail.map(function (k) { var s = APP.st[k] || {}, L = APP_LOADERS[k] || { nm: k }; return "<li>" + fE(L.nm) + (s.msg ? " — " + fE(s.msg) : "") + "</li>"; }).join("") + "</ul><small>있는 자료로만 계산합니다. 빠진 자료는 신호·표에서 비고, 데이터 상태 띠에 이유가 남습니다.</small></div>"; }
 
+/* ── v9.50 B8: 흩어진 전역 상태를 한 창구로 ──
+   모듈마다 자기 전역(CH.data·DY.data·MACRO.data·DB/MC·IN.ctxFile·RP2.ph·RP2.ext)을 들고 있고, 각자 "비었나?"를 다르게 판단해 왔다.
+   물리적으로 한 객체로 옮기면 1.5MB 전체를 건드려야 해서 위험하다. 대신 APP.data 라는 '읽기 창구'(getter)로 같은 자료를 한 이름으로 보게 하고,
+   비우기(APP.reset)·점검(APP.inspect)을 한 곳에 둔다. 새 코드는 APP.data.* 만 쓰고, 옛 전역은 그대로 둔다(호환). */
+APP.data = {};
+(function () {
+  var G = typeof window !== "undefined" ? window : this;
+  var def = function (k, get) { Object.defineProperty(APP.data, k, { enumerable: true, get: get }); };
+  def("brief", function () { return G.CH && G.CH.data || null; });            /* 최근 30일 실거래 요약(brief_data) */
+  def("core", function () { return G.DB || null; });                            /* 월별 저장본 시계열(market_core) */
+  def("coreMeta", function () { return G.MC || null; });
+  def("daily", function () { return G.DY && G.DY.data || null; });            /* 오늘 한 장 보조 지표(daily_data) */
+  def("macro", function () { return G.MACRO && G.MACRO.data || null; });      /* 금리·정책·대출(macro_data + manual) */
+  def("ctx", function () { return G.IN && G.IN.ctxFile || null; });           /* 속사정 메모(context.json) */
+  def("ctxMine", function () { return G.IN && G.IN.ctxMine || []; });
+  def("ph", function () { return G.RP2 && G.RP2.ph || null; });               /* 과거 정책(policy_hist) */
+  def("ext", function () { return G.RP2 && G.RP2.ext || []; });               /* 외부 조사(보관함) */
+  def("journal", function () { return G.IN && G.IN.journal || null; });
+  def("validate", function () { return G.CH && G.CH.val || null; });          /* data/validate.json */
+})();
+/* 비우기 — '다시 계산' 버튼이 모듈마다 다른 변수를 지우던 것을 한 곳으로. 비운 뒤 appReady 가 다시 불러온다 */
+APP.reset = function (keys) {
+  var G = typeof window !== "undefined" ? window : this;
+  (keys || []).forEach(function (k) {
+    try {
+      if (k === "daily" && G.DY) { G.DY.data = null; G.DY.loaded = false; }
+      if (k === "macro" && G.MACRO) { G.MACRO.data = null; G.MACRO.loading = false; }
+      if (k === "ctx" && G.IN) { G.IN.ctxFile = null; G.IN.metrics = null; }
+      if (k === "ph" && G.RP2) G.RP2.ph = null;
+      if (k === "ext" && G.RP2) G.RP2.ext = [];
+      if (k === "journal" && G.IN) G.IN.journal = null;
+      if (k === "calc" && G.IN) { G.IN.metrics = null; G.IN.S = null; G.IN.T = null; G.IN.cp = null; G.IN.an = null; G.IN.re = null; G.IN.se = null; G.IN.sc = null; G.IN.st = null; G.IN.dv = null; }
+      delete APP.st[k]; delete APP._q[k];
+    } catch (e) { appErr("reset:" + k, e); }
+  });
+};
+/* 점검 — 무엇이 언제 것인지 한 표로(콘솔: APP.inspect()). 데이터 상태 띠와 같은 재료 */
+APP.inspect = function () {
+  var D = APP.data, sz = function (o) { try { return o == null ? 0 : JSON.stringify(o).length; } catch (e) { return -1; } };
+  var rows = [["brief", D.brief, D.brief && D.brief.asOf], ["core", D.core, D.coreMeta && D.coreMeta.m0 + "~" + (D.coreMeta.months || "")], ["daily", D.daily, D.daily && D.daily.builtAt], ["macro", D.macro, D.macro && D.macro.asOf], ["ctx", D.ctx, D.ctx && D.ctx.asOf], ["ph", D.ph, D.ph && D.ph.length + "건"], ["ext", D.ext, D.ext && D.ext.length + "건"], ["journal", D.journal, D.journal && D.journal.length + "건"], ["validate", D.validate, D.validate && D.validate.built]];
+  return rows.map(function (r) { var st = APP.st[r[0]] || {}; return { key: r[0], loaded: !!r[1], at: r[2] || "", size: sz(r[1]), ok: st.ok, ms: st.ms, msg: st.msg || "" }; });
+};
+
 /* ── 서식 한 벌 ── */
 function fE(s) { return escHtml(String(s == null ? "" : s)); }
 function fPct(v, d) { return v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d == null ? 1 : d) + "%"; }
@@ -10724,7 +10767,7 @@ function inClick(ev) {
   if (jo || jn) { var id = (jo || jn).dataset.injok || (jo || jn).dataset.injno, it = (IN.journal || []).filter(function (x) { return x.id === id; })[0]; if (!it) return; it.data.result = { ok: !!jo, manual: true, at: chDayKey(chKstNow()) }; asApi("update", { id: id, patch: { data: it.data } }).then(inJournalLoad, function (e) { IN.jErr = e.message; inJournalPaint(); }); return; }
   if (jd) { if (!confirm("이 기록을 지울까요?")) return; asApi("del", { id: jd.dataset.injdel }).then(inJournalLoad); return; }
   if (!a) return; var k = a.dataset.in;
-  if (k === "refresh") { IN.metrics = null; IN.ctxFile = null; inCtxLoad(function () { inPaint(); inJournalLoad(); }); }
+  if (k === "refresh") { APP.reset(["ctx", "ph", "daily", "macro", "calc"]); var b1 = document.getElementById("in-body"); if (b1) b1.innerHTML = '<p class="hint">다시 불러오는 중…</p>'; renderInsight(); }   /* v9.50 한 창구(APP.reset)로 비우고 공통 준비로 다시 */
   if (k === "cadd") { var ct = (document.getElementById("in-ct") || {}).value || "", cs = (document.getElementById("in-cs") || {}).value || ""; if (!ct.trim()) { alert("제목을 적어 주세요"); return; } if (!cs.trim()) { alert("출처를 적어 주세요 — 출처 없는 메모는 넣지 않습니다"); return; }
     var tags = Array.prototype.filter.call(document.querySelectorAll("[data-ctag]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.ctag; });
     var d = { type: "ctx", kind: (document.getElementById("in-ck") || {}).value || "rule", title: ct.slice(0, 160), body: ((document.getElementById("in-cb") || {}).value || "").slice(0, 1200), src: cs.slice(0, 120), url: ((document.getElementById("in-curl") || {}).value || "").slice(0, 300), tags: tags, asOf: (document.getElementById("in-cd") || {}).value || "", until: (document.getElementById("in-cu") || {}).value || "" };
@@ -11072,7 +11115,7 @@ function rpClick(ev) {
   var tp = t.closest("[data-rp2t]"); if (tp) { RP2.topic = tp.dataset.rp2t; RP2.msg = ""; rpPaint(); var ex = document.getElementById("rp2-ext"); if (ex) ex.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   var dl = t.closest("[data-rp2del]"); if (dl) { if (!confirm("이 외부 조사 기록을 지울까요?")) return; asApi("del", { id: dl.dataset.rp2del }).then(function () { rpLoadExt(); }); return; }
   var a = t.closest("[data-rp2]"); if (!a) return; var k = a.dataset.rp2;
-  if (k === "refresh") { IN.metrics = null; IN.S = inSignals(); IN.T = inTemp(IN.S); IN.cp = inCompare(); IN.an = inAnalogs(); rpLoadExt(); }
+  if (k === "refresh") { APP.reset(["ctx", "ph", "ext", "daily", "macro", "calc"]); var b2 = document.getElementById("rp2-body"); if (b2) b2.innerHTML = '<p class="hint">다시 불러오는 중…</p>'; renderReport(); }
   if (k === "pcopy") { var ta = document.getElementById("rp2-pt"); if (ta) { ta.select(); try { navigator.clipboard.writeText(ta.value); } catch (e) { document.execCommand("copy"); } RP2.msg = "프롬프트를 복사했습니다 — AI에 붙여 넣고, 돌아온 JSON 을 아래에 붙여 [저장]"; rpPaint(); } }
   if (k === "save") { var an = document.getElementById("rp2-ans"); if (!an || !an.value.trim()) { alert("AI 답을 붙여 넣어 주세요"); return; } rpExtSave(RP2.topic, an.value); }
   if (k === "copy") { var md = rpMarkdown(); try { navigator.clipboard.writeText(md); } catch (e) {} RP2.msg = "브리핑 글을 복사했습니다(" + md.length + "자)"; rpPaint(); }

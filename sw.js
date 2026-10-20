@@ -1,7 +1,7 @@
 /* TrackApt 서비스 워커 (v6.3) — 목적은 '홈 화면에 설치'가 되게 하는 것.
    자료는 항상 네트워크에서 먼저 받고(늘 최신), 네트워크가 안 될 때만 마지막 사본을 보여 준다.
    API 응답(/api/)은 저장하지 않는다. */
-var CACHE = "trackapt-v3";   /* v9.43: 화면(HTML)은 항상 서버에서 새로 — 브라우저 캐시 사본을 쓰지 않는다 */
+var CACHE = "trackapt-v4";   /* v9.43: 화면(HTML)은 항상 서버에서 새로 — 브라우저 캐시 사본을 쓰지 않는다 */
 self.addEventListener("install", function (e) { self.skipWaiting(); });
 self.addEventListener("activate", function (e) {
   e.waitUntil(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); })); })

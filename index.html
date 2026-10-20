@@ -2738,6 +2738,14 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 @media (prefers-color-scheme:dark){.in-tbl.sm tr:nth-child(even) td,.in-tbl.cmp tr:nth-child(even) td{background:rgba(255,255,255,.03)}.rp2-axi .chip{background:rgba(255,255,255,.07);color:inherit}.rp2-axi .ax-x{background:rgba(255,255,255,.05)}.f-sb b{color:#e5e7eb}.f-sb.up b{color:#fca5a5}.f-sb.dn b{color:#93c5fd}.in-tbl.sm td:first-child{color:inherit}}
 .in-gbar em.eq{position:absolute;top:-3px;width:2px;height:18px;margin-left:-1px;background:#111827;opacity:.55;border-radius:1px}
 @media (prefers-color-scheme:dark){.in-gbar em.eq{background:#fff}}
+/* v9.49 표가 카드보다 넓어져 오른쪽 열이 잘리던 것(휴대폰 캡처: 전세대출 금리 카드) — 표를 카드 폭에 고정하고 이름 칸은 줄바꿈, 숫자 칸은 한 줄 */
+.tp-card .tp-tbl{width:100%;max-width:100%;table-layout:fixed}
+.tp-card .tp-tbl td:nth-child(-n+2),.tp-card .tp-tbl th:nth-child(-n+2){white-space:normal;overflow-wrap:anywhere;line-height:1.2}
+.tp-card .tp-tbl td:first-child{width:24%}.tp-card .tp-tbl td:nth-child(2):not(:last-child){width:28%}
+.tp-card .tp-tbl.tp-istb td:first-child{width:auto}
+.tp-card .tp-dense:not(.tp-wr){table-layout:fixed;max-width:100%}.tp-card .tp-dense:not(.tp-wr) td,.tp-card .tp-dense:not(.tp-wr) th{overflow:hidden;text-overflow:ellipsis}.tp-card .tp-dense:not(.tp-wr) td:nth-child(2),.tp-card .tp-dense:not(.tp-wr) th:nth-child(2){width:34%}   /* 짧은 칸만 있는 촘촘한 표: 폭 고정 + 말줄임. 긴 칸이 있는 표(tp-wr)는 원래대로 자동 폭 + 줄바꿈 */
+.tp-card .tp-dense:not(.tp-wr) th,.tp-card .tp-tbl th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-card .tp-dense.tp-wr{max-width:100%}.tp-card .tp-dense.tp-wr td{overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -2745,7 +2753,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.48</span>
+    <span class="ver">v9.49</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -9135,7 +9143,7 @@ var TPR = {
       P.forEach(function (p, i) { var rt = p.rateTable, dc = (p.discounts || []).map(function (x) { return x[0] + " " + x[1]; }), src = "주택도시기금·주택금융공사 " + (D.loans.manual.asOf || "") + " 확인" + (rt.verify ? " · 확인 전" : ""), sub = "연 " + (p.rate || "") + "% · 한도 " + (p.limit ? eok(p.limit) : "–") + (p.limitNote ? "(" + p.limitNote.split(" (")[0] + ")" : "") + " · " + (p.who || ""), cols = ["부부합산 소득"].concat(rt.cols).join(" | "), big = rt.rows.length > 6;
         /* 금리표가 길면(신생아 특례 9구간) 조건 장 + 금리·우대 장으로 나눈다 — 한 장에 다 넣으면 접힌다 */
         out.push({ _tpl: "issue", _cat: "loan", src: src, badge: "정책대출 " + p.name, tag: "대출", title: p.name, sub: sub, body: (p.detail || []).slice(0, big ? 5 : 4).concat(!big && dc.length ? ["우대: " + dc.slice(0, 8).join(" · ")] : []).concat(!big && p.discountNote ? [p.discountNote] : []).join("\n"), relHd: big ? "소득 구간 × 만기 금리(연 %) — 1/2" : "소득 구간 × 만기 금리(연 %)", cols: cols, rows: rt.rows.slice(0, big ? 5 : 6).map(function (r) { return r.join(" | "); }).join("\n"), foot: rt.note || "" });
-        if (big) out.push({ _tpl: "issue", _cat: "loan", src: src, badge: "정책대출 " + p.name + " 2", tag: "대출", title: p.name + " — 금리표 계속 · 우대", sub: sub, body: (dc.length ? ["우대: " + dc.slice(0, 8).join(" · ")] : []).concat(p.discountNote ? [p.discountNote] : []).concat(p.note ? [p.note] : []).join("\n"), relHd: "소득 구간 × 만기 금리(연 %) — 2/2", cols: cols, rows: rt.rows.slice(5).map(function (r) { return r.join(" | "); }).join("\n"), foot: rt.note || "" }); });
+        if (big) out.push({ _tpl: "issue", _cat: "loan", src: src, badge: "정책대출 " + p.name + " 2", tag: "대출", title: p.name.replace(/\s*디딤돌$/, "") + " · 우대 금리", sub: "금리표 2/2(윗 구간) + 우대 조건 · " + sub.split(" · ")[0], body: (dc.length ? ["우대: " + dc.slice(0, 8).join(" · ")] : []).concat(p.discountNote ? [p.discountNote] : []).concat(p.note ? [p.note] : []).join("\n"), relHd: "소득 구간 × 만기 금리(연 %) — 2/2", cols: cols, rows: rt.rows.slice(5).map(function (r) { return r.join(" | "); }).join("\n"), foot: rt.note || "" }); });
       out.forEach(function (d, i) { if (i) d.badge = "정책대출 " + i + "/" + (out.length - 1); });
       return out; } },
   transit: { nm: "교통 노선 현황", grp: "정책·대출·교통", opts: [], tpls: ["lineTable"], hint: "한 장 = 노선 표 · 여러 장 = 표 + 노선마다 한 장(상태·개통·비고·지나는 지역)", build: function () { var d = TPL.lineTable.auto(); return d ? [d] : []; },

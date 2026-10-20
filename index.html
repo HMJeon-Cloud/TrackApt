@@ -2811,6 +2811,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 .tp-card.tp-reel .tp-kpi{grid-template-columns:1fr 1fr}.tp-card.tp-reel .tp-kpi-c b{font-size:32px}.tp-card.tp-reel .tp-kpi-c small{font-size:10px}.tp-card.tp-reel .tp-kpi-c em{font-size:9.5px}
 .tp-card.tp-reel .tp-bar-r{max-height:56px}.tp-card.tp-reel .tp-vz-chips b{font-size:13px}
 #tp-cards .tp-scale:has(.tp-reel){height:640px}@media(max-width:430px){#tp-cards .tp-scale:has(.tp-reel){height:538px}}
+#tp-cards .tp-scale:has(.tp-aiimg[style*="9/16"]){height:640px}
 </style>
 </head>
 <body>
@@ -9487,13 +9488,13 @@ function tpDrawPaint(box, P) {
     var card = w.querySelector(".tp-card"); if (!card) return;
     if (TP.draw === "bg" && TP.bg) { card.style.backgroundImage = "linear-gradient(rgba(247,243,234,.86),rgba(247,243,234,.93)), url(" + TP.bg + ")"; card.style.backgroundSize = "cover"; card.style.backgroundPosition = "center"; card.classList.add("tp-hasbg"); }
     var A = TP.draw === "ai" && TP.aiImg[i];
-    if (A && A.img) { var sc = w.querySelector(".tp-scale"); sc.innerHTML = '<img class="tp-aiimg" src="' + A.img + '" alt="">' + (A.chk ? '<div class="tp-aichk ' + (A.chk.miss.length ? "bad" : "ok") + '">' + (A.chk.miss.length ? "이미지에 없거나 다르게 찍힌 숫자: " + tpE(A.chk.miss.join(", ")) : "카드 숫자 " + A.chk.n + "개 모두 이미지에 있음") + "</div>" : ""); var sv = w.querySelector("[data-chsave]"); if (sv) { sv.removeAttribute("data-chsave"); sv.setAttribute("data-tpsaveai", i); } }
+    if (A && A.img) { var sc = w.querySelector(".tp-scale"); sc.innerHTML = '<img class="tp-aiimg" src="' + A.img + '" alt="" style="aspect-ratio:' + (tpReel() ? "9/16" : "4/5") + '">' + (A.chk ? '<div class="tp-aichk ' + (A.chk.miss.length ? "bad" : "ok") + '">' + (A.chk.miss.length ? "이미지에 없거나 다르게 찍힌 숫자: " + tpE(A.chk.miss.join(", ")) : "카드 숫자 " + A.chk.n + "개 모두 이미지에 있음") + "</div>" : ""); var sv = w.querySelector("[data-chsave]"); if (sv) { sv.removeAttribute("data-chsave"); sv.setAttribute("data-tpsaveai", i); } }
   });
 }
 function tpBgPrompt() {
   var R = TPR[TP.r] || {}, d = tpData(), g = R.grp || "";
   var scene = /청약/.test(g) ? "new apartment complex under bright daylight, model house and blue sky" : /금리/.test(g) ? "abstract finance theme, soft coins and calm bank building silhouette" : /정책|교통/.test(g) ? "city skyline with subway lines and government building, calm morning" : "Seoul apartment skyline at golden hour";
-  return "Soft, airy, minimal background illustration for a Korean real-estate data card: " + scene + ". Very light cream and warm gold tones, low contrast, lots of empty light space, no strong objects in the middle, subtle texture." + (typeof AI_NO_TEXT !== "undefined" ? AI_NO_TEXT : " No text.") + " Topic: " + String(d.title || R.nm || "").slice(0, 60);
+  return "Soft, airy, minimal background illustration for a Korean real-estate data card: " + scene + ". Very light cream and warm gold tones, low contrast, lots of empty light space, no strong objects in the middle, subtle texture, " + (tpReel() ? "tall vertical 9:16 composition" : "vertical 4:5 composition") + "." + (typeof AI_NO_TEXT !== "undefined" ? AI_NO_TEXT : " No text.") + " Topic: " + String(d.title || R.nm || "").slice(0, 60);
 }
 function tpDrawBg() {
   if (typeof rcPost !== "function") return; TP.drawMsg = "배경 그리는 중… (20~40초)"; tpPaintCard();
@@ -9504,8 +9505,8 @@ function tpDrawBg() {
 }
 /* AI 전체: 이 장의 글자·숫자를 그대로 넣어 4:5 인포그래픽으로 — 1024×1536 으로 받아 가운데 4:5 를 쓴다 */
 function tpAiPrompt(d) {
-  var t = TPL[TP.id], L = ["Design a premium 4:5 portrait Korean social-media infographic card for a real-estate data channel named 우상향연구소 (@uphill.lab). Clean editorial style: cream background (#f7f3ea), near-black (#17181c) and gold (#d4af6a) accents, bold Korean typography, very high readability.",
-    "Keep ALL content inside the central 4:5 area (leave the top and bottom 9% of the image empty). Render ONLY the following Korean texts exactly as written (same digits, units and symbols). Do not add any other numbers or text."];
+  var reel = tpReel(), t = TPL[TP.id], L = ["Design a premium " + (reel ? "9:16 tall vertical (Reels/Story)" : "4:5 portrait") + " Korean social-media infographic card for a real-estate data channel named 우상향연구소 (@uphill.lab). Clean editorial style: white background, deep navy (#16294a) and gold (#d4af6a) accents, a thin navy vertical bar on the far left, bold Korean typography, very high readability.",
+    (reel ? "The image will be cropped to 9:16 — keep ALL content inside the central 9:16 area (leave the left and right 8% of the image empty)." : "The image will be cropped to 4:5 — keep ALL content inside the central 4:5 area (leave the top and bottom 9% of the image empty).") + " Render ONLY the following Korean texts exactly as written (same digits, units and symbols). Do not add any other numbers or text."];
   if (d.badge) L.push("Small tag: 「" + d.badge + "」"); if (d.title) L.push("Big headline: 「" + d.title + "」"); if (d.sub) L.push("Subtitle: 「" + d.sub + "」");
   var cols = d.cols ? tpRows(d.cols)[0] : null; if (cols) L.push("Table header: 「" + cols.join(" | ") + "」");
   tpRows(d.rows || d.items || d.events || []).slice(0, 12).forEach(function (r, i) { L.push("Row " + (i + 1) + ": 「" + r.join(" | ") + "」"); });
@@ -9513,7 +9514,9 @@ function tpAiPrompt(d) {
   if (d.src) L.push("Small source line: 「" + d.src + "」"); L.push("Bottom bar: 「@uphill.lab · 참고 자료이며 투자 권유가 아닙니다」");
   return L.join("\n");
 }
-function tpCrop45(u, cb) { var im = new Image(); im.onload = function () { var W = im.width, H = Math.round(W * 1.25), cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1350; var y = Math.max(0, Math.round((im.height - H) / 2)); cv.getContext("2d").drawImage(im, 0, y, W, Math.min(H, im.height), 0, 0, 1080, 1350); cb(cv.toDataURL("image/jpeg", 0.92)); }; im.onerror = function () { cb(u); }; im.src = u; }
+/* v9.56 고른 크기에 맞춰 자르기 — 게시형 1080×1350(4:5) · 릴스형 1080×1920(9:16). 받은 그림(2:3)의 가운데를 꽉 채워 자른다 */
+function tpCropTo(u, cb) { var im = new Image(); im.onload = function () { var TW = 1080, TH = tpReel() ? 1920 : 1350, r = TW / TH, W = im.width, H = im.height, cw = W, ch = Math.round(W / r); if (ch > H) { ch = H; cw = Math.round(H * r); } var x = Math.round((W - cw) / 2), y = Math.round((H - ch) / 2), cv = document.createElement("canvas"); cv.width = TW; cv.height = TH; cv.getContext("2d").drawImage(im, x, y, cw, ch, 0, 0, TW, TH); cb(cv.toDataURL("image/jpeg", 0.92)); }; im.onerror = function () { cb(u); }; im.src = u; }
+function tpCrop45(u, cb) { return tpCropTo(u, cb); }
 function tpDrawAi(all) {
   if (typeof rcPost !== "function") return;
   var idx = all ? (TP.pages || []).map(function (_, i) { return i; }) : [TP.pg], k = 0;

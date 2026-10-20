@@ -2806,12 +2806,17 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 .cap2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:760px){.cap2{grid-template-columns:1fr}}
 .cap2 .seg.cap2-hd{display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0 0 4px;min-height:30px}.cap2 .cap2-hd b{font-size:.85rem}.cap2 .cap2-hd small{flex:1;min-width:0}.cap2 textarea{width:100%;box-sizing:border-box}
 .chcard.tp-card.tp-reel{height:640px}
-.tp-card.tp-reel .tp-title{font-size:29px}.tp-card.tp-reel .tp-sub{font-size:9.5px}.tp-card.tp-reel .tp-lead{font-size:10.5px}
-.tp-card.tp-reel .tp-tbl td{font-size:9.4px;padding:5px 3px}.tp-card.tp-reel .tp-tbl th{font-size:9.6px}.tp-card.tp-reel .tp-dense td{font-size:9px}
-.tp-card.tp-reel .tp-kpi{grid-template-columns:1fr 1fr}.tp-card.tp-reel .tp-kpi-c b{font-size:32px}.tp-card.tp-reel .tp-kpi-c small{font-size:10px}.tp-card.tp-reel .tp-kpi-c em{font-size:9.5px}
-.tp-card.tp-reel .tp-bar-r{max-height:56px}.tp-card.tp-reel .tp-vz-chips b{font-size:13px}
+/* v9.57 릴스형은 글자를 먼저 키우지 않는다(내용을 더 담고, 그래도 남을 때만 tpFit 이 키움) */
+.tp-card.tp-reel .tp-bar-r{max-height:none}
+.tp-card.tp-reel .tp-kpi.n7 .tp-kpi-c b,.tp-card.tp-reel .tp-kpi.n8 .tp-kpi-c b,.tp-card.tp-reel .tp-kpi.n9 .tp-kpi-c b,.tp-card.tp-reel .tp-kpi.n10 .tp-kpi-c b{font-size:22px}
+.tp-card .tp-vz-rec{margin-top:6px;flex:0 0 auto}.tp-card .tp-vz-rec td,.tp-card .tp-vz-rec th{padding:3px 3px}
 #tp-cards .tp-scale:has(.tp-reel){height:640px}@media(max-width:430px){#tp-cards .tp-scale:has(.tp-reel){height:538px}}
 #tp-cards .tp-scale:has(.tp-aiimg[style*="9/16"]){height:640px}
+/* v9.57 대립 카드: 근거가 더 없으면 줄이 아래까지 고르게 늘어난다(tpFit 늘리기 단계가 잡을 수 있게) */
+.tp-card .tp-vs .tp-vsr{flex:1 1 auto}.tp-card .tp-vs .tp-vsr p{display:flex;align-items:center}.tp-card .tp-vs .tp-vsr p.b{justify-content:flex-end}
+/* v9.57 격자 칸 이름·보조 글이 칸 폭에서 잘리지 않게 줄바꿈(최대 2줄) */
+.tp-card.ub .tp-cell b{white-space:normal;overflow-wrap:anywhere;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.15}
+.tp-card.ub .tp-cell span{white-space:normal;overflow-wrap:anywhere;line-height:1.2;max-height:2.45em;overflow:hidden;text-align:center}
 </style>
 </head>
 <body>
@@ -2819,7 +2824,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.56</span>
+    <span class="ver">v9.57</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -9030,7 +9035,7 @@ var TP_MARK = '<svg class="tp-mk" viewBox="0 0 20 20"><path d="M2 15 L7.5 9.5 L1
 var TP_RULE = '<svg class="tp-rule" viewBox="0 0 344 12" preserveAspectRatio="none"><path d="M0 10.5 H286 L300 5.5 L309 7.5 L324 2 L344 2" fill="none" stroke="#d4af6a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="324" cy="2" r="2" fill="#d4af6a"/></svg>';
 function tpFrame(cat, d, body, o) {
   o = o || {}; var c = TP_CAT[cat] || TP_CAT.term;
-  return '<div class="chcard tp-card ub tp-' + cat + (tpReel() ? " tp-reel" : "") + '" style="--tpc:' + c[1] + '">' + ubTop(tpE(d.badge || c[0])) +
+  return '<div class="chcard tp-card ub tp-' + cat + (tpReel() ? " tp-reel" : "") + (d._more ? " tp-more" : "") + '"' + (d._tot ? ' data-tot="' + d._tot + '"' : "") + ' style="--tpc:'   + c[1] + '">' + ubTop(tpE(d.badge || c[0])) +
     '<div class="tp-src">' + tpE(d.src || "") + "</div>" +
     (d.tag ? '<div class="tp-tag">' + tpE(d.tag) + "</div>" : "") +
     (d._icon ? '<img class="tp-icon" src="' + d._icon + '" alt="">' : "") + '<h2 class="tp-title' + (o.small ? " sm" : "") + (d._icon ? " has-icon" : "") + '">' + tpE(d.title || "") + "</h2>" + UB_RULE +
@@ -9082,17 +9087,19 @@ var TPL = {
   rankGrid: { nm: "순위 격자 Top 12", cat: "market", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "1년 새 많이 오른 동네"], ["items", "항목(이름 | 값 | 보조)", "rows", "과천시 | +29.6% | 84㎡ 중위"], ["foot", "맨 아래 메모", "text", ""]],
     auto: function () { if (typeof RANKED === "undefined" || typeof chYoY !== "function" || typeof DB === "undefined" || !DB || !DB.sale) return null; var rows = RANKED.filter(function (k) { return DB.sale.series[k] && /^(11|41|28|26|27|29|30|31|36)/.test(String(k)) && !/군$/.test(chName(k)); }).map(function (k) { return { k: k, v: chYoY(k) }; }).filter(function (r) { return r.v != null; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 12); if (rows.length < 6) return null;
       return { src: "국토부 실거래 월별 집계 · " + DB.sale.dates[1].replace("-", ".") + "까지 · 수도권·광역시 시·구 · 1년 전 대비 ㎡당 중위", title: "1년 새 많이 오른 동네 TOP 12", items: rows.map(function (r) { return [chName(r.k), (r.v > 0 ? "+" : "") + r.v.toFixed(1) + "%", "1년 상승률"]; }), foot: "㎡당 중위값 비교 · 어떤 단지가 팔렸느냐에 따라 출렁일 수 있음" }; },
-    render: function (d) { var R = tpRows(d.items).slice(0, 12);
-      return tpFrame(d._cat || "market", d, '<div class="tp-grid ' + (R.length <= 6 || R.length === 9 ? "c3" : R.length === 10 || R.length === 15 ? "c5" : "c4") + '">' + R.map(function (r, i) { return '<div class="tp-cell"><small>' + ((d._off || 0) + i + 1) + "위</small><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em>" + (r[2] ? "<span>" + tpE(r[2]) + "</span>" : "") + "</div>"; }).join("") + "</div>"); } },
+    render: function (d) { var R = tpRows(d.items).slice(0, tpReel() ? 20 : 12), gc = R.length <= 6 || R.length === 9 ? 3 : R.length === 10 || R.length === 15 ? 5 : 4;
+      if (R.length > gc && R.length % gc) R = R.slice(0, R.length - R.length % gc);   /* v9.57 마지막 줄이 비지 않게 열 수의 배수로(순위 위쪽부터 남김) */
+      return tpFrame(d._cat || "market", d, '<div class="tp-grid c' + gc + '">' + R.map(function (r, i) { return '<div class="tp-cell"><small>' + ((d._off || 0) + i + 1) + "위</small><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em>" + (r[2] ? "<span>" + tpE(r[2]) + "</span>" : "") + "</div>"; }).join("") + "</div>"); } },
   beforeAfter: { nm: "작년 · 올해 비교", cat: "deal", fields: [["src", "출처·기준", "text", "국토부 실거래가 공개"], ["title", "제목", "text", "신고가 전·후 비교"], ["colA", "왼쪽 머리", "text", "직전 최고"], ["colB", "오른쪽 머리", "text", "이번 신고가"], ["items", "항목(이름 | 보조 | 전 값 | 전 날짜 | 후 값 | 후 날짜 | 변화)", "rows", "창동주공1단지 | 19평 | 4.4억 | 2025.1.21 | 6.1억 | 2026.10.3 | +39%"], ["foot", "맨 아래 메모", "text", ""]],
-    auto: function () { if (typeof CH === "undefined" || !chOk() || typeof chHighsBetween !== "function") return null; var t1 = chDayKey(chKstNow()), L = chHighsBetween(t1 - 30, t1).filter(function (t) { return t.allPrev && t.max; }).slice(0, 4); if (L.length < 2) return null;
+    auto: function () { if (typeof CH === "undefined" || !chOk() || typeof chHighsBetween !== "function") return null; var t1 = chDayKey(chKstNow()), L = chHighsBetween(t1 - 30, t1).filter(function (t) { return t.allPrev && t.max; }).slice(0, tpReel() ? 6 : 4); if (L.length < 2) return null;
       return { src: "국토부 실거래 · 최근 30일 신고가 · " + tpToday() + " 조회", title: "신고가, 직전 최고가와 비교", colA: "직전 최고가", colB: "이번 신고가", items: L.map(function (t) { return [t.apt, chShortGu(t.k) + " · " + (t.area ? t.area + "㎡" : t.band + "㎡대"), eok(t.allPrev[0]), String(t.allPrev[1]).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), eok(t.max.amount), String(t.max.d).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), "+" + t.u.toFixed(0) + "%"]; }), foot: "같은 단지·같은 면적대 역대 최고가끼리 비교 · 직거래 제외" }; },
-    render: function (d) { var R = tpRows(d.items).slice(0, 4);
+    render: function (d) { var R = tpRows(d.items).slice(0, tpReel() ? 6 : 4);   /* v9.57 릴스형 6건 */
       return tpFrame("deal", d, '<div class="tp-ba"><div class="tp-bah"><span></span><b>' + tpE(d.colA || "전") + "</b><b>" + tpE(d.colB || "후") + "</b></div>" + R.map(function (r) { return '<div class="tp-bar"><div class="tp-ban"><b>' + tpE(r[0]) + "</b><small>" + tpE(r[1] || "") + '</small></div><div class="tp-bav"><b>' + tpE(r[2]) + "</b><small>" + tpE(r[3] || "") + '</small></div><div class="tp-bav"><i>' + tpE(r[6] || "") + "</i><b>" + tpE(r[4]) + "</b><small>" + tpE(r[5] || "") + "</small></div></div>"; }).join("") + "</div>"); } },
   listArrow: { nm: "A → B 목록", cat: "term", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "집 한 채에 붙는 세금"], ["sub", "부제", "text", ""], ["rows", "줄(왼쪽 | 오른쪽 | 작은 설명)", "rows", "사자니 | 취득세 | 잔금일 60일 안 신고"], ["foot", "맨 아래 메모", "text", ""]],
     auto: function () { var T = (typeof DY !== "undefined" && DY.terms) || null; if (!T) return null; var k = chKstDate(), doy = Math.floor((Date.UTC(k.y, k.m - 1, k.d) - Date.UTC(k.y, 0, 1)) / 86400000);
-      return { src: "우상향연구소 용어 사전", title: "오늘의 부동산 단어 6", sub: "같은 기사도 다르게 읽히는 말", rows: [0, 1, 2, 3, 4, 5].map(function (i) { var t = T[(doy + i) % T.length]; return [t[0], t[1], (t[2] || [])[0] || ""]; }), foot: "" }; },
-    render: function (d) { var R = tpRows(d.rows).slice(0, 8);
+      var nW = Math.min(T.length, tpReel() ? 9 : 6), ix = []; for (var q = 0; q < nW; q++) ix.push(q);   /* v9.57 릴스형은 단어 9개 */
+      return { src: "우상향연구소 용어 사전", title: "오늘의 부동산 단어 " + nW, sub: "같은 기사도 다르게 읽히는 말", rows: ix.map(function (i) { var t = T[(doy + i) % T.length]; return [t[0], t[1], (t[2] || [])[0] || ""]; }), foot: "" }; },
+    render: function (d) { var R = tpRows(d.rows).slice(0, tpReel() ? 10 : 8);
       return tpFrame("term", d, '<div class="tp-list">' + R.map(function (r) { return '<div class="tp-li"><b>' + tpE(r[0]) + '</b><span class="tp-arr">→</span><em>' + tpE(r[1] || "") + "</em>" + (r[2] ? "<small>" + tpE(r[2]) + "</small>" : "") + "</div>"; }).join("") + "</div>"); } },
   quote: { nm: "발언 · 이슈", cat: "issue", fields: [["src", "출처·기준", "text", "국정감사(2026.10.12) · 동아일보"], ["badge", "분류 띠", "text", "부동산이슈"], ["tag", "빨간 띠(누가·어디서)", "text", "국정감사 주요 발언"], ["title", "제목(큰따옴표 발언)", "text", ""], ["who", "발언자 소개(이름 | 직함)", "text", "홍길동 | LH 사장"], ["quotes", "발언 요지(한 줄에 하나)", "lines", ""], ["profile", "약력 칸(한 줄에 하나)", "lines", ""], ["foot", "맨 아래 메모", "text", "발언 요지는 기사·속기록 기준"]],
     auto: function () { return null; },
@@ -9137,11 +9144,11 @@ function tpReel() { return typeof TP !== "undefined" && TP.o && TP.o.ratio === "
 function tpPerK(per) { return tpReel() ? Math.round(per * 1.4) : per; }
 /* v9.35 장마다 고르게 — 28개·12개씩이면 12/12/4 가 아니라 10/9/9 (장마다 칸·표 높이가 같아진다) */
 function tprChunk(arr, per, maxp) { var n = Math.max(1, Math.ceil(arr.length / per)); if (maxp) n = Math.min(maxp, n); var tot = Math.min(arr.length, n * per), each = Math.ceil(tot / n), out = [], off = 0; for (var i = 0; i < n && off < tot; i++) { var take = Math.min(each, tot - off); out.push({ off: off, rows: arr.slice(off, off + take) }); off += take; } return out; }
-function tprItems(base, items, per) { per = tpPerK(per || 12); if (tprOne()) { var d1 = tprClone(base); d1.items = items.slice(0, tpPerK(12)); d1._off = 0; return [d1]; } var out = [], C = tprChunk(items, per, TP.o.maxp || 3), n = C.length; for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.items = C[i].rows; d._off = C[i].off; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
+function tprItems(base, items, per) { per = tpPerK(per || 12); if (tprOne()) { var d1 = tprClone(base); d1.items = items.slice(0, tpReel() ? 20 : 12); d1._off = 0; return [d1]; } var out = [], C = tprChunk(items, per, TP.o.maxp || 3), n = C.length; for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.items = C[i].rows; d._off = C[i].off; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
 /* v9.46 긴 이름 줄이기 — 괄호 설명(회차·공공분양·인터넷뱅킹 등)을 떼고 n자에서 자른다. 표 줄이 3~4줄로 늘어나 카드가 접히던 원인 */
 function tpYmdK(d) { var m = String(d || "").match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? m[1] + "." + Number(m[2]) + "." + Number(m[3]) : String(d || ""); }
 function tpShort(s, n) { s = String(s || "").replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim(); n = n || 18; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
-function tprPaged(base, rows, per) { per = tpPerK(per || 12); if (tprOne()) { var d1 = tprClone(base); d1.rows = rows.slice(0, Math.min(40, Math.max(6, per || 12))); d1._off = 0; if (rows.length > d1.rows.length) d1.foot = (d1.foot ? d1.foot + " · " : "") + "상위 " + d1.rows.length + "/" + rows.length + " — 전체는 여러 장"; return [d1]; }   /* v9.48 한 장 = 요약(상위 한 장 분량), 여러 장 = 전체 */ var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(rows.length / per))); per = Math.max(1, Math.ceil(Math.min(rows.length, n * per) / n)); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.rows = rows.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
+function tprPaged(base, rows, per) { per = tpPerK(per || 12); if (tprOne()) { var d1 = tprClone(base); d1.rows = rows.slice(0, tpReel() ? 40 : Math.min(40, Math.max(6, per || 12))); d1._off = 0; d1._tot = rows.length; if (tpReel()) d1._more = 1;   /* v9.57 릴스 한 장: 글자를 키우지 않고 줄을 더 담는다 — 넘치는 줄은 tpFit 이 기본 글자 크기 그대로 아래부터 접고, 아래 '상위 n' 숫자를 보이는 줄 수로 고친다 */ if (rows.length > d1.rows.length) d1.foot = (d1.foot ? d1.foot + " · " : "") + "상위 " + d1.rows.length + "/" + rows.length + " — 전체는 여러 장"; return [d1]; }   /* v9.48 한 장 = 요약(상위 한 장 분량), 여러 장 = 전체 */ var out = [], n = Math.min(TP.o.maxp || 3, Math.max(1, Math.ceil(rows.length / per))); per = Math.max(1, Math.ceil(Math.min(rows.length, n * per) / n)); for (var i = 0; i < n; i++) { var d = {}; for (var k in base) d[k] = base[k]; d.rows = rows.slice(i * per, (i + 1) * per); d._off = i * per; if (n > 1) d.badge = (base.badge || "") + " " + (i + 1) + "/" + n; out.push(d); } return out; }
 /* 청약·금리 재료 도우미 (v9.31) */
 /* v9.36 주택형 표 — 같은 전용(84A·84B…)은 한 줄로: 평형 범위 · 최고 분양가 · 일반+특공 합산(괄호 일반) */
 function tprTypeRows(it) {
@@ -9392,7 +9399,7 @@ function tprRebuild() {
   var pages = [];
   /* v9.48 여러 장 = 상세본: 레시피에 detail 이 있으면 그것을(표지 + 항목별 상세 장), 없으면 build 의 전체 장 */
   try { pages = (!tprOne() && R.detail ? R.detail(TP.o, TP.id) : null) || R.build(TP.o, TP.id) || []; } catch (e) { if (window.console) console.error(e); }
-  if (xto) { pages = pages.map(function (d) { return tpConvert(d, xto); }); if (xto === "trendChart" && !pages.every(function (d) { return d.noLead && d.rows; })) xto = "denseTable"; TP.id = xto;   /* v9.54 날짜 줄이 아니면 추세선 대신 표 */
+  if (xto) { pages = pages.map(function (d) { return tpConvert(d, xto); }); if (tprOne()) pages.forEach(function (d) { var k0r = d.items ? "items" : "rows"; if (d[k0r]) { d._tot = d._tot || tpRows(d[k0r]).length; if (tpReel()) d._more = 1; } });   /* v9.57 옮긴 양식도 릴스 한 장이면 줄을 더 담고 넘치는 줄은 접는다 */ if (xto === "trendChart" && !pages.every(function (d) { return d.noLead && d.rows; })) xto = "denseTable"; TP.id = xto;   /* v9.54 날짜 줄이 아니면 추세선 대신 표 */
     if (!tprOne()) { var XP = { issue: 7, lineTable: 10, rankGrid: 12, listArrow: 10, denseTable: 16, barRank: 10, kpiTiles: 6, trendChart: 26 }[xto] || 12, k0 = (xto === "rankGrid" || xto === "barRank" || xto === "kpiTiles") ? "items" : "rows", np = [];   /* 옮긴 줄이 한 장에 넘치면 장을 나눈다 */
       /* 같은 재료의 장들이면 줄을 전부 모아 다시 고르게 나눈다(14/14/14 → 12 로 옮길 때 7/7/7/7/7/7 이 되지 않게) */
       var same = pages.length > 1 && pages.every(function (d) { return (d.title || "") === (pages[0].title || ""); });
@@ -9626,10 +9633,16 @@ function tpFit(root) {
       Array.prototype.forEach.call(c.querySelectorAll(".tp-body table, .tp-body tr"), function (x) { x.style.height = ""; }); Array.prototype.forEach.call(body.children, function (x) { x.style.minHeight = ""; });
       Array.prototype.forEach.call(c.querySelectorAll(".tp-li, .tp-bar, .tp-tli, .tp-ldr, .tp-cell, .tp-pins li"), function (x) { x.style.paddingTop = x.style.paddingBottom = ""; });
       var over = function () { var bb = body.getBoundingClientRect().bottom, m = -1e9;   /* v9.31: 0 으로 두면 화면을 내려 둔 상태(측정용 복제본 좌표가 음수)에서 늘 '넘침'으로 판단해 줄을 접었다 */ Array.prototype.forEach.call(body.querySelectorAll("tr, li, .tp-li, .tp-bar, .tp-cell, .tp-tli, p"), function (x) { if (x.style.display !== "none") m = Math.max(m, x.getBoundingClientRect().bottom); }); return m > bb + 0.5 || body.scrollHeight > body.clientHeight + 1; };
+      var more = c.classList.contains("tp-more"), rows = Array.prototype.slice.call(body.querySelectorAll("table:not(.tp-cal) tr:not(:first-child), .tp-li, .tp-bar, .tp-tli, .tp-pins li, .tp-ldr")), cut = 0, nRows = rows.length;
+      /* v9.57 줄을 더 담은 장(릴스 한 장)은 글자를 줄이기 전에 넘치는 줄부터 접는다 — 남는 줄 3개 밑으로는 접지 않고 그때만 글자를 줄인다 */
+      if (more) while (over() && rows.length > 3) { var r0 = rows.pop(); r0.style.display = "none"; r0.setAttribute("data-cut", "1"); cut++; }
+      /* 격자 칸(순위 격자)은 한 줄(열 수만큼)씩 통째로 접는다 — 마지막 줄이 비지 않게 · 2줄 밑으로는 접지 않음 */
+      var grid0 = more && body.querySelector(".tp-grid"); if (grid0) { var gcols = (getComputedStyle(grid0).gridTemplateColumns || "").split(" ").filter(Boolean).length || 4, cells = Array.prototype.slice.call(grid0.querySelectorAll(".tp-cell")); nRows = cells.length; while (over() && cells.length > gcols * 2) { for (var g2 = 0; g2 < gcols; g2++) { var cx = cells.pop(); cx.style.display = "none"; cx.setAttribute("data-cut", "1"); cut++; } } }
       ["tp-t1", "tp-t2", "tp-t3"].forEach(function (k) { if (over()) c.classList.add(k); });
       /* 그래도 넘치면 맨 아래 줄부터 접는다(줄 중간이 잘린 채 저장되지 않게) */
-      var rows = Array.prototype.slice.call(body.querySelectorAll("table:not(.tp-cal) tr:not(:first-child), .tp-li, .tp-bar, .tp-tli, .tp-pins li, .tp-ldr"));
-      var cut = 0; while (over() && rows.length > 2) { var r = rows.pop(); r.style.display = "none"; r.setAttribute("data-cut", "1"); cut++; }
+      while (over() && rows.length > 2) { var r = rows.pop(); r.style.display = "none"; r.setAttribute("data-cut", "1"); cut++; }
+      /* 아래 메모의 '상위 n/전체' 를 실제로 보이는 줄 수로 — 다 보이면 지운다 */
+      if ((more || c.hasAttribute("data-tot")) && foot) { var fs0 = foot.querySelector("span"); if (fs0) { if (!fs0.dataset.ft) fs0.dataset.ft = fs0.textContent.replace(/\s*·?\s*상위 \d+\/\d+ — 전체는 여러 장/, ""); var shown = nRows - cut, tot = Number(c.getAttribute("data-tot")) || nRows; fs0.textContent = shown < tot ? fs0.dataset.ft.replace(/(\s*·\s*투자 판단과 책임은 본인에게)?$/, " · 상위 " + shown + "/" + tot + " — 전체는 여러 장$1") : fs0.dataset.ft; } }
       /* v9.32 빈칸 채우기 — 자리가 남으면 글자를 키우고(tp-g1·g2), 그래도 남으면 줄 높이를 늘려 아래 공백을 없앤다 */
       var spare = function () { var bb = body.getBoundingClientRect().bottom, m = -1e9; Array.prototype.forEach.call(body.children, function (x) { if (x.style.display !== "none") m = Math.max(m, x.getBoundingClientRect().bottom); }); return m > -1e9 ? bb - m : 0; };
       c.classList.remove("tp-g1", "tp-g2");
@@ -9645,6 +9658,7 @@ function tpFit(root) {
       /* 격자 칸이 높이에 비해 글자가 작으면 칸 글자를 키운다(칸 높이 85px↑ g1, 120px↑ g2) */
       var cell0 = body.querySelector(".tp-cell"); if (cell0 && !c.classList.contains("tp-t1")) { var ch = cell0.getBoundingClientRect().height, gk = ch > 120 ? "tp-g2" : ch > 85 ? "tp-g1" : ""; if (gk) { c.classList.remove("tp-g1", "tp-g2"); c.classList.add(gk); Array.prototype.forEach.call(body.querySelectorAll(".tp-cell span, .tp-cell b"), function (x) { x.style.cssText = ""; }); if (over()) { c.classList.remove(gk); if (gk === "tp-g2") { c.classList.add("tp-g1"); if (over()) c.classList.remove("tp-g1"); } } } }
       var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*"); for (var i = 0; i < src.length && i < dst.length; i++) { dst[i].style.cssText = src[i].style.cssText; if (src[i].hasAttribute("data-cut")) dst[i].setAttribute("data-cut", "1"); else dst[i].removeAttribute("data-cut"); }
+      var fsC = c.querySelector(".tp-foot span"), fs1 = c0.querySelector(".tp-foot span"); if (fsC && fs1 && fsC.dataset.ft) { fs1.dataset.ft = fsC.dataset.ft; fs1.textContent = fsC.textContent; }   /* v9.57 고친 '상위 n' 을 원본에도 */
       c0.className = c.className.replace(/\bchfixed\b/, "").trim(); var t0 = c0.querySelector(".tp-title"); if (t0 && ti) t0.style.fontSize = ti.style.fontSize;
     } catch (e) {} finally { c.remove(); }
   });
@@ -9730,7 +9744,6 @@ function tpApplyPreset(x) {
   TP.presetId = x.id;
   tpPaint(); var m = document.getElementById("tp-libmsg"); if (m) m.textContent = "'" + (x.name || "") + "' 불러옴" + (d.pages ? " (저장한 칸 내용)" : " (오늘 데이터로 채움)");
 }
-
 /* ══ v9.24 콘텐츠 만들기 — 네 화면을 한 줄로 잇는 상단 바 ══
    지금 시장(보기) → 채널 브리핑(오늘 올리기) → 카드 만들기(4:5) → 릴스 카드(9:16). 각 화면 맨 위에 같은 바가 붙는다. */
 var STUDIO = [["brief", "지금 시장", "오늘 시장 보기"], ["channel", "채널 브리핑", "오늘 올릴 코너"], ["tpl", "카드 만들기", "4:5 카드"], ["reel", "릴스 카드", "9:16 한 장"], ["insight", "인사이트", "결론부터"], ["report", "분석 브리핑", "VIP 보고서"], ["ops", "데이터 운영", "키·자동·수동"]];
@@ -10072,13 +10085,15 @@ function tpRowsOf(d) {
   if (d.rows && tpRows(d.rows).length) return { cols: tpRows(d.cols)[0] || [], rows: tpRows(d.rows) };
   if (d.items && tpRows(d.items).length) return { cols: ["항목", "값", "보조"], rows: tpRows(d.items) };
   if (d.events && tpRows(d.events).length) return { cols: ["날짜", "종류", "내용"], rows: tpRows(d.events) };
+  /* v9.57 대립 카드(왼쪽 | 오른쪽 근거)도 표로 옮길 수 있게 — 같은 줄 번호끼리 짝 */
+  if (d.rowsA || d.rowsB) { var A = tpLines(d.rowsA || []), B = tpLines(d.rowsB || []), n = Math.max(A.length, B.length), out = []; for (var i = 0; i < n; i++) out.push([A[i] || "", B[i] || ""]); if (out.length) return { cols: [d.colA || "A", d.colB || "B"], rows: out }; }
   return null;
 }
 function tpNumIdx(r) { var N = /^[+\-−]?[\d,.]+\s*(%p|%|억|만|천|건|점|:1|대1|곳|세대|㎡|원|배|위|년|개월|일)?(\s|$|[·(~])/; for (var i = 1; i < r.length; i++) if (N.test(r[i] || "") && String(r[i]).length <= 16) return i; for (var j = 1; j < r.length; j++) if (/\d/.test(r[j] || "")) return j; return 1; }
 /* v9.54 순위 양식으로 옮길 때 '값' 칸 고르기 — 제목·부제가 증가/상승/변화 순이면 '변화' 열(부호 있는 %)을, 아니면 첫 숫자 열 */
 function tpKeyIdx(X, d, r) { var cols = X.cols || [], want = /증가|상승|변화|오른|내린|늘어|줄어|움직/.test(String(d.title || "") + String(d.sub || "")); if (want) { for (var i = 1; i < r.length; i++) if (/변화|증감|상승|하락|차이|률|비율/.test(cols[i] || "") && /\d/.test(r[i] || "")) return i; for (var j = 1; j < r.length; j++) if (/^[+\-−▲▼]/.test(String(r[j] || "").trim()) && /\d/.test(r[j] || "")) return j; } return typeof tpNumIdxOf === "function" ? tpNumIdxOf(r) : tpNumIdx(r); }
 function tpConvert(d, to) {
-  var X = tpRowsOf(d); if (!X) return d; var o = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag"].forEach(function (k) { if (d[k] != null) o[k] = d[k]; }); o._off = d._off || 0;
+  var X = tpRowsOf(d); if (!X) return d; var o = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag", "_more", "_tot"].forEach(function (k) { if (d[k] != null) o[k] = d[k]; }); o._off = d._off || 0;
   if (to === "rankGrid") o.items = X.rows.map(function (r) { var k = tpKeyIdx(X, d, r); if (k < 0) k = 1; return [r[0], r[k] || "", r.filter(function (_, i) { return i && i !== k; }).join(" · ")]; });
   else if (to === "listArrow") o.rows = X.rows.map(function (r) { var k = tpNumIdx(r); return [r[0], r[k] || "", r.filter(function (_, i) { return i && i !== k; }).join(" · ")]; });
   else if (to === "issue") { o.body = d.sub ? [d.sub] : []; o.cols = X.cols.join(" | "); o.rows = X.rows; o.relHd = "핵심 숫자"; }
@@ -10909,20 +10924,20 @@ function inClick(ev) {
 if (typeof TPL !== "undefined") {
   TPL.versus = { nm: "대립 카드(A vs B)", cat: "issue", fields: [["src", "출처·기준", "text", "국토부 실거래 · 머니투데이 9.23"], ["badge", "분류 띠", "text", "부동산이슈"], ["title", "제목(질문)", "text", "서울 집값, 더 오를까 꺾일까"], ["sub", "부제", "text", ""], ["colA", "왼쪽 머리", "text", "상승론"], ["colB", "오른쪽 머리", "text", "하락론"], ["rowsA", "왼쪽 근거(한 줄에 하나)", "lines", ""], ["rowsB", "오른쪽 근거(한 줄에 하나)", "lines", ""], ["ask", "맨 아래 질문", "text", "당신 생각은? 댓글로"], ["foot", "맨 아래 메모", "text", ""]],
     auto: function () { return null; },
-    render: function (d) { var A = tpLines(d.rowsA).slice(0, 6), B = tpLines(d.rowsB).slice(0, 6), n = Math.max(A.length, B.length);
+    render: function (d) { var vk = typeof tpReel === "function" && tpReel() ? 8 : 6, A = tpLines(d.rowsA).slice(0, vk), B = tpLines(d.rowsB).slice(0, vk), n = Math.max(A.length, B.length);
       return tpFrame(d._cat || "issue", d, '<div class="tp-vs"><div class="tp-vsh"><b class="a">' + tpE(d.colA || "A") + '</b><i>VS</i><b class="b">' + tpE(d.colB || "B") + '</b></div>' + Array.apply(null, Array(n)).map(function (_, i) { return '<div class="tp-vsr"><p class="a">' + tpE(A[i] || "") + '</p><p class="b">' + tpE(B[i] || "") + "</p></div>"; }).join("") + (d.ask ? '<div class="tp-vsq">' + tpE(d.ask) + "</div>" : "") + "</div>"); } };
   TPL_ORDER.push("versus");
 }
 if (typeof TPR !== "undefined") {
   TPR.inDebate = { nm: "상승론 vs 하락론", grp: "인사이트", opts: [], tpls: ["versus", "denseTable"], per: 12, hint: "왼쪽 상승 근거 · 오른쪽 하락 근거 — 앱 데이터 신호 + 출처 있는 전문가·기사 논거. 한 장은 질문형 대립 카드, 여러 장은 근거 표",
     build: function (o, tid) { var S = IN.S || inSignals(), D = inDebate(S), line = function (x) { return x.nm + " " + x.val + " — " + x.read.split(" — ")[0]; }, vl = function (x) { return x.title + (x.src ? " (" + x.src.split(" · ")[0] + ")" : ""); };
-      var A = D.bull.data.slice(0, 3).map(line).concat(D.bull.views.slice(0, 3).map(vl)), B = D.bear.data.slice(0, 3).map(line).concat(D.bear.views.slice(0, 3).map(vl)); if (!A.length && !B.length) return [];
+      var nD = typeof tpReel === "function" && tpReel() ? 5 : 3, A = D.bull.data.slice(0, nD).map(line).concat(D.bull.views.slice(0, 3).map(vl)), B = D.bear.data.slice(0, nD).map(line).concat(D.bear.views.slice(0, 3).map(vl));   /* v9.57 릴스형은 데이터 근거를 5개까지 */ if (!A.length && !B.length) return [];
       var base = { _cat: "issue", src: "국토부 실거래·청약홈·한국은행 + 기사(출처 표기) · " + tpToday(), badge: "부동산이슈", title: "서울 집값, 더 오를까 꺾일까", sub: "상승 근거 " + A.length + " · 하락 근거 " + B.length + " — 같은 데이터를 양쪽에서", foot: "기사·전문가 의견은 원문 기준 · 데이터는 앱 집계" };
       if (tid === "denseTable") return tprPaged(Object.assign(base, { cols: "쪽 | 근거 | 출처" }), A.map(function (t) { return ["상승", t.split(" (")[0], (t.match(/\(([^)]+)\)$/) || [0, "앱 데이터"])[1]]; }).concat(B.map(function (t) { return ["하락", t.split(" (")[0], (t.match(/\(([^)]+)\)$/) || [0, "앱 데이터"])[1]]; })), 12);
       return [Object.assign(base, { colA: "상승론", colB: "하락론", rowsA: A.slice(0, 5), rowsB: B.slice(0, 5), ask: "당신은 어느 쪽? 댓글로 근거와 함께" })]; } };
   TPR.inState = { nm: "시장 온도 · 상황판", grp: "인사이트", opts: [], tpls: ["denseTable", "lineTable", "issue"], per: 14, hint: "인사이트 화면의 신호표 — 신호 | 지금 | 비교 | 읽기 (주인 판단 문장은 뺀다)",
     build: function (o, tid) { var S = IN.S || inSignals(), T = inTemp(S); if (!S.length) return [];
-      if (tid === "kpiTiles") { var top6 = S.slice().sort(function (a, b) { return Math.abs(b.sc * b.w) - Math.abs(a.sc * a.w); }).slice(0, 6); return [{ noLead: true, _cat: "market", src: inBasisLine().slice(0, 60), title: "지금 시장, 숫자 여섯 개 — " + T.nm, sub: "신호 " + S.length + "개 중 무게가 큰 것 · 더운 쪽 " + T.up + " · 식는 쪽 " + T.dn, badge: "시장흐름", items: top6.map(function (x) { var c = String(x.cmp).replace(/<[^>]+>/g, "").split(" · ")[0]; return [x.nm, x.val, c.length > 60 ? c.slice(0, 59) + "…" : c, x.sc > 0 ? "up" : x.sc < 0 ? "down" : "flat"]; }), foot: "빨강 = 시장이 더워지는 쪽 · 파랑 = 식는 쪽 · 기준일은 지표마다 다름" }]; }
+      if (tid === "kpiTiles") { var nK = Math.min(S.length, typeof tpReel === "function" && tpReel() ? 10 : 6), top6 = S.slice().sort(function (a, b) { return Math.abs(b.sc * b.w) - Math.abs(a.sc * a.w); }).slice(0, nK), kw = { 4: "네", 5: "다섯", 6: "여섯", 7: "일곱", 8: "여덟", 9: "아홉", 10: "열" }[nK] || nK; return [{ noLead: true, _cat: "market", src: inBasisLine().slice(0, 60), title: "지금 시장, 숫자 " + kw + " 개 — " + T.nm, sub: "신호 " + S.length + "개 중 무게가 큰 것 · 더운 쪽 " + T.up + " · 식는 쪽 " + T.dn, badge: "시장흐름", items: top6.map(function (x) { var c = String(x.cmp).replace(/<[^>]+>/g, "").split(" · ")[0]; return [x.nm, x.val, c.length > 60 ? c.slice(0, 59) + "…" : c, x.sc > 0 ? "up" : x.sc < 0 ? "down" : "flat"]; }), foot: "빨강 = 시장이 더워지는 쪽 · 파랑 = 식는 쪽 · 기준일은 지표마다 다름" }]; }
       return tprPaged({ _cat: "market", src: inBasisLine().slice(0, 60), title: "지금 시장, 숫자로 보면", sub: "신호 " + S.length + "개 · 더운 쪽 " + T.up + " · 식는 쪽 " + T.dn, badge: "시장흐름", cols: "신호 | 지금 | 비교 | 읽기", foot: "각 숫자의 기준일은 지표마다 다름 · 투자 판단과 책임은 본인에게" }, S.map(function (x) { return [x.nm, x.val, String(x.cmp).replace(/<[^>]+>/g, ""), x.read.split(" — ")[0]]; }), 14); } };
   /* v9.48 여러 장 = 상세본: 상황판은 표지(온도·그룹별 평균) + 그룹마다 한 장(신호 표 + 읽기 문장), 토론은 진영마다 한 장(데이터 근거 + 논거 원문) + 갈림길 */
   TPR.inState.detail = function (o, tid) { var S = IN.S || inSignals(), T = inTemp(S); if (!S.length) return null; if (tid === "kpiTiles") { var kp = TPR.inState.build(o, tid), rest = TPR.inState.detail(o, "denseTable"); return kp.concat(rest.slice(1)); } var G = ["거래", "가격", "위치", "금리", "공급", "전세", "청약"].map(function (g) { return { g: g, L: S.filter(function (x) { return x.grp === g; }) }; }).filter(function (q) { return q.L.length; });
@@ -11352,6 +11367,7 @@ TPR.supplyPipe = { nm: "인허가·착공·준공", grp: "통계", opts: [], tpl
   build: function (o, tid) { if (!stSupplyOk()) return []; var S = stD().supply, keys = [["seoul", "서울"], ["gg", "경기"], ["ic", "인천"], ["cap", "수도권"], ["all", "전국"]], st = S.starts,
     A0 = (st.seoul || st.all).filter(function (p) { return p[1] != null; });
     if (tid === "trendChart") { var n = Math.min(24, A0.length), S24 = A0.slice(-n), nm0 = st.seoul ? "서울" : "전국", pk = S.permits && (S.permits.seoul || S.permits.all); return [{ noLead: true, _cat: "market", src: "국토부 주택건설실적(KOSIS) · 월별", title: nm0 + " 월별 착공, " + n + "개월 흐름", sub: "최근 12개월 합 " + fmt(stSum(A0, 12)) + "호" + (stSum(A0, 12, 12) ? " · 직전 12개월 대비 " + stPct((stSum(A0, 12) / stSum(A0, 12, 12) - 1) * 100, 0) : ""), badge: "공급", cols: "월 | 착공" + (pk ? " | 인허가" : ""), rows: S24.map(function (p) { var r = [stYm(p[0]), String(p[1])]; if (pk) r.push(stAt(pk, p[0]) != null ? String(stAt(pk, p[0])) : ""); return r; }), foot: "월 단위는 들쭉날쭉(대단지 하나로 출렁임) · 12개월 합으로 읽는 게 안전 · 착공은 2~3년 뒤 입주" }]; } L = stLast(st.seoul || st.all), from = (function () { var A = (st.seoul || st.all).filter(function (p) { return p[1] != null; }); return A.length >= 12 ? A[A.length - 12][0] : null; })();
+    var L = A0[A0.length - 1], from = A0.length >= 12 ? A0[A0.length - 12][0] : null;   /* v9.57 표 경로에서 L 이 정의되지 않아(ReferenceError) 기본 양식이 빈 카드였음 — 마지막 달 · 12개월 전 달 */
     var rows = keys.map(function (k) { var g = function (o) { return o && o[k[0]] ? stSum(o[k[0]], 12) : null; }, g0 = function (o) { return o && o[k[0]] ? stSum(o[k[0]], 12, 12) : null; }, s1 = g(st), s0 = g0(st); return [k[1], S.permits && g(S.permits) != null ? fmt(g(S.permits)) + "호" : "–", s1 != null ? fmt(s1) + "호" : "–", S.completes && g(S.completes) != null ? fmt(g(S.completes)) + "호" : "–", s1 != null && s0 ? stPct((s1 / s0 - 1) * 100, 0) : "–"]; });
     if (st.apt && st.apt.seoul && stSum(st.apt.seoul, 12) != null) rows.push(["서울 아파트만", S.permits && S.permits.apt && S.permits.apt.seoul && stSum(S.permits.apt.seoul, 12) != null ? fmt(stSum(S.permits.apt.seoul, 12)) + "호" : "–", fmt(stSum(st.apt.seoul, 12)) + "호", S.completes && S.completes.apt && S.completes.apt.seoul && stSum(S.completes.apt.seoul, 12) != null ? fmt(stSum(S.completes.apt.seoul, 12)) + "호" : "–", stSum(st.apt.seoul, 12, 12) ? stPct((stSum(st.apt.seoul, 12) / stSum(st.apt.seoul, 12, 12) - 1) * 100, 0) : "–"]);
     return tprPaged({ noLead: true, _cat: "market", src: "국토부 주택건설실적(KOSIS) · " + (from ? stYm(from) + "~" : "") + stYm(L[0]) + " 12개월 합", title: "집은 얼마나 짓고 있나 — 인허가·착공·준공", sub: "최근 12개월 합계 · 착공은 2~3년 뒤 입주", badge: "공급", cols: "지역 | 인허가 | 착공 | 준공 | 착공 전년비", foot: "인허가 → 착공 → 준공(입주) 순서 · 호수 기준(동수 아님) · 서울은 미분양이 아니라 착공이 공급 지표" }, rows, 8); },
@@ -11376,7 +11392,7 @@ TPR.idxMonthly = { nm: "부동산원 월간 지수", grp: "통계", opts: [], tp
 function stWeekOk() { var D = stD(), W = D && D.weekly; if (!W || !W.seoul || W.seoul.length < 4) return false; var l = stLast(W.seoul), t = l[0]; var d = new Date(Math.floor(t / 10000), Math.floor(t / 100) % 100 - 1, t % 100); return (Date.now() - d.getTime()) / 86400000 <= 21; }
 function stStreak(a) { var A = (a || []).filter(function (p) { return p[1] != null; }), n = 0, dir = 0; for (var i = A.length - 1; i > 0; i--) { var d = Math.sign(A[i][1] - A[i - 1][1]); if (!d) break; if (!dir) dir = d; if (d !== dir) break; n++; } return { n: n, dir: dir }; }
 TPR.idxWeekly = { nm: "서울 아파트 주간 지수", grp: "통계", opts: [], tpls: ["denseTable", "lineTable"], per: 8, hint: "한국부동산원 주간 아파트 매매가격지수(KOSIS) — 최근 8주 서울·수도권·전국과 전주비",
-  build: function (o, tid) { if (!stWeekOk()) return []; var W = stD().weekly, A = W.seoul.filter(function (p) { return p[1] != null; }), n = tid === "trendChart" ? (tprOne() ? 16 : 26) : (tprOne() ? 6 : 12), S = A.slice(-n), sk = stStreak(W.seoul);
+  build: function (o, tid) { if (!stWeekOk()) return []; var W = stD().weekly, A = W.seoul.filter(function (p) { return p[1] != null; }), n = tid === "trendChart" ? (tprOne() && !tpReel() ? 16 : 26) : (tprOne() ? (tpReel() ? 12 : 6) : 12)   /* v9.57 릴스 한 장은 26주 추세 · 표는 12주 */, S = A.slice(-n), sk = stStreak(W.seoul);
     if (tid === "trendChart") return [{ noLead: true, _cat: "market", src: String(W.src || "한국부동산원 주간아파트가격동향(KOSIS)"), title: "서울 아파트 주간 지수, 어디로 가나", sub: stYm(S[0][0]) + "~" + stYm(S[S.length - 1][0]) + " · " + S.length + "주" + (sk.n >= 2 ? " · " + (sk.n >= A.length - 1 ? A.length + "주 자료 내내 " : sk.n + "주 연속 ") + (sk.dir > 0 ? "상승" : "하락") : ""), badge: "주간", cols: "주 | 서울 | 수도권", rows: S.map(function (p) { return [stYm(p[0]), p[1].toFixed(2), W.cap && stAt(W.cap, p[0]) != null ? stAt(W.cap, p[0]).toFixed(2) : ""]; }), foot: "주간 지수는 호가·표본 조사라 실거래보다 먼저 움직이고 폭은 작음 · 기준 " + String(W.src || "").replace(/.*기준\s*/, "") }];
     var rows = S.map(function (p, i) { var prev = i ? S[i - 1][1] : stAt(W.seoul, (A[A.length - n - 1] || [0])[0]); var wc = prev ? (p[1] / prev - 1) * 100 : null; return [stYm(p[0]), p[1].toFixed(2), stPct(wc, 2), W.cap && stAt(W.cap, p[0]) != null ? stAt(W.cap, p[0]).toFixed(2) : "–", W.all && stAt(W.all, p[0]) != null ? stAt(W.all, p[0]).toFixed(2) : "–"]; });
     return [{ noLead: true, _cat: "market", src: String(W.src || "한국부동산원 주간아파트가격동향(KOSIS)"), title: "서울 아파트, 이번 주 지수는", sub: (sk.n >= 2 ? (sk.n >= A.length - 1 ? A.length + "주 자료 내내 " : sk.n + "주 연속 ") + (sk.dir > 0 ? "상승" : "하락") + " · " : "") + "매주 월요일 조사분", badge: "주간", cols: "주 | 서울 | 전주비 | 수도권 | 전국", rows: rows, foot: "주간 지수는 호가·표본 조사라 실거래보다 먼저 움직이고 폭은 작음 · 기준 " + String(W.src || "").replace(/.*기준\s*/, "") }]; } };
@@ -11384,7 +11400,7 @@ TPR.idxWeekly = { nm: "서울 아파트 주간 지수", grp: "통계", opts: [],
 /* ── 4. 미분양 추이 ── */
 function stUnsoldOk() { var D = stD(), U = D && D.unsold; return !!(U && U.all && typeof inFresh === "function" && inFresh(U.all, 5)); }
 TPR.unsoldTrend = { nm: "미분양 추이", grp: "통계", opts: [], tpls: ["denseTable", "lineTable"], per: 12, hint: "국토부 미분양주택현황(KOSIS) — 최근 12개월 전국·수도권·서울·준공 후",
-  build: function (o, tid) { if (!stUnsoldOk()) return []; var U = stD().unsold, A = U.all.filter(function (p) { return p[1] != null; }), n = tid === "trendChart" ? Math.min(24, A.length) : (tprOne() ? 6 : 12), S = A.slice(-n), l = A[A.length - 1], y = stAt(U.all, (A[A.length - 13] || [0])[0]);
+  build: function (o, tid) { if (!stUnsoldOk()) return []; var U = stD().unsold, A = U.all.filter(function (p) { return p[1] != null; }), n = tid === "trendChart" ? Math.min(24, A.length) : (tprOne() && !tpReel() ? 6 : 12), S = A.slice(-n), l = A[A.length - 1], y = stAt(U.all, (A[A.length - 13] || [0])[0]);
     if (tid === "trendChart") return [{ noLead: true, _cat: "market", src: "국토부 미분양주택현황(KOSIS) · " + stYm(l[0]) + " 기준", title: "미분양 " + S.length + "개월 흐름", sub: "전국 " + fmt(l[1]) + "호" + (y ? " · 1년 전 대비 " + stPct((l[1] / y - 1) * 100, 0) : ""), badge: "공급", cols: "월 | 전국 | 수도권", rows: S.map(function (p) { return [stYm(p[0]), String(p[1]), U.cap && stAt(U.cap, p[0]) != null ? String(stAt(U.cap, p[0])) : ""]; }), foot: "미분양은 지방 중심 · 수도권 선은 같은 눈금에 그린 것" }];
     var rows = S.map(function (p) { return [stYm(p[0]), fmt(p[1]), U.cap && stAt(U.cap, p[0]) != null ? fmt(stAt(U.cap, p[0])) : "–", U.seoul && stAt(U.seoul, p[0]) != null ? fmt(stAt(U.seoul, p[0])) : "–", typeof inDoneOk === "function" && inDoneOk(U) && stAt(U.done, p[0]) != null ? fmt(stAt(U.done, p[0])) : "–"]; });
     return [{ noLead: true, _cat: "market", src: "국토부 미분양주택현황(KOSIS) · " + stYm(l[0]) + " 기준", title: "미분양, 줄고 있나 늘고 있나", sub: "전국 " + fmt(l[1]) + "호" + (y ? " · 1년 전 대비 " + stPct((l[1] / y - 1) * 100, 0) : "") + (typeof inDoneOk === "function" && inDoneOk(U) ? " · 준공 후 " + fmt(stLast(U.done)[1]) + "호(" + stYm(stLast(U.done)[0]) + ")" : ""), badge: "공급", cols: "월 | 전국 | 수도권 | 서울 | 준공 후(전국)", rows: rows, foot: "미분양은 지방 중심 · 서울은 거의 전부 준공 후 미분양 · 준공 후 통계는 2~4개월 늦게 발표" }]; } };
@@ -11434,7 +11450,11 @@ TPL.trendChart = { nm: "추세선(시계열)", cat: "market", fields: [["src", "
     var legend = Z.S.map(function (s, k) { return '<span class="lg s' + k + '"><i></i>' + tpE(s.nm) + "</span>"; }).join("");
     var chips = '<div class="tp-vz-chips"><span><small>처음</small><b>' + tpE(vzFmt(v0[0], s0.unit)) + "</b></span><span><small>끝</small><b>" + tpE(vzFmt(v0[v0.length - 1], s0.unit)) + "</b></span><span><small>변화</small><b class=\"" + (chg > 0 ? "up" : chg < 0 ? "down" : "") + '">' + (chg == null ? "–" : (chg > 0 ? "+" : chg < 0 ? "−" : "") + Math.abs(chg).toFixed(Math.abs(chg) < 10 ? 2 : 1) + "%") + "</b></span><span><small>최고</small><b>" + tpE(vzFmt(v0[dmax], s0.unit)) + "</b></span><span><small>최저</small><b>" + tpE(vzFmt(v0[dmin], s0.unit)) + "</b></span></div>";
     /* 세로 크기는 카드에 남는 자리에 맞춰 tpFit 이 다시 그린다(vzResize) — 처음엔 600×400 */
-    return tpFrame(d._cat || "market", d, '<div class="tp-fill"><div class="tp-vz-legend">' + legend + '</div><svg class="tp-vz" data-vz="' + tpE(JSON.stringify(Z)) + '" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">' + vzDraw(Z, 600, 400) + '</svg>' + chips + '</div>'); } };
+    /* v9.57 릴스형: 그림을 키우기보다 '최근 6개' 값 표를 더한다 — 칸 글자 그대로(새로 계산한 숫자 없음) */
+    var rec = "";
+    if (tpReel()) { var cols = tpRows(d.cols || "")[0] || [], RR = tpRows(d.rows || []).filter(function (r) { return r.join("").trim(); }), nS = Z.S.length, last = RR.slice(-6).reverse();
+      rec = '<table class="tp-tbl tp-vz-rec"><tr><th>' + tpE(cols[0] || "") + "</th>" + Z.S.map(function (s) { return "<th>" + tpE(s.nm) + "</th>"; }).join("") + "</tr>" + last.map(function (r) { return "<tr><td>" + tpE(r[0] || "") + "</td>" + Z.S.map(function (_, k) { return "<td>" + tpE(r[k + 1] || "–") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"; }
+    return tpFrame(d._cat || "market", d, '<div class="tp-fill"><div class="tp-vz-legend">' + legend + '</div><svg class="tp-vz" data-vz="' + tpE(JSON.stringify(Z)) + '" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">' + vzDraw(Z, 600, 400) + '</svg>' + chips + rec + '</div>'); } };
 /* 추세선 본체 — W×H 좌표계에 그린다. 첫 시리즈는 금색 굵은 선 + 옅은 면, 둘째는 남색 점선. 왼쪽 눈금 3개, 아래 라벨은 겹치지 않게 솎음, 마지막 점에 값 */
 function vzDraw(Z, W, H) {
   var pl = 46, pr = 54, pt = 16, pb = 30, iw = W - pl - pr, ih = H - pt - pb, n = Z.labels.length;
@@ -11459,15 +11479,15 @@ function vzResize(c, c0) {
 /* 숫자 타일: 2열 × 최대 3줄 — 이름 · 큰 숫자 · 보조 · 방향(up/down/flat 또는 +/− 부호로 자동) */
 TPL.kpiTiles = { nm: "숫자 타일(핵심 지표)", cat: "market", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "지금 시장, 숫자 여섯 개"], ["sub", "부제", "text", ""], ["items", "타일(이름 | 큰 숫자 | 보조 | up/down/flat)", "rows", "서울 30일 매매 | 1,416건 | 한 달 전 −12% | down"], ["foot", "맨 아래 메모", "text", ""]],
   auto: function () { return null; },
-  render: function (d) { var R = d.items ? tpRows(d.items).filter(function (r) { return r.join("").trim(); }).slice(0, 6) : vzItems(d, 6); if (!R.length) return tpFrame(d._cat || "market", d, '<p class="tp-vz-none">타일 줄이 없습니다</p>');
-    return tpFrame(d._cat || "market", d, '<div class="tp-fill"><div class="tp-kpi n' + R.length + '">' + R.map(function (r) { var dir = /^(up|down|flat)$/.test(r[3] || "") ? r[3] : (/^[+▲]|증가|상승/.test(r[2] || "") ? "up" : /^[−\-▼]|감소|하락/.test(r[2] || "") ? "down" : ""); return '<div class="tp-kpi-c ' + dir + '"><small>' + tpE(r[0]) + '</small><b>' + tpE(r[1] || "") + '</b>' + (r[2] ? '<em>' + tpE(r[2]) + '</em>' : "") + '</div>'; }).join("") + "</div>"); } };
+  render: function (d) { var K = tpReel() ? 10 : 6, R = d.items ? tpRows(d.items).filter(function (r) { return r.join("").trim(); }).slice(0, K) : vzItems(d, K);   /* v9.57 릴스형은 타일 10개까지 */ if (!R.length) return tpFrame(d._cat || "market", d, '<p class="tp-vz-none">타일 줄이 없습니다</p>');
+    return tpFrame(d._cat || "market", d, '<div class="tp-fill"><div class="tp-kpi n' + R.length + '">' + R.map(function (r) { var dir = /^(up|down|flat)$/.test(r[3] || "") ? r[3] : (/^[+▲]|증가|상승/.test(r[2] || "") ? "up" : /^[−\-▼]|감소|하락/.test(r[2] || "") ? "down" : ""); return '<div class="tp-kpi-c ' + dir + '"><small>' + tpE(r[0]) + '</small><b>' + tpE(r[1] || "") + '</b>' + (r[2] ? '<em>' + tpE(r[2]) + '</em>' : "") + '</div>'; }).join("") + "</div></div>"); } };
 /* 가로 막대 순위: 값 크기만큼 막대, 양수 금색 · 음수 남색, 오른쪽 끝에 값 */
 TPL.barRank = { nm: "가로 막대 순위", cat: "market", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "1년 새 많이 오른 동네"], ["sub", "부제", "text", ""], ["items", "항목(이름 | 값 | 보조)", "rows", "과천시 | +29.6% | 84㎡ 중위"], ["foot", "맨 아래 메모", "text", ""]],
   auto: function () { return null; },
-  render: function (d) { var R = vzItems(d, 10), vals = R.map(function (r) { return vzNum(r[1]); }), ok = vals.filter(function (v) { return v != null; });
+  render: function (d) { var R = vzItems(d, tpReel() ? 16 : 10), vals = R.map(function (r) { return vzNum(r[1]); }), ok = vals.filter(function (v) { return v != null; });
     if (!ok.length) return tpFrame(d._cat || "market", d, '<p class="tp-vz-none">값 칸에 숫자가 있어야 막대를 그립니다</p>');
     var mx = Math.max.apply(null, ok.map(Math.abs)) || 1;
-    return tpFrame(d._cat || "market", d, '<div class="tp-fill"><div class="tp-bars n' + R.length + '">' + R.map(function (r, i) { var v = vals[i], w = v == null ? 0 : Math.max(3, Math.abs(v) / mx * 100); return '<div class="tp-bar-r"><i class="no">' + (i + 1) + '</i><span class="nm">' + tpE(r[0]) + (r[2] ? '<small>' + tpE(r[2]) + '</small>' : "") + '</span><span class="tr"><i class="bar ' + (v < 0 ? "dn" : "up") + '" style="width:' + w.toFixed(1) + '%"></i></span><b class="v ' + (v < 0 ? "dn" : "") + '">' + tpE(r[1] || "–") + '</b></div>'; }).join("") + "</div>"); } };
+    return tpFrame(d._cat || "market", d, '<div class="tp-fill"><div class="tp-bars n' + R.length + '">' + R.map(function (r, i) { var v = vals[i], w = v == null ? 0 : Math.max(3, Math.abs(v) / mx * 100); return '<div class="tp-bar-r"><i class="no">' + (i + 1) + '</i><span class="nm">' + tpE(r[0]) + (r[2] ? '<small>' + tpE(r[2]) + '</small>' : "") + '</span><span class="tr"><i class="bar ' + (v < 0 ? "dn" : "up") + '" style="width:' + w.toFixed(1) + '%"></i></span><b class="v ' + (v < 0 ? "dn" : "") + '">' + tpE(r[1] || "–") + '</b></div>'; }).join("") + "</div></div>"); } };
 TPL_ORDER.push("trendChart", "kpiTiles", "barRank");
 /* 다른 양식으로 옮기기: 막대·타일은 순위 줄에서, 추세선은 날짜 줄에서만 */
 (function () {
@@ -11475,7 +11495,7 @@ TPL_ORDER.push("trendChart", "kpiTiles", "barRank");
   TP_XTPL.push("barRank", "kpiTiles", "trendChart");
   var conv = tpConvert;
   tpConvert = function (d, to) {
-    if (to === "barRank" || to === "kpiTiles") { var X = tpRowsOf(d); if (!X) return d; var o = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag", "noLead"].forEach(function (k) { if (d[k] != null) o[k] = d[k]; }); o._off = d._off || 0; o.items = X.rows.map(function (r) { var k = typeof tpKeyIdx === "function" ? tpKeyIdx(X, d, r) : tpNumIdx(r); if (k < 0) k = 1; return [r[0], r[k] || "", r.filter(function (_, i) { return i && i !== k; }).join(" · ")]; }); return o; }
+    if (to === "barRank" || to === "kpiTiles") { var X = tpRowsOf(d); if (!X) return d; var o = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag", "noLead", "_more", "_tot"].forEach(function (k) { if (d[k] != null) o[k] = d[k]; }); o._off = d._off || 0; o.items = X.rows.map(function (r) { var k = typeof tpKeyIdx === "function" ? tpKeyIdx(X, d, r) : tpNumIdx(r); if (k < 0) k = 1; return [r[0], r[k] || "", r.filter(function (_, i) { return i && i !== k; }).join(" · ")]; }); return o; }
     if (to === "trendChart") { var Y = tpRowsOf(d); if (!Y) return d; var dateLike = Y.rows.filter(function (r) { return vzIsDate(r[0]); }).length >= Y.rows.length * 0.7; if (!dateLike) return conv(d, "denseTable"); var p = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag"].forEach(function (k) { if (d[k] != null) p[k] = d[k]; }); p._off = d._off || 0; p.noLead = true; p.cols = Y.cols.join(" | "); p.rows = Y.rows; return p; }
     return conv(d, to);
   };

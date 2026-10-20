@@ -2757,7 +2757,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.52.1</span>
+    <span class="ver">v9.53</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -8010,7 +8010,7 @@ function dyBoxes(topic) {
     if (big && ix.rent) { ["seoul", "all"].forEach(function (g) { var r = dyIdxRow({ seoul: "서울 전세지수", all: "전국 전세지수" }[g], ix.rent[g]); if (r) tp.push(r); }); }
     ["서울", "경기"].forEach(function (g, i) { var jr = dyJeonseRatio(g); if (jr && (big || i === 0)) tp.push(dyRow(g + " 84㎡ 전세가율<small>" + jr.ym + " 거래된 84㎡ 중위 전세÷매매</small>", jr.ratio.toFixed(0) + "%", "매매 " + eok(jr.sale) + " · 전세 " + eok(jr.rent), !big)); });
     var u1 = dyUnsoldRow("전국 미분양", un.all); if (u1) tp.push(u1);
-    var u2 = dyUnsoldRow("준공 후 미분양", un.done); if (u2) tp.push(u2);
+    var u2 = typeof inDoneOk === "function" && inDoneOk(un) ? dyUnsoldRow("준공 후 미분양", un.done) : null; if (u2) tp.push(u2);   /* v9.53 전체 미분양과 같은 값이면 안 보임 */
     if (big) { var u3 = dyUnsoldRow("수도권 미분양", un.cap); if (u3) tp.push(u3); }
     if (tp.length) B.push(dyBox(n(), "시장 체온", tp, { wide: big, pri: 2, min: 2, date: [ix.sale ? "부동산원" : "", un.all ? "미분양 국토부" : ""].filter(Boolean).join(" · ") || "실거래 집계" }));
     /* 확산 */
@@ -9329,7 +9329,7 @@ function tpFormHtml(t, d) {
   return t.fields.map(function (f) { var v = d[f[0]], txt = f[2] === "text" ? String(v || "") : (Array.isArray(v) ? v.map(function (r) { return Array.isArray(r) ? r.join(" | ") : r; }).join("\n") : String(v || ""));
     return '<label class="tp-f"><span>' + tpE(f[1]) + "</span>" + (f[2] === "text" ? '<input data-tf="' + f[0] + '" value="' + tpE(txt) + '" placeholder="' + tpE(f[3]) + '">' : '<textarea data-tf="' + f[0] + '" rows="' + (f[2] === "rows" ? 6 : 3) + '" placeholder="' + tpE(f[3]) + '">' + tpE(txt) + "</textarea>") + "</label>"; }).join("");
 }
-function tpReadForm() { var old = tpData(), o = {}, t = tpTplOf(old); ["_cat", "_off", "badge", "_icon", "lead", "note", "noteSrc"].forEach(function (k) { if (old[k] != null) o[k] = old[k]; }); t.fields.forEach(function (f) { var el = document.querySelector('#tp-form [data-tf="' + f[0] + '"]'); if (!el) return; o[f[0]] = f[2] === "text" ? el.value : (f[2] === "rows" ? tpRows(el.value) : tpLines(el.value)); }); return o; }
+function tpReadForm() { var old = tpData(), o = {}, t = tpTplOf(old); ["_cat", "_off", "badge", "_icon", "lead", "note", "noteSrc", "noLead", "_tpl"].forEach(function (k) { if (old[k] != null) o[k] = old[k]; }); t.fields.forEach(function (f) { var el = document.querySelector('#tp-form [data-tf="' + f[0] + '"]'); if (!el) return; o[f[0]] = f[2] === "text" ? el.value : (f[2] === "rows" ? tpRows(el.value) : tpLines(el.value)); }); return o; }
 function tpPaint() {
   var form = document.getElementById("tp-form"); if (!form) return;
   var d = tpData(), t = tpTplOf(d), n = (TP.pages || []).length;
@@ -9500,9 +9500,10 @@ function tpAi(mode) {
 var TP_NOTE_TAG = { "금리": "rate", "청약·일정": "subs", "실거래": "price", "대장": "price", "시장": "price", "정책·대출·교통": "buy", "인사이트": "price", "채널 코너 그대로": "price", "지금 시장 그대로": "price", "이슈 한 장씩": "", "금일·금주·금월": "", "상식·이슈": "" };
 function tpNumIdxOf(r) { var N = /^[+\-−]?[\d,.]+\s*(%p|%|억|만|천|건|점|:1|대1|곳|세대|㎡|원|배|위|년|개월|일)?(\s|$|[·(~])/; for (var i = 1; i < r.length; i++) if (N.test(String(r[i] || "")) && String(r[i]).length <= 16) return i; for (var j = 1; j < r.length; j++) if (/\d/.test(r[j] || "")) return j; return -1; }
 function tpLeadOf(d, R) {
+  if (d.noLead) return "";   /* v9.53 순위가 아닌 표(지역·월 순서)는 '1위' 문장을 만들지 않는다 */
   var isItems = !d.rows && d.items, rows = tpRows(d.rows || d.items || []).filter(function (r) { return r.join("").trim(); }); if (!rows.length) return "";
   var cols = isItems ? [] : (tpRows(d.cols || "")[0] || []), r0 = rows[0], k = tpNumIdxOf(r0); if (k < 0) return "";
-  var name = String(r0[0] || "").replace(/\s*\(.*?\)\s*$/, ""), v = String(r0[k]), what = cols[k] ? String(cols[k]).replace(/\(.*?\)/g, "").trim() : "", total = 0, pages = R._pages || TP.pages || []; (pages.length ? pages : [d]).forEach(function (p) { total += tpRows(p.rows || p.items || []).length; }); total = total || rows.length;
+  var name = String(r0[0] || "").replace(/\s*\(.*?\)\s*$/, ""), v = String(r0[k]), what = cols[k] ? String(cols[k]).replace(/\(.*?\)/g, "").trim() : "", total = 0, pages = R._pages || TP.pages || []; (pages.length ? pages : [d]).filter(function (p) { return (p.title || "") === (d.title || ""); }).forEach(function (p) { total += tpRows(p.rows || p.items || []).length; }); total = total || rows.length;   /* v9.53 같은 표의 장만 센다(상세 장 섞임 방지) */
   var c0 = String(cols[0] || ""), isReg = (function () { try { return Object.keys(tprReg()).some(function (kk) { return tprGu(kk) === name || tprNm(kk) === name; }); } catch (e) { return false; } })();
   var unit = isReg || /지역|구$|시$/.test(c0) ? "곳" : /금융사|은행/.test(c0) || /은행|저축은행|뱅크|보험|생명|화재|카드/.test(name) ? "곳" : /단지|아파트/.test(c0) || d._cat === "subs" || d._cat === "deal" ? "단지" : "건";
   if (/^\d{2,4}[.년]/.test(name) || /^\d+월/.test(name) || /^\d+$/.test(name)) return "";   /* 날짜 줄(일정·달력)은 1위가 없다 */
@@ -10029,7 +10030,8 @@ TPR.priceMove = { nm: "값 오른·내린 지역", grp: "시장", opts: ["scope"
 TPR.volUp = { nm: "거래 늘어난 지역", grp: "시장", opts: ["scope"], tpls: ["denseTable", "rankGrid"], per: 14,
   hint: "최근 30일 매매 건수가 " + "직전보다 많이 늘어난 곳 (같은 신고 지연끼리 비교)",
   build: function (o, tid) { if (!cdNeed("channel", "volUp")) return []; var L = cdMove(tprCodes(o.scope)).filter(function (r) { return r.vt != null; }).sort(function (a, b) { return b.vt - a.vt; }); if (!L.length) return [];
-    var base = { _cat: "market", src: cdBasisCh() + " · " + cdCmpNm() + " 대비", title: tprScopeNm(o.scope) + " 거래가 늘어난 동네", sub: "매매 건수 증가율 높은 순", badge: "시장흐름", cols: "지역 | 30일 매매 | 비교 시점 | 변화", foot: "신고 기한(30일) 때문에 최근 숫자는 더 늘어날 수 있음" };
+    var anyUp = L.some(function (r) { return r.vt > 1; });   /* v9.53 모두 줄었는데 "늘어난 동네"라고 하면 틀린 제목 */
+    var base = { _cat: "market", src: cdBasisCh() + " · " + cdCmpNm() + " 대비", title: tprScopeNm(o.scope) + (anyUp ? " 거래가 늘어난 동네" : " 거래가 덜 줄어든 동네"), sub: anyUp ? "매매 건수 증가율 높은 순" : "모든 지역 감소 — 감소 폭 작은 순", badge: "시장흐름", cols: "지역 | 30일 매매 | 비교 시점 | 변화", foot: "신고 기한(30일) 때문에 최근 숫자는 더 늘어날 수 있음" };
     var ch = function (r) { var v = (r.vt - 1) * 100; return (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(0) + "%"; };
     if (tid === "rankGrid") return tprItems(base, L.map(function (r) { return [tprGu(r.k), ch(r), fmt(r.pn) + "→" + fmt(r.n) + "건"]; }), 12);
     return tprPaged(base, L.map(function (r) { return [tprGu(r.k), fmt(r.n) + "건", fmt(r.pn) + "건", ch(r)]; }), 14); } };
@@ -10307,6 +10309,8 @@ function inAgeM(t) { t = Number(t); if (!t) return null; var k = chKstDate(), ym
 /* v9.45.2 부동산원 지수 표 신뢰 — 수집기가 표 번호(tbl)를 적어 준 것만 쓰고, 오피스텔 번호대(DT_08002)는 거부. 10.19 실행이 오피스텔 지수를 아파트 지수로 받아 왔던 일의 재발 방지 */
 function inIdxTrust(o) { return !!(o && o.tbl && o.kind === "apt" && !/^DT_08002/.test(o.tbl) && !/오피스텔|준전세|준월세|월세/.test(o.src || "")); }
 function inIdxWhy(o) { return !o ? "없음" : !o.tbl ? "표 번호 없는 옛 수집분 — 표 확인 전이라 쓰지 않음" : /^DT_08002/.test(o.tbl) || /오피스텔/.test(o.src || "") ? "오피스텔 표(" + o.tbl + ") — 아파트 지수가 아니라 제외" : /준전세|준월세|월세/.test(o.src || "") ? "준전세·월세 표(" + o.tbl + ") — 전세지수가 아니라 제외" : o.kind !== "apt" ? "아파트 행이 확인되지 않은 수집분(" + o.tbl + ") — 종합주택일 수 있어 제외" : ""; }
+/* v9.53 준공 후 미분양 신뢰 — 전체 미분양과 같은 값이면 잘못 고른 표(시군구별 전체 미분양)라 쓰지 않는다 */
+function inDoneOk(U) { if (!U || !U.done || !U.all) return false; var l = inLast(U.done); if (!l) return false; var a = U.all.filter(function (p) { return p[0] === l[0]; })[0]; return !!(a && Math.abs(a[1] - l[1]) / Math.max(1, a[1]) >= 0.02); }
 function inFresh(ser, maxAge) { var l = inLast(ser); return !!l && inAgeM(l[0]) != null && inAgeM(l[0]) <= maxAge; }
 function inYmFromIdx(i) { if (typeof MC === "undefined" || !MC) return null; var y0 = Math.floor(MC.m0 / 100), m0 = MC.m0 % 100, t = y0 * 12 + (m0 - 1) + i; return Math.floor(t / 12) * 100 + (t % 12) + 1; }
 function inYmL(t) { t = Number(t); if (!t) return ""; if (t > 999999) return Math.floor(t / 10000) + "." + ("0" + (Math.floor(t / 100) % 100)).slice(-2) + "." + ("0" + t % 100).slice(-2); return Math.floor(t / 100) + "." + ("0" + t % 100).slice(-2); }
@@ -10319,7 +10323,7 @@ function inDataStatus() {
   var D = (typeof DY !== "undefined" && DY.data) || null;
   var ix = D && D.index && D.index.sale, ixs = ix && (ix.seoul || ix.all); if (ixs && !inIdxTrust(ix)) add("부동산원 매매지수", inYmL(inLast(ixs)[0]), "stale", inIdxWhy(ix)); else if (ixs) { var il = inLast(ixs); add("부동산원 매매지수" + (ix.seoul ? "" : "(전국만)"), inYmL(il[0]), !inFresh(ixs, 4) ? "stale" : ix.seoul ? "ok" : "warn", (!inFresh(ixs, 4) ? inAgeM(il[0]) + "개월 전 자료 — 신호에서 뺌" : ix.seoul ? "" : "서울 값 없음 — 서울 신호 제외") + (ix.tbl ? " · " + ix.tbl : "")); } else add("부동산원 매매지수", "", "miss", "KOSIS 표 못 찾음");
   var ir = D && D.index && D.index.rent, irs = ir && (ir.seoul || ir.all); if (irs && !inIdxTrust(ir)) add("부동산원 전세지수", inYmL(inLast(irs)[0]), "stale", inIdxWhy(ir)); else if (irs) { var rl = inLast(irs); add("부동산원 전세지수" + (ir.seoul ? "" : "(전국만)"), inYmL(rl[0]), !inFresh(irs, 4) ? "stale" : ir.seoul ? "ok" : "warn", (!inFresh(irs, 4) ? inAgeM(rl[0]) + "개월 전 자료 — 신호에서 뺌" : ir.seoul ? "" : "서울 값 없음") + (ir.tbl ? " · " + ir.tbl : "")); } else add("부동산원 전세지수", "", "miss", "KOSIS 표 못 찾음");
-  var U = D && D.unsold; if (U && U.all) { var ul = inLast(U.all); add("미분양", inYmL(ul[0]), inFresh(U.all, 4) ? "ok" : "stale", (U.done ? "준공 후 전국 있음" : "준공 후 전국 합계 없음(서울만)") + (inFresh(U.all, 4) ? "" : " · 오래돼 신호에서 뺌")); } else add("미분양", "", "miss", "");
+  var U = D && D.unsold; if (U && U.all) { var ul = inLast(U.all); add("미분양", inYmL(ul[0]), inFresh(U.all, 4) ? "ok" : U.done && !inDoneOk(U) ? "warn" : "stale", (inDoneOk(U) ? "준공 후 전국 있음" : U.done ? "준공 후 값이 전체 미분양과 같음 — 표가 틀려 제외(재수집 필요)" : "준공 후 전국 합계 없음") + (inFresh(U.all, 4) ? "" : " · 오래돼 신호에서 뺌")); } else add("미분양", "", "miss", "");
   var SP = D && D.supply; ["permits", "starts", "completes"].forEach(function (key, i) { var nm = ["인허가", "착공", "준공"][i], o = SP && SP[key], a = o && (o.seoul || o.all); if (a) { var sl = inLast(a); add(nm, inYmL(sl[0]), inFresh(a, 5) ? "ok" : "stale", inFresh(a, 5) ? (o.seoul ? "" : "전국만") : "오래돼 신호에서 뺌"); } else add(nm, "", "miss", "수집 안 됨 — 외부 조사로"); });
   var R = (typeof MACRO !== "undefined" && MACRO.data && MACRO.data.rates) || null; if (R && R.base) add("금리", (R.mortgage ? "주담대 " + inYmL(R.mortgage.t) : "") + (R.base ? " · 기준 " + inYmL(R.base.t) : ""), R.mortgage && inAgeM(R.mortgage.t) > 3 ? "stale" : "ok", "ECOS · 주담대는 전월 평균이라 한 달 늦다"); else add("금리", "", "miss", "macro_data 없음");
   if (D && D.subs) add("청약", D.subsAt ? "수집 " + String(D.subsAt).slice(5, 16).replace("T", " ") : (D.subs.asOf ? inYmL(D.subs.asOf) : ""), "ok", "청약홈 · 새벽 3시·오후 3시"); else add("청약", "", "miss", "");
@@ -10361,7 +10365,7 @@ function inMetric(id) {
     if (id === "kb3y" && R.kb3y) { var k3 = R.kb3y, kp = inPrev(k3.hist, 1); out = { v: k3.v, at: mcYmd(k3.t), prev: kp && kp[1], prevAt: kp && mcYm(kp[0]) }; }
     var U = (typeof DY !== "undefined" && DY.data && DY.data.unsold) || null;
     if (id === "unsold" && U && U.all && inFresh(U.all, 5)) { var ul = inLast(U.all), up = inPrev(U.all, 1), uy = inPrev(U.all, 12); out = { v: ul[1], at: inYm(ul[0]), prev: up && up[1], prevAt: up && inYm(up[0]), y: uy && uy[1] }; }
-    if (id === "unsoldDone" && U && (U.done || U.doneSeoul)) { var dd = U.done || U.doneSeoul, dl = inLast(dd), dp = inPrev(dd, 1); if (dl) out = { v: dl[1], at: inYm(dl[0]), prev: dp && dp[1], prevAt: dp && inYm(dp[0]), nm: U.done ? "준공 후 미분양(전국)" : "준공 후 미분양(서울)" }; }
+    if (id === "unsoldDone" && U && inDoneOk(U)) { var dd = U.done, dl = inLast(dd), dp = inPrev(dd, 1); if (dl) out = { v: dl[1], at: inYm(dl[0]), prev: dp && dp[1], prevAt: dp && inYm(dp[0]), nm: U.done ? "준공 후 미분양(전국)" : "준공 후 미분양(서울)" }; }
     if (id === "rentIdx" && typeof DY !== "undefined" && DY.data && DY.data.index && inIdxTrust(DY.data.index.rent) && inFresh(DY.data.index.rent.seoul, 4)) { var rx = DY.data.index.rent.seoul, rl = inLast(rx), rp1 = inPrev(rx, 1), rp3 = inPrev(rx, 3), ry = inPrev(rx, 12); if (rl) out = { v: rl[1], at: inYm(rl[0]), prev: rp1 && rp1[1], prevAt: rp1 && inYm(rp1[0]), p3: rp3 && rp3[1], y: ry && ry[1] }; }
     var SPp = (typeof DY !== "undefined" && DY.data && DY.data.supply) || null;
     if (id === "starts" && SPp && SPp.starts && SPp.starts.seoul && inFresh(SPp.starts.seoul, 5)) { var ss = SPp.starts.seoul.filter(function (p) { return p[1] != null; }); if (ss.length >= 24) { var s12 = ss.slice(-12).reduce(function (a, p) { return a + p[1]; }, 0), s24 = ss.slice(-24, -12).reduce(function (a, p) { return a + p[1]; }, 0); out = { v: s12, at: inYm(ss[ss.length - 12][0]) + "~" + inYm(ss[ss.length - 1][0]), prev: s24, yoy: s24 ? (s12 / s24 - 1) * 100 : null, src: SPp.starts.src, apt: SPp.starts.apt && SPp.starts.apt.seoul ? SPp.starts.apt.seoul.slice(-12).reduce(function (a, p) { return a + (p[1] || 0); }, 0) : null }; } }
@@ -11209,6 +11213,75 @@ function renderOps() {
     box.innerHTML = h;
   });
 }
+
+/* ══ v9.53 통계 카드 — 새로 들어온 자료(인허가·착공·준공, 부동산원 월간 지수, 주간 지수, 미분양 추이)를 카드로 ══
+   규칙: 자료가 없거나 오래되면(inFresh) 빈 배열 → "이 조건에 맞는 자료가 없습니다". 숫자는 수집 파일 값 그대로, 추정하지 않는다.
+   한 장 = 요약(지역/최근 몇 줄), 여러 장 = 표지 + 지역·항목별 상세. 열은 5개 이하로(카드 폭 규칙). */
+function stD() { return (typeof DY !== "undefined" && DY.data) || null; }
+function stYm(t) { t = Number(t); return t > 999999 ? Math.floor(t / 10000) % 100 + "." + (Math.floor(t / 100) % 100) + "." + (t % 100) : Math.floor(t / 100) % 100 + "." + (t % 100); }
+function stLast(a) { return typeof inLast === "function" ? inLast(a) : (a && a.length ? a[a.length - 1] : null); }
+function stAt(a, t) { var x = (a || []).filter(function (p) { return p[0] === t; })[0]; return x ? x[1] : null; }
+function stSum(a, n, off) { var A = (a || []).filter(function (p) { return p[1] != null; }); off = off || 0; var s = A.slice(A.length - n - off, A.length - off); if (s.length < n) return null; return s.reduce(function (q, p) { return q + p[1]; }, 0); }
+function stPct(v, d) { return typeof inPct === "function" ? inPct(v, d) : (v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(d == null ? 1 : d) + "%"); }
+function stChg(a, n) { var A = (a || []).filter(function (p) { return p[1] != null; }); if (A.length <= n) return null; var l = A[A.length - 1][1], p = A[A.length - 1 - n][1]; return p ? (l / p - 1) * 100 : null; }
+var ST_REG = [["all", "전국"], ["cap", "수도권"], ["seoul", "서울"], ["gg", "경기"], ["ic", "인천"], ["busan", "부산"], ["daegu", "대구"], ["daejeon", "대전"], ["ulsan", "울산"], ["sejong", "세종"], ["gwangju", "광주"]];
+
+/* ── 1. 인허가·착공·준공 ── */
+function stSupplyOk() { var D = stD(), S = D && D.supply; return !!(S && S.starts && (S.starts.seoul || S.starts.all) && typeof inFresh === "function" && inFresh(S.starts.seoul || S.starts.all, 5)); }
+TPR.supplyPipe = { nm: "인허가·착공·준공", grp: "통계", opts: [], tpls: ["denseTable", "lineTable"], per: 8, hint: "국토부 주택건설실적 — 최근 12개월 합계를 직전 12개월과 비교. 서울은 미분양보다 이 숫자가 공급 지표",
+  build: function () { if (!stSupplyOk()) return []; var S = stD().supply, keys = [["seoul", "서울"], ["gg", "경기"], ["ic", "인천"], ["cap", "수도권"], ["all", "전국"]], st = S.starts, L = stLast(st.seoul || st.all), from = (function () { var A = (st.seoul || st.all).filter(function (p) { return p[1] != null; }); return A.length >= 12 ? A[A.length - 12][0] : null; })();
+    var rows = keys.map(function (k) { var g = function (o) { return o && o[k[0]] ? stSum(o[k[0]], 12) : null; }, g0 = function (o) { return o && o[k[0]] ? stSum(o[k[0]], 12, 12) : null; }, s1 = g(st), s0 = g0(st); return [k[1], S.permits && g(S.permits) != null ? fmt(g(S.permits)) + "호" : "–", s1 != null ? fmt(s1) + "호" : "–", S.completes && g(S.completes) != null ? fmt(g(S.completes)) + "호" : "–", s1 != null && s0 ? stPct((s1 / s0 - 1) * 100, 0) : "–"]; });
+    if (st.apt && st.apt.seoul && stSum(st.apt.seoul, 12) != null) rows.push(["서울 아파트만", S.permits && S.permits.apt && S.permits.apt.seoul && stSum(S.permits.apt.seoul, 12) != null ? fmt(stSum(S.permits.apt.seoul, 12)) + "호" : "–", fmt(stSum(st.apt.seoul, 12)) + "호", S.completes && S.completes.apt && S.completes.apt.seoul && stSum(S.completes.apt.seoul, 12) != null ? fmt(stSum(S.completes.apt.seoul, 12)) + "호" : "–", stSum(st.apt.seoul, 12, 12) ? stPct((stSum(st.apt.seoul, 12) / stSum(st.apt.seoul, 12, 12) - 1) * 100, 0) : "–"]);
+    return tprPaged({ noLead: true, _cat: "market", src: "국토부 주택건설실적(KOSIS) · " + (from ? stYm(from) + "~" : "") + stYm(L[0]) + " 12개월 합", title: "집은 얼마나 짓고 있나 — 인허가·착공·준공", sub: "최근 12개월 합계 · 착공은 2~3년 뒤 입주", badge: "공급", cols: "지역 | 인허가 | 착공 | 준공 | 착공 전년비", foot: "인허가 → 착공 → 준공(입주) 순서 · 호수 기준(동수 아님) · 서울은 미분양이 아니라 착공이 공급 지표" }, rows, 8); },
+  detail: function (o) { if (!stSupplyOk()) return null; var S = stD().supply, cover = TPR.supplyPipe.build(o), out = cover.slice(0, 1), keys = [["seoul", "서울"], ["gg", "경기"], ["ic", "인천"], ["all", "전국"]];
+    keys.forEach(function (k, i) { var st = S.starts[k[0]]; if (!st) return; var A = st.filter(function (p) { return p[1] != null; }).slice(-12); if (A.length < 6) return;
+      out.push({ noLead: true, _tpl: "denseTable", _cat: "market", src: "국토부 주택건설실적(KOSIS) · 월별", badge: "공급 " + (i + 1) + "/" + keys.length, title: k[1] + " 월별 인허가·착공·준공", sub: stYm(A[0][0]) + "~" + stYm(A[A.length - 1][0]) + " · 호", cols: "월 | 인허가 | 착공 | 준공" + (S.starts.apt && S.starts.apt[k[0]] ? " | 착공(아파트)" : ""), rows: A.map(function (p) { var r = [stYm(p[0]), S.permits && S.permits[k[0]] && stAt(S.permits[k[0]], p[0]) != null ? fmt(stAt(S.permits[k[0]], p[0])) : "–", fmt(p[1]), S.completes && S.completes[k[0]] && stAt(S.completes[k[0]], p[0]) != null ? fmt(stAt(S.completes[k[0]], p[0])) : "–"]; if (S.starts.apt && S.starts.apt[k[0]]) r.push(stAt(S.starts.apt[k[0]], p[0]) != null ? fmt(stAt(S.starts.apt[k[0]], p[0])) : "–"); return r; }), foot: "인허가 표는 누계 발표분을 월값으로 바꾼 것 · 월 단위는 들쭉날쭉하니 12개월 합으로 보는 게 안전" }); });
+    return out; } };
+
+/* ── 2. 부동산원 월간 지수 ── */
+function stIdxOk(kind) { var D = stD(), I = D && D.index && D.index[kind]; return !!(I && typeof inIdxTrust === "function" && inIdxTrust(I) && inFresh(I.seoul || I.all, 4)); }
+function stIdxRows(I, cols) { return ST_REG.filter(function (r) { return I[r[0]] && I[r[0]].length >= 2; }).map(function (r) { var a = I[r[0]], l = stLast(a); return [r[1]].concat(cols.map(function (n) { return n === 0 ? l[1].toFixed(1) : stPct(stChg(a, n), n >= 12 ? 1 : 2); })); }); }
+TPR.idxMonthly = { nm: "부동산원 월간 지수", grp: "통계", opts: [], tpls: ["denseTable", "lineTable"], per: 12, hint: "한국부동산원 유형별 아파트 매매·전세가격지수(월) — 지역별 전월비·3개월·1년. 실거래 지수와 달리 호가·표본 조사가 섞인 '공식 지수'",
+  build: function () { if (!stIdxOk("sale")) return []; var I = stD().index.sale, R = stD().index.rent, l = stLast(I.seoul || I.all), rent = stIdxOk("rent") ? R : null;
+    var rows = ST_REG.filter(function (r) { return I[r[0]] && I[r[0]].length >= 2; }).map(function (r) { var a = I[r[0]]; return [r[1], stPct(stChg(a, 1), 2), stPct(stChg(a, 3), 2), stPct(stChg(a, 12), 1), rent && rent[r[0]] ? stPct(stChg(rent[r[0]], 1), 2) : "–"]; });
+    return tprPaged({ noLead: true, _cat: "market", src: "한국부동산원 아파트 매매·전세가격지수(KOSIS) · " + stYm(l[0]) + " 기준", title: "공식 지수로 본 지역별 흐름", sub: "아파트 매매가격지수 전월비 · 3개월 · 1년 + 전세 전월비", badge: "지수", cols: "지역 | 매매 전월비 | 3개월 | 1년 | 전세 전월비", foot: "부동산원 지수는 실거래 지수보다 1~2개월 늦게 움직임 · 1년 변화는 자료가 13개월 이상일 때만" }, rows, 12); },
+  detail: function (o) { if (!stIdxOk("sale")) return null; var I = stD().index.sale, cover = TPR.idxMonthly.build(o), out = cover.slice(0, 1), l = stLast(I.seoul || I.all);
+    out.push({ noLead: true, _tpl: "denseTable", _cat: "market", src: "한국부동산원 아파트 매매가격지수(KOSIS) · " + stYm(l[0]), badge: "지수 매매", title: "아파트 매매가격지수 — 지역별", sub: "지수(" + String(I.src || "").replace(/.*기준\s*/, "") + ") · 전월비 · 3개월 · 6개월 · 1년", cols: "지역 | 지수 | 전월비 | 3개월 | 6개월 | 1년", rows: stIdxRows(I, [0, 1, 3, 6, 12]), foot: "표본 조사 기반 공식 지수 — 월 중순 전월분 발표" });
+    if (stIdxOk("rent")) { var R = stD().index.rent; out.push({ noLead: true, _tpl: "denseTable", _cat: "market", src: "한국부동산원 아파트 전세가격지수(KOSIS) · " + stYm(stLast(R.seoul || R.all)[0]), badge: "지수 전세", title: "아파트 전세가격지수 — 지역별", sub: "지수 · 전월비 · 3개월 · 6개월 · 1년", cols: "지역 | 지수 | 전월비 | 3개월 | 6개월 | 1년", rows: stIdxRows(R, [0, 1, 3, 6, 12]), foot: "전세지수는 '방향', 전세가율은 '수준' — 둘은 다른 이야기" }); }
+    return out; } };
+
+/* ── 3. 주간 지수 ── */
+function stWeekOk() { var D = stD(), W = D && D.weekly; if (!W || !W.seoul || W.seoul.length < 4) return false; var l = stLast(W.seoul), t = l[0]; var d = new Date(Math.floor(t / 10000), Math.floor(t / 100) % 100 - 1, t % 100); return (Date.now() - d.getTime()) / 86400000 <= 21; }
+function stStreak(a) { var A = (a || []).filter(function (p) { return p[1] != null; }), n = 0, dir = 0; for (var i = A.length - 1; i > 0; i--) { var d = Math.sign(A[i][1] - A[i - 1][1]); if (!d) break; if (!dir) dir = d; if (d !== dir) break; n++; } return { n: n, dir: dir }; }
+TPR.idxWeekly = { nm: "서울 아파트 주간 지수", grp: "통계", opts: [], tpls: ["denseTable", "lineTable"], per: 8, hint: "한국부동산원 주간 아파트 매매가격지수(KOSIS) — 최근 8주 서울·수도권·전국과 전주비",
+  build: function () { if (!stWeekOk()) return []; var W = stD().weekly, A = W.seoul.filter(function (p) { return p[1] != null; }), n = tprOne() ? 6 : 12, S = A.slice(-n), sk = stStreak(W.seoul);
+    var rows = S.map(function (p, i) { var prev = i ? S[i - 1][1] : stAt(W.seoul, (A[A.length - n - 1] || [0])[0]); var wc = prev ? (p[1] / prev - 1) * 100 : null; return [stYm(p[0]), p[1].toFixed(2), stPct(wc, 2), W.cap && stAt(W.cap, p[0]) != null ? stAt(W.cap, p[0]).toFixed(2) : "–", W.all && stAt(W.all, p[0]) != null ? stAt(W.all, p[0]).toFixed(2) : "–"]; });
+    return [{ noLead: true, _cat: "market", src: String(W.src || "한국부동산원 주간아파트가격동향(KOSIS)"), title: "서울 아파트, 이번 주 지수는", sub: (sk.n >= 2 ? (sk.n >= A.length - 1 ? A.length + "주 자료 내내 " : sk.n + "주 연속 ") + (sk.dir > 0 ? "상승" : "하락") + " · " : "") + "매주 월요일 조사분", badge: "주간", cols: "주 | 서울 | 전주비 | 수도권 | 전국", rows: rows, foot: "주간 지수는 호가·표본 조사라 실거래보다 먼저 움직이고 폭은 작음 · 기준 " + String(W.src || "").replace(/.*기준\s*/, "") }]; } };
+
+/* ── 4. 미분양 추이 ── */
+function stUnsoldOk() { var D = stD(), U = D && D.unsold; return !!(U && U.all && typeof inFresh === "function" && inFresh(U.all, 5)); }
+TPR.unsoldTrend = { nm: "미분양 추이", grp: "통계", opts: [], tpls: ["denseTable", "lineTable"], per: 12, hint: "국토부 미분양주택현황(KOSIS) — 최근 12개월 전국·수도권·서울·준공 후",
+  build: function () { if (!stUnsoldOk()) return []; var U = stD().unsold, A = U.all.filter(function (p) { return p[1] != null; }), n = tprOne() ? 6 : 12, S = A.slice(-n), l = A[A.length - 1], y = stAt(U.all, (A[A.length - 13] || [0])[0]);
+    var rows = S.map(function (p) { return [stYm(p[0]), fmt(p[1]), U.cap && stAt(U.cap, p[0]) != null ? fmt(stAt(U.cap, p[0])) : "–", U.seoul && stAt(U.seoul, p[0]) != null ? fmt(stAt(U.seoul, p[0])) : "–", typeof inDoneOk === "function" && inDoneOk(U) && stAt(U.done, p[0]) != null ? fmt(stAt(U.done, p[0])) : "–"]; });
+    return [{ noLead: true, _cat: "market", src: "국토부 미분양주택현황(KOSIS) · " + stYm(l[0]) + " 기준", title: "미분양, 줄고 있나 늘고 있나", sub: "전국 " + fmt(l[1]) + "호" + (y ? " · 1년 전 대비 " + stPct((l[1] / y - 1) * 100, 0) : "") + (typeof inDoneOk === "function" && inDoneOk(U) ? " · 준공 후 " + fmt(stLast(U.done)[1]) + "호(" + stYm(stLast(U.done)[0]) + ")" : ""), badge: "공급", cols: "월 | 전국 | 수도권 | 서울 | 준공 후(전국)", rows: rows, foot: "미분양은 지방 중심 · 서울은 거의 전부 준공 후 미분양 · 준공 후 통계는 2~4개월 늦게 발표" }]; } };
+
+(function () { var i = TPR_ORDER.indexOf("policy"); TPR_ORDER.splice(i < 0 ? TPR_ORDER.length - 1 : i, 0, "supplyPipe", "idxMonthly", "idxWeekly", "unsoldTrend"); })();
+
+/* ── 오늘 할 일에 넣기: 자료가 '새로 나온' 주간에만 점수를 높인다 ── */
+(function () {
+  if (typeof tdCandidates !== "function") return;
+  var base = tdCandidates;
+  tdCandidates = function () {
+    var C = base(), k = cdKst(), add = function (sc, r, why) { if (TPR[r] && !C.some(function (c) { return c.r === r; })) C.push({ sc: sc, r: r, why: why, o: {} }); };
+    try {
+      if (stWeekOk()) { var W = stD().weekly, sk = stStreak(W.seoul), l = stLast(W.seoul), age = (Date.now() - new Date(Math.floor(l[0] / 10000), Math.floor(l[0] / 100) % 100 - 1, l[0] % 100).getTime()) / 86400000; add(age <= 7 ? 66 : 46, "idxWeekly", "부동산원 주간 지수(" + stYm(l[0]) + " 조사) 서울 " + l[1].toFixed(2) + (sk.n >= 2 ? " — " + sk.n + "주 연속 " + (sk.dir > 0 ? "상승" : "하락") : "") + (age <= 7 ? " · 이번 주 새 자료" : "")); }
+      if (stIdxOk("sale")) { var I = stD().index.sale, li = stLast(I.seoul || I.all), ageM = typeof inAgeM === "function" ? inAgeM(li[0]) : 9; add(ageM <= 1 && k.d >= 14 && k.d <= 24 ? 64 : 42, "idxMonthly", "부동산원 " + stYm(li[0]) + " 지수 — 서울 전월비 " + stPct(stChg(I.seoul || I.all, 1), 2) + (ageM <= 1 && k.d >= 14 && k.d <= 24 ? " · 이달 발표분" : "")); }
+      if (stUnsoldOk()) { var U = stD().unsold, lu = stLast(U.all); add(k.d >= 25 || k.d <= 2 ? 58 : 40, "unsoldTrend", "미분양 " + stYm(lu[0]) + " " + fmt(lu[1]) + "호 — " + (k.d >= 25 || k.d <= 2 ? "월말 발표 시기" : "추이 카드")); }
+      if (stSupplyOk()) { var S = stD().supply, ls = stLast(S.starts.seoul || S.starts.all), s1 = stSum(S.starts.seoul || S.starts.all, 12), s0 = stSum(S.starts.seoul || S.starts.all, 12, 12); add(k.d >= 25 || k.d <= 2 ? 56 : 38, "supplyPipe", "서울 착공 12개월 " + (s1 != null ? fmt(s1) + "호" : "") + (s0 ? "(" + stPct((s1 / s0 - 1) * 100, 0) + ")" : "") + " — 2~3년 뒤 입주를 말해 주는 숫자"); }
+    } catch (e) { if (typeof appErr === "function") appErr("오늘 할 일 통계", e); }
+    return C;
+  };
+})();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

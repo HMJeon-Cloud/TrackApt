@@ -177,7 +177,8 @@ async function unsold() {
   }
   var SIDO = /^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)/;
   var sidoTot = function (r) { return SIDO.test(c1(r)) && !/\s(계|합계|소계)$/.test(c1(r)) ? (r.C2_NM != null && restAll(r)) : (SIDO.test(c1(r)) && /\s(계|합계|소계)$/.test(c1(r)) && restAll(r)); };
-  var done = await kosisSeries("unsoldDone", function (rows) { return rows.some(isTotalRow) || rows.some(sidoTot); }, 25, function (rows) {
+  /* v9.53 '준공 후' 표가 맞는지 이름으로 확인 — 그동안 기억된 DT_MLTM_2082 는 '시·군·구별 미분양현황'(전체 미분양)이라 준공 후 값이 전체 미분양과 같았다 */
+  var done = await kosisSeries("unsoldDone", function (rows) { var nm = String(rows[0].TBL_NM || "") + " " + String(rows[0].ITM_NM || ""); if (!/공사완료|준공/.test(nm)) { log("KOSIS unsoldDone 후보 " + rows[0].TBL_ID + " " + rows[0].TBL_NM + " 는 준공 후 표가 아님"); return false; } return rows.some(isTotalRow) || rows.some(sidoTot); }, 25, function (rows) {
     var r = rows.filter(function (x) { return x.C2 && /^(계|합계|소계|총합)$/.test(String(x.C2_NM || "").trim()); })[0];
     return r ? { objL2: r.C2 } : null;   /* 시군구 표: 2단은 '계' 코드만 받아 40,000셀 제한을 피한다 */
   });
@@ -186,6 +187,8 @@ async function unsold() {
     if (!ds.length) { var by = {}; done.rows.filter(sidoTot).forEach(function (r) { by[c1(r)] = 1; }); ds = sumSeries(Object.keys(by).map(function (nm) { return seriesOf(done.rows, function (r) { return c1(r) === nm && restAll(r); }); })); log("준공 후 미분양: 시도 " + Object.keys(by).length + "곳 합산"); }
     if (ds.length) out.done = ds;
     var sd = seriesOf(done.rows, function (r) { return /^서울/.test(c1(r)) && (isTotalRow(r) || sidoTot(r)); }); if (sd.length) out.doneSeoul = sd;
+    /* 안전장치: 준공 후가 전체 미분양과 같은 달이 있으면 표를 잘못 고른 것 — 버린다 */
+    if (out.done && out.all) { var same = out.done.filter(function (p) { var q = out.all.filter(function (x) { return x[0] === p[0]; })[0]; return q && Math.abs(q[1] - p[1]) / Math.max(1, q[1]) < 0.02; }).length; if (same) { log("KOSIS 준공 후 미분양이 전체 미분양과 같은 달 " + same + "개 — 표가 틀림, 준공 후 값 버림"); delete out.done; delete out.doneSeoul; } }
   }
   return Object.keys(out).length ? out : null;
 }

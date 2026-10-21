@@ -2825,6 +2825,8 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 /* v9.57.2 촘촘한 표 순위 칸: 세 자리까지 한 줄 — 빈칸 채우기로 표 글자가 커져도 순위 칸은 줄바꿈하지 않는다(행 높이가 불어나던 원인) */
 .tp-card .tp-dense td.no,.tp-card .tp-dense th.no{width:20px;white-space:nowrap!important;overflow-wrap:normal!important;word-break:keep-all!important;font-variant-numeric:tabular-nums}
 .tp-card.tp-g1 .tp-dense td.no,.tp-card.tp-g2 .tp-dense td.no{font-size:8.6px;padding:3px 1px}
+/* v9.57.3 두 단 표: 칸 좌우 여백을 줄여 글자에 너비를 준다(열이 5개라 여백만 40px 이던 것) */
+.tp-card .tp-2tb .tp-dense td,.tp-card .tp-2tb .tp-dense th{padding-left:2px!important;padding-right:2px!important}
 </style>
 </head>
 <body>
@@ -2832,7 +2834,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.57.2</span>
+    <span class="ver">v9.57.3</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -4177,6 +4179,7 @@ function ubFit(root) {
   cards.forEach(function (card) {
     Array.prototype.forEach.call(card.querySelectorAll("*"), function (el) {
       if (el.children.length > 3 || el.tagName === "svg" || el.closest("svg")) return;
+      if (el.closest(".tp-2tb table.tp-dense:not(.tp-wr)")) return;   /* v9.57.3 두 단 표는 칸마다 줄이지 않고 tpColFit 이 열 단위로 같은 크기로 맞춘다(한 단 표는 전처럼 칸마다) */
       var cs = getComputedStyle(el); if (cs.whiteSpace !== "nowrap" && cs.whiteSpace !== "pre") return;
       if (!el.clientWidth || el.scrollWidth <= el.clientWidth + 1) return;
       if (!el.dataset.ubfs) el.dataset.ubfs = cs.fontSize;
@@ -6035,7 +6038,7 @@ function chDayKey(d) { return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1)
 function chKstNow() { return new Date(Date.now() + 9 * 3600000); }
 function chShift(d, n) { return new Date(d.getTime() + n * 86400000); }
 function chDaysInMonth(y, m) { return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
-function chMD(n) { n = Number(n); return Math.floor(n / 100) % 100 + "." + (n % 100); }
+function chMD(n) { n = Number(n); if (!isFinite(n) || n <= 0) return ""; return Math.floor(n / 100) % 100 + "." + (n % 100); }   /* v9.57.3 날짜가 없으면 'NaN.NaN' 대신 빈칸 */
 function chWd(n) { n = Number(n); var d = new Date(Date.UTC(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100)); return ["일", "월", "화", "수", "목", "금", "토"][d.getUTCDay()]; }
 /* 오늘 올릴 정기 코너(들) — 월초·월말이 요일보다 우선, 전일 정리는 매일 */
 function chPlanRegular() {
@@ -6150,7 +6153,7 @@ function chOpsCards(tab) {
     C.push({ tag: "전일 정리", dense: true, q: "어제 " + ydT + ",<br>새로 집계된 아파트 거래는?",
       a: "전국 약 <b>" + fmt(dl.all) + "건</b> 새 신고 · 서울 " + fmt(dl.se) + "건 · 경기·인천 " + fmt(dl.gi) + "건",
       body: '<div class="chc-kpis">' + [["전국", dl.all], ["서울", dl.se], ["경기·인천", dl.gi]].map(function (p) { return '<div><small>' + p[0] + "</small><b>" + fmt(p[1]) + "<em>건</em></b><span>새 신고</span></div>"; }).join("") + "</div>" +
-        '<div class="chc-line">30일 누적 전국 <b>' + fmt(d.all.n) + "건</b> · 서울 " + fmt(d.se.n) + "건 · 새 신고가 " + dl.hi.length + "곳 · 어제 기준일 " + chMD(dl.prevAsOf) + "</div>",
+        '<div class="chc-line">30일 누적 전국 <b>' + fmt(d.all.n) + "건</b> · 서울 " + fmt(d.se.n) + "건 · 새 신고가 " + dl.hi.length + "곳" + (dl.prevAsOf ? " · 어제 기준일 " + chMD(dl.prevAsOf) : "") + "</div>",   /* v9.57.3 기준일 없는 수집 형식(delta.method=seen)이면 빼기 — 'NaN.NaN' 이 찍히던 것 */
       more: "실거래 신고는 계약 후 30일 안에 하므로 '어제 신고'는 2~4주 전 계약이 섞여 있습니다. 하루 숫자보다 일주일 흐름으로 보세요.",
       how: "새 신고 = 오늘 새벽 30일 집계 − 어제 30일 집계 + 창에서 빠진 날(30일 전) 거래 · 수집 " + kstTxt(CH.data.builtAt) + " 기준 · 국토부 실거래" });
     if (dl.hi.length) chPaged({ tag: "어제 신고가", q: "어제 새로 들어온<br>신고가는 어디?",
@@ -9669,6 +9672,7 @@ function tpFit(root) {
       var sp2 = spare(); if (sp2 > 6) { var G = Array.prototype.slice.call(body.children).filter(function (x) { var ds = getComputedStyle(x).display; return x.style.display !== "none" && (ds === "grid" || ds === "flex"); }); if (G.length) { var g = G[G.length - 1]; g.style.minHeight = (g.getBoundingClientRect().height + sp2 - 4) + "px"; if (over()) g.style.minHeight = ""; } }
       /* 격자 칸이 높이에 비해 글자가 작으면 칸 글자를 키운다(칸 높이 85px↑ g1, 120px↑ g2) */
       var cell0 = body.querySelector(".tp-cell"); if (cell0 && !c.classList.contains("tp-t1")) { var ch = cell0.getBoundingClientRect().height, gk = ch > 120 ? "tp-g2" : ch > 85 ? "tp-g1" : ""; if (gk) { c.classList.remove("tp-g1", "tp-g2"); c.classList.add(gk); Array.prototype.forEach.call(body.querySelectorAll(".tp-cell span, .tp-cell b"), function (x) { x.style.cssText = ""; }); if (over()) { c.classList.remove(gk); if (gk === "tp-g2") { c.classList.add("tp-g1"); if (over()) c.classList.remove("tp-g1"); } } } }
+      tpColFit(body);   /* v9.57.3 촘촘한 표: 열 너비를 내용에 맞게 · 글자 크기 하나 · 두 단 줄 높이 맞춤 (복사 전에!) */
       var src = c.querySelectorAll("*"), dst = c0.querySelectorAll("*"); for (var i = 0; i < src.length && i < dst.length; i++) { dst[i].style.cssText = src[i].style.cssText; if (src[i].hasAttribute("data-cut")) dst[i].setAttribute("data-cut", "1"); else dst[i].removeAttribute("data-cut"); }
       var fsC = c.querySelector(".tp-foot span"), fs1 = c0.querySelector(".tp-foot span"); if (fsC && fs1 && fsC.dataset.ft) { fs1.dataset.ft = fsC.dataset.ft; fs1.textContent = fsC.textContent; }   /* v9.57 고친 '상위 n' 을 원본에도 */
       c0.className = c.className.replace(/\bchfixed\b/, "").trim(); var t0 = c0.querySelector(".tp-title"); if (t0 && ti) t0.style.fontSize = ti.style.fontSize;
@@ -9677,6 +9681,32 @@ function tpFit(root) {
   tpUnify(root);
 }
 /* v9.35 장마다 같은 모양 — 줄이 가장 많은 장을 기준으로 글자 크기(tp-t·tp-g)와 줄 높이를 모든 장에 똑같이 준다(마지막 장이 한두 줄 적어도 칸이 늘어나지 않게) */
+/* v9.57.3 촘촘한 표 정렬 (서울 표처럼)
+   ① 열 너비 = 그 열에서 가장 긴 글(두 단이면 양쪽 표 모두)에 비례 — 이름 열 34% 고정이라 숫자 열이 27px 로 좁아 칸마다 따로 줄어들던 것
+   ② 그래도 모자라면 표 전체 글자를 한 비율로 줄인다(열마다·칸마다 다르지 않게, 기본의 50%까지)
+   ③ 두 단 표는 왼쪽·오른쪽 줄 높이를 같게 — 줄 n 이 양쪽에서 같은 높이(줄이 적은 쪽은 아래만 짧다) */
+function tpColFit(body) {
+  var T = Array.prototype.slice.call(body.querySelectorAll(".tp-2tb table.tp-dense:not(.tp-wr)")); if (!T.length) return;   /* 두 단 표만 */
+  var vis = function (tb) { return Array.prototype.filter.call(tb.rows, function (r, i) { return i > 0 && r.style.display !== "none"; }); };
+  var all = []; T.forEach(function (tb) { Array.prototype.forEach.call(tb.rows, function (r) { Array.prototype.forEach.call(r.cells, function (x) { x.style.fontSize = ""; x.style.width = ""; x.style.whiteSpace = ""; x.style.overflowWrap = ""; x.style.lineHeight = ""; all.push(x); }); }); });
+  var nc = T[0].rows[0] ? T[0].rows[0].cells.length : 0; if (!nc) return;
+  var rg = document.createRange(), textW = function (x) { rg.selectNodeContents(x); return rg.getBoundingClientRect().width; };
+  var need = [], fixed = [];
+  for (var j = 0; j < nc; j++) { var mx = 0, pad = 0; T.forEach(function (tb) { Array.prototype.forEach.call(tb.rows, function (r, i) { if (i > 0 && r.style.display === "none") return; var x = r.cells[j]; if (!x) return; var cs = getComputedStyle(x); pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight); mx = Math.max(mx, textW(x) + pad + 2); }); }); need.push(mx); fixed.push(T[0].rows[0].cells[j].classList.contains("no")); }
+  var W = T[0].getBoundingClientRect().width - 3, fixW = 0, flexN = 0; need.forEach(function (w, j) { if (fixed[j]) fixW += 20; else flexN += w; }); if (W <= fixW + 10 || !flexN) return;
+  var room = W - fixW, s = Math.min(1, room / flexN); if (s < 0.5) s = 0.5;
+  var widths = need.map(function (w, j) { return fixed[j] ? 20 : (s < 1 ? w * s : w + (room - flexN) * (j === 1 ? 0.5 : 0.5 / Math.max(1, nc - 2))); });
+  var sumW = widths.reduce(function (a, b) { return a + b; }, 0); if (sumW > W) { var k = (W - fixW) / (sumW - fixW); widths = widths.map(function (w, j) { return fixed[j] ? w : w * k; }); }
+  T.forEach(function (tb) { Array.prototype.forEach.call(tb.rows[0].cells, function (x, j) { x.style.width = widths[j].toFixed(1) + "px"; }); });
+  if (s < 1) all.forEach(function (x) { if (x.classList.contains("no")) return; x.style.fontSize = (parseFloat(getComputedStyle(x).fontSize) * s).toFixed(2) + "px"; });
+  Array.prototype.forEach.call(body.querySelectorAll(".tp-2tb"), function (w) {
+    var P = w.querySelectorAll("table.tp-dense"); if (P.length !== 2) return; P[0].style.height = P[1].style.height = "";
+    var n0 = vis(P[0]).length, n1 = vis(P[1]).length, big = n0 >= n1 ? P[0] : P[1], sm = big === P[0] ? P[1] : P[0], nb = Math.max(n0, n1), ns = Math.min(n0, n1); if (!nb) return;
+    var bh = w.getBoundingClientRect().height, hh = Math.max(P[0].rows[0].getBoundingClientRect().height, P[1].rows[0].getBoundingClientRect().height), rh = (bh - hh) / nb;
+    P[0].rows[0].style.height = P[1].rows[0].style.height = hh + "px";
+    big.style.height = bh + "px"; sm.style.height = (hh + ns * rh) + "px"; w.style.alignItems = "start";
+  });
+}
 function tpUnify(root) {
   var cards = Array.prototype.slice.call(root.querySelectorAll(".tp-card")); if (cards.length < 2) return;
   var rowsOf = function (c) { return Array.prototype.filter.call(c.querySelectorAll(".tp-body table:not(.tp-cal) tr:not(:first-child), .tp-body .tp-li, .tp-body .tp-bar, .tp-body .tp-tli, .tp-body .tp-cell, .tp-body .tp-ldr, .tp-body .tp-pins li"), function (x) { return x.style.display !== "none"; }); };

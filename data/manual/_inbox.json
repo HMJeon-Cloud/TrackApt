@@ -1,20 +1,6 @@
 {
  "v": 1,
- "builtAt": "2026-10-20T21:18:20.075Z",
- "asOf": 20261021,
- "items": [
-  {
-   "kind": "transit",
-   "line": "GTX-C 덕정~수원",
-   "what": "개통 소식",
-   "date": "2026-10-20",
-   "title": "‘아르뮤제자이’ 인천발 KTX 개통·GTX-C노선 착공 ‘호재’",
-   "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE12ejV0VDk1cEV0cmFNWHB3UGhQY19qalZ6S3JnZEdmenBmM3FzeGtBRjN0WGhfamJMNUY5TGhHRndueHVWQ0pCcWItRDVhb1hi?oc=5",
-   "src": "문화일보",
-   "official": false,
-   "todo": "data/manual/transit.json 에서 'GTX-C 덕정~수원' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-10-21",
-   "isNew": true
-  }
- ]
+ "builtAt": "2026-10-21T21:16:09.078Z",
+ "asOf": 20261022,
+ "items": []
 }

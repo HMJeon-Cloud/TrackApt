@@ -1,21 +1,16 @@
 {
- "builtAt": "2026-10-20T21:19:11.753Z",
+ "builtAt": "2026-10-21T11:11:02.761Z",
  "steps": [
-  "unsold 실패: fetch failed",
-  "index 실패: fetch failed",
-  "KOSIS permits 실패: fetch failed",
-  "KOSIS starts 실패: fetch failed",
-  "KOSIS completes 실패: fetch failed",
-  "supply 없음",
-  "KOSIS 주간 실패: fetch failed",
-  "weekly 없음",
+  "unsold 건너뜀(ONLY=subs)",
+  "index 건너뜀(ONLY=subs)",
+  "supply 건너뜀(ONLY=subs)",
+  "weekly 건너뜀(ONLY=subs)",
   "당첨 가점 행 1942 → 단지 85 (경쟁률 단지와 겹침 58)",
   "경쟁률 행 1938 → 단지 101 (이름 붙은 곳 53)",
   "분양가 비교 68단지 · 못 맞춘 곳 9 (아크메르 동탄 99, 아크메르 동탄 95, 한양립스 에듀포레(조합원 취소분), 진도 승원팰리체 더 테라스, 향남역 그로브 스위첸)",
   "청약 공고 131건(접수 중 7 · 예정 9) · 경쟁률 80 · 분양가 있는 단지 80",
   "subs OK",
-  "금리 비교: 이번 주 수집분 유지(20261019)",
-  "rates OK",
+  "rates 건너뜀(ONLY=subs)",
   "경고: 미분양 자료 없음 — KOSIS 미분양주택현황",
   "경고: 준공 후 미분양(전국) 자료 없음 — 시도 합산 실패",
   "경고: 부동산원 매매지수 자료 없음 — KOSIS 표 없음",
@@ -168,8 +163,5 @@
    "TOP_SCORE": "27"
   }
  ],
- "errors": [
-  "unsold: fetch failed",
-  "index: fetch failed"
- ]
+ "errors": []
 }

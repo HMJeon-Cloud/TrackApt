@@ -2822,6 +2822,9 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 .tp-card.ub .tp-cell small{justify-self:start}
 .tp-card.ub .tp-cell em{justify-self:stretch}
 .tp-card.ub .tp-cell span{justify-self:stretch;height:2.4em;max-height:2.4em;line-height:1.2;display:flex;align-items:center;justify-content:center}
+/* v9.57.2 촘촘한 표 순위 칸: 세 자리까지 한 줄 — 빈칸 채우기로 표 글자가 커져도 순위 칸은 줄바꿈하지 않는다(행 높이가 불어나던 원인) */
+.tp-card .tp-dense td.no,.tp-card .tp-dense th.no{width:20px;white-space:nowrap!important;overflow-wrap:normal!important;word-break:keep-all!important;font-variant-numeric:tabular-nums}
+.tp-card.tp-g1 .tp-dense td.no,.tp-card.tp-g2 .tp-dense td.no{font-size:8.6px;padding:3px 1px}
 </style>
 </head>
 <body>
@@ -2829,7 +2832,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.57.1</span>
+    <span class="ver">v9.57.2</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -9092,9 +9095,9 @@ var TPL = {
   rankGrid: { nm: "순위 격자 Top 12", cat: "market", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "1년 새 많이 오른 동네"], ["items", "항목(이름 | 값 | 보조)", "rows", "과천시 | +29.6% | 84㎡ 중위"], ["foot", "맨 아래 메모", "text", ""]],
     auto: function () { if (typeof RANKED === "undefined" || typeof chYoY !== "function" || typeof DB === "undefined" || !DB || !DB.sale) return null; var rows = RANKED.filter(function (k) { return DB.sale.series[k] && /^(11|41|28|26|27|29|30|31|36)/.test(String(k)) && !/군$/.test(chName(k)); }).map(function (k) { return { k: k, v: chYoY(k) }; }).filter(function (r) { return r.v != null; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 12); if (rows.length < 6) return null;
       return { src: "국토부 실거래 월별 집계 · " + DB.sale.dates[1].replace("-", ".") + "까지 · 수도권·광역시 시·구 · 1년 전 대비 ㎡당 중위", title: "1년 새 많이 오른 동네 TOP 12", items: rows.map(function (r) { return [chName(r.k), (r.v > 0 ? "+" : "") + r.v.toFixed(1) + "%", "1년 상승률"]; }), foot: "㎡당 중위값 비교 · 어떤 단지가 팔렸느냐에 따라 출렁일 수 있음" }; },
-    render: function (d) { var R = tpRows(d.items).slice(0, tpReel() ? 20 : 12), gc = R.length <= 6 || R.length === 9 ? 3 : R.length === 10 || R.length === 15 ? 5 : 4;
-      if (R.length > gc && R.length % gc) R = R.slice(0, R.length - R.length % gc);   /* v9.57 마지막 줄이 비지 않게 열 수의 배수로(순위 위쪽부터 남김) */
-      return tpFrame(d._cat || "market", d, '<div class="tp-grid c' + gc + '">' + R.map(function (r, i) { return '<div class="tp-cell"><small>' + ((d._off || 0) + i + 1) + "위</small><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em><span>" + tpE(r[2] || "") + "</span></div>"; }).join("") + "</div>"); } },   /* v9.57.1 아래 글이 없어도 빈 칸을 둬서 % 띠 높이를 맞춘다 */
+    render: function (d) { var R = tpRows(d.items).slice(0, tpReel() ? 20 : 12), gc = d._gc || tpGridCols(R.length);
+      if (!d._gc && tprOne() && R.length > gc && R.length % gc) R = R.slice(0, R.length - R.length % gc);   /* v9.57 한 장일 때만: 마지막 줄이 비지 않게 열 수의 배수로(순위 위쪽부터 남김). 여러 장에서는 자르지 않는다(자료 빠짐 방지) */
+      return tpFrame(d._cat || "market", d, '<div class="tp-grid c' + gc + '"' + (d._gr ? ' style="grid-template-rows:repeat(' + d._gr + ',minmax(0,1fr))"' : "") + '>' + R.map(function (r, i) { return '<div class="tp-cell"><small>' + ((d._off || 0) + i + 1) + "위</small><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em><span>" + tpE(r[2] || "") + "</span></div>"; }).join("") + "</div>"); } },   /* v9.57.1 아래 글이 없어도 빈 칸을 둬서 % 띠 높이를 맞춘다 */
   beforeAfter: { nm: "작년 · 올해 비교", cat: "deal", fields: [["src", "출처·기준", "text", "국토부 실거래가 공개"], ["title", "제목", "text", "신고가 전·후 비교"], ["colA", "왼쪽 머리", "text", "직전 최고"], ["colB", "오른쪽 머리", "text", "이번 신고가"], ["items", "항목(이름 | 보조 | 전 값 | 전 날짜 | 후 값 | 후 날짜 | 변화)", "rows", "창동주공1단지 | 19평 | 4.4억 | 2025.1.21 | 6.1억 | 2026.10.3 | +39%"], ["foot", "맨 아래 메모", "text", ""]],
     auto: function () { if (typeof CH === "undefined" || !chOk() || typeof chHighsBetween !== "function") return null; var t1 = chDayKey(chKstNow()), L = chHighsBetween(t1 - 30, t1).filter(function (t) { return t.allPrev && t.max; }).slice(0, tpReel() ? 6 : 4); if (L.length < 2) return null;
       return { src: "국토부 실거래 · 최근 30일 신고가 · " + tpToday() + " 조회", title: "신고가, 직전 최고가와 비교", colA: "직전 최고가", colB: "이번 신고가", items: L.map(function (t) { return [t.apt, chShortGu(t.k) + " · " + (t.area ? t.area + "㎡" : t.band + "㎡대"), eok(t.allPrev[0]), String(t.allPrev[1]).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), eok(t.max.amount), String(t.max.d).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3"), "+" + t.u.toFixed(0) + "%"]; }), foot: "같은 단지·같은 면적대 역대 최고가끼리 비교 · 직거래 제외" }; },
@@ -9144,6 +9147,8 @@ function tprBandNm(b) { return { "84": "84㎡대", "59": "59㎡대", L: "대형"
 function tprClone(base) { var d = {}; for (var k in base) d[k] = base[k]; return d; }
 /* v9.32 분량 — 한 장(핵심 요약): 1장에 최대한 많이(넘치면 맨 아래부터 접어 빈칸·잘림 없이) · 여러 장(상세): 장마다 고르게 나눠 담는다 */
 function tprOne() { return TP.o.size === "one"; }
+/* v9.57.2 순위 격자 열 수 — 6·9개 3열, 10·15개 5열, 그 밖 4열 */
+function tpGridCols(n) { return n <= 6 || n === 9 ? 3 : n === 10 || n === 15 ? 5 : 4; }
 /* v9.56 크기 — 게시형 360×450(4:5) · 릴스형 360×640(9:16). 릴스형은 세로가 1.42배라 한 장에 줄을 더 담는다 */
 function tpReel() { return typeof TP !== "undefined" && TP.o && TP.o.ratio === "reel"; }
 function tpPerK(per) { return tpReel() ? Math.round(per * 1.4) : per; }
@@ -9414,6 +9419,8 @@ function tprRebuild() {
   TP.autoOk = pages.length > 0;
   if (!pages.length) pages = [tpBlank(TPL[TP.id])];
   if (TP.autoOk && typeof tpEnrich === "function") tpEnrich(pages, TP.r);
+  /* v9.57.2 여러 장 순위 격자: 모든 장이 첫 장(가장 많은 장)의 열·줄 수를 함께 쓴다 — 마지막 장에 칸이 적어도 칸 크기가 같다 */
+  (function () { var G = pages.filter(function (d) { return (d._tpl || TP.id) === "rankGrid" && d.items; }); if (G.length < 2) return; var mx = Math.max.apply(null, G.map(function (d) { return Math.min(tpRows(d.items).length, tpReel() ? 20 : 12); })), gc = tpGridCols(mx), gr = Math.ceil(mx / gc); G.forEach(function (d) { d._gc = gc; d._gr = gr; }); })();
   TP.pages = pages; TP.pg = 0; TP.auto = true; TP.bad = []; TP.aiImg = {}; TP.drawMsg = ""; TP.iconId = null; TP.presetId = null;
   var opts = document.getElementById("tpr-opts"); if (opts) opts.innerHTML = tprOptsHtml();
   var hint = document.getElementById("tpr-hint"); if (hint) hint.textContent = R.hint || "";
@@ -9635,7 +9642,7 @@ function tpFit(root) {
       var ti = c.querySelector(".tp-title"); if (ti) { ti.style.fontSize = ""; var fs = parseFloat(getComputedStyle(ti).fontSize); while (ti.scrollHeight > ti.clientHeight + 2 && fs > 14) { fs -= 1; ti.style.fontSize = fs + "px"; } }
       var body = c.querySelector(".tp-body"), foot = c.querySelector(".tp-foot"); c.classList.remove("tp-t1", "tp-t2", "tp-t3", "tp-g1", "tp-g2");
       Array.prototype.forEach.call(c.querySelectorAll("[data-cut]"), function (x) { x.style.display = ""; x.removeAttribute("data-cut"); });   /* 앞 회차 맞춤 흔적 지우고 다시 잰다 */
-      Array.prototype.forEach.call(c.querySelectorAll(".tp-body table, .tp-body tr"), function (x) { x.style.height = ""; }); Array.prototype.forEach.call(body.children, function (x) { x.style.minHeight = ""; });
+      Array.prototype.forEach.call(c.querySelectorAll(".tp-body table, .tp-body tr"), function (x) { x.style.height = ""; }); Array.prototype.forEach.call(body.children, function (x) { x.style.minHeight = ""; }); Array.prototype.forEach.call(body.querySelectorAll(".tp-grid"), function (g) { var m = (String(g.style.gridTemplateRows || "").match(/repeat\((\d+)/) || [])[1]; if (m) g.style.gridTemplateRows = "repeat(" + m + ",minmax(0,1fr))"; g.style.flex = ""; g.style.alignContent = ""; });
       Array.prototype.forEach.call(c.querySelectorAll(".tp-li, .tp-bar, .tp-tli, .tp-ldr, .tp-cell, .tp-pins li"), function (x) { x.style.paddingTop = x.style.paddingBottom = ""; });
       var over = function () { var bb = body.getBoundingClientRect().bottom, m = -1e9;   /* v9.31: 0 으로 두면 화면을 내려 둔 상태(측정용 복제본 좌표가 음수)에서 늘 '넘침'으로 판단해 줄을 접었다 */ Array.prototype.forEach.call(body.querySelectorAll("tr, li, .tp-li, .tp-bar, .tp-cell, .tp-tli, p"), function (x) { if (x.style.display !== "none") m = Math.max(m, x.getBoundingClientRect().bottom); }); return m > bb + 0.5 || body.scrollHeight > body.clientHeight + 1; };
       var more = c.classList.contains("tp-more"), rows = Array.prototype.slice.call(body.querySelectorAll("table:not(.tp-cal) tr:not(:first-child), .tp-li, .tp-bar, .tp-tli, .tp-pins li, .tp-ldr")), cut = 0, nRows = rows.length;
@@ -9683,6 +9690,10 @@ function tpUnify(root) {
     c.className = own.replace(/\btp-(t[123]|g[12])\b/g, "").replace(/\s+/g, " ").trim() + (cls.length ? " " + cls.join(" ") : "");
     if (body && body.clientHeight && body.scrollHeight > body.clientHeight + 1) c.className = own;
   });
+  /* v9.57.2 순위 격자 여러 장: 칸 높이를 모든 장이 같게 — 가장 낮은 칸(보통 '핵심' 줄이 있는 첫 장)에 맞춘다. 칸이 적은 마지막 장은 칸 크기 그대로, 아래만 비운다 */
+  var grids = cards.map(function (c) { return c.querySelector(".tp-body .tp-grid"); }).filter(function (g) { return g && /repeat\(\d+/.test(g.style.gridTemplateRows || ""); });
+  if (grids.length >= 2) { var hs = grids.map(function (g) { var c1 = Array.prototype.filter.call(g.children, function (x) { return x.style.display !== "none"; })[0]; return c1 ? c1.getBoundingClientRect().height : 0; }).filter(function (h) { return h > 0; }), H = Math.floor(Math.min.apply(null, hs));
+    if (H > 20) grids.forEach(function (g) { var gr = (g.style.gridTemplateRows.match(/repeat\((\d+)/) || [])[1]; g.style.gridTemplateRows = "repeat(" + gr + "," + H + "px)"; g.style.minHeight = ""; g.style.flex = "0 0 auto"; g.style.alignContent = "start"; }); }
 }
 function tpFitLater(root) { tpFit(root); setTimeout(function () { tpFit(root); }, 400); if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { tpFit(root); }); }
 /* 모든 장의 내용 → 릴스 재료 */
@@ -10096,10 +10107,12 @@ function tpRowsOf(d) {
 }
 function tpNumIdx(r) { var N = /^[+\-−]?[\d,.]+\s*(%p|%|억|만|천|건|점|:1|대1|곳|세대|㎡|원|배|위|년|개월|일)?(\s|$|[·(~])/; for (var i = 1; i < r.length; i++) if (N.test(r[i] || "") && String(r[i]).length <= 16) return i; for (var j = 1; j < r.length; j++) if (/\d/.test(r[j] || "")) return j; return 1; }
 /* v9.54 순위 양식으로 옮길 때 '값' 칸 고르기 — 제목·부제가 증가/상승/변화 순이면 '변화' 열(부호 있는 %)을, 아니면 첫 숫자 열 */
+/* v9.57.2 순위 양식의 '값' 칸은 표 전체에서 한 열로 고정 — 줄마다 고르면 변화가 빈 줄(거래 10건 미만)만 평당 가격이 띠에 들어가 다른 칸의 %와 섞였다. 가장 많은 줄이 고른 열을 쓰고, 그 칸이 빈 줄은 '–' */
+function tpKeyCol(X, d) { var cnt = {}, best = -1, bn = -1; (X.rows || []).forEach(function (r) { var k = tpKeyIdx(X, d, r); cnt[k] = (cnt[k] || 0) + 1; if (cnt[k] > bn) { bn = cnt[k]; best = k; } }); return best < 0 ? 1 : best; }
 function tpKeyIdx(X, d, r) { var cols = X.cols || [], want = /증가|상승|변화|오른|내린|늘어|줄어|움직/.test(String(d.title || "") + String(d.sub || "")); if (want) { for (var i = 1; i < r.length; i++) if (/변화|증감|상승|하락|차이|률|비율/.test(cols[i] || "") && /\d/.test(r[i] || "")) return i; for (var j = 1; j < r.length; j++) if (/^[+\-−▲▼]/.test(String(r[j] || "").trim()) && /\d/.test(r[j] || "")) return j; } return typeof tpNumIdxOf === "function" ? tpNumIdxOf(r) : tpNumIdx(r); }
 function tpConvert(d, to) {
   var X = tpRowsOf(d); if (!X) return d; var o = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag", "_more", "_tot"].forEach(function (k) { if (d[k] != null) o[k] = d[k]; }); o._off = d._off || 0;
-  if (to === "rankGrid") o.items = X.rows.map(function (r) { var k = tpKeyIdx(X, d, r); if (k < 0) k = 1; return [r[0], r[k] || "", r.filter(function (_, i) { return i && i !== k; }).join(" · ")]; });
+  if (to === "rankGrid") { var kc = tpKeyCol(X, d); o.items = X.rows.map(function (r) { return [r[0], String(r[kc] || "").trim() || "–", r.filter(function (_, i) { return i && i !== kc && String(r[i] || "").trim(); }).join(" · ")]; }); }
   else if (to === "listArrow") o.rows = X.rows.map(function (r) { var k = tpNumIdx(r); return [r[0], r[k] || "", r.filter(function (_, i) { return i && i !== k; }).join(" · ")]; });
   else if (to === "issue") { o.body = d.sub ? [d.sub] : []; o.cols = X.cols.join(" | "); o.rows = X.rows; o.relHd = "핵심 숫자"; }
   else { o.cols = (X.cols.length ? X.cols : X.rows[0].map(function (_, i) { return i ? "값" + i : "항목"; })).join(" | "); o.rows = X.rows; }
@@ -11437,7 +11450,7 @@ function vzUnit(v) { var m = String(v == null ? "" : v).replace(/,/g, "").match(
 function vzFmt(n, unit, dec) { if (n == null) return "–"; var s = Math.abs(n) >= 1000 || Number.isInteger(n) ? fmt(Math.round(n)) : n.toFixed(dec == null ? (Math.abs(n) < 10 ? 2 : 1) : dec); return s + (unit || ""); }
 function vzIsDate(s) { return /^(\d{2,4}[.\-/]\d{1,2}([.\-/]\d{1,2})?|\d{1,2}월|\d{4}년?)$/.test(String(s || "").trim()); }
 /* 순위 양식이 표 줄(rows)을 받았을 때: 이름 | 값(변화 열 우선) | 나머지 */
-function vzItems(d, max) { var R; if (d.items) R = tpRows(d.items); else { var cols = tpRows(d.cols || "")[0] || []; R = tpRows(d.rows || []).map(function (r) { var k = typeof tpKeyIdx === "function" ? tpKeyIdx({ cols: cols }, d, r) : tpNumIdx(r); if (k < 0) k = 1; return [r[0], r[k] || "", r.filter(function (_, i) { return i && i !== k; }).join(" · ")]; }); } return R.filter(function (r) { return r.join("").trim(); }).slice(0, max); }
+function vzItems(d, max) { var R; if (d.items) R = tpRows(d.items); else { var cols = tpRows(d.cols || "")[0] || [], RR = tpRows(d.rows || []), kc = typeof tpKeyCol === "function" ? tpKeyCol({ cols: cols, rows: RR }, d) : 1; R = RR.map(function (r) { return [r[0], String(r[kc] || "").trim() || "–", r.filter(function (_, i) { return i && i !== kc && String(r[i] || "").trim(); }).join(" · ")]; }); } return R.filter(function (r) { return r.join("").trim(); }).slice(0, max); }   /* v9.57.2 값 열은 표 전체에서 하나 */
 function vzSeries(d) {
   var cols = tpRows(d.cols || "")[0] || [], rows = tpRows(d.rows || []).filter(function (r) { return r.join("").trim(); });
   if (!rows.length) return null;
@@ -11500,7 +11513,7 @@ TPL_ORDER.push("trendChart", "kpiTiles", "barRank");
   TP_XTPL.push("barRank", "kpiTiles", "trendChart");
   var conv = tpConvert;
   tpConvert = function (d, to) {
-    if (to === "barRank" || to === "kpiTiles") { var X = tpRowsOf(d); if (!X) return d; var o = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag", "noLead", "_more", "_tot"].forEach(function (k) { if (d[k] != null) o[k] = d[k]; }); o._off = d._off || 0; o.items = X.rows.map(function (r) { var k = typeof tpKeyIdx === "function" ? tpKeyIdx(X, d, r) : tpNumIdx(r); if (k < 0) k = 1; return [r[0], r[k] || "", r.filter(function (_, i) { return i && i !== k; }).join(" · ")]; }); return o; }
+    if (to === "barRank" || to === "kpiTiles") { var X = tpRowsOf(d); if (!X) return d; var o = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag", "noLead", "_more", "_tot"].forEach(function (k) { if (d[k] != null) o[k] = d[k]; }); o._off = d._off || 0; var kc = typeof tpKeyCol === "function" ? tpKeyCol(X, d) : 1; o.items = X.rows.map(function (r) { return [r[0], String(r[kc] || "").trim() || "–", r.filter(function (_, i) { return i && i !== kc && String(r[i] || "").trim(); }).join(" · ")]; }); return o; }
     if (to === "trendChart") { var Y = tpRowsOf(d); if (!Y) return d; var dateLike = Y.rows.filter(function (r) { return vzIsDate(r[0]); }).length >= Y.rows.length * 0.7; if (!dateLike) return conv(d, "denseTable"); var p = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag"].forEach(function (k) { if (d[k] != null) p[k] = d[k]; }); p._off = d._off || 0; p.noLead = true; p.cols = Y.cols.join(" | "); p.rows = Y.rows; return p; }
     return conv(d, to);
   };

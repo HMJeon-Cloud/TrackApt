@@ -265,7 +265,8 @@ async function weeklyKosis() {
       var c = { orgId: "408", tblId: cands[i].TBL_ID, nm: cands[i].TBL_NM, prdSe: "D" }, p = await kosisProbe(c, 1); if (!p) continue;
       var latest = kLatest(p.rows); if (String(latest).length !== 8 || latest < lim) { log("KOSIS 주간 " + c.tblId + " 최신 " + latest + " — 오래됨"); continue; }
       if (!kHasRegion(p.rows, "서울")) continue;
-      var j = await getJson(kosisUrl("Param/statisticsParameterData.do", p.q(p.nLev, { newEstPrdCnt: "60" }))), rows = kArr(j); if (!rows) { log("KOSIS 주간 2차 실패: " + kErr(j)); continue; }
+      var j = await getJson(kosisUrl("Param/statisticsParameterData.do", p.q(p.nLev, { newEstPrdCnt: "104" }))), rows = kArr(j); if (!rows) { log("KOSIS 주간 2차 실패: " + kErr(j)); continue; }   /* v9.59 100주 색칸 카드용으로 104주 */
+      try { var rn = {}; rows.forEach(function (r) { var k = [r.C1_NM, r.C2_NM, r.C3_NM].filter(Boolean).join(">"); rn[k] = 1; }); DBG.weeklyRegions = Object.keys(rn).slice(0, 300); log("KOSIS 주간 지역 이름(" + Object.keys(rn).length + "개, 앞 40): " + Object.keys(rn).slice(0, 40).join(" | ")); } catch (e) {}   /* v9.59 시군구 주간 표가 있는지 다음 실행 로그로 확인(토허제 주간 지도용) — 이름 짐작으로 붙이지 않음 */
       var R = rows.filter(function (r) { return !/변동률|증감/.test(r.ITM_NM || ""); }), g = function (nm) { return kSer(R, nm, null); };
       var out = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), src: "한국부동산원 주간아파트가격동향 (KOSIS " + c.tblId + ")" + (R[0] && R[0].UNIT_NM ? " · 기준 " + String(R[0].UNIT_NM).replace(/＝/g, "=") : ""), tbl: c.tblId };
       if (out.seoul) { CODES.weeklyKosis = c; log("KOSIS 주간 표 선택: " + c.tblId + " ~" + latest); return out; }

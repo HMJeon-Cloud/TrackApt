@@ -267,7 +267,8 @@ async function rss(feeds, days, max, mustRe) {
   if (!ECOS) { out.errors.push("ECOS_KEY 없음 — 금리를 받지 못했습니다"); log("ECOS_KEY 없음"); }
   else {
     var specs = [
-      ["base", { stat: "722Y001", item: "0101000", cycle: "M" }, { table: [["기준금리"]], item: [["기준금리"]], cycle: "M" }, 60],
+      ["base", { stat: "722Y001", item: "0101000", cycle: "M" }, { table: [["기준금리"]], item: [["기준금리"]], cycle: "M" }, 72],   /* v9.59 2021년부터(한·미 금리 카드) */
+      ["us", { stat: "902Y006", item: "US", cycle: "M" }, { table: [["주요국"], ["정책금리"]], item: [["미국"]], cycle: "M" }, 72],   /* v9.59 미국 정책금리(ECOS 주요국 중앙은행 정책금리) */
       ["kb3y", { stat: "817Y002", item: "010200000", cycle: "D" }, { table: [["시장금리"], ["일별"]], item: [["국고채"], ["3년"]], cycle: "D" }, 36],
       ["mortgage", { stat: "121Y006", item: "BECBLA0302", cycle: "M" }, { table: [["대출금리"], ["신규취급액"], ["잔액"]], item: [["주택담보대출"]], cycle: "M" }, 36],
       ["loanAvg", { stat: "121Y006", item: "BECBLA01", cycle: "M" }, { table: [["대출금리"], ["신규취급액"], ["잔액"]], item: [["대출평균"]], cycle: "M" }, 36]
@@ -277,6 +278,14 @@ async function rss(feeds, days, max, mustRe) {
       catch (e) { out.errors.push(specs[i][0] + ": " + e.message); log(specs[i][0] + " 실패: " + e.message); }
     }
   }
+  /* v9.59 미국 정책금리 — ECOS 에서 못 받으면 연준 자료(FRED DFEDTARU · 목표 범위 상단, 키 없음)로. 달마다 마지막 값 */
+  if (!out.rates.us) try {
+    var csv = await getText("https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFEDTARU&cosd=2020-11-01"), byM = {};
+    String(csv || "").split(/\r?\n/).slice(1).forEach(function (ln) { var a = ln.split(","), d = String(a[0] || "").replace(/-/g, ""), v = parseFloat(a[1]); if (/^\d{8}$/.test(d) && isFinite(v)) byM[Math.floor(Number(d) / 100)] = v; });
+    var hu = Object.keys(byM).map(Number).sort().map(function (k) { return [k, byM[k]]; });
+    if (hu.length >= 12) { out.rates.us = { v: hu[hu.length - 1][1], t: hu[hu.length - 1][0], unit: "연%", name: "미국 연방기금금리 목표 범위 상단(FRED DFEDTARU)", how: "FRED", hist: hu }; log("us ✓ FRED " + out.rates.us.v); }
+    else log("us: FRED 응답 이상 — " + String(csv || "").slice(0, 80));
+  } catch (e) { out.errors.push("us: " + e.message); log("us 실패: " + e.message); }
   /* 기준금리 현재값 — ECOS '100대 통계지표'에서 한 번 더 확인해, 월별 통계가 뒤처져 있으면 이번 달 값으로 덧붙인다 */
   if (ECOS) try {
     var ks = ecosRows(await getJson(ecosUrl("KeyStatisticList", "1/100/")), "KeyStatisticList");

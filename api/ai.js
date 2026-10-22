@@ -5,6 +5,8 @@
 // POST { t, mode:"read", image:"data:..." }                         → { ok, texts:[...] }   (카드 이미지에 실제로 찍힌 글자·숫자 받아 적기)
 // POST { t, mode:"fill", template:{name, fields:[{key,label,kind,example}]}, facts, note } → { ok, fill:{key: 값} } (v9.21 고정 양식)
 // POST { t, mode:"insight", facts, question, stances? }                → { ok, insight:{answer, because[], stances[], scenarios[], watch[], risk} } (v9.33 인사이트)
+// POST { t, mode:"caption", facts, card:{title,cat,src,asOf,pages}, base:{insta,threads}, note, web } → { ok, insta, threads:{main,r1,r2}, hooks[], adds[], sources[], dropped[] } (v9.60 Claude 문구 · 누를 때만)
+//   환경변수: ANTHROPIC_API_KEY (문구 전용) · CLAUDE_MODEL (기본 claude-sonnet-5-5) · CLAUDE_WEB=off 이면 웹 검색 끔
 // POST { t, mode:"extract", text:"공고문 텍스트" }                   → { ok, terms:{res,resPeriod,prior,resale,live,rewin,firstRank,point,down,mid,balance,option,move,etc} } (v9.20.3 단지별 청약 조건)
 const crypto = require("crypto");
 function tokenOf(key) { return crypto.createHmac("sha256", key).update("trackapt-owner-v1").digest("hex"); }
@@ -63,15 +65,69 @@ function exampleText(ex) {
   return "\n\n[지난번 구성 예시 — 형식만 따를 것] 말머리=" + t(ex.kicker, 40) + " · 제목 패턴=" + t(ex.hook, 80) + " · 부제=" + t(ex.sub, 80) + " · 구성(layout)=" + t(ex.layout, 40) + " · 유도 문구=" + t(ex.cta, 60) + (ex.note ? " · 요청=" + t(ex.note, 200) : "") + (pts ? "\n" + pts : "") +
     "\n위 예시의 말머리 형식·제목 말투·항목 수와 순서·layout 을 그대로 따르라. 예시 속 숫자·날짜·이름은 절대 쓰지 말고 반드시 오늘 facts 의 값으로 바꿔라. facts 에 맞는 값이 없는 항목은 빼거나 다른 facts 로 바꿔라.";
 }
+/* ══ v9.60 Claude 문구(인스타·스레드) — 버튼 누를 때만. 우리 카드 숫자가 중심, 웹 검색은 보충(출처 있는 것만) ══
+   틀린 숫자 방지: 결과의 모든 숫자(2자리 이상)는 facts 또는 웹 검색 인용문(cited_text)에 있어야 한다. 없으면 그 줄을 뺀다. */
+const CAP_SYS = "너는 부동산 데이터 SNS 채널 '우상향연구소(@uphill.lab)'의 카피라이터다. 목표: 같은 카드라도 매번 다른 각도로, 저장·공유·댓글·프로필 방문을 부르는 글을 써서 노출을 늘리는 것. " +
+  "원칙: (1) 숫자·날짜·금액·퍼센트는 [카드 facts] 원문 그대로 쓴다. 반올림·환산·계산한 새 숫자 금지. (2) 웹 검색은 카드 내용을 보충할 때만(정책 일정, 공식 발표, 같은 주제의 최근 사실) 쓰고, 정부·공공기관·통계기관·주요 언론만 믿는다. 웹에서 온 숫자는 그 문장에 반드시 출처 이름을 괄호로 붙이고 인용으로 남긴다. 확실하지 않으면 쓰지 않는다. " +
+  "(3) 투자 권유·매수/매도 추천·단정(무조건, 반드시 오른다, 지금 사야) 금지. 공포 조장 금지. (4) 이모지 금지. 존댓말. 짧은 문장. 기준일을 꼭 적는다. " +
+  "(5) 글의 역할: 첫 줄 = 스크롤을 멈추게 하는 질문이나 의외의 숫자(낚시 금지, 카드 안 사실로) · 본문 = 독자에게 도움이 되는 해석(내 돈·내 동네·내 대출 관점) · 끝 = 저장/댓글/프로필 방문을 부르는 한 줄(예: 우리 동네가 궁금하면 댓글로 지역을). (6) 기본 규칙 글(아래)과 다른 구성과 첫 줄로 쓴다.";
+function capNums(s) { return (String(s || "").replace(/#[^\s#]+/g, " ").match(/\d[\d,]*(?:\.\d+)?/g) || []).map((x) => x.replace(/,/g, "")).filter((x) => x.replace(/\./g, "").length >= 2); }
+function capPick(t, tag) { const m = new RegExp("<" + tag + ">([\\s\\S]*?)</" + tag + ">").exec(t); return m ? m[1].trim() : ""; }
+async function claudeCall(key, model, body) {
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(Object.assign({ model }, body)) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error("Claude: " + ((j.error && j.error.message) || ("응답 " + r.status)));
+  return j;
+}
+async function caption(b) {
+  const KEY = process.env.ANTHROPIC_API_KEY || ""; if (!KEY) throw new Error("ANTHROPIC_API_KEY 가 없습니다 (Vercel 환경변수)");
+  const model = process.env.CLAUDE_MODEL || "claude-sonnet-5-5", web = b.web !== false && process.env.CLAUDE_WEB !== "off";
+  const facts = (b.facts || []).slice(0, 80).map((f) => f.id + ": " + String(f.text).slice(0, 300)).join("\n"); if (!facts) throw new Error("facts 가 비었습니다");
+  const C = b.card || {}, B = b.base || {};
+  const user = (b.note ? "[가장 중요한 요청] " + String(b.note).slice(0, 300) + "\n" : "") +
+    "[카드] 제목: " + String(C.title || "").slice(0, 120) + " · 분류: " + String(C.cat || "") + " · 장 수: " + (C.pages || 1) + " · 출처: " + String(C.src || "").slice(0, 200) + " · 기준일: " + String(C.asOf || "카드 facts 참고") +
+    "\n\n[카드 facts — 숫자는 이 안의 것만]\n" + facts +
+    "\n\n[기본 규칙 글 — 이것과 다른 각도로]\n인스타:\n" + String(B.insta || "").slice(0, 2500) + "\n\n스레드:\n" + String(B.threads || "").slice(0, 2500) +
+    (web ? "\n\n먼저 이 주제에 보충할 최근 공식 사실(정책 시행일, 발표 일정, 관련 통계 발표)이 있는지 웹에서 1~3번만 찾아라. 카드 숫자와 다른 기준의 숫자는 섞지 말고, 없으면 보충하지 마라." : "\n\n웹 검색 없이 카드 facts 만으로 써라.") +
+    "\n\n답은 아래 태그만 써라(태그 밖 글 금지).\n<insta>인스타 캡션 — 첫 줄 훅, 빈 줄로 나눈 3~6 문단, 핵심 숫자 3~6개, '함께 보면' 보충(있으면, 출처), 저장·댓글 유도 한 줄, 기준일·출처, '※ 참고 자료이며 투자 권유가 아닙니다.', 해시태그 8~12개(마지막 줄, #우상향연구소 포함). 2,000자 이내</insta>" +
+    "\n<thread_main>스레드 본문 — 500자 이내. 독자가 이미 궁금해하는 질문 1줄 → 숫자 3~5줄 → 해석 1~2줄 → 기준일. 해시태그는 1개 이하</thread_main>" +
+    "\n<reply1>답글 1 — 반대로 보이는 숫자나 한계, 또는 보충 사실(출처). 300자 이내</reply1>" +
+    "\n<reply2>답글 2 — 댓글을 부르는 질문 하나(지역·조건을 묻기). 150자 이내</reply2>" +
+    "\n<hooks>다른 첫 줄 후보 3개, 한 줄에 하나</hooks>" +
+    "\n<adds>웹에서 보충한 사실, 한 줄에 하나: 내용 | 출처 이름 | 날짜 (없으면 비움)</adds>";
+  const tools = web ? [{ type: "web_search_20250305", name: "web_search", max_uses: 3, user_location: { type: "approximate", country: "KR", timezone: "Asia/Seoul" } }] : undefined;
+  let msgs = [{ role: "user", content: user }], j = null, all = [];
+  for (let k = 0; k < 3; k++) {   /* 검색이 길면 pause_turn — 받은 그대로 다시 보내 이어 쓰게 */
+    j = await claudeCall(KEY, model, { max_tokens: 4000, system: CAP_SYS, messages: msgs, tools });
+    all = all.concat(j.content || []);
+    if (j.stop_reason !== "pause_turn") break;
+    msgs = [{ role: "user", content: user }, { role: "assistant", content: j.content }];
+  }
+  const text = all.filter((c) => c.type === "text").map((c) => c.text).join("");
+  const cites = [], srcs = {};
+  all.forEach((c) => {
+    (c.citations || []).forEach((x) => { if (x.cited_text) cites.push(String(x.cited_text)); if (x.url) srcs[x.url] = { url: x.url, title: x.title || x.url }; });
+  });
+  /* 숫자 검사: facts + 인용문 안에 있는 숫자만 허용. 2자리↑ 숫자가 근거 없으면 그 줄 빼기 */
+  const okTxt = (facts + "\n" + String(C.asOf || "") + " " + String(C.title || "") + " " + String(C.src || "") + "\n" + cites.join("\n")).replace(/,/g, ""), dropped = [];
+  const clean = (s, add) => s.split("\n").filter((ln) => { if (/^\s*#/.test(ln)) return true; const bad = capNums(add ? ln.split("|")[0] : ln).filter((n) => okTxt.indexOf(n) < 0); if (bad.length) { dropped.push(ln.trim().slice(0, 80) + "  [근거 없음: " + bad.join(", ") + "]"); return false; } return true; }).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  const out = { insta: clean(capPick(text, "insta")), threads: { main: clean(capPick(text, "thread_main")), r1: clean(capPick(text, "reply1")), r2: clean(capPick(text, "reply2")) },
+    hooks: clean(capPick(text, "hooks")).split("\n").map((x) => x.replace(/^\s*(?:[-·•]|\d{1,2}[.)])\s*/, "").trim()).filter(Boolean).slice(0, 3),
+    adds: clean(capPick(text, "adds"), 1).split("\n").map((x) => x.trim()).filter((x) => x && x.indexOf("|") > 0).slice(0, 5),
+    sources: Object.values(srcs).slice(0, 8), dropped, model, searches: (j.usage && j.usage.server_tool_use && j.usage.server_tool_use.web_search_requests) || 0 };
+  if (!out.insta && !out.threads.main) throw new Error("Claude 답에서 글을 찾지 못했습니다 — 다시 눌러 주세요");
+  return out;
+}
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const OWN = process.env.OWNER_KEY || "", KEY = process.env.OPENAI_API_KEY || "";
-  if (req.method === "GET") return res.status(200).json({ ok: !!(OWN && KEY), model: process.env.TEXT_MODEL || "gpt-6.1-sol" });
+  if (req.method === "GET") return res.status(200).json({ ok: !!(OWN && KEY), model: process.env.TEXT_MODEL || "gpt-6.1-sol", claude: !!(OWN && process.env.ANTHROPIC_API_KEY), claudeModel: process.env.CLAUDE_MODEL || "claude-sonnet-5-5" });
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "POST only" });
   if (!OWN) return res.status(500).json({ ok: false, error: "OWNER_KEY not set" });
-  if (!KEY) return res.status(500).json({ ok: false, error: "OPENAI_API_KEY 가 없습니다" });
   let b = req.body; if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } } b = b || {};
   if (!same(b.t, tokenOf(OWN))) return res.status(401).json({ ok: false, error: "주인 인증이 필요합니다" });
+  if (b.mode === "caption") { try { return res.status(200).json(Object.assign({ ok: true }, await caption(b))); } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); } }
+  if (!KEY) return res.status(500).json({ ok: false, error: "OPENAI_API_KEY 가 없습니다" });
   try {
     if (b.mode === "plan") {
       const facts = (b.facts || []).slice(0, 80).map((f) => f.id + ": " + String(f.text).slice(0, 300)).join("\n");
@@ -134,6 +190,6 @@ module.exports = async (req, res) => {
       var outI = await withFallback(KEY, [{ role: "system", content: sysI }, { role: "user", content: userI }], { type: "json_schema", name: "insight", strict: true, schema: schemaI });
       return res.status(200).json({ ok: true, insight: JSON.parse(outI.text), model: outI.model });
     }
-    throw new Error("mode 는 plan · read · extract · fill · insight");
+    throw new Error("mode 는 plan · read · extract · fill · insight · caption");
   } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); }
 };

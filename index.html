@@ -2391,7 +2391,7 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .stu-link{display:block;border:1px solid var(--line,#dfe3ea);border-left:4px solid #d4af6a;border-radius:10px;padding:10px 12px;text-decoration:none;color:inherit;background:var(--card,#fff)}
 .stu-link b{display:block;font-size:14px}.stu-link span{display:block;font-size:12px;color:var(--muted,#6b7684);margin-top:2px}
 .stu-go #bf-rcslot{margin-top:8px}
-.tp-cap{margin-top:10px}.tp-cap summary{cursor:pointer;font-weight:700}.tp-cap textarea{width:100%;box-sizing:border-box;margin-top:6px}
+.tp-capai{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.tp-capai .btn{flex:0 0 auto;width:auto}.tp-capai #tp-capaimsg{flex:1 1 100%}.tp-capai .cap-note{flex:1 1 180px;min-width:0;font-size:12.5px;padding:5px 8px}.cap-aix{margin:6px 0;padding:8px 10px;border:1px solid var(--line,#ddd);border-radius:8px;font-size:12.5px;display:grid;gap:6px}.cap-aix ul{margin:2px 0 0 16px;padding:0}.cap-hooks{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}.cap-hooks .btn{white-space:normal;text-align:left}.cap-drop{color:#b42318}.tp-cap{margin-top:10px}.tp-cap summary{cursor:pointer;font-weight:700}.tp-cap textarea{width:100%;box-sizing:border-box;margin-top:6px}
 body.stu-on #subnav button:not(.back){display:none!important}
 @media(max-width:430px){.tpr-grps{gap:10px}.tpr-g{gap:5px}}
 
@@ -2901,7 +2901,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.59</span>
+    <span class="ver">v9.60</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -9411,7 +9411,8 @@ function buildTpl(sec) {
       '<div id="tp-form"></div></div></details></div>' +
     '<div class="card tpx-s" id="tpx-s4"><div class="tpx-hd"><h2><i>4</i>저장 · 올리기</h2><span class="hint">이미지는 장마다 [이미지 저장], 한 번에 받으려면 ZIP</span></div>' +
       '<div class="tpx-tools"><button type="button" class="btn" data-tpzip="1">전부 저장 ZIP</button><button type="button" class="btn sm ghost" data-tpcopy="insta">인스타 글 복사</button><button type="button" class="btn sm ghost" data-tpcopy="threads">스레드 글 복사</button><button type="button" class="btn sm ghost" data-tpreel="1">릴스 카드로</button></div>' +
-      '<details class="tp-cap" id="tp-capw" open><summary>올릴 글 <small class="hint">카드를 만들 때마다 인스타 글·스레드 글이 함께 생깁니다 · 숫자는 카드 칸 그대로</small></summary><div class="cap2">' +
+      '<details class="tp-cap" id="tp-capw" open><summary>올릴 글 <small class="hint">기본 글은 카드와 함께 자동 · AI 문구는 누를 때만(Claude)</small></summary>' +
+        '<div class="tpx-tools tp-capai"><button type="button" class="btn sm" data-tpcapai="1">AI 문구 만들기</button><label class="hint"><input type="checkbox" id="tp-capweb" checked> 웹 보충</label><input id="tp-capnote" class="cap-note" placeholder="요청(선택) · 예: 신혼부부 관점, 질문형 첫 줄"><button type="button" class="btn sm ghost" data-tpcapbase="1" id="tp-capbase" hidden>기본 글로</button><span class="hint" id="tp-capaimsg"></span></div><div id="tp-capaix" class="cap-aix" hidden></div><div class="cap2">' +
         '<div><div class="seg cap2-hd"><b>인스타 글</b><small class="hint" id="tp-capmsg"></small><button type="button" class="btn sm ghost" data-tpcopy="insta">복사</button></div><textarea class="chpost" id="tp-cap" rows="12" spellcheck="false"></textarea></div>' +
         '<div><div class="seg cap2-hd"><b>스레드 글</b><small class="hint" id="tp-capmsg2"></small><button type="button" class="btn sm ghost" data-tpcopy="threads">복사</button></div><textarea class="chpost" id="tp-cap2" rows="12" spellcheck="false"></textarea></div></div></details></div>';
   sec.addEventListener("input", function (ev) { if (ev.target.id === "tpr-q") { TP.q = ev.target.value; var lb = document.getElementById("tpr-listbox"); if (lb) { lb.innerHTML = tprListHtml(); var q = document.getElementById("tpr-q"); q.focus(); q.setSelectionRange(q.value.length, q.value.length); } } });
@@ -9437,6 +9438,9 @@ function buildTpl(sec) {
     if (ev.target.closest("[data-tppsave]")) tpSavePreset();
     if (ev.target.closest("[data-tpicongen]")) tpIconGen();
     if (ev.target.closest("[data-tppload]") && typeof asPicker === "function") asPicker({ title: "저장한 카드 양식", kinds: ["preset"], filter: function (x) { return x.data && x.data.r; }, query: (TPR[TP.r] ? TPR[TP.r].nm : "") + " " + (TPL[TP.id] ? TPL[TP.id].nm : ""), onPick: tpApplyPreset });
+    if (ev.target.closest("[data-tpcapai]")) tpCapAi();
+    if (ev.target.closest("[data-tpcapbase]")) { TP.aiCap = null; tpCapPaint(); }
+    var hk = ev.target.closest("[data-tphook]"); if (hk) { var ta = document.getElementById("tp-cap"); if (ta) { var ls = ta.value.split("\n"); ls[0] = hk.dataset.tphook; ta.value = ls.join("\n"); } }
     var cpb = ev.target.closest("[data-tpcopy]"); if (cpb && typeof chCopy === "function") { var thr = cpb.dataset.tpcopy === "threads"; chCopy(document.getElementById(thr ? "tp-cap2" : "tp-cap").value); var cm = document.getElementById(thr ? "tp-capmsg2" : "tp-capmsg"); if (cm) { cm.textContent = "복사했습니다"; setTimeout(tpCapPaint, 1800); } }
     if (ev.target.closest("[data-tpreel]") && typeof rcOpen === "function") { var F = tpAllFacts(); if (!F.length) { alert("재료가 없습니다."); return; } var d0 = TP.pages[0] || {}; rcOpen({ topic: d0.title || "", facts: F, basis: d0.src || "", purpose: "카드 만들기 '" + (TPR[TP.r] ? TPR[TP.r].nm : "") + "' 상세 카드(게시판)로 유입" }); }
     if (ev.target.closest("[data-tpzip]") && typeof chSaveAllZip === "function") chSaveAllZip(document.getElementById("tp-cards"), "card").then(function () { if (typeof progClose === "function") progClose(); }, function (e) { if (typeof progClose === "function") progClose(); alert("ZIP 저장 실패: " + e.message); });
@@ -9802,12 +9806,37 @@ function tpAllFacts() {
 /* 올릴 글: 제목 · 부제 · 핵심 줄(장 순서대로 최대 12줄) · 출처 · 해시태그 — 숫자는 카드 칸 그대로 */
 var TP_TAGS = { rate: ["#금리비교", "#주담대금리", "#전세대출", "#예금금리", "#적금"], deal: ["#아파트실거래", "#실거래가", "#신고가", "#대장아파트"], market: ["#부동산시장", "#집값흐름", "#아파트시세"], subs: ["#청약", "#청약일정", "#분양"], policy: ["#부동산정책", "#부동산대책"], loan: ["#정책대출", "#디딤돌", "#주담대"], transit: ["#GTX", "#교통호재"], term: ["#부동산공부", "#부동산상식"], issue: ["#부동산이슈"] };
 /* 올릴 글 — 인스타(기존) · 스레드(v9.28 본문+답글 2개) */
+function tpCapKey() { try { return JSON.stringify(tpAllFacts()); } catch (e) { return ""; } }
 function tpCapPaint() {
   var cap = document.getElementById("tp-cap"), cap2 = document.getElementById("tp-cap2"); if (!cap) return;
-  var v = tpCaption(), v2 = typeof thrFromTpl === "function" ? thrFromTpl() : "";
+  var A = TP.aiCap && TP.aiCap.key === tpCapKey() ? TP.aiCap : null; if (!A) TP.aiCap = null;   /* 카드 내용이 바뀌면 AI 문구는 버리고 기본 글로 */
+  var bb = document.getElementById("tp-capbase"); if (bb) bb.hidden = !A;
+  var bx = document.getElementById("tp-capaix"); if (bx && !A) { bx.hidden = true; bx.innerHTML = ""; }
+  var v = A ? A.insta : tpCaption(), v2 = A ? A.thr : (typeof thrFromTpl === "function" ? thrFromTpl() : "");
   cap.value = v; if (cap2) cap2.value = v2;
   var cm = document.getElementById("tp-capmsg"); if (cm) cm.textContent = v.length + "자 / 2,200";
   var cm2 = document.getElementById("tp-capmsg2"); if (cm2) cm2.textContent = v2 ? (typeof thrMainLen === "function" ? "본문 " + thrMainLen(v2) + "자 / 500 · 답글 2개 포함" : v2.length + "자") : "이 재료로는 스레드 글을 만들지 못했습니다";
+}
+/* v9.60 AI 문구(Claude) — 누를 때만. 재료 = 카드 칸 내용 + 기본 글. 웹 보충은 출처 있는 것만, 근거 없는 숫자 줄은 서버에서 빠진다 */
+function tpCapAi() {
+  var P = TP.pages || [], m = document.getElementById("tp-capaimsg"), btn = document.querySelector("[data-tpcapai]"); if (!P.length) { if (m) m.textContent = "카드를 먼저 만드세요"; return; }
+  if (typeof rcTok === "function" && !rcTok()) { if (m) m.textContent = "주인 인증이 필요합니다"; return; }
+  var d0 = P[0], t = TPL[TP.id] || {}, key = tpCapKey(), web = !!(document.getElementById("tp-capweb") || {}).checked, note = ((document.getElementById("tp-capnote") || {}).value || "").trim();
+  var base = { insta: tpCaption(), threads: typeof thrFromTpl === "function" ? thrFromTpl() : "" };
+  if (btn) btn.disabled = true; if (m) m.textContent = web ? "Claude가 쓰는 중 · 웹 보충 확인 (20~40초)" : "Claude가 쓰는 중 (10~20초)";
+  rcPost("/api/ai", { mode: "caption", facts: tpAllFacts(), card: { title: thrTxt(d0.title || ""), cat: d0._cat || t.cat || "", src: thrTxt(d0.src || ""), asOf: thrTxt(d0.asOf || d0.date || ""), pages: P.length }, base: base, note: note, web: web }).then(function (j) {
+    var th = j.threads || {}, thr = th.main ? th.main + (th.r1 ? THR_SEP + th.r1 : "") + (th.r2 ? THR_SEP2 + th.r2 : "") : base.threads;
+    TP.aiCap = { key: key, insta: j.insta || base.insta, thr: thr };
+    tpCapPaint();
+    var esc = function (x) { return String(x || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+    var bx = document.getElementById("tp-capaix"), H = "";
+    if ((j.hooks || []).length) H += '<div><b>다른 첫 줄</b> <small class="hint">누르면 인스타 글 첫 줄을 바꿉니다</small><div class="cap-hooks">' + j.hooks.map(function (h) { return '<button type="button" class="btn sm ghost" data-tphook="' + esc(h) + '">' + esc(h) + "</button>"; }).join("") + "</div></div>";
+    if ((j.adds || []).length) H += '<div><b>웹에서 보충한 사실</b> <small class="hint">올리기 전 출처를 한 번 눌러 확인하세요</small><ul>' + j.adds.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></div>";
+    if ((j.sources || []).length) H += '<div><b>출처</b><ul>' + j.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.title) + "</a></li>"; }).join("") + "</ul></div>";
+    if ((j.dropped || []).length) H += '<div class="cap-drop"><b>뺀 줄 ' + j.dropped.length + '개</b> <small class="hint">카드·출처에 없는 숫자라 뺐습니다</small><ul>' + j.dropped.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></div>";
+    if (bx) { bx.innerHTML = H; bx.hidden = !H; }
+    if (m) m.textContent = "Claude 문구 · " + (j.model || "") + (j.searches ? " · 웹 검색 " + j.searches + "번" : "") + " · 카드 칸을 고치면 기본 글로 돌아갑니다";
+  }).catch(function (e) { if (m) m.textContent = "AI 문구 실패: " + e.message; }).then(function () { if (btn) btn.disabled = false; });
 }
 /* v9.56 시계열 장(라벨이 날짜인 줄 70%↑, 3줄↑)이면 글은 줄 나열 대신 흐름 요약: 처음→끝(변화율) · 최고 · 최저 · 최근 3개. 값은 첫 숫자 열 그대로 */
 function tpSeriesLines(P) {

@@ -111,7 +111,7 @@ async function caption(b) {
   const tools = web ? [{ type: "web_search_20250305", name: "web_search", max_uses: 3, user_location: { type: "approximate", country: "KR", timezone: "Asia/Seoul" } }] : undefined;
   let msgs = [{ role: "user", content: user }], j = null, all = [];
   for (let k = 0; k < 3; k++) {   /* 검색이 길면 pause_turn — 받은 그대로 다시 보내 이어 쓰게 */
-    j = await claudeCall(KEY, model, { max_tokens: 4000, system: CAP_SYS, messages: msgs, tools });
+    j = await claudeCall(KEY, model, { max_tokens: 8000, system: CAP_SYS, messages: msgs, tools });
     all = all.concat(j.content || []);
     if (j.stop_reason !== "pause_turn") break;
     msgs = [{ role: "user", content: user }, { role: "assistant", content: j.content }];
@@ -128,17 +128,19 @@ async function caption(b) {
     hooks: clean(capPick(text, "hooks")).split("\n").map((x) => x.replace(/^\s*(?:[-·•]|\d{1,2}[.)])\s*/, "").trim()).filter(Boolean).slice(0, 3),
     adds: clean(capPick(text, "adds"), 1).split("\n").map((x) => x.trim()).filter((x) => x && x.indexOf("|") > 0).slice(0, 5),
     sources: Object.values(srcs).slice(0, 8), dropped, model, searches: (j.usage && j.usage.server_tool_use && j.usage.server_tool_use.web_search_requests) || 0 };
-  if (!out.insta && !out.threads.main) throw new Error("Claude 답에서 글을 찾지 못했습니다 — 다시 눌러 주세요");
+  if (!out.insta && !out.threads.main) throw new Error("Claude 답에서 글을 찾지 못했습니다 — 다시 눌러 주세요 [진단: " + (j && j.stop_reason) + " · 글 " + text.length + "자 · " + text.replace(/\s+/g, " ").slice(0, 80) + "]");
   return out;
 }
 /* ══ v9.61 Claude 공통 — 웹 검색(선택) · pause_turn 이어 쓰기 · 인용문 모으기 · 숫자 근거 검사 ══ */
 async function claudeRun(o) {
   const KEY = process.env.ANTHROPIC_API_KEY || ""; if (!KEY) throw new Error("ANTHROPIC_API_KEY 가 없습니다 (Vercel 환경변수)");
   const model = o.model || process.env.CLAUDE_MODEL || "claude-sonnet-5-5", web = o.web && process.env.CLAUDE_WEB !== "off";
-  const tools = web ? [{ type: "web_search_20250305", name: "web_search", max_uses: o.web, user_location: { type: "approximate", country: "KR", timezone: "Asia/Seoul" } }] : undefined;
+  let tools = web ? [{ type: "web_search_20250305", name: "web_search", max_uses: o.web, user_location: { type: "approximate", country: "KR", timezone: "Asia/Seoul" } }] : undefined, tool_choice;
+  if (o.answer) { tools = (tools || []).concat([{ name: "answer", description: "최종 답을 제출한다. 형식: " + String(o.answer).slice(0, 3000), input_schema: { type: "object", additionalProperties: true } }]); tool_choice = web ? { type: "auto" } : { type: "tool", name: "answer" }; }   /* v9.66 답은 도구 입력(JSON)으로 받는다 — 글 속 JSON 이 깨지는 일을 막음 */
   const t0 = Date.now(); let msgs = [{ role: "user", content: o.content }], j = null, all = [], searches = 0;
   for (let k = 0; k < 3; k++) {
-    j = await claudeCall(KEY, model, { max_tokens: o.max || 4000, system: o.system, messages: msgs, tools }, Math.max(5000, 55000 - (Date.now() - t0)));
+    const req = { max_tokens: o.max || 4000, system: o.system, messages: msgs, tools }; if (tool_choice) req.tool_choice = tool_choice;
+    j = await claudeCall(KEY, model, req, Math.max(5000, 55000 - (Date.now() - t0)));
     all = all.concat(j.content || []); searches += (j.usage && j.usage.server_tool_use && j.usage.server_tool_use.web_search_requests) || 0;
     if (j.stop_reason !== "pause_turn" || Date.now() - t0 > 40000) break;
     msgs = [{ role: "user", content: o.content }, { role: "assistant", content: j.content }];
@@ -148,12 +150,29 @@ async function claudeRun(o) {
     (c.citations || []).forEach((x) => { if (x.cited_text) cites.push(String(x.cited_text)); if (x.url) srcs[x.url] = { url: x.url, title: x.title || x.url }; });
     if (c.type === "web_search_tool_result" && Array.isArray(c.content)) c.content.forEach((r) => { if (r.url && !srcs[r.url]) srcs[r.url] = { url: r.url, title: r.title || r.url, seen: 1, age: r.page_age || "" }; });
   });
-  return { text, cites, sources: Object.values(srcs).sort((a, b) => (a.seen ? 1 : 0) - (b.seen ? 1 : 0)).slice(0, 12), searches, model, cut: j && j.stop_reason === "pause_turn" };
+  const ans = all.filter((c) => c.type === "tool_use" && c.name === "answer").map((c) => c.input).filter((x) => x && typeof x === "object").pop() || null;
+  return { text, json: ans, stop: j && j.stop_reason, cites, sources: Object.values(srcs).sort((a, b) => (a.seen ? 1 : 0) - (b.seen ? 1 : 0)).slice(0, 12), searches, model, cut: j && j.stop_reason === "pause_turn" };
 }
 function numOk(okTxt) { const T = String(okTxt || "").replace(/,/g, ""), T2 = T.replace(/\s+/g, "");
   const has = (n) => { if (n.indexOf("\u0001") > 0) { const a = n.split("\u0001"); return new RegExp("(?<![\\d.])" + a[0] + a[1].replace("%", "\\%")).test(T2); } const q = n.replace(/\./g, "\\."); return new RegExp("(?<![\\d.])" + q + "(?!\\d)").test(T) || new RegExp("(?<!\\d)\\d{2,4}\\.(?:\\d{1,2}\\.)?" + q + "(?![\\d])|(?<![\\d.])\\d{2,4}\\." + q + "\\.\\d{1,2}(?!\\d)").test(T); };
   return (s) => capNums(s).filter((n) => !has(n)).map((n) => n.replace("\u0001", "")); }
-function jsonPick(t) { const s = capPick(t, "json") || t, m = s.match(/\{[\s\S]*\}/); if (!m) return null; try { return JSON.parse(m[0]); } catch (e) { return null; } }
+function jsonPick(t) {
+  let s = String(capPick(t, "json") || t || "").replace(/```(?:json)?/gi, ""); const a = s.indexOf("{"), z = s.lastIndexOf("}"); if (a < 0 || z < a) return null; s = s.slice(a, z + 1);
+  s = s.replace(/\/\*[\s\S]*?\*\//g, ""); const tries = [s, s.replace(/,\s*([}\]])/g, "$1"), s.replace(/,\s*([}\]])/g, "$1").replace(/[\u201c\u201d]/g, '"').replace(/\n/g, "\\n").replace(/\\n\s*(?=["}\]])/g, "")];
+  for (const x of tries) { try { return JSON.parse(x); } catch (e) {} }
+  return null;
+}
+/* v9.66 JSON 답 받기 — 웹 검색이 없으면 answer 도구를 강제(항상 JSON), 웹 검색이 있으면 글로 받은 뒤 깨지면 한 번 더 '도구로 다시 제출'(인용은 첫 답 것 유지) */
+async function claudeJSON(o, what) {
+  const r = await claudeRun(Object.assign({}, o, { answer: o.shape || "JSON", max: Math.max(o.max || 4000, 8000) }));
+  let J = r.json || jsonPick(r.text);
+  if (!J && (r.text || "").trim()) {
+    const r2 = await claudeRun({ system: "너는 답을 정해진 JSON 형식으로 옮기는 사람이다. 내용·숫자·출처를 바꾸거나 더하지 않는다.", content: "[형식]\n" + String(o.shape || "").slice(0, 3000) + "\n\n[옮길 답]\n" + r.text.slice(0, 30000) + "\n\nanswer 도구로 제출하라.", answer: o.shape || "JSON", max: 8000, model: process.env.CLAUDE_MODEL || "claude-sonnet-5-5" });
+    J = r2.json || jsonPick(r2.text);
+  }
+  if (!J) throw new Error((what || "답") + "을 읽지 못했습니다 — 다시 눌러 주세요 [진단: " + (r.stop || "?") + " · 글 " + (r.text || "").length + "자" + (r.text ? " · " + r.text.replace(/\s+/g, " ").slice(0, 80) : "") + "]");
+  return { J, r };
+}
 function factsText(b, n) { return (b.facts || []).slice(0, n || 80).map((f) => (f.id ? f.id + ": " : "") + String(f.text).slice(0, 300)).join("\n"); }
 const NO_SELL = "투자 권유·매수/매도 추천·단정(무조건, 반드시) 금지. 이모지 금지. 한국어 존댓말, 쉬운 말.";
 
@@ -166,15 +185,14 @@ async function cVerify(b) {
   const content = [{ type: "text", text: "[카드 칸 원본 — 카드가 그려진 자료]\n" + facts + "\n\n[카드 정보] " + String(b.info || "").slice(0, 400) +
     "\n\n아래 카드 이미지 " + imgs.length + "장을 순서대로 보고 점검하라:\n1) 이미지의 숫자·이름이 원본과 다른 곳(옮겨 적기 오류)\n2) 잘리거나 겹치거나 비어 있는 글자·칸\n3) 제목·핵심 줄과 표가 서로 안 맞는 곳(순위 순서, 오름/내림 표시, 합계, 단위·% 혼동)\n4) 상식 밖의 값(예: 아파트 1채 1,000억, 변동률 50%)과 같은 값이 반복되는 의심\n5) 기준일·출처 표기 누락, 투자 권유로 읽히는 말\n\n답은 <json>{\"ok\":true/false,\"summary\":\"한 줄\",\"issues\":[{\"page\":장번호,\"level\":\"오류|주의\",\"where\":\"위치\",\"what\":\"무엇이 문제\",\"fix\":\"고칠 방향(원본 값으로)\"}]}</json> 만. 문제가 없으면 issues 는 빈 배열." }];
   imgs.forEach((u, i) => { const m = /^data:(image\/\w+);base64,(.+)$/.exec(u); content.push({ type: "text", text: "카드 " + (i + 1) }); content.push({ type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }); });
-  const r = await claudeRun({ system: sys, content, max: 3000 });
-  const J = jsonPick(r.text); if (!J) throw new Error("검사 결과를 읽지 못했습니다 — 다시 눌러 주세요");
+  const { J, r } = await claudeJSON({ system: sys, content, max: 4000, shape: '{"ok":true,"summary":"","issues":[{"page":1,"level":"오류|주의","where":"","what":"","fix":""}]}' }, "검사 결과");
   return { ok: true, verify: { ok: !!J.ok && !(J.issues || []).some((x) => x.level === "오류"), summary: String(J.summary || ""), issues: (J.issues || []).slice(0, 30) }, model: r.model };
 }
 /* ② 공고문 → 청약 조건 (Claude 우선, 키 없으면 OpenAI 그대로) */
 async function cExtract(b) {
   const txt = String(b.text || "").slice(0, 120000); if (txt.length < 50) throw new Error("공고문 텍스트가 너무 짧습니다");
-  const r = await claudeRun({ system: EX_GUIDE, content: "[공고문 텍스트]\n" + txt + "\n\n위 공고문에서 항목별 조건을 <json>{" + EX_FIELDS.map((k) => '"' + k + '":""').join(",") + "}</json> 형식으로만 답하라. 없으면 빈 문자열. 공고문에 없는 숫자는 쓰지 않는다.", max: 3000 });
-  const J = jsonPick(r.text); if (!J) throw new Error("조건을 읽지 못했습니다");
+  const r = await claudeRun({ answer: "{" + EX_FIELDS.map((k) => '"' + k + '":""').join(",") + "}", system: EX_GUIDE, content: "[공고문 텍스트]\n" + txt + "\n\n위 공고문에서 항목별 조건을 <json>{" + EX_FIELDS.map((k) => '"' + k + '":""').join(",") + "}</json> 형식으로만 답하라. 없으면 빈 문자열. 공고문에 없는 숫자는 쓰지 않는다.", max: 3000 });
+  const J = r.json || jsonPick(r.text); if (!J) throw new Error("조건을 읽지 못했습니다 [진단: " + (r.stop || "?") + "]");
   const bad = numOk(txt), terms = {}, dropped = [];
   EX_FIELDS.forEach((k) => { const v = String(J[k] || "").slice(0, 200); const x = bad(v); if (x.length) { dropped.push(k + ": " + v + " [공고문에 없음: " + x.join(", ") + "]"); terms[k] = ""; } else terms[k] = v; });
   return { ok: true, terms, dropped, model: r.model };
@@ -187,12 +205,12 @@ async function cWeekly(b) {
   const user = (b.note ? "[가장 중요한 요청] " + String(b.note).slice(0, 300) + "\n" : "") + "[기간] " + String(b.period || "") + "\n\n[facts — 앱 데이터]\n" + facts + (news ? "\n\n[이번 주 모인 기사 제목]\n" + news : "") +
     (b.web !== false ? "\n\n이번 주 발표된 정책·통계 일정 중 facts 에 없는 큰 것이 있으면 웹에서 1~3번 찾아 보충하라(공공기관·주요 언론만)." : "") +
     "\n\n답은 태그만:\n<brief>주간 브리핑 본문(블로그·뉴스레터용 1,200~2,000자): 제목 1줄 → 이번 주 한 줄 요약 → 소제목 3~5개(매매·거래 / 청약 / 금리·대출 / 정책·일정 / 다음 주 볼 것) 각 2~4문장 → 기준일·출처 → '※ 참고 자료이며 투자 권유가 아닙니다.'</brief>\n<insta>인스타 캡션 2,000자 이내, 첫 줄 훅, 해시태그 8~12개</insta>\n<thread_main>스레드 본문 500자 이내</thread_main>\n<reply1>답글 1 300자 이내</reply1>\n<reply2>답글 2 질문 하나</reply2>\n<cards>이번 주 카드로 만들면 좋은 주제 3~6개, 한 줄에 하나: 주제 | 이유</cards>";
-  const r = await claudeRun({ system: sys, content: user, web: b.web !== false ? 3 : 0, max: 6000 });
+  const r = await claudeRun({ system: sys, content: user, web: b.web !== false ? 3 : 0, max: 10000 });
   const bad = numOk(facts + "\n" + news + "\n" + String(b.period || "") + "\n" + r.cites.join("\n")), dropped = [];
   const clean = (s) => s.split("\n").filter((ln) => { if (/^\s*#/.test(ln)) return true; const x = bad(ln); if (x.length) { dropped.push(ln.trim().slice(0, 80) + "  [근거 없음: " + x.join(", ") + "]"); return false; } return true; }).join("\n").replace(/\n{3,}/g, "\n\n").trim();
   const out = { ok: true, brief: clean(capPick(r.text, "brief")), insta: clean(capPick(r.text, "insta")), threads: { main: clean(capPick(r.text, "thread_main")), r1: clean(capPick(r.text, "reply1")), r2: clean(capPick(r.text, "reply2")) },
     cards: clean(capPick(r.text, "cards")).split("\n").map((x) => x.replace(/^\s*(?:[-·•]|\d{1,2}[.)])\s*/, "").trim()).filter(Boolean).slice(0, 6), sources: r.sources, dropped, model: r.model, searches: r.searches };
-  if (!out.brief) throw new Error("브리핑을 받지 못했습니다 — 다시 눌러 주세요");
+  if (!out.brief) throw new Error("브리핑을 받지 못했습니다 — 다시 눌러 주세요 [진단: " + (r.stop || "?") + " · 글 " + (r.text || "").length + "자 · " + String(r.text || "").replace(/\s+/g, " ").slice(0, 80) + "]");
   return out;
 }
 /* 오늘 할 일 — 기사·이슈(수집 기사 + 웹 검색)를 모아 카드 만들기 주제와 채널 코너를 고른다. 개수는 이슈 양에 따라 10~20 */
@@ -206,8 +224,7 @@ async function cToday(b) {
     "\n\n[앱이 모은 오늘 기사 제목]\n" + (news || "(없음)") + (b.events ? "\n\n[오늘·이번 주 일정]\n" + String(b.events).slice(0, 1500) : "") +
     (b.web !== false ? "\n\n먼저 웹에서 오늘(최근 24~48시간) 한국 부동산 주요 이슈(정책 발표·통계 발표·청약·대출 규제·금리)를 2~4번 찾아라. 공공기관·주요 언론만." : "") +
     "\n\n답은 <json>{\"issues\":[{\"title\":\"이슈 제목(25자 이내)\",\"why\":\"왜 오늘 중요한지 한 줄\",\"points\":[\"핵심 사실 1~4줄(숫자는 기사·인용문 그대로)\"],\"src\":\"출처 이름\",\"date\":\"날짜\",\"url\":\"원문 주소(있으면)\",\"card\":\"연결할 카드 id(없으면 빈칸)\"}],\"cards\":[{\"r\":\"카드 id 또는 issue:이슈번호(0부터)\",\"why\":\"고른 이유 한 줄(기사·데이터 근거)\"}],\"corners\":[{\"tab\":\"코너 id\",\"why\":\"한 줄\"}],\"summary\":\"오늘 시장 한 줄\"}</json> 만. cards 는 10~20개(이슈가 적으면 10개), 중요한 순서. 같은 카드 id 반복 금지. corners 는 정기 코너 포함 2~5개.";
-  const r = await claudeRun({ system: sys, content: user, web: b.web !== false ? 4 : 0, max: 5000 });
-  const J = jsonPick(r.text); if (!J) throw new Error("추천을 읽지 못했습니다 — 다시 눌러 주세요");
+  const { J, r } = await claudeJSON({ system: sys, content: user, web: b.web !== false ? 4 : 0, max: 10000, shape: '{"issues":[{"title":"","why":"","points":[""],"src":"","date":"","url":"","card":""}],"cards":[{"r":"","why":""}],"corners":[{"tab":"","why":""}],"summary":""}' }, "추천");
   const bad = numOk(news + "\n" + cands + "\n" + String(b.events || "") + "\n" + r.cites.join("\n")), dropped = [];
   const ids = {}; (b.recipes || []).forEach((x) => { ids[x.id] = 1; }); const tabIds = {}; (b.tabs || []).forEach((t) => { tabIds[t[0]] = 1; });
   const issues = (J.issues || []).slice(0, 15).map((x) => {
@@ -224,16 +241,18 @@ async function cToday(b) {
 async function cResearch(b) {
   const prompt = String(b.prompt || "").slice(0, 30000); if (prompt.length < 50) throw new Error("프롬프트가 비었습니다");
   const sys = "너는 한국 주택시장 애널리스트다. 웹 검색으로 최신 공개 자료(정부·공공기관·통계·한국은행·주요 언론·민간 리서치)를 찾아 답한다. 찾지 못한 값은 '확인 안 됨'. 수치마다 기준일·출처. JSON 하나만 출력.";
-  const r = await claudeRun({ system: sys, content: prompt + "\n\n(JSON 은 <json></json> 안에)", web: Math.max(1, Math.min(6, Number(b.searches) || 5)), max: 6000 });
-  const J = jsonPick(r.text); if (!J) throw new Error("조사 답에서 JSON 을 찾지 못했습니다" + (r.cut ? " (시간이 모자라 끊김 — 다시 눌러 주세요)" : ""));
+  const r = await claudeRun({ system: sys, content: prompt + "\n\n(JSON 은 <json></json> 안에)", web: Math.max(1, Math.min(6, Number(b.searches) || 5)), max: 10000 });
+  let J = r.json || jsonPick(r.text);
+  if (!J && r.text) { const r2 = await claudeRun({ system: "너는 답을 정해진 JSON 형식으로 옮기는 사람이다. 내용·숫자·출처를 바꾸거나 더하지 않는다.", content: "[옮길 답]\n" + r.text.slice(0, 30000) + "\n\n원래 요청한 JSON 형식(topic, asOf, findings[q,value,date,src,note], diagnosis, analogs, outlook, drivers, risks, watch)으로 answer 도구에 제출하라.", answer: "외부 조사 JSON", max: 8000 }); J = r2.json || jsonPick(r2.text); }
+  if (!J) throw new Error("조사 답에서 JSON 을 찾지 못했습니다" + (r.cut ? " (시간이 모자라 끊김 — 다시 눌러 주세요)" : "") + " [진단: " + (r.stop || "?") + " · 글 " + (r.text || "").length + "자]");
   const known = String(b.known || ""), bad = numOk(known + "\n" + r.cites.join("\n"));
   (J.findings || []).forEach((f) => { const z = bad(String(f.value || "")); f.chk = z.length ? "인용 없음" : (r.cites.length ? "인용 확인" : "인용 없음"); if (z.length) f.miss = z.join(", "); });
   return { ok: true, j: J, raw: r.text.slice(0, 20000), sources: r.sources, model: r.model, searches: r.searches };
 }
 async function cRead(b) {   /* v9.63 카드 이미지 글자 읽기(검증용)도 Claude */
   const m = /^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/.exec(String(b.image || "")); if (!m) throw new Error("이미지가 없습니다");
-  const r = await claudeRun({ system: "너는 이미지 속 글자를 있는 그대로 받아 적는 사람이다.", content: [{ type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }, { type: "text", text: "이 카드 이미지에 실제로 보이는 글자를 줄 단위로 빠짐없이 그대로 받아 적어라. 숫자·기호·단위는 보이는 그대로(고치거나 추측하지 말 것). 읽을 수 없는 글자는 □. 답은 <json>{\"texts\":[\"줄\"]}</json> 하나만." }], max: 2000 });
-  const J = jsonPick(r.text); return { ok: true, texts: J && Array.isArray(J.texts) ? J.texts.map(String) : [], model: r.model };
+  const r = await claudeRun({ answer: '{"texts":["줄"]}', system: "너는 이미지 속 글자를 있는 그대로 받아 적는 사람이다.", content: [{ type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }, { type: "text", text: "이 카드 이미지에 실제로 보이는 글자를 줄 단위로 빠짐없이 그대로 받아 적어라. 숫자·기호·단위는 보이는 그대로(고치거나 추측하지 말 것). 읽을 수 없는 글자는 □. 답은 <json>{\"texts\":[\"줄\"]}</json> 하나만." }], max: 2000 });
+  const J = r.json || jsonPick(r.text); return { ok: true, texts: J && Array.isArray(J.texts) ? J.texts.map(String) : [], model: r.model };
 }
 /* ══ v9.62 OpenAI 글 기능을 Claude 로(키가 있으면 · engine:"openai" 면 예전 그대로) — 릴스 기획(plan) · 칸 채우기(fill) · 인사이트(insight) · 데이터 점검 해설(valexplain) ══ */
 function shapeOf(schema) {   /* JSON schema → 짧은 모양 설명(프롬프트용) */
@@ -247,8 +266,7 @@ async function cPlan(b) {
     "\n\n답은 <json>" + shapeOf(PLAN_SCHEMA) + "</json> 모양의 JSON 하나만(주석 빼고). points 는 3~5개.";
   const refs = (b.refs || []).filter((u) => /^data:image\/(jpeg|png|webp|gif);base64,/.test(String(u))).slice(0, 3);
   const content = refs.length ? [{ type: "text", text: user + "\n\n[참고 이미지 " + refs.length + "장] 레이아웃·구성·톤만 참고(layout, visual 에 반영). 이미지 속 숫자·글자·사실은 절대 옮기지 말 것." }].concat(refs.map((u) => { const m = /^data:(image\/\w+);base64,(.+)$/.exec(u); return { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }; })) : user;
-  const r = await claudeRun({ system: SYS, content, max: 2500 });
-  const J = jsonPick(r.text); if (!J || !Array.isArray(J.points)) throw new Error("기획을 읽지 못했습니다 — 다시 눌러 주세요");
+  const { J, r } = await claudeJSON({ system: SYS, content, max: 4000, shape: shapeOf(PLAN_SCHEMA) }, "기획"); if (!Array.isArray(J.points)) throw new Error("기획을 읽지 못했습니다 — 다시 눌러 주세요");
   const bad = numOk(facts), dropped = [];
   J.points = J.points.filter((p) => { const z = bad(String(p.value || "") + " " + String(p.note || "")); if (z.length) { dropped.push(String(p.label || "") + " " + String(p.value || "") + " [facts 에 없음: " + z.join(", ") + "]"); return false; } return true; }).slice(0, 5);
   ["hook", "sub", "kicker", "cta"].forEach((k) => { if (bad(String(J[k] || "")).length) { dropped.push(k + ": " + J[k]); J[k] = ""; } });
@@ -262,8 +280,7 @@ async function cFill(b) {
   const shape = "{" + FL.map((f) => '"' + f.key + '":' + (f.kind === "text" ? '""' : f.kind === "rows" ? '[["칸","칸"]]' : '[""]')).join(",") + "}";
   const sys = SYS + " 지금은 '" + (T.name || "고정 양식") + "' 양식의 칸을 채운다. 각 칸의 설명과 예시 형식을 따르되 예시의 숫자·이름은 쓰지 않는다. 표의 줄(rows)은 칸 수를 머리(cols)와 맞춘다. facts 에 없는 항목은 빈 문자열/빈 배열.";
   const user = (b.note ? "[가장 중요한 요청] " + b.note + "\n" : "") + "[칸 설명]\n" + FL.map((f) => f.key + " (" + f.kind + "): " + f.label + (f.example ? " · 예시 형식: " + f.example : "")).join("\n") + "\n\n[facts — 이 안의 숫자·날짜·이름만 쓸 것]\n" + facts + "\n\n답은 <json>" + shape + "</json> 모양 JSON 하나만.";
-  const r = await claudeRun({ system: sys, content: user, max: 4000 });
-  const J = jsonPick(r.text); if (!J) throw new Error("칸 내용을 읽지 못했습니다 — 다시 눌러 주세요");
+  const { J, r } = await claudeJSON({ system: sys, content: user, max: 6000, shape: shape }, "칸 내용");
   const fill = {}; FL.forEach((f) => { const v = J[f.key]; fill[f.key] = f.kind === "text" ? String(v == null ? "" : v) : Array.isArray(v) ? v : []; });
   return { ok: true, fill, model: r.model };
 }
@@ -280,8 +297,7 @@ async function cInsight(b) {   /* v9.63 깊게(기본 Opus) · 반대 논리 · 
     (web ? "\n\n답하기 전에, 이 질문에 꼭 필요한데 facts 에 없는 최근 사실(정책 변화·금리 결정 일정·공급 계획·심리 지표·대출 규제)이 있으면 웹에서 1~4번 찾아라. 공공기관·통계·주요 언론만." : "") +
     "\n\n속으로 상승 논리·하락 논리·지역 차이를 먼저 따져 본 뒤, 답은 <json>" + shape + "</json> 하나만.";
   const model = deep ? (process.env.CLAUDE_MODEL_DEEP || "claude-opus-5-5") : undefined;
-  const r = await claudeRun({ system: sys, content: user, web: web ? (deep ? 3 : 4) : 0, max: deep ? 5000 : 6000, model });
-  const J = jsonPick(r.text); if (!J) throw new Error("답을 읽지 못했습니다 — 다시 눌러 주세요");
+  const { J, r } = await claudeJSON({ system: sys, content: user, web: web ? (deep ? 3 : 4) : 0, max: 10000, model, shape: shape }, "답");
   ["because", "stances", "scenarios", "watch", "regions", "calendar", "followups", "content"].forEach((k) => { if (!Array.isArray(J[k])) J[k] = []; }); ["answer", "risk", "headline"].forEach((k) => { J[k] = String(J[k] || ""); });
   if (!J.counter || typeof J.counter !== "object") J.counter = null; if (!J.confidence || typeof J.confidence !== "object") J.confidence = null;
   /* 일정의 날짜는 facts·인용문에 있어야 — 없으면 그 줄 뺌 */
@@ -295,8 +311,7 @@ async function cValExplain(b) {
   const sys = "너는 데이터 수집 파이프라인 운영 도우미다. 비개발자 주인이 이해하고 따라 할 수 있게 쉬운 말로, 가장 가능성 높은 원인과 확인 순서를 알려 준다. 모르는 것은 추측이라고 밝힌다. 이모지 금지.";
   const user = "[구조]\n" + VAL_CTX + "\n\n[점검 결과 · " + String(b.built || "") + " · 요약 " + JSON.stringify(b.summary || {}) + "]\n" + checks +
     "\n\n답은 <json>{\"overall\":\"전체 상태 한두 문장(지금 카드를 올려도 되는지 포함)\",\"items\":[{\"id\":\"점검 id\",\"level\":\"오류|주의\",\"meaning\":\"이 점검이 말하는 것\",\"cause\":\"가장 가능성 높은 원인(추측이면 추측이라고)\",\"check\":\"확인 순서(GitHub Actions 로그 어디, 어떤 파일)\",\"fix\":\"할 일 — 기다리면 되는지, 다시 실행(Run workflow, only 값), 키 확인, 개발 수정 필요\",\"safe\":\"이 상태로 카드에 쓰면 안 되는 숫자\"}]}</json> 하나만. 오류·주의만, 중요한 순서.";
-  const r = await claudeRun({ system: sys, content: user, max: 3500 });
-  const J = jsonPick(r.text); if (!J) throw new Error("해설을 읽지 못했습니다 — 다시 눌러 주세요");
+  const { J, r } = await claudeJSON({ system: sys, content: user, max: 8000, shape: '{"overall":"","items":[{"id":"","level":"오류|주의","meaning":"","cause":"","check":"","fix":"","safe":""}]}' }, "해설");
   return { ok: true, explain: { overall: String(J.overall || ""), items: Array.isArray(J.items) ? J.items.slice(0, 40) : [] }, model: r.model };
 }
 /* ══ v9.65 청약 공고 읽기 — 공고문 글 + 사진(입지도·일정표·주택형 표 캡처) → 조건·일정·주택형·입지·기타. 글에서 읽은 숫자는 글과 대조, 사진에서 읽은 것은 '사진에서 읽음' 표시 ══ */
@@ -308,8 +323,7 @@ async function cSubsRead(b) {
   const content = [];
   imgs.forEach((u, i) => { const m = /^data:(image\/\w+);base64,(.+)$/.exec(u); content.push({ type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }); });
   content.push({ type: "text", text: "[단지] " + String(b.nm || "").slice(0, 80) + (b.known ? "\n[지금 알고 있는 것 — 참고만, 다르면 공고 쪽을 따른다]\n" + String(b.known).slice(0, 2000) : "") + (txt ? "\n\n[공고문 글]\n" + txt : "") + (imgs.length ? "\n\n[사진 " + imgs.length + "장] 위 이미지." : "") + "\n\n답은 <json>" + shape + "</json> 하나만. 없는 칸은 빈 문자열·빈 배열." });
-  const r = await claudeRun({ system: sys, content, max: 5000 });
-  const J = jsonPick(r.text); if (!J) throw new Error("읽은 결과를 해석하지 못했습니다 — 다시 눌러 주세요");
+  const { J, r } = await claudeJSON({ system: sys, content, max: 8000, shape: shape }, "읽은 결과");
   const T = J.terms || {}, S = J.sched || {}, terms = {}, sched = {}, dropped = [];
   const chk = txt && !imgs.length ? numOk(txt + "\n" + String(b.known || "")) : null;   /* 글만 넣었으면 글과 대조 */
   EX_FIELDS.forEach((k) => { const v = String(T[k] || "").slice(0, 200); const z = chk ? chk(v) : []; if (z.length) { dropped.push(k + ": " + v); terms[k] = ""; } else terms[k] = v; });

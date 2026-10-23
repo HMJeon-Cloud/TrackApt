@@ -2901,7 +2901,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.69</span>
+    <span class="ver">v9.70</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -11052,7 +11052,7 @@ function inAiHtml() {
 /* ── 검증 일지 — 보관함 서버(kind insight) ── */
 function inJournalLoad() {
   if (typeof asApi !== "function" || typeof asTok !== "function" || !asTok()) { IN.journal = []; IN.jErr = "주인 인증 전 — 기록은 서버에 저장됩니다"; inJournalPaint(); return; }
-  asApi("list").then(function (j) { var all = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); var hadCtx = (IN.ctxMine || []).length; IN.ctxMine = all.filter(function (x) { return x.data.type === "ctx"; }); IN.journal = all.filter(function (x) { return x.data.type !== "ctx" && x.data.type !== "ext"; }); if (typeof RP2 !== "undefined") RP2.ext = all.filter(function (x) { return x.data.type === "ext"; }); IN.jErr = ""; inJournalCheck(); inJournalPaint(); if (IN.ctxMine.length !== hadCtx) inPaint(); }, function (e) { IN.journal = []; IN.jErr = "서버 연결 안 됨: " + e.message; inJournalPaint(); });
+  asApi("list").then(function (j) { var all = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); var hadCtx = (IN.ctxMine || []).length; IN.ctxMine = all.filter(function (x) { return x.data.type === "ctx"; }); IN.journal = all.filter(function (x) { return x.data.type !== "ctx" && x.data.type !== "ext" && x.data.type !== "daily"; }); if (typeof RP2 !== "undefined") RP2.ext = all.filter(function (x) { return x.data.type === "ext"; }); IN.jErr = ""; inJournalCheck(); inJournalPaint(); if (IN.ctxMine.length !== hadCtx) inPaint(); }, function (e) { IN.journal = []; IN.jErr = "서버 연결 안 됨: " + e.message; inJournalPaint(); });
 }
 function inJournalPaint() { var el = document.getElementById("in-journal"); if (!el) return; el.innerHTML = '<div class="in-q"><i>Q</i>지난 예상은 맞았어? <small>예상을 적어 두면 기한이 왔을 때 데이터로 채점</small></div>' + inJournalHtml(); }
 function inJournalHtml() {
@@ -12070,16 +12070,18 @@ function tdAiRun(from) {
   /* v9.69 한 번에 하면 55초를 넘겨 실패 → 조사 3부분(이슈·일정·지표)을 동시에 작은 호출로, 그 결과를 모아 추천 호출(검색 없음). 각 호출 15~30초 */
   var today = typeof dyDate === "function" ? dyDate().txt : tpToday(), newsTxt = news.map(function (n) { return n.t + " (" + (n.s || "") + " " + (n.d || "") + ")"; }).join("\n"), prog = { issues: "…", calendar: "…", indicators: "…" };
   var say = function () { var e = document.getElementById(from === "ch" ? "ch-tdmsg" : from === "hub" ? "hub-tdmsg" : "td-aimsg"); if (e) e.textContent = "조사 중(동시에) — 이슈 " + prog.issues + " · 일정 " + prog.calendar + " · 지표 " + prog.indicators + " (각 15~30초)"; }; say();
-  var part = function (k) { return rcPost("/api/ai", { mode: "gather", part: k, today: today, news: k === "issues" ? newsTxt : "" }).then(function (j) { prog[k] = (j.facts || []).length + "줄"; say(); return j; }, function (e) { prog[k] = "실패"; say(); return { facts: [], issues: [], sources: [], dropped: ["[" + k + "] " + e.message], fail: 1 }; }); };
+  var PREV = tdAiGet(), REDO = PREV && (PREV.failedParts || []).length ? PREV.failedParts.slice() : null;   /* v9.70 실패한 부분만 다시 — 성공한 부분은 그대로 두고 */
+  var part = function (k) { if (REDO && REDO.indexOf(k) < 0) { prog[k] = "유지"; return Promise.resolve({ keep: 1, facts: (PREV.facts || []).filter(function (f) { return f.part === k; }), issues: k === "issues" ? PREV.issues || [] : [], sources: [], dropped: [] }); } return rcPost("/api/ai", { mode: "gather", part: k, today: today, news: k === "issues" ? newsTxt : "" }).then(function (j) { prog[k] = (j.facts || []).length + "줄"; say(); (j.facts || []).forEach(function (f) { f.part = k; }); return j; }, function (e) { prog[k] = "실패"; say(); return { facts: [], issues: [], sources: [], dropped: ["[" + k + "] " + e.message], fail: 1, part: k }; }); };
   Promise.all([part("issues"), part("calendar"), part("indicators")]).then(function (R) {
-    var facts = [], seen = {}, issues = [], src = [], drop = [], fails = R.filter(function (x) { return x.fail; }).length, searches = 0;
+    var facts = [], seen = {}, issues = [], src = [], drop = [], fails = R.filter(function (x) { return x.fail; }).length, failedParts = R.filter(function (x) { return x.fail; }).map(function (x) { return x.part; }), searches = 0;
+    if (REDO) (PREV.facts || []).forEach(function (f) { if (!f.part) { var k = String(f.text).replace(/\s+/g, ""); if (!seen[k]) { seen[k] = 1; facts.push(f); } } });
     R.forEach(function (x) { (x.facts || []).forEach(function (f) { var k = String(f.text).replace(/\s+/g, ""); if (!seen[k]) { seen[k] = 1; facts.push(f); } }); issues = issues.concat(x.issues || []); src = src.concat(x.sources || []); drop = drop.concat(x.dropped || []); searches += x.searches || 0; });
     if (fails === 3) throw new Error("조사 3부분이 모두 실패했습니다 — " + drop.map(function (d) { return d.slice(0, 60); }).join(" / "));
     var e2 = document.getElementById(from === "ch" ? "ch-tdmsg" : from === "hub" ? "hub-tdmsg" : "td-aimsg"); if (e2) e2.textContent = "사실 " + facts.length + "줄 · 이슈 " + issues.length + "건 모음 → 오늘 추천 고르는 중 (15~25초)";
     return rcPost("/api/ai", { mode: "today", web: false, webFacts: facts, issues: issues, today: today, cands: cands, recipes: recipes, news: news, events: ev, tabs: CH_TABS, regular: reg.join(", ") }).then(function (j) {
-      var o = j.today || {}; if (!(o.facts || []).length) o.facts = facts; if (!(o.issues || []).length) o.issues = issues; o.sources = (o.sources || []).concat(src); o.dropped = (o.dropped || []).concat(drop); j.searches = (j.searches || 0) + searches; if (fails) o.partFail = fails; j.today = o; return j;
-    }, function (e) {   /* 추천 호출만 실패해도 모은 사실은 살린다 */
-      return { today: { issues: issues, cards: [], corners: [], facts: facts, summary: "", sources: src, dropped: drop.concat(["[추천] " + e.message]), partFail: fails, recoFail: 1 }, model: "", searches: searches };
+      var o = j.today || {}; if (!(o.facts || []).length) o.facts = facts; else { var byT = {}; facts.forEach(function (f) { byT[String(f.text).replace(/\s+/g, "")] = f.part; }); o.facts.forEach(function (f) { if (!f.part) f.part = byT[String(f.text).replace(/\s+/g, "")] || ""; }); } if (!(o.issues || []).length) o.issues = issues; o.sources = (o.sources || []).concat(src); o.dropped = (o.dropped || []).concat(drop); j.searches = (j.searches || 0) + searches; if (fails) o.partFail = fails; o.failedParts = failedParts; j.today = o; return j;
+    }, function (e) {   /* 추천 호출만 실패해도 모은 사실은 살린다 — 다음 [다시]는 추천만 */
+      return { today: { issues: issues, cards: [], corners: [], facts: facts, summary: "", sources: src, dropped: drop.concat(["[추천] " + e.message]), partFail: fails, recoFail: 1, failedParts: failedParts.concat(["reco"]) }, model: "", searches: searches };
     });
   }).then(function (j) {
     var o = j.today || {}; o.day = chKstDate().key; o.model = j.model; o.searches = j.searches; o.at = o.at || Date.now(); TD.ai = o; if (from === "hub" && typeof HUB !== "undefined") HUB.sel = "issue"; try { localStorage.setItem(TD_AI_LS, JSON.stringify(o)); } catch (e) {}
@@ -12127,7 +12129,7 @@ function tdAiChannelHtml() {
   if (A && (A.corners || []).length) H += '<div class="chplan"><small>Claude 추천</small>' + A.corners.map(function (c) { return '<button type="button" data-ch="' + aiEsc(c.tab) + '" class="chplan-d" title="' + aiEsc(c.why) + '"><b>' + aiEsc(CH_TAB_SHORT[c.tab] || c.tab) + "</b><i>" + aiEsc((c.why || "").slice(0, 18)) + "</i></button>"; }).join("") + "</div>";
   return H + tdAiIssuesHtml();
 }
-document.addEventListener("click", function (ev) { var b = ev.target && ev.target.closest && ev.target.closest("[data-tdai]"); if (b) tdAiRun(b.dataset.tdai); var x = ev.target && ev.target.closest && ev.target.closest("[data-tdaioff]"); if (x) { TD.ai = null; try { localStorage.removeItem(TD_AI_LS); } catch (e) {} tdPaint(); } });
+document.addEventListener("click", function (ev) { var fb = ev.target && ev.target.closest && ev.target.closest("[data-tdaifull]"); if (fb) { if (TD.ai) { TD.ai.failedParts = []; TD.ai = null; try { localStorage.removeItem(TD_AI_LS); } catch (e) {} } tdAiRun("hub"); return; } var b = ev.target && ev.target.closest && ev.target.closest("[data-tdai]"); if (b) tdAiRun(b.dataset.tdai); var x = ev.target && ev.target.closest && ev.target.closest("[data-tdaioff]"); if (x) { TD.ai = null; try { localStorage.removeItem(TD_AI_LS); } catch (e) {} tdPaint(); } });
 
 /* ── ⑦ 분석 브리핑 외부 조사 — 프롬프트 그대로 Claude + 웹 검색. 한 주제는 확인 후 [저장], '빈 주제 모두'는 차례로 자동 저장 ── */
 function rpClaude(topicId, auto) {
@@ -12323,7 +12325,7 @@ function hubPaint() {
   var bs = document.getElementById("hub-basis"); if (bs) bs.textContent = (typeof dyDate === "function" ? dyDate().txt : "") + (typeof inBasisLine === "function" ? (function () { try { var x = inBasisLine(); return x ? " · " + x : ""; } catch (e) { return ""; } })() : "");
   var S = hubState(), sel = HUB.sel || S.cur, done = S.filter(function (x) { return x.st === "done"; }).length;
   var ST = { done: "완료", todo: "할 차례", bad: "확인 필요", wait: "불러오는 중" };
-  var board = '<div class="hub-all"><button type="button" class="btn" data-huball="1"' + (HUB.all ? " disabled" : "") + '>오늘 준비 한 번에</button><span class="hint" id="hub-allmsg">' + (HUB.all ? "진행 중" : HUB.allMsg ? hubE(HUB.allMsg) : "자료 모으기 → 판단 → 정기 코너 글 미리 쓰기 · Claude 3~5회 · 약 2분 · 끝나면 4·5단계는 확인만") + '</span></div><div class="hub-prog"><b>' + done + "/5 단계 완료</b><div><i style=\"width:" + done * 20 + '%"></i></div></div><div class="hub-board">' + S.map(function (x, i) {
+  var board = '<div class="hub-all"><button type="button" class="btn" data-huball="1"' + (HUB.all ? " disabled" : "") + '>오늘 준비 한 번에</button><span class="hint" id="hub-allmsg">' + (HUB.all ? "진행 중" : HUB.allMsg ? hubE(HUB.allMsg) : "자료 모으기 → 판단 → 정기 코너 글 미리 쓰기 · Claude 3~5회 · 약 2분 · 끝나면 4·5단계는 확인만") + '</span></div><div class="hub-prog"><b>' + done + '/5 단계 완료</b><small class="hint" id="hub-sync">' + (typeof DAILY !== "undefined" && DAILY.at ? "서버 저장 " + new Date(DAILY.at + 9 * 3600e3).toISOString().slice(11, 16) + " · PC·휴대폰 공통" : "결과는 서버 보관함에 저장 — PC·휴대폰 공통") + '</small><div><i style="width:' + done * 20 + '%"></i></div></div><div class="hub-board">' + S.map(function (x, i) {
     var stv = x.st === "todo" && x.k !== S.cur ? "next" : x.st;
     return '<div class="hub-col s-' + stv + (x.k === sel ? " sel" : "") + '" data-hubsel="' + x.k + '"><div class="hub-ct"><i>' + (i + 1) + "</i><b>" + x.nm + '</b></div><em class="hub-st">' + (stv === "next" ? "대기" : ST[x.st]) + '</em><p>' + hubE(x.res) + "</p>" + (x.act ? '<button type="button" class="btn sm" data-hubact="' + x.k + '">' + hubE(x.act) + "</button>" : "") + "</div>";
   }).join("") + "</div>";
@@ -12344,7 +12346,7 @@ function hubB1() {
 }
 function hubB2() {
   var A = typeof tdAiGet === "function" ? tdAiGet() : null;
-  var h = '<div class="tpx-tools"><button type="button" class="btn sm' + (A ? " ghost" : "") + '" data-tdai="hub">' + (A ? "다시 모으기" : "오늘 자료 모으기(Claude)") + '</button><span class="hint" id="hub-tdmsg">' + (A ? hubE(A.model || "") + " · 웹 검색 " + (A.searches || 0) + "번 · " + tdAiAt() : "웹 검색 한 번으로 이슈 · 앞 2주 일정 · 지표 · 정책을 모으고 오늘 코너·카드를 고릅니다 · 40~55초") + "</span></div>" +
+  var h = '<div class="tpx-tools"><button type="button" class="btn sm' + (A && !(A.failedParts || []).length ? " ghost" : "") + '" data-tdai="hub">' + (A ? ((A.failedParts || []).length ? "실패한 부분만 다시(" + A.failedParts.map(function (k) { return { issues: "이슈", calendar: "일정", indicators: "지표", reco: "추천" }[k] || k; }).join("·") + ")" : "다시 모으기") : "오늘 자료 모으기(Claude)") + '</button>' + (A && (A.failedParts || []).length ? '<button type="button" class="btn sm ghost" data-tdaifull="1">전부 새로</button>' : "") + '<span class="hint" id="hub-tdmsg">' + (A ? hubE(A.model || "") + " · 웹 검색 " + (A.searches || 0) + "번 · " + tdAiAt() : "웹 검색 한 번으로 이슈 · 앞 2주 일정 · 지표 · 정책을 모으고 오늘 코너·카드를 고릅니다 · 40~55초") + "</span></div>" +
     '<p class="hint">이 자료는 오늘 하루 인사이트 · AI 문구 · 주간 브리핑 · 외부 조사가 그대로 씁니다(다시 검색하지 않음). 다른 화면의 추천도 모두 여기서 나온 것.</p>';
   if (!A) return h;
   var K = { 이슈: [], 일정: [], 지표: [], 정책: [] }; (A.facts || []).forEach(function (f) { (K[f.kind] || (K.이슈)).push(f); });
@@ -12579,7 +12581,8 @@ function hubRegularTabs() { var reg = (typeof chPlanRegular === "function" ? chP
 function hubPreCaptions(cb) {
   var m = document.getElementById("hub-pcmsg"); if (!aiCanTok(m)) { cb && cb(); return; }
   appReady(["channel", "daily", "macro"], function () {
-    var tabs = hubRegularTabs(), i = 0, n = 0, fail = []; CH.aiPre = CH.aiPre || {}; HUB.pcBusy = 1;
+    var PRE0 = typeof chAiPreLoad === "function" ? chAiPreLoad() : {}, tabs = hubRegularTabs().filter(function (t) { return HUB.pcForce || !PRE0[t]; }), i = 0, n = 0, fail = []; CH.aiPre = CH.aiPre || {}; HUB.pcBusy = 1; HUB.pcForce = 0;
+    if (!tabs.length) { HUB.pcBusy = 0; if (m) m.textContent = "정기 코너 글은 이미 다 미리 썼습니다(다시 쓰려면 채널 브리핑에서 [AI 문구 만들기])"; cb && cb(); return; }
     if (tabs.indexOf("school") >= 0 && typeof scLoad === "function" && !(typeof SC !== "undefined" && SC && SC.data)) { scLoad(function () { go(); }); } else go();
     function go() { (function next() {
       if (i >= tabs.length) { HUB.pcBusy = 0; if (m) m.textContent = "미리 쓴 글 " + n + "개" + (fail.length ? " · 실패 " + fail.join(", ") : "") + " — 채널 브리핑에서 바로 보임"; hubPaint(); cb && cb(); return; }
@@ -12612,9 +12615,10 @@ function hubPrepAll() {
   var m = document.getElementById("hub-allmsg"); if (!aiCanTok(m)) return;
   HUB.all = 1; hubPaint(); var m2 = function (t) { var e = document.getElementById("hub-allmsg"); if (e) e.textContent = t; };
   m2("1/3 오늘 자료 모으는 중 (40~55초)");
-  var step2 = function () { m2("2/3 판단 쓰는 중 (15~30초)"); hubJudge("어떤 상황이야?", function () { m2("3/3 정기 코너 글 미리 쓰는 중"); hubPreCaptions(function () { HUB.all = 0; HUB.allMsg = "오늘 준비 끝(" + new Date(Date.now() + 9 * 3600e3).toISOString().slice(11, 16) + ") — 4단계에서 확인하고 올리면 됩니다 · 숫자 검사만 올리기 직전에"; hubPaint(); }); }); };
-  if (typeof tdAiGet === "function" && tdAiGet()) { step2(); return; }
-  var t0 = Date.now(), tm = setInterval(function () { var A = tdAiGet(); var busy = !!document.querySelector("[data-tdai][disabled]"); if (A && !busy) { clearInterval(tm); step2(); } else if (!busy && Date.now() - t0 > 3000 && !A) { clearInterval(tm); HUB.all = 0; m2("자료 모으기에 실패해 멈췄습니다 — 2단계 메시지를 확인하고 다시"); hubPaint(); } else if (Date.now() - t0 > 90000) { clearInterval(tm); HUB.all = 0; m2("시간이 오래 걸려 멈췄습니다 — 단계별로 다시"); hubPaint(); } }, 500);
+  var step3 = function () { m2("3/3 정기 코너 글 미리 쓰는 중(이미 쓴 코너는 건너뜀)"); hubPreCaptions(function () { HUB.all = 0; HUB.allMsg = "오늘 준비 끝(" + new Date(Date.now() + 9 * 3600e3).toISOString().slice(11, 16) + ") — 4단계에서 확인하고 올리면 됩니다 · 숫자 검사만 올리기 직전에"; hubPaint(); }); };
+  var step2 = function () { if (hubLog().insight && !(IN.aiErr)) { step3(); return; } m2("2/3 판단 쓰는 중 (15~30초)"); hubJudge("어떤 상황이야?", function (ok) { if (!ok) { HUB.all = 0; HUB.allMsg = "판단에서 멈췄습니다 — [오늘 준비 한 번에]를 다시 누르면 여기서부터 이어서"; hubPaint(); return; } step3(); }); };
+  var A0 = typeof tdAiGet === "function" ? tdAiGet() : null; if (A0 && !(A0.failedParts || []).length) { step2(); return; }   /* 이미 모았으면 건너뜀 · 실패한 부분이 있으면 그 부분만 */
+  var t0 = Date.now(), tm = setInterval(function () { var A = tdAiGet(); var busy = !!document.querySelector("[data-tdai][disabled]"); if (A && !busy) { clearInterval(tm); step2(); } else if (!busy && Date.now() - t0 > 3000 && !A) { clearInterval(tm); HUB.all = 0; HUB.allMsg = "자료 모으기에 실패해 멈췄습니다 — [오늘 준비 한 번에]를 다시 누르면 여기서부터 이어서"; hubPaint(); } else if (Date.now() - t0 > 90000) { clearInterval(tm); HUB.all = 0; m2("시간이 오래 걸려 멈췄습니다 — 단계별로 다시"); hubPaint(); } }, 500);
   tdAiRun("hub");
 }
 document.addEventListener("click", function (ev) {
@@ -12623,6 +12627,72 @@ document.addEventListener("click", function (ev) {
   var j = t.closest("[data-hubjudge]"); if (j) { hubJudge(j.dataset.hubjudge); return; }
   if (t.closest("[data-hubpre]")) { hubPreCaptions(); return; }
 });
+
+/* ══ v9.70 오늘 작업 결과를 서버 보관함에 — PC·휴대폰 어디서나 같은 결과(자료 모으기 · 판단 · 미리 쓴 글 · 숫자 검사 기록) ══
+   보관함(Upstash) 항목 kind "insight" · type "daily" 하루 1개(이전 날 것은 지움). 60KB 안에 맞춰 큰 것부터 줄인다.
+   기기에 있던 것과 서버 것 중 더 최근 것을 쓴다. 저장은 바뀔 때마다 1.5초 뒤 한 번(호출 최소). */
+var DAILY = { id: null, at: 0, tm: null, pulledAt: 0, busy: 0 };
+function dailyDay() { return chKstDate().key; }
+function dailyCollect() {
+  var A = typeof tdAiGet === "function" ? tdAiGet() : null, LG = typeof hubLog === "function" ? hubLog() : null, PRE = typeof chAiPreLoad === "function" ? chAiPreLoad() : {}, I = typeof IN !== "undefined" && IN.ai && IN.ai.at && new Date(IN.ai.at).getTime() > Date.now() - 20 * 3600e3 ? IN.ai : null;
+  var td = A ? { day: A.day, at: A.at, model: A.model, searches: A.searches, summary: A.summary, facts: (A.facts || []).slice(0, 25), issues: (A.issues || []).slice(0, 12).map(function (x) { return { title: x.title, why: x.why, points: (x.points || []).slice(0, 3), src: x.src, date: x.date, url: x.url, card: x.card }; }), cards: (A.cards || []).slice(0, 20), corners: (A.corners || []).slice(0, 5), sources: (A.sources || []).slice(0, 10), dropped: (A.dropped || []).slice(0, 10), partFail: A.partFail } : null;
+  var ins = I ? { q: I.q, at: new Date(I.at).getTime(), model: I.model, r: I.r, sources: (I.sources || []).slice(0, 8), facts: (I.facts || []).map(function (f) { return { id: f.id, text: String(f.text).slice(0, 140) }; }), prev: I.prev || null } : null;
+  var pre = {}; Object.keys(PRE || {}).forEach(function (t) { var p = PRE[t]; if (p && p.day === dailyDay()) pre[t] = { insta: String(p.insta || "").slice(0, 2200), threads: String(p.threads || "").slice(0, 1400), hooks: (p.hooks || []).slice(0, 3), model: p.model, at: p.at, day: p.day }; });
+  var d = { v: 1, day: dailyDay(), at: Date.now(), td: td, insight: ins, pre: pre, log: LG };
+  var size = function () { return JSON.stringify(d).length; };
+  if (size() > 58000 && d.insight) d.insight.facts = d.insight.facts.slice(0, 60);
+  if (size() > 58000 && d.insight) d.insight.facts = [];
+  if (size() > 58000 && d.td) { d.td.facts = d.td.facts.slice(0, 15); d.td.issues = d.td.issues.slice(0, 8); }
+  if (size() > 58000) d.pre = {};
+  return d;
+}
+function dailyPush() {
+  if (typeof asApi !== "function" || typeof asTok !== "function" || !asTok()) return;
+  clearTimeout(DAILY.tm); DAILY.tm = setTimeout(function () {
+    var d = dailyCollect(); if (!d.td && !d.insight && !Object.keys(d.pre).length) return;
+    var go = function () {
+      if (DAILY.id) return asApi("update", { id: DAILY.id, patch: { data: d, name: "오늘 작업 " + d.day } });
+      return asApi("list").then(function (j) {
+        var olds = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data && x.data.type === "daily"; });
+        var mine = olds.filter(function (x) { return x.data.day === d.day; })[0];
+        olds.forEach(function (x) { if (x !== mine) asApi("del", { id: x.id }).catch(function () {}); });
+        if (mine) { DAILY.id = mine.id; return asApi("update", { id: mine.id, patch: { data: Object.assign({ type: "daily" }, d) } }); }
+        return asApi("add", { item: { kind: "insight", type: "daily", name: "오늘 작업 " + d.day, tags: ["오늘 작업"], data: Object.assign({ type: "daily" }, d) } }).then(function (r) { DAILY.id = r.item && r.item.id; });
+      });
+    };
+    (DAILY.id ? asApi("update", { id: DAILY.id, patch: { data: Object.assign({ type: "daily" }, d) } }) : go()).then(function () { DAILY.at = d.at; var e = document.getElementById("hub-sync"); if (e) e.textContent = "서버에 저장 " + new Date(d.at + 9 * 3600e3).toISOString().slice(11, 16) + " · PC·휴대폰 공통"; }, function (e) { var el = document.getElementById("hub-sync"); if (el) el.textContent = "서버 저장 실패: " + e.message + " (이 기기에만 있음)"; });
+  }, 1500);
+}
+/* 서버 것이 더 최근이면 이 기기에 들여온다 */
+function dailyPull(cb) {
+  if (typeof asApi !== "function" || typeof asTok !== "function" || !asTok() || DAILY.busy || Date.now() - DAILY.pulledAt < 45000) { cb && cb(false); return; }
+  DAILY.busy = 1;
+  asApi("list").then(function (j) {
+    DAILY.busy = 0; DAILY.pulledAt = Date.now();
+    var it = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data && x.data.type === "daily" && x.data.day === dailyDay(); })[0]; if (!it) { cb && cb(false); return; }
+    DAILY.id = it.id; var d = it.data, changed = false; try {
+    var A = typeof tdAiGet === "function" ? tdAiGet() : null;
+    if (d.td && (!A || (d.td.at || 0) > (A.at || 0))) { TD.ai = d.td; try { localStorage.setItem(TD_AI_LS, JSON.stringify(d.td)); } catch (e) {} changed = true; }
+    if (d.insight && typeof IN !== "undefined" && (!IN.ai || !IN.ai.at || new Date(IN.ai.at).getTime() < d.insight.at)) { IN.ai = { q: d.insight.q, at: new Date(d.insight.at), facts: d.insight.facts || [], r: d.insight.r || {}, model: d.insight.model || "", sources: d.insight.sources || [], prev: d.insight.prev || null }; IN.pub = null; changed = true; }
+    if (d.pre && Object.keys(d.pre).length) { var P = typeof chAiPreLoad === "function" ? chAiPreLoad() : {}; Object.keys(d.pre).forEach(function (t) { if (!P[t] || String(P[t].at || "") < String(d.pre[t].at || "")) { P[t] = d.pre[t]; changed = true; } }); CH.aiPre = P; try { localStorage.setItem("trackapt_ch_aipre_v1", JSON.stringify(P)); } catch (e) {} }
+    if (d.log && typeof hubLog === "function") { var L = hubLog(); if (d.log.insight && (!L.insight || true)) L.insight = d.log.insight; var seen = {}; L.verify = (L.verify || []).concat(d.log.verify || []).filter(function (v) { var k = v.at + v.where; if (seen[k]) return false; seen[k] = 1; return true; }).sort(function (a, b) { return String(a.at).localeCompare(String(b.at)); }).slice(-12); try { localStorage.setItem(HUBLOG_LS, JSON.stringify(L)); } catch (e) {} }
+    } catch (ex) { if (window.console) console.error("dailyPull", ex); }
+    if ((d.at || 0) > (DAILY.at || 0)) changed = true;
+    DAILY.at = d.at || 0; var e = document.getElementById("hub-sync"); if (e) e.textContent = "서버 것 불러옴 " + new Date((d.at || Date.now()) + 9 * 3600e3).toISOString().slice(11, 16) + " · PC·휴대폰 공통";
+    cb && cb(changed);
+  }, function () { DAILY.busy = 0; cb && cb(false); });
+}
+/* 바뀌는 자리마다 저장 */
+(function () {
+  if (typeof hubLogSet === "function") { var o1 = hubLogSet; hubLogSet = function (k, v) { o1(k, v); dailyPush(); }; }
+  if (typeof hubPreCaptions === "function") { var o2 = hubPreCaptions; hubPreCaptions = function (cb) { o2(function () { dailyPush(); cb && cb(); }); }; }
+  if (typeof tdAiRun === "function") { var o3 = tdAiRun; tdAiRun = function (from) { var before = TD.ai; o3(from); var t0 = Date.now(), tm = setInterval(function () { if (TD.ai && TD.ai !== before) { clearInterval(tm); dailyPush(); } else if (Date.now() - t0 > 120000) clearInterval(tm); }, 1000); }; }
+  /* 화면을 열 때 서버 것 확인(45초에 한 번만) */
+  if (typeof renderToday === "function") { var r1 = renderToday; renderToday = function () { r1(); dailyPull(function (ch) { if (typeof hubPaint === "function" && document.getElementById("hub-body")) hubPaint(); }); }; }
+  if (typeof renderInsight === "function") { var r2 = renderInsight; renderInsight = function () { r2(); dailyPull(function (ch) { if (ch && typeof inPaint === "function" && document.getElementById("in-body")) try { inPaint(); } catch (e) {} }); }; }
+  if (typeof renderChannel === "function") { var r3 = renderChannel; renderChannel = function () { dailyPull(function (ch) { if (ch && typeof paintChannel === "function") try { paintChannel(); } catch (e) {} }); r3(); }; }
+  if (typeof renderTpl === "function") { var r4 = renderTpl; renderTpl = function () { dailyPull(function (ch) { if (ch && typeof tdPaint === "function") tdPaint(); }); r4(); }; }
+})();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

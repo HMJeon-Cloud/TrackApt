@@ -2391,7 +2391,7 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .stu-link{display:block;border:1px solid var(--line,#dfe3ea);border-left:4px solid #d4af6a;border-radius:10px;padding:10px 12px;text-decoration:none;color:inherit;background:var(--card,#fff)}
 .stu-link b{display:block;font-size:14px}.stu-link span{display:block;font-size:12px;color:var(--muted,#6b7684);margin-top:2px}
 .stu-go #bf-rcslot{margin-top:8px}
-.tp-capai{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.tp-capai .btn{flex:0 0 auto;width:auto}.tp-capai #tp-capaimsg{flex:1 1 100%}.tp-capai .cap-note{flex:1 1 180px;min-width:0;font-size:12.5px;padding:5px 8px}.cap-aix{margin:6px 0;padding:8px 10px;border:1px solid var(--line,#ddd);border-radius:8px;font-size:12.5px;display:grid;gap:6px}.cap-aix ul{margin:2px 0 0 16px;padding:0}.cap-hooks{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}.cap-hooks .btn{white-space:normal;text-align:left}.cap-drop{color:#b42318}.vf-ok{color:#067647}.vf-bad{color:#b42318}.vf-list{margin:4px 0 0 16px;padding:0}.vf-list li.err{color:#b42318}tr.vf-miss td{color:#b42318}.td-ai{margin:6px 0;font-size:12.5px}.td-ai ol{margin:4px 0 0 18px;padding:0}.td-ai li{margin:2px 0}.td-list li.ai button{border-color:rgba(212,175,106,.6)}.td-hd{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.ch-tdai .hint{font-size:12px}.rp2-cl{margin-top:8px}#ch-wkbox textarea{width:100%;box-sizing:border-box}.tp-cap{margin-top:10px}.tp-cap summary{cursor:pointer;font-weight:700}.tp-cap textarea{width:100%;box-sizing:border-box;margin-top:6px}
+.tp-capai{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.tp-capai .btn{flex:0 0 auto;width:auto}.tp-capai #tp-capaimsg{flex:1 1 100%}.tp-capai .cap-note{flex:1 1 180px;min-width:0;font-size:12.5px;padding:5px 8px}.cap-aix{margin:6px 0;padding:8px 10px;border:1px solid var(--line,#ddd);border-radius:8px;font-size:12.5px;display:grid;gap:6px}.cap-aix ul{margin:2px 0 0 16px;padding:0}.cap-hooks{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}.cap-hooks .btn{white-space:normal;text-align:left}.cap-drop{color:#b42318}.vf-ok{color:#067647}.vf-bad{color:#b42318}.vf-list{margin:4px 0 0 16px;padding:0}.vf-list li.err{color:#b42318}tr.vf-miss td{color:#b42318}.td-ai{margin:6px 0;font-size:12.5px}.td-ai ol{margin:4px 0 0 18px;padding:0}.td-ai li{margin:2px 0}.td-list li.ai button{border-color:rgba(212,175,106,.6)}.td-hd{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.ch-tdai .hint{font-size:12px}.rp2-cl{margin-top:8px}#ch-wkbox textarea{width:100%;box-sizing:border-box}.vx-i{padding:4px 0;border-top:1px dashed rgba(0,0,0,.12)}.vx-i.err b{color:#b42318}.vx-i small{color:#667085;margin-right:4px}.tp-cap{margin-top:10px}.tp-cap summary{cursor:pointer;font-weight:700}.tp-cap textarea{width:100%;box-sizing:border-box;margin-top:6px}
 body.stu-on #subnav button:not(.back){display:none!important}
 @media(max-width:430px){.tpr-grps{gap:10px}.tpr-g{gap:5px}}
 
@@ -2901,7 +2901,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.61</span>
+    <span class="ver">v9.62</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -5959,7 +5959,7 @@ function chOpsBanner() {
   if (CH.val && CH.val.summary) {
     var V = CH.val, bad = V.checks.filter(function (c) { return c.level === "error" || c.level === "warn"; });
     L.push('<details class="chval' + (V.summary.error ? " err" : "") + '"><summary>데이터 점검 ' + (V.summary.error ? "오류 " + V.summary.error + " · " : "") + "주의 " + V.summary.warn + " · 정상 " + V.summary.ok + ' <small>(' + escHtml(String(V.built || "").slice(5, 16).replace("T", " ")) + " UTC)</small></summary>" +
-      bad.map(function (c) { return "<p><b>" + escHtml(c.id + " " + c.title) + "</b> " + escHtml(c.detail) + "</p>"; }).join("") + "</details>");
+      bad.map(function (c) { return "<p><b>" + escHtml(c.id + " " + c.title) + "</b> " + escHtml(c.detail) + "</p>"; }).join("") + (bad.length && typeof chValXHtml === "function" ? chValXHtml() : "") + "</details>");
   }
   var last = Object.keys(posted).map(function (k) { return [k, posted[k]]; }).sort(function (a, b) { return b[1].localeCompare(a[1]); }).slice(0, 3);
   var days = ["일", "월", "화", "수", "목", "금", "토"], w = chKstDate().w, kd = chKstDate(), dim = chDaysInMonth(kd.y, kd.m);
@@ -7811,7 +7811,7 @@ function rcMake() {
   }
   c.facts = F; c.busy = "OpenAI가 한 장으로 설계하는 중…" + (c.preset ? " (저장한 구성 '" + (c.preset.name || "") + "'을 예시로)" : ""); c.err = ""; c.ok = ""; rcPaint();
   rcPost("/api/ai", { mode: "plan", facts: F, topic: c.topic, purpose: c.purpose + (c.purposeHint && c.purposeHint !== c.purpose ? " · " + c.purposeHint : ""), note: c.note || "", refs: c.refs || [], example: c.preset ? c.preset.data : undefined }).then(function (j) {
-    c.plan = j.plan; c.model = j.model; c.busy = ""; rcPaint(); rcArt();
+    c.plan = j.plan; c.model = j.model + ((j.dropped || []).length ? " · facts 에 없는 숫자라 뺀 항목 " + j.dropped.length + "개" : ""); c.busy = ""; rcPaint(); rcArt();
     var r = RC.host && RC.host.querySelector(".rc-result"); if (r) r.scrollIntoView({ behavior: "smooth", block: "start" });
   }, function (e) { c.busy = ""; c.err = "설계 실패: " + (e.message || e); rcPaint(); });
 }
@@ -11003,7 +11003,7 @@ function inAsk(q) {
   if (typeof rcPost !== "function") return; var F = inFacts(); if (!F.length) { IN.aiErr = "재료가 없습니다 — 데이터가 다 불러와진 뒤 다시"; inPaint(); return; }
   IN.aiQ = q; IN.busy = "OpenAI가 위 숫자만으로 답을 쓰는 중… (10~20초)"; IN.aiErr = ""; inPaint();
   rcPost("/api/ai", { mode: "insight", facts: F, question: q, stances: (IN.st || []).map(function (s) { return s.who; }) }).then(function (j) {
-    IN.busy = ""; IN.ai = { q: q, at: new Date(), facts: F, r: j.insight || {}, model: j.model }; inPaint();
+    IN.busy = ""; IN.ai = { q: q, at: new Date(), facts: F.concat(j.web || []), r: j.insight || {}, model: j.model + (j.searches ? " · 웹 검색 " + j.searches + "번" : ""), sources: j.sources || [] }; inPaint();   /* v9.62 Claude: 웹 인용문(W1…)도 재료로 — 그 숫자는 빨갛게 하지 않음 */
     var el = document.querySelector(".in-aiout"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, function (e) { IN.busy = ""; IN.aiErr = "실패: " + (e.message || e); inPaint(); });
 }
@@ -11019,6 +11019,7 @@ function inAiHtml() {
     (r.scenarios && r.scenarios.length ? '<h4>앞으로</h4><div class="in-sc">' + r.scenarios.map(function (s, k) { return '<div class="in-scc k' + k + '"><b>' + inE(s.name) + "</b><small>조건</small><p>" + mark(s.cond) + "</p><small>그러면</small><p>" + mark(s.then) + "</p></div>"; }).join("") + "</div>" : "") +
     (r.watch && r.watch.length ? '<h4>확인할 신호</h4><ul class="in-ul">' + r.watch.map(function (x) { return "<li>" + mark(x) + "</li>"; }).join("") + "</ul>" : "") +
     (r.risk ? '<p class="hint"><b>틀릴 수 있는 이유</b> ' + mark(r.risk) + "</p>" : "") +
+    ((A.sources || []).length ? '<p class="hint"><b>웹 출처</b> ' + A.sources.slice(0, 8).map(function (s) { return '<a href="' + inE(s.url) + '" target="_blank" rel="noopener">' + inE(s.title) + "</a>"; }).join(" · ") + "</p>" : "") +
     '<details class="in-det"><summary>재료 ' + A.facts.length + '줄</summary><div class="in-facts">' + A.facts.map(function (f) { return "<div><i>" + f.id + "</i>" + inE(f.text) + "</div>"; }).join("") + "</div></details></div>";
 }
 /* ── 검증 일지 — 보관함 서버(kind insight) ── */
@@ -12090,6 +12091,26 @@ function rpClaudeHtml() {
   if (C) H += '<div class="cap-aix"><div><b>조사 항목</b><table class="in-tbl sm"><tr><th>항목</th><th>값</th><th>기준일</th><th>출처</th><th>확인</th></tr>' + (C.j.findings || []).map(function (f) { return '<tr class="' + (f.chk === "인용 없음" ? "vf-miss" : "") + '"><td>' + aiEsc(f.q) + "</td><td><b>" + aiEsc(f.value) + "</b></td><td>" + aiEsc(f.date) + "</td><td>" + aiEsc(f.src) + "</td><td>" + aiEsc(f.chk || "") + (f.miss ? " (" + aiEsc(f.miss) + ")" : "") + "</td></tr>"; }).join("") + "</table></div>" + aiSrcHtml(C.sources) + "</div>";
   return H;
 }
+
+/* ══ v9.62 데이터 점검 해설(Claude) — 채널 브리핑 맨 위 '데이터 점검' 안. 누를 때만, 점검 시각마다 한 번 보관 ══ */
+function chValXHtml() {
+  if (!(typeof rcTok === "function" && rcTok())) return "";
+  var X = CH.valx && CH.val && CH.valx.built === CH.val.built ? CH.valx : null;
+  var H = '<div class="tpx-tools"><button type="button" class="btn sm ghost" data-chvalx="1">원인·할 일 설명(Claude)</button><span class="hint" id="ch-valxmsg">' + (X ? aiEsc(X.model || "") : "오류·주의가 무엇을 뜻하는지, 무엇을 하면 되는지") + "</span></div>";
+  if (X) H += '<div class="cap-aix"><div><b>' + aiEsc(X.overall) + "</b></div>" + (X.items || []).map(function (x) { return '<div class="vx-i' + (x.level === "오류" ? " err" : "") + '"><b>' + aiEsc(x.id + " " + (x.level || "")) + "</b> " + aiEsc(x.meaning || "") +
+    (x.cause ? "<br><small>원인</small> " + aiEsc(x.cause) : "") + (x.check ? "<br><small>확인</small> " + aiEsc(x.check) : "") + (x.fix ? "<br><small>할 일</small> " + aiEsc(x.fix) : "") + (x.safe ? '<br><small>쓰면 안 되는 숫자</small> ' + aiEsc(x.safe) : "") + "</div>"; }).join("") + '<p class="hint">Claude 해설은 점검 결과를 읽은 추정입니다 — 실제 원인은 Actions 로그로 확인하세요.</p></div>';
+  return H;
+}
+document.addEventListener("click", function (ev) {
+  var b = ev.target && ev.target.closest && ev.target.closest("[data-chvalx]"); if (!b || !CH.val) return;
+  ev.preventDefault(); var m = document.getElementById("ch-valxmsg"); if (!aiCanTok(m)) return;
+  var bad = (CH.val.checks || []).filter(function (c) { return c.level === "error" || c.level === "warn"; });
+  b.disabled = true; if (m) m.textContent = "Claude가 점검 결과를 읽는 중 (10~20초)";
+  rcPost("/api/ai", { mode: "valexplain", checks: bad, summary: CH.val.summary, built: CH.val.built }).then(function (j) {
+    CH.valx = { built: CH.val.built, overall: j.explain.overall, items: j.explain.items, model: j.model };
+    var ops = document.getElementById("ch-ops"); if (ops && typeof chOpsBanner === "function") { ops.innerHTML = chOpsBanner(); var d = ops.querySelector(".chval"); if (d) d.open = true; }
+  }).catch(function (e) { if (m) m.textContent = "실패: " + e.message; b.disabled = false; });
+});
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

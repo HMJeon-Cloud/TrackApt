@@ -8,6 +8,7 @@
 // POST { t, mode:"caption", facts, card:{title,cat,src,asOf,pages}, base:{insta,threads}, note, web } → { ok, insta, threads:{main,r1,r2}, hooks[], adds[], sources[], dropped[] } (v9.60 Claude 문구 · 누를 때만)
 //   환경변수: ANTHROPIC_API_KEY (문구 전용) · CLAUDE_MODEL (기본 claude-sonnet-5-5) · CLAUDE_WEB=off 이면 웹 검색 끔
 // v9.61 Claude(ANTHROPIC_API_KEY): mode "verify"(카드 이미지 교차 검사) · "weekly"(주간 브리핑 초안) · "today"(기사·이슈로 오늘 주제 고르기) · "research"(분석 브리핑 외부 조사) · "extract"(키가 있으면 Claude, engine:"openai" 면 OpenAI)
+// v9.62 ANTHROPIC_API_KEY 가 있으면 plan · fill · insight · extract 도 Claude(TEXT_ENGINE=openai 또는 engine:"openai" 면 OpenAI) · mode "valexplain"(데이터 점검 해설). "read"(이미지 글자 읽기)는 OpenAI 그대로
 // POST { t, mode:"extract", text:"공고문 텍스트" }                   → { ok, terms:{res,resPeriod,prior,resale,live,rewin,firstRank,point,down,mid,balance,option,move,etc} } (v9.20.3 단지별 청약 조건)
 const crypto = require("crypto");
 function tokenOf(key) { return crypto.createHmac("sha256", key).update("trackapt-owner-v1").digest("hex"); }
@@ -225,16 +226,74 @@ async function cResearch(b) {
   (J.findings || []).forEach((f) => { const z = bad(String(f.value || "")); f.chk = z.length ? "인용 없음" : (r.cites.length ? "인용 확인" : "인용 없음"); if (z.length) f.miss = z.join(", "); });
   return { ok: true, j: J, raw: r.text.slice(0, 20000), sources: r.sources, model: r.model, searches: r.searches };
 }
+/* ══ v9.62 OpenAI 글 기능을 Claude 로(키가 있으면 · engine:"openai" 면 예전 그대로) — 릴스 기획(plan) · 칸 채우기(fill) · 인사이트(insight) · 데이터 점검 해설(valexplain) ══ */
+function shapeOf(schema) {   /* JSON schema → 짧은 모양 설명(프롬프트용) */
+  const w = (s) => { if (!s) return '""'; if (s.type === "array") return "[" + w(s.items) + "]"; if (s.type === "object") return "{" + Object.keys(s.properties || {}).map((k) => '"' + k + '":' + w(s.properties[k]) + (s.properties[k].description ? " /*" + s.properties[k].description.slice(0, 80) + "*/" : "")).join(",") + "}"; if (s.enum) return '"' + s.enum.join("|") + '"'; return s.type === "number" ? "0" : '""'; };
+  return w(schema);
+}
+async function cPlan(b) {
+  const facts = factsText(b, 80); if (!facts) throw new Error("facts 가 비었습니다");
+  const user = (b.note ? "[가장 중요한 요청] " + b.note + "\n" : "") + "주제: " + (b.topic || "") + "\n목적: " + (b.purpose || "게시판 상세 카드로 유입") +
+    "\n\n[facts — 이 안의 숫자·날짜만 쓸 것]\n" + facts + "\n\n위 facts로 릴스 표지 한 장을 설계하라. points.value 는 facts 원문을 그대로 복사. 같은 주제라도 사람들이 멈춰서 볼 각도(의외의 숫자, 내 돈과의 연결, 질문)를 고른다." + exampleText(b.example) +
+    "\n\n답은 <json>" + shapeOf(PLAN_SCHEMA) + "</json> 모양의 JSON 하나만(주석 빼고). points 는 3~5개.";
+  const refs = (b.refs || []).filter((u) => /^data:image\/(jpeg|png|webp|gif);base64,/.test(String(u))).slice(0, 3);
+  const content = refs.length ? [{ type: "text", text: user + "\n\n[참고 이미지 " + refs.length + "장] 레이아웃·구성·톤만 참고(layout, visual 에 반영). 이미지 속 숫자·글자·사실은 절대 옮기지 말 것." }].concat(refs.map((u) => { const m = /^data:(image\/\w+);base64,(.+)$/.exec(u); return { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }; })) : user;
+  const r = await claudeRun({ system: SYS, content, max: 2500 });
+  const J = jsonPick(r.text); if (!J || !Array.isArray(J.points)) throw new Error("기획을 읽지 못했습니다 — 다시 눌러 주세요");
+  const bad = numOk(facts), dropped = [];
+  J.points = J.points.filter((p) => { const z = bad(String(p.value || "") + " " + String(p.note || "")); if (z.length) { dropped.push(String(p.label || "") + " " + String(p.value || "") + " [facts 에 없음: " + z.join(", ") + "]"); return false; } return true; }).slice(0, 5);
+  ["hook", "sub", "kicker", "cta"].forEach((k) => { if (bad(String(J[k] || "")).length) { dropped.push(k + ": " + J[k]); J[k] = ""; } });
+  ["kicker", "hook", "sub", "layout", "cta", "visual"].forEach((k) => { if (typeof J[k] !== "string") J[k] = ""; });
+  if (!["rank", "stat", "compare", "steps", "checklist"].includes(J.layout)) J.layout = J.points.length >= 3 ? "rank" : "stat";
+  return { ok: true, plan: J, dropped, model: r.model };
+}
+async function cFill(b) {
+  const T = b.template || {}, FL = Array.isArray(T.fields) ? T.fields.slice(0, 20) : []; if (!FL.length) throw new Error("template.fields 가 비었습니다");
+  const facts = factsText(b, 80); if (!facts) throw new Error("facts 가 비었습니다");
+  const shape = "{" + FL.map((f) => '"' + f.key + '":' + (f.kind === "text" ? '""' : f.kind === "rows" ? '[["칸","칸"]]' : '[""]')).join(",") + "}";
+  const sys = SYS + " 지금은 '" + (T.name || "고정 양식") + "' 양식의 칸을 채운다. 각 칸의 설명과 예시 형식을 따르되 예시의 숫자·이름은 쓰지 않는다. 표의 줄(rows)은 칸 수를 머리(cols)와 맞춘다. facts 에 없는 항목은 빈 문자열/빈 배열.";
+  const user = (b.note ? "[가장 중요한 요청] " + b.note + "\n" : "") + "[칸 설명]\n" + FL.map((f) => f.key + " (" + f.kind + "): " + f.label + (f.example ? " · 예시 형식: " + f.example : "")).join("\n") + "\n\n[facts — 이 안의 숫자·날짜·이름만 쓸 것]\n" + facts + "\n\n답은 <json>" + shape + "</json> 모양 JSON 하나만.";
+  const r = await claudeRun({ system: sys, content: user, max: 4000 });
+  const J = jsonPick(r.text); if (!J) throw new Error("칸 내용을 읽지 못했습니다 — 다시 눌러 주세요");
+  const fill = {}; FL.forEach((f) => { const v = J[f.key]; fill[f.key] = f.kind === "text" ? String(v == null ? "" : v) : Array.isArray(v) ? v : []; });
+  return { ok: true, fill, model: r.model };
+}
+async function cInsight(b) {
+  const facts = factsText(b, 80); if (!facts) throw new Error("facts 가 비었습니다");
+  const q = String(b.question || "어떤 상황이야?").slice(0, 300), who = (Array.isArray(b.stances) ? b.stances : []).slice(0, 6).map(String), web = b.web !== false;
+  const sys = "너는 한국 아파트 시장을 오래 본 애널리스트이자 '우상향연구소' 운영자의 비공개 조언자다. 결론부터, 짧고 분명하게. " +
+    "원칙: (1) 앱 숫자는 [facts] 원문 그대로 복사하고 근거 id(F3)를 붙인다. 반올림·환산·추정 금지. (2) 웹에서 찾은 사실은 숫자 옆에 출처 이름을 괄호로 붙이고 근거 id 대신 (웹). facts 와 기준이 다른 숫자는 섞지 않는다. " +
+    "(3) 확률(%)을 매기지 않는다. 조건으로 말한다. (4) 비공개 메모라 의견은 분명히, 단정 대신 조건. (5) 과거 패턴은 경향으로만. (6) 한국어, 쉬운 말, 이모지 금지.";
+  const shape = '{"answer":"결론 3~5문장(첫 문장이 답, 근거 id)","because":["이유 2~5줄(근거 id)"],"stances":[{"who":"입장","todo":"지금 할 일","why":"근거 한 줄"}],"scenarios":[{"name":"기준|상방|하방","cond":"조건(확인 가능한 숫자·사건)","then":"그때 벌어질 일"}],"watch":["확인 신호 2~5줄"],"risk":"틀릴 수 있는 이유 1~2문장"}';
+  const user = "[질문] " + q + (who.length ? "\n[입장 목록 — stances 는 이 중에서] " + who.join(" / ") : "") + "\n\n[facts — 앱 숫자]\n" + facts +
+    (web ? "\n\n답하기 전에, 이 질문에 꼭 필요한데 facts 에 없는 최근 사실(정책 변화·금리 결정 일정·공급 계획·심리 지표)이 있으면 웹에서 1~3번 찾아라. 공공기관·주요 언론만." : "") + "\n\n답은 <json>" + shape + "</json> 하나만.";
+  const r = await claudeRun({ system: sys, content: user, web: web ? 3 : 0, max: 4000 });
+  const J = jsonPick(r.text); if (!J) throw new Error("답을 읽지 못했습니다 — 다시 눌러 주세요");
+  ["because", "stances", "scenarios", "watch"].forEach((k) => { if (!Array.isArray(J[k])) J[k] = []; }); ["answer", "risk"].forEach((k) => { J[k] = String(J[k] || ""); });
+  return { ok: true, insight: J, web: r.cites.slice(0, 30).map((t, i) => ({ id: "W" + (i + 1), text: t.slice(0, 300) })), sources: r.sources, model: r.model, searches: r.searches };
+}
+const VAL_CTX = "TrackApt 수집 구조: GitHub Actions brief.yml(매일 03:00 KST 전체, 15:00 청약만, workflow_dispatch 입력 only 로 일부만) → scripts/daily_build.js(국토부 실거래·KOSIS 주간 지수·청약홈·금감원 금리) · macro_build.js(ECOS 기준금리·국고채·미국 금리, KOSIS 인허가·착공·미분양) · core_build.js(시군구 월별 지수·건수) · school_build.js · brief_build.js → scripts/validate.js 가 결과를 점검해 data/validate.json 에 남김. 키는 GitHub Secrets(ECOS_KEY, KOSIS_KEY, DATA_GO_KEY, RONE_KEY, FSS_KEY, SCHOOLINFO_API_KEY)와 Vercel(MOLIT_API_KEY). 실거래는 신고 기한 30일이라 최근 달은 늘 적게 보인다. 주인은 비개발자이며 GitHub 웹(휴대폰)으로 파일을 올린다.";
+async function cValExplain(b) {
+  const checks = (b.checks || []).slice(0, 40).map((c) => "[" + String(c.level || "") + "] " + String(c.id || "") + " " + String(c.title || "") + ": " + String(c.detail || "").slice(0, 300)).join("\n");
+  if (!checks) throw new Error("점검 결과가 비었습니다");
+  const sys = "너는 데이터 수집 파이프라인 운영 도우미다. 비개발자 주인이 이해하고 따라 할 수 있게 쉬운 말로, 가장 가능성 높은 원인과 확인 순서를 알려 준다. 모르는 것은 추측이라고 밝힌다. 이모지 금지.";
+  const user = "[구조]\n" + VAL_CTX + "\n\n[점검 결과 · " + String(b.built || "") + " · 요약 " + JSON.stringify(b.summary || {}) + "]\n" + checks +
+    "\n\n답은 <json>{\"overall\":\"전체 상태 한두 문장(지금 카드를 올려도 되는지 포함)\",\"items\":[{\"id\":\"점검 id\",\"level\":\"오류|주의\",\"meaning\":\"이 점검이 말하는 것\",\"cause\":\"가장 가능성 높은 원인(추측이면 추측이라고)\",\"check\":\"확인 순서(GitHub Actions 로그 어디, 어떤 파일)\",\"fix\":\"할 일 — 기다리면 되는지, 다시 실행(Run workflow, only 값), 키 확인, 개발 수정 필요\",\"safe\":\"이 상태로 카드에 쓰면 안 되는 숫자\"}]}</json> 하나만. 오류·주의만, 중요한 순서.";
+  const r = await claudeRun({ system: sys, content: user, max: 3500 });
+  const J = jsonPick(r.text); if (!J) throw new Error("해설을 읽지 못했습니다 — 다시 눌러 주세요");
+  return { ok: true, explain: { overall: String(J.overall || ""), items: Array.isArray(J.items) ? J.items.slice(0, 40) : [] }, model: r.model };
+}
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const OWN = process.env.OWNER_KEY || "", KEY = process.env.OPENAI_API_KEY || "";
-  if (req.method === "GET") return res.status(200).json({ ok: !!(OWN && KEY), model: process.env.TEXT_MODEL || "gpt-6.1-sol", claude: !!(OWN && process.env.ANTHROPIC_API_KEY), claudeModel: process.env.CLAUDE_MODEL || "claude-sonnet-5-5" });
+  if (req.method === "GET") return res.status(200).json({ ok: !!(OWN && KEY), model: process.env.TEXT_MODEL || "gpt-6.1-sol", claude: !!(OWN && process.env.ANTHROPIC_API_KEY), textEngine: process.env.ANTHROPIC_API_KEY && process.env.TEXT_ENGINE !== "openai" ? "claude" : "openai", claudeModel: process.env.CLAUDE_MODEL || "claude-sonnet-5-5" });
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "POST only" });
   if (!OWN) return res.status(500).json({ ok: false, error: "OWNER_KEY not set" });
   let b = req.body; if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } } b = b || {};
   if (!same(b.t, tokenOf(OWN))) return res.status(401).json({ ok: false, error: "주인 인증이 필요합니다" });
   const CM = { caption: async (x) => Object.assign({ ok: true }, await caption(x)), verify: cVerify, weekly: cWeekly, today: cToday, research: cResearch };
-  if (b.mode === "extract" && process.env.ANTHROPIC_API_KEY && b.engine !== "openai") CM.extract = cExtract;
+  CM.valexplain = cValExplain;
+  if (process.env.ANTHROPIC_API_KEY && b.engine !== "openai" && process.env.TEXT_ENGINE !== "openai") { CM.extract = cExtract; CM.plan = cPlan; CM.fill = cFill; CM.insight = cInsight; }   /* v9.62 글 기능은 Claude 우선 */
   if (CM[b.mode]) { try { return res.status(200).json(await CM[b.mode](b)); } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); } }
   if (!KEY) return res.status(500).json({ ok: false, error: "OPENAI_API_KEY 가 없습니다" });
   try {
@@ -296,6 +355,6 @@ module.exports = async (req, res) => {
       var outI = await withFallback(KEY, [{ role: "system", content: sysI }, { role: "user", content: userI }], { type: "json_schema", name: "insight", strict: true, schema: schemaI });
       return res.status(200).json({ ok: true, insight: JSON.parse(outI.text), model: outI.model });
     }
-    throw new Error("mode 는 plan · read · extract · fill · insight · caption · verify · weekly · today · research");
+    throw new Error("mode 는 plan · read · extract · fill · insight · caption · verify · weekly · today · research · valexplain");
   } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); }
 };

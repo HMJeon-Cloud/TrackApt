@@ -299,6 +299,28 @@ async function cValExplain(b) {
   const J = jsonPick(r.text); if (!J) throw new Error("해설을 읽지 못했습니다 — 다시 눌러 주세요");
   return { ok: true, explain: { overall: String(J.overall || ""), items: Array.isArray(J.items) ? J.items.slice(0, 40) : [] }, model: r.model };
 }
+/* ══ v9.65 청약 공고 읽기 — 공고문 글 + 사진(입지도·일정표·주택형 표 캡처) → 조건·일정·주택형·입지·기타. 글에서 읽은 숫자는 글과 대조, 사진에서 읽은 것은 '사진에서 읽음' 표시 ══ */
+async function cSubsRead(b) {
+  const txt = String(b.text || "").slice(0, 100000), imgs = (b.images || []).filter((u) => /^data:image\/(jpeg|png|webp|gif);base64,/.test(String(u))).slice(0, 4);
+  if (txt.length < 20 && !imgs.length) throw new Error("공고문 글이나 사진을 넣어 주세요");
+  const sys = EX_GUIDE + " 사진이 있으면 사진 속 글자·표·지도에서 보이는 것만 옮긴다(지도에서는 역·학교·공원·한강·도로 이름과 반경 표시). 보이지 않는 것은 빈칸. 추측·일반 규칙 보충 금지.";
+  const shape = '{"terms":{' + EX_FIELDS.map((k) => '"' + k + '":""').join(",") + '},"sched":{"notice":"YYYY-MM-DD","sp":"특공 접수일","r1":"1순위(해당지역)","r2":"2순위","win":"당첨자 발표","cB":"계약 시작","cE":"계약 끝"},"types":[{"ty":"전용(예 84A)","py":"평형(있으면)","n":"일반 공급 세대(숫자)","sp":"특공 세대(숫자)","price":"분양가(최고, 원문 단위 그대로)"}],"total":"총 세대(숫자)","general":"일반분양(숫자)","loc":{"station":["역 이름(노선) · 거리·도보(보이면)"],"school":["학교"],"park":["공원·한강·녹지"],"etc":["그 밖에 표시된 시설·도로·반경"]},"side":[["항목","값"]],"src":"어디서 읽었는지(공고문 쪽·사진 종류)"}';
+  const content = [];
+  imgs.forEach((u, i) => { const m = /^data:(image\/\w+);base64,(.+)$/.exec(u); content.push({ type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }); });
+  content.push({ type: "text", text: "[단지] " + String(b.nm || "").slice(0, 80) + (b.known ? "\n[지금 알고 있는 것 — 참고만, 다르면 공고 쪽을 따른다]\n" + String(b.known).slice(0, 2000) : "") + (txt ? "\n\n[공고문 글]\n" + txt : "") + (imgs.length ? "\n\n[사진 " + imgs.length + "장] 위 이미지." : "") + "\n\n답은 <json>" + shape + "</json> 하나만. 없는 칸은 빈 문자열·빈 배열." });
+  const r = await claudeRun({ system: sys, content, max: 5000 });
+  const J = jsonPick(r.text); if (!J) throw new Error("읽은 결과를 해석하지 못했습니다 — 다시 눌러 주세요");
+  const T = J.terms || {}, S = J.sched || {}, terms = {}, sched = {}, dropped = [];
+  const chk = txt && !imgs.length ? numOk(txt + "\n" + String(b.known || "")) : null;   /* 글만 넣었으면 글과 대조 */
+  EX_FIELDS.forEach((k) => { const v = String(T[k] || "").slice(0, 200); const z = chk ? chk(v) : []; if (z.length) { dropped.push(k + ": " + v); terms[k] = ""; } else terms[k] = v; });
+  ["notice", "sp", "r1", "r2", "win", "cB", "cE"].forEach((k) => { const m = String(S[k] || "").match(/(\d{4})[-.\/년\s]*(\d{1,2})[-.\/월\s]*(\d{1,2})/); sched[k] = m ? m[1] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[3]).slice(-2) : ""; });
+  const num = (v) => { const n = Number(String(v || "").replace(/[^\d.]/g, "")); return isFinite(n) && n > 0 ? n : null; };
+  const types = (Array.isArray(J.types) ? J.types : []).slice(0, 30).map((t) => ({ ty: String(t.ty || "").slice(0, 20), py: String(t.py || "").slice(0, 12), n: num(t.n), sp: num(t.sp), price: String(t.price || "").slice(0, 30) })).filter((t) => t.ty);
+  if (chk) types.forEach((t) => { if (t.price && chk(t.price).length) { dropped.push("분양가 " + t.ty + ": " + t.price); t.price = ""; } ["n", "sp"].forEach((k) => { if (t[k] != null && chk(String(t[k])).length) { dropped.push(k + " " + t.ty + ": " + t[k]); t[k] = null; } }); });
+  const L = J.loc || {}, arr = (a) => (Array.isArray(a) ? a : []).map((x) => String(x).slice(0, 60)).filter(Boolean).slice(0, 8);
+  const tot = num(J.total), gen = num(J.general), okN = (v) => v == null || !chk || !chk(String(v)).length;
+  return { ok: true, read: { terms, sched, types, total: okN(tot) ? tot : null, general: okN(gen) ? gen : null, loc: { station: arr(L.station), school: arr(L.school), park: arr(L.park), etc: arr(L.etc) }, side: (Array.isArray(J.side) ? J.side : []).filter((x) => Array.isArray(x) && x[0] && x[1]).slice(0, 10).map((x) => [String(x[0]).slice(0, 20), String(x[1]).slice(0, 80)]), src: String(J.src || "").slice(0, 120), fromImage: imgs.length > 0 }, dropped, model: r.model };
+}
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const OWN = process.env.OWNER_KEY || "", KEY = process.env.OPENAI_API_KEY || "";
@@ -308,7 +330,7 @@ module.exports = async (req, res) => {
   let b = req.body; if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } } b = b || {};
   if (!same(b.t, tokenOf(OWN))) return res.status(401).json({ ok: false, error: "주인 인증이 필요합니다" });
   const CM = { caption: async (x) => Object.assign({ ok: true }, await caption(x)), verify: cVerify, weekly: cWeekly, today: cToday, research: cResearch };
-  CM.valexplain = cValExplain;
+  CM.valexplain = cValExplain; CM.subsread = cSubsRead;
   if (process.env.ANTHROPIC_API_KEY && b.engine !== "openai" && process.env.TEXT_ENGINE !== "openai") { CM.extract = cExtract; CM.plan = cPlan; CM.fill = cFill; CM.insight = cInsight; CM.read = cRead; }   /* v9.62 글 기능은 Claude 우선 */
   if (CM[b.mode]) { try { return res.status(200).json(await CM[b.mode](b)); } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); } }
   if (!KEY) return res.status(500).json({ ok: false, error: "OPENAI_API_KEY 가 없습니다" });
@@ -371,6 +393,6 @@ module.exports = async (req, res) => {
       var outI = await withFallback(KEY, [{ role: "system", content: sysI }, { role: "user", content: userI }], { type: "json_schema", name: "insight", strict: true, schema: schemaI });
       return res.status(200).json({ ok: true, insight: JSON.parse(outI.text), model: outI.model });
     }
-    throw new Error("mode 는 plan · read · extract · fill · insight · caption · verify · weekly · today · research · valexplain");
+    throw new Error("mode 는 plan · read · extract · fill · insight · caption · verify · weekly · today · research · valexplain · subsread");
   } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); }
 };

@@ -219,13 +219,16 @@ async function cToday(b) {
   const cands = (b.cands || []).slice(0, 40).map((c) => c.r + " · 점수 " + c.sc + " · " + String(c.why || "").slice(0, 120)).join("\n");
   const news = (b.news || []).slice(0, 40).map((n, i) => "N" + (i + 1) + ": " + String(n.t || "").slice(0, 140) + " (" + String(n.s || "") + " " + String(n.d || "") + ")").join("\n");
   const tabs = (b.tabs || []).map((t) => t[0] + " = " + t[1]).join(", ");
+  const WF = (b.webFacts || []).slice(0, 40), wf = WF.map((f, i) => "W" + (i + 1) + ": " + String(f.text || "").slice(0, 200) + " (" + String(f.src || "") + " " + String(f.date || "") + ")").join("\n");
+  const GI = (b.issues || []).slice(0, 15), gi = GI.map((x, i) => "I" + (i + 1) + ": " + String(x.title || "") + " — " + String(x.why || "") + (x.points && x.points.length ? " / " + x.points.join(" / ") : "") + " (" + String(x.src || "") + " " + String(x.date || "") + ")").join("\n");
   const sys = "너는 부동산 데이터 SNS 채널 '우상향연구소'의 편집장이자 조사원이다. 하루 한 번, 오늘 필요한 바깥 자료를 모으고 '오늘 무엇을 올릴지' 고른다. 이 결과는 오늘 하루 인사이트·글쓰기·브리핑 모두가 다시 검색하지 않고 그대로 쓴다 — 그러니 빠뜨리지 말고, 확실한 것만. 기준: 오늘 사람들이 실제로 궁금해할 이슈(기사·정책·일정)와 앱 데이터 신호가 겹치는 주제를 위로. 이슈가 많은 날은 많이, 조용한 날은 적게. " + NO_SELL;
   const user = "[오늘] " + String(b.today || "") + "\n\n[앱 데이터 신호로 고른 후보 — 점수 높을수록 데이터 신호가 강함]\n" + cands + "\n\n[만들 수 있는 카드 주제(id = 이름)]\n" + recipes + "\n\n[채널 코너(id = 이름)] " + tabs + " · 오늘 정기 코너: " + String(b.regular || "") +
     "\n\n[앱이 모은 오늘 기사 제목]\n" + (news || "(없음)") + (b.events ? "\n\n[오늘·이번 주 일정]\n" + String(b.events).slice(0, 1500) : "") +
-    (b.web !== false ? "\n\n먼저 웹에서 최근 1주일 한국 부동산 핵심 사실을 " + Math.max(2, Math.min(8, Number(b.webN) || 6)) + "번 안에 찾아라 — ① 오늘·어제 이슈(정책 발표·통계 발표·청약·대출 규제·금리) ② 앞으로 2주 일정(금통위·통계 발표·대책 시행일·주요 청약 공고) ③ 최근 심리·시장 지표(매수우위·전망지수·주간 변동률 보도). 공공기관·통계기관·주요 언론만." : "") +
-    "\n\n답은 <json>{\"issues\":[{\"title\":\"이슈 제목(25자 이내)\",\"why\":\"왜 오늘 중요한지 한 줄\",\"points\":[\"핵심 사실 1~4줄(숫자는 기사·인용문 그대로)\"],\"src\":\"출처 이름\",\"date\":\"날짜\",\"url\":\"원문 주소(있으면)\",\"card\":\"연결할 카드 id(없으면 빈칸)\"}],\"cards\":[{\"r\":\"카드 id 또는 issue:이슈번호(0부터)\",\"why\":\"고른 이유 한 줄(기사·데이터 근거)\"}],\"corners\":[{\"tab\":\"코너 id\",\"why\":\"한 줄\"}],\"facts\":[{\"text\":\"웹에서 확인한 사실 한 줄(숫자·날짜는 원문 그대로)\",\"kind\":\"이슈|일정|지표|정책\",\"src\":\"출처 이름\",\"date\":\"날짜\",\"url\":\"원문 주소\"}],\"summary\":\"오늘 시장 한 줄\"}</json> 만. cards 는 10~20개(이슈가 적으면 10개), 중요한 순서. 같은 카드 id 반복 금지. corners 는 정기 코너 포함 2~5개. facts 는 8~20줄 — 오늘 하루 다른 작업이 참고할 바깥 사실 목록(이슈·앞 2주 일정·지표·정책), 확인된 것만.";
-  const { J, r } = await claudeJSON({ system: sys, content: user, web: b.web !== false ? 4 : 0, max: 10000, shape: '{"issues":[{"title":"","why":"","points":[""],"src":"","date":"","url":"","card":""}],"cards":[{"r":"","why":""}],"corners":[{"tab":"","why":""}],"facts":[{"text":"","kind":"","src":"","date":"","url":""}],"summary":""}' }, "추천");
-  const bad = numOk(news + "\n" + cands + "\n" + String(b.events || "") + "\n" + r.cites.join("\n")), dropped = [];
+    (wf ? "\n\n[조사원이 방금 웹에서 확인한 사실 — 그대로 쓰고(출처 포함) 다시 찾지 말 것]\n" + wf : "") + (gi ? "\n\n[조사원이 정리한 오늘 이슈 — 이 중에서 고르고 다듬을 것, 새로 만들지 말 것]\n" + gi : "") +
+    (b.web === true ? "\n\n먼저 웹에서 최근 1주일 한국 부동산 핵심 사실을 " + Math.max(2, Math.min(8, Number(b.webN) || 6)) + "번 안에 찾아라 — ① 오늘·어제 이슈(정책 발표·통계 발표·청약·대출 규제·금리) ② 앞으로 2주 일정(금통위·통계 발표·대책 시행일·주요 청약 공고) ③ 최근 심리·시장 지표(매수우위·전망지수·주간 변동률 보도). 공공기관·통계기관·주요 언론만." : "") +
+    "\n\n답은 <json>{\"issues\":[{\"title\":\"이슈 제목(25자 이내)\",\"why\":\"왜 오늘 중요한지 한 줄\",\"points\":[\"핵심 사실 1~4줄(숫자는 기사·인용문 그대로)\"],\"src\":\"출처 이름\",\"date\":\"날짜\",\"url\":\"원문 주소(있으면)\",\"card\":\"연결할 카드 id(없으면 빈칸)\"}],\"cards\":[{\"r\":\"카드 id 또는 issue:이슈번호(0부터)\",\"why\":\"고른 이유 한 줄(기사·데이터 근거)\"}],\"corners\":[{\"tab\":\"코너 id\",\"why\":\"한 줄\"}],\"facts\":[{\"text\":\"웹에서 확인한 사실 한 줄(숫자·날짜는 원문 그대로)\",\"kind\":\"이슈|일정|지표|정책\",\"src\":\"출처 이름\",\"date\":\"날짜\",\"url\":\"원문 주소\"}],\"summary\":\"오늘 시장 한 줄\"}</json> 만. cards 는 10~20개(이슈가 적으면 10개), 중요한 순서. 같은 카드 id 반복 금지. corners 는 정기 코너 포함 2~5개. facts 는 " + (wf ? "조사원 사실(W)을 그대로 옮기되 겹치는 것은 합치고 kind 를 붙인다" : "8~20줄 — 오늘 하루 다른 작업이 참고할 바깥 사실 목록(이슈·앞 2주 일정·지표·정책), 확인된 것만") + ".";
+  const { J, r } = await claudeJSON({ system: sys, content: user, web: b.web === true ? 4 : 0, max: 6000, shape: '{"issues":[{"title":"","why":"","points":[""],"src":"","date":"","url":"","card":""}],"cards":[{"r":"","why":""}],"corners":[{"tab":"","why":""}],"facts":[{"text":"","kind":"","src":"","date":"","url":""}],"summary":""}' }, "추천");
+  const bad = numOk(news + "\n" + cands + "\n" + String(b.events || "") + "\n" + wf + "\n" + gi + "\n" + r.cites.join("\n")), dropped = [];
   const ids = {}; (b.recipes || []).forEach((x) => { ids[x.id] = 1; }); const tabIds = {}; (b.tabs || []).forEach((t) => { tabIds[t[0]] = 1; });
   const issues = (J.issues || []).slice(0, 15).map((x) => {
     const pts = (x.points || []).map(String).filter((p) => { const z = bad(p); if (z.length) { dropped.push(p.slice(0, 80) + " [근거 없음: " + z.join(", ") + "]"); return false; } return true; }).slice(0, 4);
@@ -238,12 +241,29 @@ async function cToday(b) {
   const facts = (Array.isArray(J.facts) ? J.facts : []).slice(0, 25).map((f) => ({ text: String(f.text || "").slice(0, 200), kind: String(f.kind || "").slice(0, 10), src: String(f.src || "").slice(0, 40), date: String(f.date || "").slice(0, 20), url: /^https?:\/\//.test(String(f.url || "")) ? String(f.url) : "" })).filter((f) => { if (!f.text) return false; const z = bad(f.text); if (z.length) { dropped.push(f.text.slice(0, 80) + " [근거 없음: " + z.join(", ") + "]"); return false; } return true; });
   return { ok: true, today: { issues, cards: cards.slice(0, 20), corners, facts, summary: bad(String(J.summary || "")).length ? "" : String(J.summary || "").slice(0, 160), sources: r.sources, dropped, at: Date.now() }, model: r.model, searches: r.searches };
 }
+/* v9.69 자료 모으기를 작게 나눠 병렬로 — 한 호출에 검색 6번 + 긴 답은 55초를 넘김. 부분(이슈·일정·지표/정책)마다 검색 2~3번, 짧은 답 → 각각 15~30초 */
+const GATHER_PARTS = {
+  issues: { nm: "오늘·어제 이슈", q: "최근 48시간 한국 부동산 주요 뉴스·발표(정책 발표·대책 후속·대출 규제·금리·청약 큰 건·통계 발표). 사람들이 오늘 궁금해할 것 위주.", n: 3 },
+  calendar: { nm: "앞 2주 일정", q: "앞으로 14일 안의 확정 일정: 한국은행 금통위, 국토부·부동산원·KB 통계 발표, 대책·법령 시행일, 주요 청약 입주자모집공고·접수. 날짜가 확인된 것만.", n: 2 },
+  indicators: { nm: "최근 지표·정책", q: "가장 최근 발표된 지표 값: 부동산원 주간 매매가격 변동률(서울·수도권), KB 매수우위지수·전망지수, 미분양, 주담대 금리 동향, 그리고 지금 시행 중인 핵심 규제(규제지역·대출 한도·토허제) 요점.", n: 3 }
+};
+async function cGather(b) {
+  const P = GATHER_PARTS[b.part]; if (!P) throw new Error("part 는 issues · calendar · indicators");
+  const sys = "너는 부동산 데이터 채널의 조사원이다. 웹 검색으로 확인한 사실만 짧게 적는다. 숫자·날짜는 원문 그대로, 출처 이름과 날짜를 꼭 붙인다. 확인되지 않으면 적지 않는다. 한국어. " + NO_SELL;
+  const user = "[오늘] " + String(b.today || "") + "\n[맡은 부분] " + P.nm + " — " + P.q + (b.news ? "\n\n[앱이 이미 모은 기사 제목 — 참고]\n" + String(b.news).slice(0, 2000) : "") +
+    "\n\n웹 검색은 " + P.n + "번 안에. 답은 <json>{\"facts\":[{\"text\":\"사실 한 줄(숫자·날짜 원문 그대로, 25~80자)\",\"kind\":\"이슈|일정|지표|정책\",\"src\":\"출처 이름\",\"date\":\"날짜\",\"url\":\"원문 주소\"}]" + (b.part === "issues" ? ",\"issues\":[{\"title\":\"이슈 제목(25자 이내)\",\"why\":\"왜 오늘 중요한지 한 줄\",\"points\":[\"핵심 사실 1~3줄\"],\"src\":\"출처\",\"date\":\"날짜\",\"url\":\"원문\"}]" : "") + "}</json> 하나만. facts 는 4~8줄.";
+  const { J, r } = await claudeJSON({ system: sys, content: user, web: P.n, max: 3500, shape: '{"facts":[{"text":"","kind":"","src":"","date":"","url":""}],"issues":[{"title":"","why":"","points":[""],"src":"","date":"","url":""}]}' }, P.nm);
+  const bad = numOk(r.cites.join("\n") + "\n" + String(b.news || "")), dropped = [];
+  const facts = (Array.isArray(J.facts) ? J.facts : []).slice(0, 12).map((f) => ({ text: String(f.text || "").slice(0, 200), kind: String(f.kind || "").slice(0, 10) || (b.part === "calendar" ? "일정" : b.part === "issues" ? "이슈" : "지표"), src: String(f.src || "").slice(0, 40), date: String(f.date || "").slice(0, 20), url: /^https?:\/\//.test(String(f.url || "")) ? String(f.url) : "" })).filter((f) => { if (!f.text) return false; const z = bad(f.text); if (z.length) { dropped.push(f.text.slice(0, 80) + " [인용 없음: " + z.join(", ") + "]"); return false; } return true; });
+  const issues = (Array.isArray(J.issues) ? J.issues : []).slice(0, 10).map((x) => ({ title: String(x.title || "").slice(0, 40), why: String(x.why || "").slice(0, 120), points: (x.points || []).map(String).filter((p) => !bad(p).length).slice(0, 3), src: String(x.src || "").slice(0, 40), date: String(x.date || "").slice(0, 20), url: /^https?:\/\//.test(String(x.url || "")) ? String(x.url) : "" })).filter((x) => x.title && !bad(x.title).length);
+  return { ok: true, part: b.part, facts, issues, sources: r.sources, dropped, model: r.model, searches: r.searches };
+}
 /* 분석 브리핑 외부 조사 — 프로그램이 만든 프롬프트 그대로 + 웹 검색. 값이 인용문에 있는지 항목마다 표시 */
 async function cResearch(b) {
   const prompt = String(b.prompt || "").slice(0, 30000); if (prompt.length < 50) throw new Error("프롬프트가 비었습니다");
   const sys = "너는 한국 주택시장 애널리스트다. 웹 검색으로 최신 공개 자료(정부·공공기관·통계·한국은행·주요 언론·민간 리서치)를 찾아 답한다. 찾지 못한 값은 '확인 안 됨'. 수치마다 기준일·출처. JSON 하나만 출력.";
   const ctx = String(b.ctx || "").slice(0, 6000);
-  const r = await claudeRun({ system: sys, content: prompt + (ctx ? "\n\n[오늘 이미 확인한 바깥 사실 — 여기 있는 것은 다시 찾지 말고 그대로 인용(출처 포함)]\n" + ctx : "") + "\n\n(JSON 은 <json></json> 안에)", web: Math.max(1, Math.min(6, Number(b.searches) || (ctx ? 4 : 5))), max: 10000 });
+  const r = await claudeRun({ system: sys, content: prompt + (ctx ? "\n\n[오늘 이미 확인한 바깥 사실 — 여기 있는 것은 다시 찾지 말고 그대로 인용(출처 포함)]\n" + ctx : "") + "\n\n(JSON 은 <json></json> 안에)", web: Math.max(1, Math.min(5, Number(b.searches) || (ctx ? 3 : 4))), max: 7000 });
   let J = r.json || jsonPick(r.text);
   if (!J && r.text) { const r2 = await claudeRun({ system: "너는 답을 정해진 JSON 형식으로 옮기는 사람이다. 내용·숫자·출처를 바꾸거나 더하지 않는다.", content: "[옮길 답]\n" + r.text.slice(0, 30000) + "\n\n원래 요청한 JSON 형식(topic, asOf, findings[q,value,date,src,note], diagnosis, analogs, outlook, drivers, risks, watch)으로 answer 도구에 제출하라.", answer: "외부 조사 JSON", max: 8000 }); J = r2.json || jsonPick(r2.text); }
   if (!J) throw new Error("조사 답에서 JSON 을 찾지 못했습니다" + (r.cut ? " (시간이 모자라 끊김 — 다시 눌러 주세요)" : "") + " [진단: " + (r.stop || "?") + " · 글 " + (r.text || "").length + "자]");
@@ -346,7 +366,7 @@ module.exports = async (req, res) => {
   let b = req.body; if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } } b = b || {};
   if (!same(b.t, tokenOf(OWN))) return res.status(401).json({ ok: false, error: "주인 인증이 필요합니다" });
   const CM = { caption: async (x) => Object.assign({ ok: true }, await caption(x)), verify: cVerify, weekly: cWeekly, today: cToday, research: cResearch };
-  CM.valexplain = cValExplain; CM.subsread = cSubsRead;
+  CM.valexplain = cValExplain; CM.subsread = cSubsRead; CM.gather = cGather;
   if (process.env.ANTHROPIC_API_KEY && b.engine !== "openai" && process.env.TEXT_ENGINE !== "openai") { CM.extract = cExtract; CM.plan = cPlan; CM.fill = cFill; CM.insight = cInsight; CM.read = cRead; }   /* v9.62 글 기능은 Claude 우선 */
   if (CM[b.mode]) { try { return res.status(200).json(await CM[b.mode](b)); } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); } }
   if (!KEY) return res.status(500).json({ ok: false, error: "OPENAI_API_KEY 가 없습니다" });
@@ -409,6 +429,6 @@ module.exports = async (req, res) => {
       var outI = await withFallback(KEY, [{ role: "system", content: sysI }, { role: "user", content: userI }], { type: "json_schema", name: "insight", strict: true, schema: schemaI });
       return res.status(200).json({ ok: true, insight: JSON.parse(outI.text), model: outI.model });
     }
-    throw new Error("mode 는 plan · read · extract · fill · insight · caption · verify · weekly · today · research · valexplain · subsread");
+    throw new Error("mode 는 plan · read · extract · fill · insight · caption · verify · weekly · today · research · valexplain · subsread · gather");
   } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); }
 };

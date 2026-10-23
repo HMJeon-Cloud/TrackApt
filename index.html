@@ -2901,7 +2901,7 @@ i.cite{display:inline-block;font-style:normal;font-size:10px;color:#6b7280;backg
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.68</span>
+    <span class="ver">v9.69</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -12066,11 +12066,25 @@ function tdAiRun(from) {
   var news = ((CH.data && CH.data.news && CH.data.news.items) || []).slice(0, 40).map(function (n) { return { t: n.t, s: n.s, d: typeof cdNewsDate === "function" ? cdNewsDate(n.d) : n.d }; });
   var ev = ""; try { ev = cdEvents("week").rows.slice(0, 30).map(function (r) { return r.join(" · "); }).join("\n"); } catch (e) {}
   var reg = (typeof chPlanRegular === "function" ? chPlanRegular() : []).concat(typeof chPlanTheme === "function" && chPlanTheme() ? [chPlanTheme()] : []);
-  document.querySelectorAll("[data-tdai]").forEach(function (b) { b.disabled = true; }); if (m) m.textContent = "Claude가 오늘 자료를 모으는 중 — 이슈 · 앞 2주 일정 · 지표 · 추천 (40~55초, 하루 한 번)";
-  rcPost("/api/ai", { mode: "today", webN: 6, today: (typeof dyDate === "function" ? dyDate().txt : tpToday()), cands: cands, recipes: recipes, news: news, events: ev, tabs: CH_TABS, regular: reg.join(", ") }).then(function (j) {
+  document.querySelectorAll("[data-tdai]").forEach(function (b) { b.disabled = true; });
+  /* v9.69 한 번에 하면 55초를 넘겨 실패 → 조사 3부분(이슈·일정·지표)을 동시에 작은 호출로, 그 결과를 모아 추천 호출(검색 없음). 각 호출 15~30초 */
+  var today = typeof dyDate === "function" ? dyDate().txt : tpToday(), newsTxt = news.map(function (n) { return n.t + " (" + (n.s || "") + " " + (n.d || "") + ")"; }).join("\n"), prog = { issues: "…", calendar: "…", indicators: "…" };
+  var say = function () { var e = document.getElementById(from === "ch" ? "ch-tdmsg" : from === "hub" ? "hub-tdmsg" : "td-aimsg"); if (e) e.textContent = "조사 중(동시에) — 이슈 " + prog.issues + " · 일정 " + prog.calendar + " · 지표 " + prog.indicators + " (각 15~30초)"; }; say();
+  var part = function (k) { return rcPost("/api/ai", { mode: "gather", part: k, today: today, news: k === "issues" ? newsTxt : "" }).then(function (j) { prog[k] = (j.facts || []).length + "줄"; say(); return j; }, function (e) { prog[k] = "실패"; say(); return { facts: [], issues: [], sources: [], dropped: ["[" + k + "] " + e.message], fail: 1 }; }); };
+  Promise.all([part("issues"), part("calendar"), part("indicators")]).then(function (R) {
+    var facts = [], seen = {}, issues = [], src = [], drop = [], fails = R.filter(function (x) { return x.fail; }).length, searches = 0;
+    R.forEach(function (x) { (x.facts || []).forEach(function (f) { var k = String(f.text).replace(/\s+/g, ""); if (!seen[k]) { seen[k] = 1; facts.push(f); } }); issues = issues.concat(x.issues || []); src = src.concat(x.sources || []); drop = drop.concat(x.dropped || []); searches += x.searches || 0; });
+    if (fails === 3) throw new Error("조사 3부분이 모두 실패했습니다 — " + drop.map(function (d) { return d.slice(0, 60); }).join(" / "));
+    var e2 = document.getElementById(from === "ch" ? "ch-tdmsg" : from === "hub" ? "hub-tdmsg" : "td-aimsg"); if (e2) e2.textContent = "사실 " + facts.length + "줄 · 이슈 " + issues.length + "건 모음 → 오늘 추천 고르는 중 (15~25초)";
+    return rcPost("/api/ai", { mode: "today", web: false, webFacts: facts, issues: issues, today: today, cands: cands, recipes: recipes, news: news, events: ev, tabs: CH_TABS, regular: reg.join(", ") }).then(function (j) {
+      var o = j.today || {}; if (!(o.facts || []).length) o.facts = facts; if (!(o.issues || []).length) o.issues = issues; o.sources = (o.sources || []).concat(src); o.dropped = (o.dropped || []).concat(drop); j.searches = (j.searches || 0) + searches; if (fails) o.partFail = fails; j.today = o; return j;
+    }, function (e) {   /* 추천 호출만 실패해도 모은 사실은 살린다 */
+      return { today: { issues: issues, cards: [], corners: [], facts: facts, summary: "", sources: src, dropped: drop.concat(["[추천] " + e.message]), partFail: fails, recoFail: 1 }, model: "", searches: searches };
+    });
+  }).then(function (j) {
     var o = j.today || {}; o.day = chKstDate().key; o.model = j.model; o.searches = j.searches; o.at = o.at || Date.now(); TD.ai = o; if (from === "hub" && typeof HUB !== "undefined") HUB.sel = "issue"; try { localStorage.setItem(TD_AI_LS, JSON.stringify(o)); } catch (e) {}
     if (typeof tdPaint === "function") tdPaint(); if (typeof hubPaint === "function") hubPaint(); var ops = document.getElementById("ch-ops"); if (ops && typeof chOpsBanner === "function") ops.innerHTML = chOpsBanner();
-    var m2 = document.getElementById(from === "ch" ? "ch-tdmsg" : from === "hub" ? "hub-tdmsg" : "td-aimsg"); if (m2) m2.textContent = "오늘 자료 모음 — 사실 " + (o.facts || []).length + "줄 · 이슈 " + (o.issues || []).length + "건 · 추천 카드 " + (o.cards || []).length + "개 · " + (j.model || "") + (j.searches ? " · 웹 검색 " + j.searches + "번" : "") + " · 오늘 하루 모든 작업이 이 자료를 씀";
+    var m2 = document.getElementById(from === "ch" ? "ch-tdmsg" : from === "hub" ? "hub-tdmsg" : "td-aimsg"); if (m2) m2.textContent = "오늘 자료 모음 — 사실 " + (o.facts || []).length + "줄 · 이슈 " + (o.issues || []).length + "건 · 추천 카드 " + (o.cards || []).length + "개" + (j.searches ? " · 웹 검색 " + j.searches + "번" : "") + (o.partFail ? " · 조사 " + o.partFail + "부분 실패(다시 모으기로 보충)" : "") + (o.recoFail ? " · 추천 호출 실패 — 사실만 저장됨, 다시 모으기" : "") + " · 오늘 하루 모든 작업이 이 자료를 씀";
     if (document.getElementById("in-body") && typeof inPaint === "function") try { inPaint(); } catch (e) {}
   }).catch(function (e) { var m2 = document.getElementById(from === "ch" ? "ch-tdmsg" : from === "hub" ? "hub-tdmsg" : "td-aimsg"); if (m2) m2.textContent = "실패: " + e.message; }).then(function () { document.querySelectorAll("[data-tdai]").forEach(function (b) { b.disabled = false; }); });
 }

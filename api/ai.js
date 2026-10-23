@@ -8,6 +8,7 @@
 // POST { t, mode:"caption", facts, card:{title,cat,src,asOf,pages}, base:{insta,threads}, note, web } → { ok, insta, threads:{main,r1,r2}, hooks[], adds[], sources[], dropped[] } (v9.60 Claude 문구 · 누를 때만)
 //   환경변수: ANTHROPIC_API_KEY (문구 전용) · CLAUDE_MODEL (기본 claude-sonnet-5-5) · CLAUDE_WEB=off 이면 웹 검색 끔
 // v9.61 Claude(ANTHROPIC_API_KEY): mode "verify"(카드 이미지 교차 검사) · "weekly"(주간 브리핑 초안) · "today"(기사·이슈로 오늘 주제 고르기) · "research"(분석 브리핑 외부 조사) · "extract"(키가 있으면 Claude, engine:"openai" 면 OpenAI)
+// v9.63 insight 는 깊게(CLAUDE_MODEL_DEEP, 기본 claude-opus-5-5) · read 도 Claude
 // v9.62 ANTHROPIC_API_KEY 가 있으면 plan · fill · insight · extract 도 Claude(TEXT_ENGINE=openai 또는 engine:"openai" 면 OpenAI) · mode "valexplain"(데이터 점검 해설). "read"(이미지 글자 읽기)는 OpenAI 그대로
 // POST { t, mode:"extract", text:"공고문 텍스트" }                   → { ok, terms:{res,resPeriod,prior,resale,live,rewin,firstRank,point,down,mid,balance,option,move,etc} } (v9.20.3 단지별 청약 조건)
 const crypto = require("crypto");
@@ -75,15 +76,17 @@ const EX_GUIDE = "너는 입주자모집공고문에서 청약 조건을 '있는
 const CAP_SYS = "너는 부동산 데이터 SNS 채널 '우상향연구소(@uphill.lab)'의 카피라이터다. 목표: 같은 카드라도 매번 다른 각도로, 저장·공유·댓글·프로필 방문을 부르는 글을 써서 노출을 늘리는 것. " +
   "원칙: (1) 숫자·날짜·금액·퍼센트는 [카드 facts] 원문 그대로 쓴다. 반올림·환산·계산한 새 숫자 금지. (2) 웹 검색은 카드 내용을 보충할 때만(정책 일정, 공식 발표, 같은 주제의 최근 사실) 쓰고, 정부·공공기관·통계기관·주요 언론만 믿는다. 웹에서 온 숫자는 그 문장에 반드시 출처 이름을 괄호로 붙이고 인용으로 남긴다. 확실하지 않으면 쓰지 않는다. " +
   "(3) 투자 권유·매수/매도 추천·단정(무조건, 반드시 오른다, 지금 사야) 금지. 공포 조장 금지. (4) 이모지 금지. 존댓말. 짧은 문장. 기준일을 꼭 적는다. " +
-  "(5) 글의 역할: 첫 줄 = 스크롤을 멈추게 하는 질문이나 의외의 숫자(낚시 금지, 카드 안 사실로) · 본문 = 독자에게 도움이 되는 해석(내 돈·내 동네·내 대출 관점) · 끝 = 저장/댓글/프로필 방문을 부르는 한 줄(예: 우리 동네가 궁금하면 댓글로 지역을). (6) 기본 규칙 글(아래)과 다른 구성과 첫 줄로 쓴다.";
+  "(5) 말투 기준: 숫자 한 개로 시작하는 짧은 첫 줄이 가장 잘 읽힌다. '~일까요?' 질문은 첫 줄에 한 번만. 형용사 과장(역대급, 충격, 폭등, 대박) 금지. 한 문단 2~3줄. 독자가 저장할 이유(표·기준일·비교 기준)를 남긴다. 같은 표현을 반복하지 않는다. " +
+  "(6) 글의 역할: 첫 줄 = 스크롤을 멈추게 하는 질문이나 의외의 숫자(낚시 금지, 카드 안 사실로) · 본문 = 독자에게 도움이 되는 해석(내 돈·내 동네·내 대출 관점) · 끝 = 저장/댓글/프로필 방문을 부르는 한 줄(예: 우리 동네가 궁금하면 댓글로 지역을). (6) 기본 규칙 글(아래)과 다른 구성과 첫 줄로 쓴다.";
 /* 글 속 숫자 → 검사할 토큰. 2자리↑ 숫자는 그대로, 한 자리는 단위가 붙은 것만(6억 · 3년 · 5%) — 단위까지 같이 찾는다 */
 const CAP_UNIT = "억|조|만|천|%p|%|배|년|개월|건|세대|가구|호|곳|명";
 function capNums(s) { const out = [], re = new RegExp("\\d[\\d,]*(?:\\.\\d+)?(?:\\s*(" + CAP_UNIT + "))?", "g"); let m; const t = String(s || "").replace(/#[^\s#]+/g, " ");
   while ((m = re.exec(t))) { const num = m[0].replace(new RegExp("\\s*(?:" + CAP_UNIT + ")$"), "").replace(/,/g, ""); if (num.replace(/\./g, "").length >= 2) out.push(num); else if (m[1]) out.push(num + "\u0001" + m[1]); }
   return out; }
 function capPick(t, tag) { const m = new RegExp("<" + tag + ">([\\s\\S]*?)</" + tag + ">").exec(t); return m ? m[1].trim() : ""; }
-async function claudeCall(key, model, body) {
-  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(Object.assign({ model }, body)) });
+async function claudeCall(key, model, body, ms) {
+  let r; try { r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(Object.assign({ model }, body)), signal: AbortSignal.timeout(ms || 55000) }); }
+  catch (e) { if (/abort|timeout/i.test(String(e && (e.name + e.message)))) throw new Error("시간 초과(55초) — '빠르게'로 다시 하거나 웹 보충을 끄고 다시 눌러 주세요"); throw e; }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error("Claude: " + ((j.error && j.error.message) || ("응답 " + r.status)));
   return j;
@@ -96,13 +99,14 @@ async function caption(b) {
   const user = (b.note ? "[가장 중요한 요청] " + String(b.note).slice(0, 300) + "\n" : "") +
     "[카드] 제목: " + String(C.title || "").slice(0, 120) + " · 분류: " + String(C.cat || "") + " · 장 수: " + (C.pages || 1) + " · 출처: " + String(C.src || "").slice(0, 200) + " · 기준일: " + String(C.asOf || "카드 facts 참고") +
     "\n\n[카드 facts — 숫자는 이 안의 것만]\n" + facts +
+    ((b.avoid || []).length ? "\n\n[최근에 쓴 첫 줄 — 이와 비슷한 첫 줄·구성은 피할 것]\n" + b.avoid.slice(0, 20).map((x) => "- " + String(x).slice(0, 80)).join("\n") : "") +
     "\n\n[기본 규칙 글 — 이것과 다른 각도로]\n인스타:\n" + String(B.insta || "").slice(0, 2500) + "\n\n스레드:\n" + String(B.threads || "").slice(0, 2500) +
     (web ? "\n\n먼저 이 주제에 보충할 최근 공식 사실(정책 시행일, 발표 일정, 관련 통계 발표)이 있는지 웹에서 1~3번만 찾아라. 카드 숫자와 다른 기준의 숫자는 섞지 말고, 없으면 보충하지 마라." : "\n\n웹 검색 없이 카드 facts 만으로 써라.") +
     "\n\n답은 아래 태그만 써라(태그 밖 글 금지).\n<insta>인스타 캡션 — 첫 줄 훅, 빈 줄로 나눈 3~6 문단, 핵심 숫자 3~6개, '함께 보면' 보충(있으면, 출처), 저장·댓글 유도 한 줄, 기준일·출처, '※ 참고 자료이며 투자 권유가 아닙니다.', 해시태그 8~12개(마지막 줄, #우상향연구소 포함). 2,000자 이내</insta>" +
     "\n<thread_main>스레드 본문 — 500자 이내. 독자가 이미 궁금해하는 질문 1줄 → 숫자 3~5줄 → 해석 1~2줄 → 기준일. 해시태그는 1개 이하</thread_main>" +
     "\n<reply1>답글 1 — 반대로 보이는 숫자나 한계, 또는 보충 사실(출처). 300자 이내</reply1>" +
     "\n<reply2>답글 2 — 댓글을 부르는 질문 하나(지역·조건을 묻기). 150자 이내</reply2>" +
-    "\n<hooks>다른 첫 줄 후보 3개, 한 줄에 하나</hooks>" +
+    "\n<hooks>다른 첫 줄 후보 3개(숫자형 · 질문형 · 내 상황형 하나씩), 한 줄에 하나</hooks>" +
     "\n<adds>웹에서 보충한 사실, 한 줄에 하나: 내용 | 출처 이름 | 날짜 (없으면 비움)</adds>";
   const tools = web ? [{ type: "web_search_20250305", name: "web_search", max_uses: 3, user_location: { type: "approximate", country: "KR", timezone: "Asia/Seoul" } }] : undefined;
   let msgs = [{ role: "user", content: user }], j = null, all = [];
@@ -134,7 +138,7 @@ async function claudeRun(o) {
   const tools = web ? [{ type: "web_search_20250305", name: "web_search", max_uses: o.web, user_location: { type: "approximate", country: "KR", timezone: "Asia/Seoul" } }] : undefined;
   const t0 = Date.now(); let msgs = [{ role: "user", content: o.content }], j = null, all = [], searches = 0;
   for (let k = 0; k < 3; k++) {
-    j = await claudeCall(KEY, model, { max_tokens: o.max || 4000, system: o.system, messages: msgs, tools });
+    j = await claudeCall(KEY, model, { max_tokens: o.max || 4000, system: o.system, messages: msgs, tools }, Math.max(5000, 55000 - (Date.now() - t0)));
     all = all.concat(j.content || []); searches += (j.usage && j.usage.server_tool_use && j.usage.server_tool_use.web_search_requests) || 0;
     if (j.stop_reason !== "pause_turn" || Date.now() - t0 > 40000) break;
     msgs = [{ role: "user", content: o.content }, { role: "assistant", content: j.content }];
@@ -226,6 +230,11 @@ async function cResearch(b) {
   (J.findings || []).forEach((f) => { const z = bad(String(f.value || "")); f.chk = z.length ? "인용 없음" : (r.cites.length ? "인용 확인" : "인용 없음"); if (z.length) f.miss = z.join(", "); });
   return { ok: true, j: J, raw: r.text.slice(0, 20000), sources: r.sources, model: r.model, searches: r.searches };
 }
+async function cRead(b) {   /* v9.63 카드 이미지 글자 읽기(검증용)도 Claude */
+  const m = /^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/.exec(String(b.image || "")); if (!m) throw new Error("이미지가 없습니다");
+  const r = await claudeRun({ system: "너는 이미지 속 글자를 있는 그대로 받아 적는 사람이다.", content: [{ type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }, { type: "text", text: "이 카드 이미지에 실제로 보이는 글자를 줄 단위로 빠짐없이 그대로 받아 적어라. 숫자·기호·단위는 보이는 그대로(고치거나 추측하지 말 것). 읽을 수 없는 글자는 □. 답은 <json>{\"texts\":[\"줄\"]}</json> 하나만." }], max: 2000 });
+  const J = jsonPick(r.text); return { ok: true, texts: J && Array.isArray(J.texts) ? J.texts.map(String) : [], model: r.model };
+}
 /* ══ v9.62 OpenAI 글 기능을 Claude 로(키가 있으면 · engine:"openai" 면 예전 그대로) — 릴스 기획(plan) · 칸 채우기(fill) · 인사이트(insight) · 데이터 점검 해설(valexplain) ══ */
 function shapeOf(schema) {   /* JSON schema → 짧은 모양 설명(프롬프트용) */
   const w = (s) => { if (!s) return '""'; if (s.type === "array") return "[" + w(s.items) + "]"; if (s.type === "object") return "{" + Object.keys(s.properties || {}).map((k) => '"' + k + '":' + w(s.properties[k]) + (s.properties[k].description ? " /*" + s.properties[k].description.slice(0, 80) + "*/" : "")).join(",") + "}"; if (s.enum) return '"' + s.enum.join("|") + '"'; return s.type === "number" ? "0" : '""'; };
@@ -258,19 +267,26 @@ async function cFill(b) {
   const fill = {}; FL.forEach((f) => { const v = J[f.key]; fill[f.key] = f.kind === "text" ? String(v == null ? "" : v) : Array.isArray(v) ? v : []; });
   return { ok: true, fill, model: r.model };
 }
-async function cInsight(b) {
-  const facts = factsText(b, 80); if (!facts) throw new Error("facts 가 비었습니다");
-  const q = String(b.question || "어떤 상황이야?").slice(0, 300), who = (Array.isArray(b.stances) ? b.stances : []).slice(0, 6).map(String), web = b.web !== false;
-  const sys = "너는 한국 아파트 시장을 오래 본 애널리스트이자 '우상향연구소' 운영자의 비공개 조언자다. 결론부터, 짧고 분명하게. " +
-    "원칙: (1) 앱 숫자는 [facts] 원문 그대로 복사하고 근거 id(F3)를 붙인다. 반올림·환산·추정 금지. (2) 웹에서 찾은 사실은 숫자 옆에 출처 이름을 괄호로 붙이고 근거 id 대신 (웹). facts 와 기준이 다른 숫자는 섞지 않는다. " +
-    "(3) 확률(%)을 매기지 않는다. 조건으로 말한다. (4) 비공개 메모라 의견은 분명히, 단정 대신 조건. (5) 과거 패턴은 경향으로만. (6) 한국어, 쉬운 말, 이모지 금지.";
-  const shape = '{"answer":"결론 3~5문장(첫 문장이 답, 근거 id)","because":["이유 2~5줄(근거 id)"],"stances":[{"who":"입장","todo":"지금 할 일","why":"근거 한 줄"}],"scenarios":[{"name":"기준|상방|하방","cond":"조건(확인 가능한 숫자·사건)","then":"그때 벌어질 일"}],"watch":["확인 신호 2~5줄"],"risk":"틀릴 수 있는 이유 1~2문장"}';
-  const user = "[질문] " + q + (who.length ? "\n[입장 목록 — stances 는 이 중에서] " + who.join(" / ") : "") + "\n\n[facts — 앱 숫자]\n" + facts +
-    (web ? "\n\n답하기 전에, 이 질문에 꼭 필요한데 facts 에 없는 최근 사실(정책 변화·금리 결정 일정·공급 계획·심리 지표)이 있으면 웹에서 1~3번 찾아라. 공공기관·주요 언론만." : "") + "\n\n답은 <json>" + shape + "</json> 하나만.";
-  const r = await claudeRun({ system: sys, content: user, web: web ? 3 : 0, max: 4000 });
+async function cInsight(b) {   /* v9.63 깊게(기본 Opus) · 반대 논리 · 지역별 · 확인 일정 · 확신 정도 · 이어 묻기 */
+  const facts = factsText(b, 160); if (!facts) throw new Error("facts 가 비었습니다");
+  const q = String(b.question || "어떤 상황이야?").slice(0, 400), who = (Array.isArray(b.stances) ? b.stances : []).slice(0, 6).map(String), web = b.web !== false, deep = b.deep !== false;
+  const sys = "너는 한국 아파트 시장을 20년 본 애널리스트이자 '우상향연구소' 운영자의 비공개 조언자다. 운영자는 이 답을 판단 메모와 콘텐츠 기획에 쓴다. 결론부터, 짧고 분명하게, 근거를 촘촘히. " +
+    "원칙: (1) 앱 숫자는 [facts] 원문 그대로 복사하고 근거 id(F3)를 붙인다. 반올림·환산·추정·새 계산 금지. (2) 웹에서 찾은 사실은 출처 이름을 괄호로 붙이고 (웹)이라 적는다. 기준이 다른 숫자(KB vs 부동산원, 월 vs 주)는 섞지 말고 기준을 밝힌다. " +
+    "(3) 확률(%)을 매기지 않는다. '어떤 조건이면 어느 쪽'으로 말한다. (4) 의견은 분명히, 단정 대신 조건. 상승 논리와 하락 논리를 모두 검토한 뒤 결론을 낸다. (5) 과거 패턴은 경향으로만, 표본 수를 함께. " +
+    "(6) 지역마다 다르면 다르다고 말한다(서울 핵심·서울 외곽·경기 남부·경기 북부·인천·지방). (7) 숫자 나열보다 '그래서 무엇을 의미하는지'. (8) 한국어, 쉬운 말, 이모지 금지. 각 문장은 메모에 그대로 옮길 수 있게 완결된 문장.";
+  const shape = '{"headline":"한 줄 결론(30자 안팎)","answer":"결론 3~5문장(첫 문장이 답, 근거 id)","because":["이유 3~5줄 — 숫자와 근거 id"],"counter":{"view":"반대로 볼 수 있는 논리 한 문장","because":["그 근거 1~3줄(근거 id)"],"rebut":"그래도 결론을 유지하는 이유 또는 결론을 바꿀 조건"},"regions":[{"region":"지역 묶음","view":"그 지역은 어떻게 다른가","why":"근거(근거 id)"}],"stances":[{"who":"입장","todo":"지금 할 일","why":"근거 한 줄"}],"scenarios":[{"name":"기준|상방|하방","cond":"조건(확인 가능한 숫자·사건)","then":"그때 벌어질 일"}],"calendar":[{"when":"날짜(facts·웹에 있는 것만)","what":"확인할 발표·일정","why":"왜 중요한지"}],"watch":["확인 신호 — 지표 · 수준 · 의미"],"confidence":{"level":"높음|보통|낮음","why":"근거가 충분한지·표본·데이터 지연"},"risk":"틀릴 수 있는 이유 1~2문장","followups":["이어서 물어보면 좋을 질문 3개"],"content":["이 판단으로 만들 만한 콘텐츠 주제 2~3개(정보형, 투자 권유 없이)"]}';
+  const prev = b.prev && b.prev.q ? "\n\n[바로 전 질문과 답 — 이어지는 질문이다]\nQ: " + String(b.prev.q).slice(0, 300) + "\nA: " + String(b.prev.answer || "").slice(0, 1500) : "";
+  const user = "[질문] " + q + (who.length ? "\n[입장 목록 — stances 는 이 중에서] " + who.join(" / ") : "") + prev + "\n\n[facts — 앱 숫자·메모·외부 조사·오늘 이슈]\n" + facts +
+    (web ? "\n\n답하기 전에, 이 질문에 꼭 필요한데 facts 에 없는 최근 사실(정책 변화·금리 결정 일정·공급 계획·심리 지표·대출 규제)이 있으면 웹에서 1~4번 찾아라. 공공기관·통계·주요 언론만." : "") +
+    "\n\n속으로 상승 논리·하락 논리·지역 차이를 먼저 따져 본 뒤, 답은 <json>" + shape + "</json> 하나만.";
+  const model = deep ? (process.env.CLAUDE_MODEL_DEEP || "claude-opus-5-5") : undefined;
+  const r = await claudeRun({ system: sys, content: user, web: web ? (deep ? 3 : 4) : 0, max: deep ? 5000 : 6000, model });
   const J = jsonPick(r.text); if (!J) throw new Error("답을 읽지 못했습니다 — 다시 눌러 주세요");
-  ["because", "stances", "scenarios", "watch"].forEach((k) => { if (!Array.isArray(J[k])) J[k] = []; }); ["answer", "risk"].forEach((k) => { J[k] = String(J[k] || ""); });
-  return { ok: true, insight: J, web: r.cites.slice(0, 30).map((t, i) => ({ id: "W" + (i + 1), text: t.slice(0, 300) })), sources: r.sources, model: r.model, searches: r.searches };
+  ["because", "stances", "scenarios", "watch", "regions", "calendar", "followups", "content"].forEach((k) => { if (!Array.isArray(J[k])) J[k] = []; }); ["answer", "risk", "headline"].forEach((k) => { J[k] = String(J[k] || ""); });
+  if (!J.counter || typeof J.counter !== "object") J.counter = null; if (!J.confidence || typeof J.confidence !== "object") J.confidence = null;
+  /* 일정의 날짜는 facts·인용문에 있어야 — 없으면 그 줄 뺌 */
+  const bad = numOk(facts + "\n" + r.cites.join("\n")); J.calendar = J.calendar.filter((c) => !bad(String(c.when || "") + " " + String(c.what || "")).length).slice(0, 6);
+  return { ok: true, insight: J, web: r.cites.slice(0, 40).map((t, i) => ({ id: "W" + (i + 1), text: t.slice(0, 300) })), sources: r.sources, model: r.model, searches: r.searches };
 }
 const VAL_CTX = "TrackApt 수집 구조: GitHub Actions brief.yml(매일 03:00 KST 전체, 15:00 청약만, workflow_dispatch 입력 only 로 일부만) → scripts/daily_build.js(국토부 실거래·KOSIS 주간 지수·청약홈·금감원 금리) · macro_build.js(ECOS 기준금리·국고채·미국 금리, KOSIS 인허가·착공·미분양) · core_build.js(시군구 월별 지수·건수) · school_build.js · brief_build.js → scripts/validate.js 가 결과를 점검해 data/validate.json 에 남김. 키는 GitHub Secrets(ECOS_KEY, KOSIS_KEY, DATA_GO_KEY, RONE_KEY, FSS_KEY, SCHOOLINFO_API_KEY)와 Vercel(MOLIT_API_KEY). 실거래는 신고 기한 30일이라 최근 달은 늘 적게 보인다. 주인은 비개발자이며 GitHub 웹(휴대폰)으로 파일을 올린다.";
 async function cValExplain(b) {
@@ -293,7 +309,7 @@ module.exports = async (req, res) => {
   if (!same(b.t, tokenOf(OWN))) return res.status(401).json({ ok: false, error: "주인 인증이 필요합니다" });
   const CM = { caption: async (x) => Object.assign({ ok: true }, await caption(x)), verify: cVerify, weekly: cWeekly, today: cToday, research: cResearch };
   CM.valexplain = cValExplain;
-  if (process.env.ANTHROPIC_API_KEY && b.engine !== "openai" && process.env.TEXT_ENGINE !== "openai") { CM.extract = cExtract; CM.plan = cPlan; CM.fill = cFill; CM.insight = cInsight; }   /* v9.62 글 기능은 Claude 우선 */
+  if (process.env.ANTHROPIC_API_KEY && b.engine !== "openai" && process.env.TEXT_ENGINE !== "openai") { CM.extract = cExtract; CM.plan = cPlan; CM.fill = cFill; CM.insight = cInsight; CM.read = cRead; }   /* v9.62 글 기능은 Claude 우선 */
   if (CM[b.mode]) { try { return res.status(200).json(await CM[b.mode](b)); } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); } }
   if (!KEY) return res.status(500).json({ ok: false, error: "OPENAI_API_KEY 가 없습니다" });
   try {

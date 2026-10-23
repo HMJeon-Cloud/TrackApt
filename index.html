@@ -11251,7 +11251,7 @@ function rpExtSave(topicId, txt) {
   if (cl) { J.sources = cl.sources || []; J.via = via; }
   var d = { type: "ext", topic: topicId, topicNm: t[1], asOf: J.asOf || today, tags: t[3], j: J, raw: String(txt || "").slice(0, 20000) };
   var item = { kind: "insight", type: "ext", name: t[1] + " · " + d.asOf, tags: ["외부 조사", topicId].concat(t[3]), data: d };
-  (RP2.noVault ? Promise.reject(new Error("Upstash 환경변수가 없습니다")) : asApi("add", { item: item })).then(function () { RP2.msg = "저장했습니다" + (J.unverified && J.unverified.length ? "(인용 없는 " + J.unverified.length + "개는 재료에서 뺌)" : "") + " — 브리핑 '외부 조사 반영'과 인사이트·카드 재료에 들어갑니다"; if (!RP2.busy) rpLoadExt(); }, function (e) { if (/Upstash|환경변수/.test(e.message)) { RP2.noVault = true; rpExtLocalAdd(item); RP2.msg = "서버 보관함(Upstash) 미설정 → 이 기기에 저장했습니다" + (J.unverified && J.unverified.length ? "(인용 없는 " + J.unverified.length + "개는 재료에서 뺌)" : "") + " · PC·휴대폰 공통으로 쓰려면 Vercel 에 UPSTASH_REDIS_REST_URL / TOKEN"; if (!RP2.busy) rpLoadExt(); } else { RP2.msg = "저장 실패: " + e.message; rpPaint(); } });
+  (RP2.noVault ? Promise.reject(new Error("Upstash 환경변수가 없습니다")) : asApi("add", { item: item })).then(function () { RP2.msg = "저장했습니다" + (J.unverified && J.unverified.length ? "(인용 없는 " + J.unverified.length + "개는 재료에서 뺌)" : "") + " — 브리핑 '외부 조사 반영'과 인사이트·카드 재료에 들어갑니다"; if (!RP2.busy) rpLoadExt(); }, function (e) { if (/Upstash|환경변수/.test(e.message)) { RP2.noVault = true; rpExtLocalAdd(item); RP2.msg = "서버 보관함(Upstash) 미설정 → 이 기기에 저장했습니다" + (J.unverified && J.unverified.length ? "(인용 없는 " + J.unverified.length + "개는 재료에서 뺌)" : "") + " · PC·휴대폰 공통으로 쓰려면 Vercel → Storage 에서 TrackStock 의 Upstash 연결"; if (!RP2.busy) rpLoadExt(); } else { RP2.msg = "저장 실패: " + e.message; rpPaint(); } });
 }
 /* v9.71 서버 보관함(Upstash)이 없어도 외부 조사는 이 기기에 저장 — 설정하면 그때부터 서버로 */
 var EXT_LOCAL_LS = "trackapt_ext_local_v1";
@@ -11261,7 +11261,7 @@ function rpExtLocalDel(id) { try { localStorage.setItem(EXT_LOCAL_LS, JSON.strin
 function rpLoadExt(cb) {
   var local = rpExtLocal();
   if (typeof asApi !== "function" || typeof asTok !== "function" || !asTok()) { RP2.ext = local; rpPaint(); cb && cb(); return; }
-  asApi("list").then(function (j) { RP2.noVault = false; RP2.ext = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data && x.data.type === "ext"; }).concat(local).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); rpPaint(); cb && cb(); }, function (e) { RP2.noVault = /Upstash|환경변수/.test(e.message); RP2.ext = local; RP2.msg = (RP2.noVault ? "서버 보관함(Upstash)이 아직 설정되지 않아 이 기기에만 저장합니다 — 데이터 운영 화면의 안내대로 환경변수 2개를 넣으면 PC·휴대폰 공통" : "서버 연결 안 됨: " + e.message); rpPaint(); cb && cb(); });
+  asApi("list").then(function (j) { RP2.noVault = false; RP2.ext = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data && x.data.type === "ext"; }).concat(local).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }); rpPaint(); cb && cb(); }, function (e) { RP2.noVault = /Upstash|환경변수/.test(e.message); RP2.ext = local; RP2.msg = (RP2.noVault ? "서버 보관함이 아직 연결되지 않아 이 기기에만 저장합니다 — Vercel → Storage 에서 TrackStock 의 Upstash 를 연결(KV_REST_API_URL/TOKEN 자동)하고 Redeploy 하면 PC·휴대폰 공통" : "서버 연결 안 됨: " + e.message); rpPaint(); cb && cb(); });
 }
 /* 외부 조사 결과를 속사정 메모처럼 쓴다(인사이트·카드 '함께 보면'·AI 재료) — 최신 주제당 1건, findings 를 fact 로 */
 function rpExtAsCtx() {
@@ -11487,7 +11487,7 @@ var OPS = {
     ["SCHOOLINFO_API_KEY", "GitHub Secrets", "schoolinfo.go.kr 학교알리미 → 알리미 소식 → OpenAPI 신청", "초·중·고 5,700곳 기본정보·학생수·입학생·전출입 + data/school 의 학업성취 CSV", "03:00 전체", "school_data.json", "학업성취도는 공시 엑셀을 손으로 내려받아 data/school 에 넣음(아래 수동)"],
     ["OWNER_KEY", "Vercel 환경변수", "직접 정한 비밀 문자열", "주인 인증(HMAC 토큰) — 인사이트·브리핑·카드 만들기·보관함 접근", "—", "api/owner.js", "바꾸면 모든 기기에서 다시 로그인"],
     ["OPENAI_API_KEY", "Vercel 환경변수", "platform.openai.com → API keys", "인사이트 「넌 어떻게 생각하는데?」 답 · 카드 AI 배경/전체 그림 · 릴스 설계", "버튼을 누를 때만 호출(자동 없음) · 과금 주의", "api/ai.js · api/img.js", "GEMINI_API_KEY 는 선택(그림 대체)"],
-    ["UPSTASH_REDIS_REST_URL / TOKEN", "Vercel 환경변수", "upstash.com → Redis → REST", "보관함: 저장한 카드·양식·속사정 메모·예상 기록·외부 조사 결과", "쓸 때마다", "api/_vault.js", "무료 한도 안(항목 300개 상한)"]
+    ["KV_REST_API_URL / TOKEN (또는 UPSTASH_REDIS_REST_URL / TOKEN)", "Vercel 환경변수 — TrackStock 과 같은 방법: Vercel 프로젝트 → Storage → Connect Store → 기존 Upstash Redis(TrackStock 것) 연결하면 KV_REST_API_URL/TOKEN 이 자동 등록 → Redeploy", "TrackStock 과 같은 Upstash DB 를 써도 됨(TrackApt 키는 모두 ta:v: 로 시작, TrackStock 은 sm: 이라 안 겹침)", "보관함: 저장한 카드·양식·속사정 메모·예상 기록·외부 조사 결과 · 오늘 작업 결과(PC·휴대폰 공통)", "쓸 때마다", "api/_vault.js", "무료 한도 안(항목 300개 상한)"]
   ],
   /* 2. 키 없이 자동 */
   auto: [
@@ -12332,7 +12332,7 @@ function hubPaint() {
   var bs = document.getElementById("hub-basis"); if (bs) bs.textContent = (typeof dyDate === "function" ? dyDate().txt : "") + (typeof inBasisLine === "function" ? (function () { try { var x = inBasisLine(); return x ? " · " + x : ""; } catch (e) { return ""; } })() : "");
   var S = hubState(), sel = HUB.sel || S.cur, done = S.filter(function (x) { return x.st === "done"; }).length;
   var ST = { done: "완료", todo: "할 차례", bad: "확인 필요", wait: "불러오는 중" };
-  var board = '<div class="hub-all"><button type="button" class="btn" data-huball="1"' + (HUB.all ? " disabled" : "") + '>오늘 준비 한 번에</button><span class="hint" id="hub-allmsg">' + (HUB.all ? "진행 중" : HUB.allMsg ? hubE(HUB.allMsg) : "자료 모으기 → 판단 → 정기 코너 글 미리 쓰기 · Claude 3~5회 · 약 2분 · 끝나면 4·5단계는 확인만") + '</span></div><div class="hub-prog"><b>' + done + '/5 단계 완료</b><small class="hint" id="hub-sync">' + (typeof DAILY !== "undefined" && DAILY.noVault ? "이 기기에만 저장 — 서버 보관함(Upstash) 미설정 · 데이터 운영 안내대로 환경변수 2개" : typeof DAILY !== "undefined" && DAILY.at ? "서버 저장 " + new Date(DAILY.at + 9 * 3600e3).toISOString().slice(11, 16) + " · PC·휴대폰 공통" : "결과는 서버 보관함에 저장 — PC·휴대폰 공통") + '</small><div><i style="width:' + done * 20 + '%"></i></div></div><div class="hub-board">' + S.map(function (x, i) {
+  var board = '<div class="hub-all"><button type="button" class="btn" data-huball="1"' + (HUB.all ? " disabled" : "") + '>오늘 준비 한 번에</button><span class="hint" id="hub-allmsg">' + (HUB.all ? "진행 중" : HUB.allMsg ? hubE(HUB.allMsg) : "자료 모으기 → 판단 → 정기 코너 글 미리 쓰기 · Claude 3~5회 · 약 2분 · 끝나면 4·5단계는 확인만") + '</span></div><div class="hub-prog"><b>' + done + '/5 단계 완료</b><small class="hint" id="hub-sync">' + (typeof DAILY !== "undefined" && DAILY.noVault ? "이 기기에만 저장 — 서버 보관함 미설정 · Vercel → Storage 에서 TrackStock 의 Upstash 를 연결(KV_REST_API_URL/TOKEN 자동) 뒤 Redeploy" : typeof DAILY !== "undefined" && DAILY.at ? "서버 저장 " + new Date(DAILY.at + 9 * 3600e3).toISOString().slice(11, 16) + " · PC·휴대폰 공통" : "결과는 서버 보관함에 저장 — PC·휴대폰 공통") + '</small><div><i style="width:' + done * 20 + '%"></i></div></div><div class="hub-board">' + S.map(function (x, i) {
     var stv = x.st === "todo" && x.k !== S.cur ? "next" : x.st;
     return '<div class="hub-col s-' + stv + (x.k === sel ? " sel" : "") + '" data-hubsel="' + x.k + '"><div class="hub-ct"><i>' + (i + 1) + "</i><b>" + x.nm + '</b></div><em class="hub-st">' + (stv === "next" ? "대기" : ST[x.st]) + '</em><p>' + hubE(x.res) + "</p>" + (x.act ? '<button type="button" class="btn sm" data-hubact="' + x.k + '">' + hubE(x.act) + "</button>" : "") + "</div>";
   }).join("") + "</div>";
@@ -12667,8 +12667,8 @@ function dailyPush() {
         return asApi("add", { item: { kind: "insight", type: "daily", name: "오늘 작업 " + d.day, tags: ["오늘 작업"], data: Object.assign({ type: "daily" }, d) } }).then(function (r) { DAILY.id = r.item && r.item.id; });
       });
     };
-    if (DAILY.noVault) { var e0 = document.getElementById("hub-sync"); if (e0) e0.textContent = "이 기기에만 저장 — 서버 보관함(Upstash) 미설정 · 데이터 운영 안내대로 환경변수 2개"; return; }
-    (DAILY.id ? asApi("update", { id: DAILY.id, patch: { data: Object.assign({ type: "daily" }, d) } }) : go()).then(function () { DAILY.at = d.at; var e = document.getElementById("hub-sync"); if (e) e.textContent = "서버에 저장 " + new Date(d.at + 9 * 3600e3).toISOString().slice(11, 16) + " · PC·휴대폰 공통"; }, function (e) { DAILY.noVault = /Upstash|환경변수/.test(e.message); var el = document.getElementById("hub-sync"); if (el) el.textContent = DAILY.noVault ? "이 기기에만 저장 — 서버 보관함(Upstash) 미설정 · 데이터 운영 안내대로 환경변수 2개" : "서버 저장 실패: " + e.message + " (이 기기에만 있음)"; });
+    if (DAILY.noVault) { var e0 = document.getElementById("hub-sync"); if (e0) e0.textContent = "이 기기에만 저장 — 서버 보관함 미설정 · Vercel → Storage 에서 TrackStock 의 Upstash 를 연결(KV_REST_API_URL/TOKEN 자동) 뒤 Redeploy"; return; }
+    (DAILY.id ? asApi("update", { id: DAILY.id, patch: { data: Object.assign({ type: "daily" }, d) } }) : go()).then(function () { DAILY.at = d.at; var e = document.getElementById("hub-sync"); if (e) e.textContent = "서버에 저장 " + new Date(d.at + 9 * 3600e3).toISOString().slice(11, 16) + " · PC·휴대폰 공통"; }, function (e) { DAILY.noVault = /Upstash|환경변수/.test(e.message); var el = document.getElementById("hub-sync"); if (el) el.textContent = DAILY.noVault ? "이 기기에만 저장 — 서버 보관함 미설정 · Vercel → Storage 에서 TrackStock 의 Upstash 를 연결(KV_REST_API_URL/TOKEN 자동) 뒤 Redeploy" : "서버 저장 실패: " + e.message + " (이 기기에만 있음)"; });
   }, 1500);
 }
 /* 서버 것이 더 최근이면 이 기기에 들여온다 */
@@ -12688,7 +12688,7 @@ function dailyPull(cb) {
     if ((d.at || 0) > (DAILY.at || 0)) changed = true;
     DAILY.at = d.at || 0; var e = document.getElementById("hub-sync"); if (e) e.textContent = "서버 것 불러옴 " + new Date((d.at || Date.now()) + 9 * 3600e3).toISOString().slice(11, 16) + " · PC·휴대폰 공통";
     cb && cb(changed);
-  }, function (e) { DAILY.busy = 0; DAILY.pulledAt = Date.now(); DAILY.noVault = /Upstash|환경변수/.test(e.message); var el = document.getElementById("hub-sync"); if (el && DAILY.noVault) el.textContent = "이 기기에만 저장 — 서버 보관함(Upstash) 미설정 · 데이터 운영 안내대로 환경변수 2개"; cb && cb(false); });
+  }, function (e) { DAILY.busy = 0; DAILY.pulledAt = Date.now(); DAILY.noVault = /Upstash|환경변수/.test(e.message); var el = document.getElementById("hub-sync"); if (el && DAILY.noVault) el.textContent = "이 기기에만 저장 — 서버 보관함 미설정 · Vercel → Storage 에서 TrackStock 의 Upstash 를 연결(KV_REST_API_URL/TOKEN 자동) 뒤 Redeploy"; cb && cb(false); });
 }
 /* 바뀌는 자리마다 저장 */
 (function () {

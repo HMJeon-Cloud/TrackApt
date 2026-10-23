@@ -136,13 +136,14 @@ async function claudeRun(o) {
   const KEY = process.env.ANTHROPIC_API_KEY || ""; if (!KEY) throw new Error("ANTHROPIC_API_KEY 가 없습니다 (Vercel 환경변수)");
   const model = o.model || process.env.CLAUDE_MODEL || "claude-sonnet-5-5", web = o.web && process.env.CLAUDE_WEB !== "off";
   let tools = web ? [{ type: "web_search_20250305", name: "web_search", max_uses: o.web, user_location: { type: "approximate", country: "KR", timezone: "Asia/Seoul" } }] : undefined, tool_choice;
-  if (o.answer && !web) { tools = [{ name: "answer", description: "최종 답을 제출한다. 형식: " + String(o.answer).slice(0, 3000), input_schema: { type: "object", additionalProperties: true } }]; tool_choice = { type: "tool", name: "answer" }; }   /* v9.66 답은 도구 입력(JSON)으로 — 웹 검색이 있으면 인용(citations)을 지키려고 글로 받는다(v9.71) */
+  if (o.answer && !web && !global.NO_TOOL_CHOICE) { tools = [{ name: "answer", description: "최종 답을 제출한다. 형식: " + String(o.answer).slice(0, 3000), input_schema: { type: "object", additionalProperties: true } }]; tool_choice = { type: "tool", name: "answer" }; }   /* v9.66 답은 도구 입력(JSON)으로 — 웹 검색이 있으면 인용(citations)을 지키려고 글로 받는다(v9.71) */
+  const sysTxt = (o.system || "") + (o.answer && !tool_choice ? " 답은 반드시 <json></json> 안에 JSON 하나만." : "");
   const t0 = Date.now(); let msgs = [{ role: "user", content: o.content }], j = null, all = [], searches = 0;
   for (let k = 0; k < 3; k++) {
-    const req = { max_tokens: o.max || 4000, system: o.system, messages: msgs, tools }; if (tool_choice) req.tool_choice = tool_choice;
+    const req = { max_tokens: o.max || 4000, system: sysTxt, messages: msgs, tools }; if (tool_choice) req.tool_choice = tool_choice;
     try { j = await claudeCall(KEY, model, req, Math.max(5000, 55000 - (Date.now() - t0))); }
     catch (e) {   /* v9.71 이 모델이 tool_choice(강제 도구)를 못 쓰면 → 도구 없이 글(JSON)로 다시 */
-      if (tool_choice && /tool_choice|not supported/i.test(String(e.message))) { tool_choice = null; tools = (tools || []).filter((t) => t.name !== "answer"); if (!tools.length) tools = undefined; const req2 = { max_tokens: o.max || 4000, system: o.system + " 답은 반드시 <json></json> 안에 JSON 하나만.", messages: msgs, tools }; j = await claudeCall(KEY, model, req2, Math.max(5000, 55000 - (Date.now() - t0))); }
+      if (tool_choice && /tool_choice|not supported/i.test(String(e.message))) { global.NO_TOOL_CHOICE = true; tool_choice = null; tools = (tools || []).filter((t) => t.name !== "answer"); if (!tools.length) tools = undefined; const req2 = { max_tokens: o.max || 4000, system: o.system + " 답은 반드시 <json></json> 안에 JSON 하나만.", messages: msgs, tools }; j = await claudeCall(KEY, model, req2, Math.max(5000, 55000 - (Date.now() - t0))); }
       else throw e;
     }
     all = all.concat(j.content || []); searches += (j.usage && j.usage.server_tool_use && j.usage.server_tool_use.web_search_requests) || 0;
@@ -168,7 +169,7 @@ function jsonPick(t) {
 }
 /* v9.66 JSON 답 받기 — 웹 검색이 없으면 answer 도구를 강제(항상 JSON), 웹 검색이 있으면 글로 받은 뒤 깨지면 한 번 더 '도구로 다시 제출'(인용은 첫 답 것 유지) */
 async function claudeJSON(o, what) {
-  const r = await claudeRun(Object.assign({}, o, { answer: o.shape || "JSON", max: Math.max(o.max || 4000, 8000) }));
+  const r = await claudeRun(Object.assign({}, o, { answer: o.shape || "JSON", max: o.max || 6000 }));
   let J = r.json || jsonPick(r.text);
   if (!J && (r.text || "").trim()) {
     const r2 = await claudeRun({ system: "너는 답을 정해진 JSON 형식으로 옮기는 사람이다. 내용·숫자·출처를 바꾸거나 더하지 않는다.", content: "[형식]\n" + String(o.shape || "").slice(0, 3000) + "\n\n[옮길 답]\n" + r.text.slice(0, 30000) + "\n\nanswer 도구로 제출하라.", answer: o.shape || "JSON", max: 8000, model: process.env.CLAUDE_MODEL || "claude-sonnet-5-5" });
@@ -310,25 +311,24 @@ async function cFill(b) {
   const fill = {}; FL.forEach((f) => { const v = J[f.key]; fill[f.key] = f.kind === "text" ? String(v == null ? "" : v) : Array.isArray(v) ? v : []; });
   return { ok: true, fill, model: r.model };
 }
-async function cInsight(b) {   /* v9.63 깊게(기본 Opus) · 반대 논리 · 지역별 · 확인 일정 · 확신 정도 · 이어 묻기 */
-  const facts = factsText(b, 160); if (!facts) throw new Error("facts 가 비었습니다");
-  const q = String(b.question || "어떤 상황이야?").slice(0, 400), who = (Array.isArray(b.stances) ? b.stances : []).slice(0, 6).map(String), web = b.web === true, deep = b.deep === true;   /* v9.67 기본 = 빠르게(Sonnet) · 웹 없음(오늘 모은 자료가 facts 에 들어 있음) — 55초 안에 끝나게 */
-  const sys = "너는 한국 아파트 시장을 20년 본 애널리스트이자 '우상향연구소' 운영자의 비공개 조언자다. 운영자는 이 답을 판단 메모와 콘텐츠 기획에 쓴다. 결론부터, 짧고 분명하게, 근거를 촘촘히. " +
-    "원칙: (1) 앱 숫자는 [facts] 원문 그대로 복사하고 근거 id(F3)를 붙인다. 반올림·환산·추정·새 계산 금지. (2) 웹에서 찾은 사실은 출처 이름을 괄호로 붙이고 (웹)이라 적는다. 기준이 다른 숫자(KB vs 부동산원, 월 vs 주)는 섞지 말고 기준을 밝힌다. " +
-    "(3) 확률(%)을 매기지 않는다. '어떤 조건이면 어느 쪽'으로 말한다. (4) 의견은 분명히, 단정 대신 조건. 상승 논리와 하락 논리를 모두 검토한 뒤 결론을 낸다. (5) 과거 패턴은 경향으로만, 표본 수를 함께. " +
-    "(6) 지역마다 다르면 다르다고 말한다(서울 핵심·서울 외곽·경기 남부·경기 북부·인천·지방). (7) 숫자 나열보다 '그래서 무엇을 의미하는지'. (8) 한국어, 쉬운 말, 이모지 금지. 각 문장은 메모에 그대로 옮길 수 있게 완결된 문장.";
-  const shape = '{"headline":"한 줄 결론(30자 안팎)","answer":"결론 3~5문장(첫 문장이 답, 근거 id)","because":["이유 3~5줄 — 숫자와 근거 id"],"counter":{"view":"반대로 볼 수 있는 논리 한 문장","because":["그 근거 1~3줄(근거 id)"],"rebut":"그래도 결론을 유지하는 이유 또는 결론을 바꿀 조건"},"regions":[{"region":"지역 묶음","view":"그 지역은 어떻게 다른가","why":"근거(근거 id)"}],"stances":[{"who":"입장","todo":"지금 할 일","why":"근거 한 줄"}],"scenarios":[{"name":"기준|상방|하방","cond":"조건(확인 가능한 숫자·사건)","then":"그때 벌어질 일"}],"calendar":[{"when":"날짜(facts·웹에 있는 것만)","what":"확인할 발표·일정","why":"왜 중요한지"}],"watch":["확인 신호 — 지표 · 수준 · 의미"],"confidence":{"level":"높음|보통|낮음","why":"근거가 충분한지·표본·데이터 지연"},"risk":"틀릴 수 있는 이유 1~2문장","followups":["이어서 물어보면 좋을 질문 3개"],"content":["이 판단으로 만들 만한 콘텐츠 주제 2~3개(정보형, 투자 권유 없이)"]}';
-  const prev = b.prev && b.prev.q ? "\n\n[바로 전 질문과 답 — 이어지는 질문이다]\nQ: " + String(b.prev.q).slice(0, 300) + "\nA: " + String(b.prev.answer || "").slice(0, 1500) : "";
-  const user = "[질문] " + q + (who.length ? "\n[입장 목록 — stances 는 이 중에서] " + who.join(" / ") : "") + prev + "\n\n[facts — 앱 숫자·메모·외부 조사·오늘 이슈]\n" + facts +
-    (web ? "\n\n답하기 전에, 이 질문에 꼭 필요한데 facts 에 없는 최근 사실(정책 변화·금리 결정 일정·공급 계획·심리 지표·대출 규제)이 있으면 웹에서 1~3번 찾아라. 공공기관·통계·주요 언론만." : "\n\n웹 검색 없이 facts(오늘 모은 바깥 사실 포함)만으로 답하라. facts 에 없는 최근 사실이 꼭 필요하면 'watch' 나 'calendar' 에 '확인 필요'로 적는다.") +
-    "\n\n속으로 상승 논리·하락 논리·지역 차이를 먼저 따져 본 뒤, 답은 <json>" + shape + "</json> 하나만.";
+async function cInsight(b) {   /* v9.72 짧고 빠르게 — 재료 100줄 · 답 900자 안팎(입장별·시나리오는 앱이 규칙으로 계산하므로 빼고 결론·이유·반대·지역·일정·신호·확신만) */
+  const facts = (b.facts || []).slice(0, 100).map((f) => (f.id ? f.id + ": " : "") + String(f.text).slice(0, 160)).join("\n"); if (!facts) throw new Error("facts 가 비었습니다");
+  const q = String(b.question || "어떤 상황이야?").slice(0, 400), web = b.web === true, deep = b.deep === true;
+  const sys = "너는 한국 아파트 시장을 20년 본 애널리스트이자 '우상향연구소' 운영자의 비공개 조언자다. 결론부터, 짧고 분명하게. " +
+    "원칙: (1) 앱 숫자는 [facts] 원문 그대로 복사하고 근거 id(F3)를 붙인다. 반올림·환산·추정 금지. (2) 바깥 사실은 출처 이름을 괄호로. 기준이 다른 숫자(KB vs 부동산원, 월 vs 주)는 섞지 않는다. " +
+    "(3) 확률(%)을 매기지 않는다 — '어떤 조건이면 어느 쪽'. (4) 상승 논리와 하락 논리를 모두 본 뒤 결론. (5) 지역마다 다르면 다르다고(서울 핵심·외곽·경기 남·북·인천·지방). (6) 한국어, 쉬운 말, 이모지 금지. 전체 900자 안팎, 항목마다 1~2문장.";
+  const shape = '{"headline":"한 줄 결론(30자 안팎)","answer":"결론 2~3문장(첫 문장이 답, 근거 id)","because":["이유 3줄(숫자·근거 id)"],"counter":{"view":"반대 논리 한 문장","rebut":"그래도 결론을 유지하는 이유 또는 바꿀 조건 한 문장"},"regions":[{"region":"지역 묶음","view":"한 줄"}],"calendar":[{"when":"날짜(facts 에 있는 것만)","what":"확인할 일정"}],"watch":["확인 신호 3줄 — 지표 · 수준 · 의미"],"confidence":{"level":"높음|보통|낮음","why":"한 줄"},"risk":"틀릴 수 있는 이유 한 문장","content":["콘텐츠 주제 2개(정보형)"]}';
+  const prev = b.prev && b.prev.q ? "\n\n[바로 전 질문과 답 — 이어지는 질문]\nQ: " + String(b.prev.q).slice(0, 200) + "\nA: " + String(b.prev.answer || "").slice(0, 600) : "";
+  const user = "[질문] " + q + prev + "\n\n[facts — 앱 숫자·메모·오늘 모은 바깥 사실]\n" + facts +
+    (web ? "\n\n꼭 필요한데 facts 에 없는 최근 사실이 있으면 웹에서 1~2번만 찾아라." : "\n\n웹 검색 없이 facts 만으로. facts 에 없는 최근 사실이 꼭 필요하면 watch 에 '확인 필요'로.") +
+    "\n\n답은 <json>" + shape + "</json> 하나만. 길게 쓰지 말 것.";
   const model = deep ? (process.env.CLAUDE_MODEL_DEEP || "claude-opus-5-5") : undefined;
-  const { J, r } = await claudeJSON({ system: sys, content: user, web: web ? 3 : 0, max: deep ? 8000 : 6000, model, shape: shape }, "답");
-  ["because", "stances", "scenarios", "watch", "regions", "calendar", "followups", "content"].forEach((k) => { if (!Array.isArray(J[k])) J[k] = []; }); ["answer", "risk", "headline"].forEach((k) => { J[k] = String(J[k] || ""); });
+  const { J, r } = await claudeJSON({ system: sys, content: user, web: web ? 2 : 0, max: 2500, model, shape: shape }, "답");
+  ["because", "watch", "regions", "calendar", "content"].forEach((k) => { if (!Array.isArray(J[k])) J[k] = []; }); ["answer", "risk", "headline"].forEach((k) => { J[k] = String(J[k] || ""); });
+  J.stances = []; J.scenarios = []; J.followups = [];
   if (!J.counter || typeof J.counter !== "object") J.counter = null; if (!J.confidence || typeof J.confidence !== "object") J.confidence = null;
-  /* 일정의 날짜는 facts·인용문에 있어야 — 없으면 그 줄 뺌 */
-  const bad = numOk(facts + "\n" + r.cites.join("\n")); J.calendar = J.calendar.filter((c) => !bad(String(c.when || "") + " " + String(c.what || "")).length).slice(0, 6);
-  return { ok: true, insight: J, web: r.cites.slice(0, 40).map((t, i) => ({ id: "W" + (i + 1), text: t.slice(0, 300) })), sources: r.sources, model: r.model, searches: r.searches };
+  const bad = numOk(facts + "\n" + r.cites.join("\n")); J.calendar = J.calendar.filter((c) => !bad(String(c.when || "") + " " + String(c.what || "")).length).slice(0, 4);
+  return { ok: true, insight: J, web: r.cites.slice(0, 20).map((t, i) => ({ id: "W" + (i + 1), text: t.slice(0, 300) })), sources: r.sources, model: r.model, searches: r.searches };
 }
 const VAL_CTX = "TrackApt 수집 구조: GitHub Actions brief.yml(매일 03:00 KST 전체, 15:00 청약만, workflow_dispatch 입력 only 로 일부만) → scripts/daily_build.js(국토부 실거래·KOSIS 주간 지수·청약홈·금감원 금리) · macro_build.js(ECOS 기준금리·국고채·미국 금리, KOSIS 인허가·착공·미분양) · core_build.js(시군구 월별 지수·건수) · school_build.js · brief_build.js → scripts/validate.js 가 결과를 점검해 data/validate.json 에 남김. 키는 GitHub Secrets(ECOS_KEY, KOSIS_KEY, DATA_GO_KEY, RONE_KEY, FSS_KEY, SCHOOLINFO_API_KEY)와 Vercel(MOLIT_API_KEY). 실거래는 신고 기한 30일이라 최근 달은 늘 적게 보인다. 주인은 비개발자이며 GitHub 웹(휴대폰)으로 파일을 올린다.";
 async function cValExplain(b) {

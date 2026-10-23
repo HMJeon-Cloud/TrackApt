@@ -136,11 +136,15 @@ async function claudeRun(o) {
   const KEY = process.env.ANTHROPIC_API_KEY || ""; if (!KEY) throw new Error("ANTHROPIC_API_KEY 가 없습니다 (Vercel 환경변수)");
   const model = o.model || process.env.CLAUDE_MODEL || "claude-sonnet-5-5", web = o.web && process.env.CLAUDE_WEB !== "off";
   let tools = web ? [{ type: "web_search_20250305", name: "web_search", max_uses: o.web, user_location: { type: "approximate", country: "KR", timezone: "Asia/Seoul" } }] : undefined, tool_choice;
-  if (o.answer) { tools = (tools || []).concat([{ name: "answer", description: "최종 답을 제출한다. 형식: " + String(o.answer).slice(0, 3000), input_schema: { type: "object", additionalProperties: true } }]); tool_choice = web ? { type: "auto" } : { type: "tool", name: "answer" }; }   /* v9.66 답은 도구 입력(JSON)으로 받는다 — 글 속 JSON 이 깨지는 일을 막음 */
+  if (o.answer && !web) { tools = [{ name: "answer", description: "최종 답을 제출한다. 형식: " + String(o.answer).slice(0, 3000), input_schema: { type: "object", additionalProperties: true } }]; tool_choice = { type: "tool", name: "answer" }; }   /* v9.66 답은 도구 입력(JSON)으로 — 웹 검색이 있으면 인용(citations)을 지키려고 글로 받는다(v9.71) */
   const t0 = Date.now(); let msgs = [{ role: "user", content: o.content }], j = null, all = [], searches = 0;
   for (let k = 0; k < 3; k++) {
     const req = { max_tokens: o.max || 4000, system: o.system, messages: msgs, tools }; if (tool_choice) req.tool_choice = tool_choice;
-    j = await claudeCall(KEY, model, req, Math.max(5000, 55000 - (Date.now() - t0)));
+    try { j = await claudeCall(KEY, model, req, Math.max(5000, 55000 - (Date.now() - t0))); }
+    catch (e) {   /* v9.71 이 모델이 tool_choice(강제 도구)를 못 쓰면 → 도구 없이 글(JSON)로 다시 */
+      if (tool_choice && /tool_choice|not supported/i.test(String(e.message))) { tool_choice = null; tools = (tools || []).filter((t) => t.name !== "answer"); if (!tools.length) tools = undefined; const req2 = { max_tokens: o.max || 4000, system: o.system + " 답은 반드시 <json></json> 안에 JSON 하나만.", messages: msgs, tools }; j = await claudeCall(KEY, model, req2, Math.max(5000, 55000 - (Date.now() - t0))); }
+      else throw e;
+    }
     all = all.concat(j.content || []); searches += (j.usage && j.usage.server_tool_use && j.usage.server_tool_use.web_search_requests) || 0;
     if (j.stop_reason !== "pause_turn" || Date.now() - t0 > 40000) break;
     msgs = [{ role: "user", content: o.content }, { role: "assistant", content: j.content }];
@@ -360,7 +364,7 @@ async function cSubsRead(b) {
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const OWN = process.env.OWNER_KEY || "", KEY = process.env.OPENAI_API_KEY || "";
-  if (req.method === "GET") return res.status(200).json({ ok: !!(OWN && KEY), model: process.env.TEXT_MODEL || "gpt-6.1-sol", claude: !!(OWN && process.env.ANTHROPIC_API_KEY), textEngine: process.env.ANTHROPIC_API_KEY && process.env.TEXT_ENGINE !== "openai" ? "claude" : "openai", claudeModel: process.env.CLAUDE_MODEL || "claude-sonnet-5-5" });
+  if (req.method === "GET") return res.status(200).json({ ok: !!(OWN && KEY), model: process.env.TEXT_MODEL || "gpt-6.1-sol", claude: !!(OWN && process.env.ANTHROPIC_API_KEY), textEngine: process.env.ANTHROPIC_API_KEY && process.env.TEXT_ENGINE !== "openai" ? "claude" : "openai", vault: !!((process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL) && (process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN)), claudeModel: process.env.CLAUDE_MODEL || "claude-sonnet-5-5" });
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "POST only" });
   if (!OWN) return res.status(500).json({ ok: false, error: "OWNER_KEY not set" });
   let b = req.body; if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } } b = b || {};

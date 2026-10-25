@@ -1,6 +1,31 @@
 {
  "v": 1,
- "builtAt": "2026-10-24T20:13:54.532Z",
- "asOf": 20261025,
- "items": []
+ "builtAt": "2026-10-25T20:26:46.612Z",
+ "asOf": 20261026,
+ "items": [
+  {
+   "kind": "loan",
+   "date": "2026-10-24",
+   "title": "보금자리론 금리 0.3% 인하",
+   "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTFBqOERJTkhXZ0tPUFI0dGV0VlZ5Y0RIQWhpT0dvdnJySHRPOXVBM0VkRzBocVJXUDA3WlNwVmF5UEl2N09nVDZtYkhQX2dmSGItLUdRNEx1cklQc1RmcU5HTlFoWVM0dkdCM1JN?oc=5",
+   "src": "제주일보",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-10-26",
+   "isNew": true
+  },
+  {
+   "kind": "transit",
+   "line": "GTX-B 인천대입구~마석",
+   "what": "일정 변경",
+   "date": "2026-10-22",
+   "title": "2억 예산 못 세워 타당성조사 연기… GTX-B 인천시청 환승센터 내년 중투심 일정 '아슬아슬'",
+   "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTFBGTE9GVVJ5VWtLeGxQdm5Va0JfZXBpclNqM01RWXgwUWpoQURQV1R2ZVdQUUhYRjFMdl9USEdaT0l5YWFIZlhYeHlPNmtWUFN1dDNEYlYtRFJBQVdrZTBzamEtankzLUd6Ukc2OTFoYw?oc=5",
+   "src": "중부일보",
+   "official": false,
+   "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
+   "firstSeen": "2026-10-26",
+   "isNew": true
+  }
+ ]
 }

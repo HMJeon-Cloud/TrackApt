@@ -102,7 +102,7 @@ async function caption(b) {
     ((b.avoid || []).length ? "\n\n[최근에 쓴 첫 줄 — 이와 비슷한 첫 줄·구성은 피할 것]\n" + b.avoid.slice(0, 20).map((x) => "- " + String(x).slice(0, 80)).join("\n") : "") +
     "\n\n[기본 규칙 글 — 이것과 다른 각도로]\n인스타:\n" + String(B.insta || "").slice(0, 2500) + "\n\n스레드:\n" + String(B.threads || "").slice(0, 2500) +
     (web ? "\n\n먼저 이 주제에 보충할 최근 공식 사실(정책 시행일, 발표 일정, 관련 통계 발표)이 있는지 웹에서 1~3번만 찾아라. 카드 숫자와 다른 기준의 숫자는 섞지 말고, 없으면 보충하지 마라." : "\n\n웹 검색 없이 카드 facts 만으로 써라.") +
-    "\n\n답은 아래 태그만 써라(태그 밖 글 금지).\n<insta>인스타 캡션 — 첫 줄 훅, 빈 줄로 나눈 3~6 문단, 핵심 숫자 3~6개, '함께 보면' 보충(있으면, 출처), 저장·댓글 유도 한 줄, 기준일·출처, '※ 참고 자료이며 투자 권유가 아닙니다.', 해시태그 8~12개(마지막 줄, #우상향연구소 포함). 2,000자 이내</insta>" +
+    "\n\n답은 아래 태그만 써라(태그 밖 글 금지).\n<insta>인스타 캡션 — 첫 줄 훅, 빈 줄로 나눈 3~6 문단, 핵심 숫자 3~6개, '함께 보면' 보충(있으면, 출처), '필요할 때 다시 보려면 저장' 한 줄과 누구에게 공유하면 좋은지(예: 청약 준비 중인 친구) 지정 한 줄, 기준일·출처, '※ 참고 자료이며 투자 권유가 아닙니다.', 해시태그 8~12개(마지막 줄, #우상향연구소 포함). 2,000자 이내</insta>" +
     "\n<thread_main>스레드 본문 — 500자 이내. 독자가 이미 궁금해하는 질문 1줄 → 숫자 3~5줄 → 해석 1~2줄 → 기준일. 해시태그는 1개 이하</thread_main>" +
     "\n<reply1>답글 1 — 반대로 보이는 숫자나 한계, 또는 보충 사실(출처). 300자 이내</reply1>" +
     "\n<reply2>답글 2 — 댓글을 부르는 질문 하나(지역·조건을 묻기). 150자 이내</reply2>" +
@@ -359,6 +359,21 @@ async function cMix(b) {
   });
   return { ok: true, pages: out, dropped: dropped.slice(0, 12), model: r.model };
 }
+/* ══ v9.80 아침 브리핑 다듬기 — 규칙으로 만든 글(숫자·기준 포함)을 읽기 쉽게. 숫자·날짜는 원문에 있는 것만(서버 대조 후 없는 줄은 뺌). 종목·단지 추천, 매수·매도 시점, 수익률 표현 금지 ══ */
+async function cDaily(b) {
+  const src = String(b.text || "").slice(0, 6000); if (!src.trim()) throw new Error("브리핑 글이 비었습니다");
+  const facts = factsText(b, 20);
+  const sys = "너는 부동산 데이터 구독 서비스 '우상향연구소'의 아침 브리핑 편집자다. 구독자는 매일 아침 1분 안에 읽는다. 규칙으로 만든 초안을 같은 구성(■ 오늘 숫자 · 오늘·내일 일정 · 오늘 이슈 · 이번 주 체크 · 시장 온도 · 기준)으로 유지하되 문장을 자연스럽게 다듬고, 이슈에는 '왜 중요한지' 한 문장을 더한다. 숫자·날짜·단지명은 초안과 참고 자료에 있는 것만, 바꾸지 말 것. 종목·단지 추천, 매수·매도 권유, 수익률·수익 보장 표현, 이모지 금지. 마지막 두 줄(기준 · 투자 권유 아님)은 그대로 둔다. 한국어 존댓말.";
+  const user = "[초안]\n" + src + (facts ? "\n\n[참고 자료 — 이 안의 숫자만 더 쓸 수 있음]\n" + facts : "") + "\n\n답은 아래 두 태그만.\n<tg>텔레그램용 전체 글(초안과 같은 구성, 2,500자 이내, 줄바꿈 그대로)</tg>\n<kakao>카카오톡 채널용 1,000자 이내 압축본(숫자 3개 · 일정 3개 · 이슈 1줄 · 체크 2개 · 기준 줄)</kakao>";
+  const r = await claudeRun({ system: sys, content: user, max: 3500 });
+  const pick = (t, k) => { const m = String(t || "").match(new RegExp("<" + k + ">([\\s\\S]*?)</" + k + ">")); return m ? m[1].trim() : ""; };
+  const chk = numOk(src + "\n" + facts), dropped = [];
+  const clean = (t) => t.split("\n").filter((ln) => { const bad = chk(ln); if (bad.length) { dropped.push(ln.slice(0, 60) + " (" + bad.join(",") + ")"); return false; } return true; }).join("\n");
+  let tg = clean(pick(r.text, "tg")), kakao = clean(pick(r.text, "kakao"));
+  if (kakao.length > 1000) kakao = kakao.slice(0, 997) + "…";
+  if (!tg || !kakao) throw new Error("다듬은 글을 읽지 못했습니다 — 다시 눌러 주세요");
+  return { ok: true, tg, kakao, dropped: dropped.slice(0, 10), model: r.model };
+}
 async function cValExplain(b) {
   const checks = (b.checks || []).slice(0, 40).map((c) => "[" + String(c.level || "") + "] " + String(c.id || "") + " " + String(c.title || "") + ": " + String(c.detail || "").slice(0, 300)).join("\n");
   if (!checks) throw new Error("점검 결과가 비었습니다");
@@ -398,7 +413,7 @@ module.exports = async (req, res) => {
   let b = req.body; if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } } b = b || {};
   if (!same(b.t, tokenOf(OWN))) return res.status(401).json({ ok: false, error: "주인 인증이 필요합니다" });
   const CM = { caption: async (x) => Object.assign({ ok: true }, await caption(x)), verify: cVerify, weekly: cWeekly, today: cToday, research: cResearch };
-  CM.valexplain = cValExplain; CM.subsread = cSubsRead; CM.gather = cGather; CM.mix = cMix;
+  CM.valexplain = cValExplain; CM.subsread = cSubsRead; CM.gather = cGather; CM.mix = cMix; CM.daily = cDaily;
   if (process.env.ANTHROPIC_API_KEY && b.engine !== "openai" && process.env.TEXT_ENGINE !== "openai") { CM.extract = cExtract; CM.plan = cPlan; CM.fill = cFill; CM.insight = cInsight; CM.read = cRead; }   /* v9.62 글 기능은 Claude 우선 */
   if (CM[b.mode]) { try { return res.status(200).json(await CM[b.mode](b)); } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); } }
   if (!KEY) return res.status(500).json({ ok: false, error: "OPENAI_API_KEY 가 없습니다" });

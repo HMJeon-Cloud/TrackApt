@@ -331,6 +331,34 @@ async function cInsight(b) {   /* v9.72 짧고 빠르게 — 재료 100줄 · �
   return { ok: true, insight: J, web: r.cites.slice(0, 20).map((t, i) => ({ id: "W" + (i + 1), text: t.slice(0, 300) })), sources: r.sources, model: r.model, searches: r.searches };
 }
 const VAL_CTX = "TrackApt 수집 구조: GitHub Actions brief.yml(매일 03:00 KST 전체, 15:00 청약만, workflow_dispatch 입력 only 로 일부만) → scripts/daily_build.js(국토부 실거래·KOSIS 주간 지수·청약홈·금감원 금리) · macro_build.js(ECOS 기준금리·국고채·미국 금리, KOSIS 인허가·착공·미분양) · core_build.js(시군구 월별 지수·건수) · school_build.js · brief_build.js → scripts/validate.js 가 결과를 점검해 data/validate.json 에 남김. 키는 GitHub Secrets(ECOS_KEY, KOSIS_KEY, DATA_GO_KEY, RONE_KEY, FSS_KEY, SCHOOLINFO_API_KEY)와 Vercel(MOLIT_API_KEY). 실거래는 신고 기한 30일이라 최근 달은 늘 적게 보인다. 주인은 비개발자이며 GitHub 웹(휴대폰)으로 파일을 올린다.";
+/* ══ v9.77 카드 취합 — 앱 데이터로 만든 카드 + 오늘 모은 자료 → 핵심 한 줄·맥락 줄·빈칸 채움·목록 줄 추가. 숫자는 카드 칸·오늘 자료 원문에 있는 것만(서버에서 대조해 없는 줄은 뺌) ══ */
+async function cMix(b) {
+  const P = (Array.isArray(b.pages) ? b.pages : []).slice(0, 8); if (!P.length) throw new Error("카드가 비었습니다");
+  const F = (Array.isArray(b.facts) ? b.facts : []).slice(0, 45); if (!F.length) throw new Error("오늘 자료가 없습니다 — 오늘 작업에서 먼저 모으세요");
+  const FM = {}; F.forEach((f) => { FM[f.id] = f; });
+  const ftxt = F.map((f) => f.id + ": " + String(f.text).slice(0, 260) + (f.src ? " (" + f.src + (f.date ? " " + f.date : "") + ")" : "")).join("\n");
+  const ptxt = P.map((p) => "[장 " + p.i + " · 양식 " + (p.tpl || "") + "]\n" + Object.keys(p.fields || {}).map((k) => k + ": " + String(p.fields[k]).slice(0, 900)).join("\n")).join("\n\n");
+  const sys = SYS + " 지금은 앱 데이터로 이미 만든 카드를 '오늘 모은 자료'와 취합해 내용의 질을 높인다. 카드는 '" + String(b.nm || "") + "'(" + String(b.cat || "") + ").\n" +
+    "할 수 있는 것: (1) lead — 장마다 읽는 사람에게 보이는 핵심 한 줄(40자 안팎). 카드 숫자와 오늘 자료의 맥락을 한 문장으로 엮는다. 바꿀 이유가 없으면 빈 문자열. (2) ctx — 장마다 0~2줄, 이 카드 내용이 지금 왜 중요한지·오늘 자료와 어떻게 이어지는지(각 줄 45자 안팎, 반드시 근거 자료 id f). 관련 자료가 없으면 빈 배열(억지로 넣지 않는다). (3) fill — 카드 칸이 비었거나 '공고 확인'·'미정'·'-'·'확인 필요' 같은 자리표시일 때만, 오늘 자료에서 확실히 알 수 있는 값으로 채움(표 칸은 k·r(줄)·c(칸) 0부터, 근거 f). (4) add — bullets·quotes·points 같은 줄 목록 칸에 오늘 자료로 알게 된 사실 줄을 최대 2개 추가(근거 f).\n" +
+    "절대 금지: 카드에 이미 있는 숫자·이름을 바꾸기, 자료에 없는 숫자·날짜 만들기, 자료 제목을 그대로 베끼기(의미로 풀어 쓴다), 투자 권유, 이모지. 모든 숫자는 카드 칸 또는 오늘 자료 원문 그대로. " + NO_SELL;
+  const shape = '{"pages":[{"i":0,"lead":"","ctx":[{"t":"","f":"F1"}],"fill":[{"k":"side","r":0,"c":1,"v":"","f":"F1"}],"add":[{"k":"bullets","v":"","f":"F1"}]}]}';
+  const user = "[카드 · " + (b.size === "one" ? "한 장" : "여러 장") + "]\n" + ptxt + "\n\n[오늘 모은 자료]\n" + ftxt + "\n\n답은 <json>" + shape + "</json> 모양 JSON 하나만. 장(i)마다 하나씩, 바꿀 것이 없는 장은 lead \"\"·빈 배열.";
+  const { J, r } = await claudeJSON({ system: sys, content: user, max: 3500, shape: shape }, "취합 결과");
+  const allTxt = F.map((f) => f.text + " " + (f.date || "")).join("\n") + "\n" + P.map((p) => Object.keys(p.fields || {}).map((k) => p.fields[k]).join("\n")).join("\n");
+  const chkAll = numOk(allTxt), dropped = [], out = [];
+  const fOk = (x) => x && x.f && FM[x.f];
+  const okNum = (txt, f) => { const bad = numOk((f && FM[f] ? FM[f].text + " " + (FM[f].date || "") + "\n" : "") + allTxt)(txt); if (bad.length) { dropped.push(String(txt).slice(0, 80) + " (근거 없는 숫자 " + bad.join(", ") + ")"); return false; } return true; };
+  (Array.isArray(J.pages) ? J.pages : []).forEach((q) => {
+    const i = Number(q.i); if (!(i >= 0) || !P.some((p) => Number(p.i) === i)) return;
+    const o = { i, lead: "", ctx: [], fill: [], add: [] };
+    const lead = String(q.lead || "").trim(); if (lead && chkAll(lead).length === 0) o.lead = lead.slice(0, 70); else if (lead) dropped.push(lead.slice(0, 80) + " (근거 없는 숫자)");
+    (Array.isArray(q.ctx) ? q.ctx : []).slice(0, 2).forEach((x) => { const t = String(x && x.t || "").trim(); if (!t || !fOk(x) || !okNum(t, x.f)) return; o.ctx.push({ t: t.slice(0, 90), f: x.f, s: (FM[x.f].src || "") + (FM[x.f].date ? " " + FM[x.f].date : "") }); });
+    (Array.isArray(q.fill) ? q.fill : []).slice(0, 6).forEach((x) => { const v = String(x && x.v || "").trim(); if (!v || !x.k || !fOk(x) || !okNum(v, x.f)) return; o.fill.push({ k: String(x.k), r: Number(x.r) || 0, c: Number(x.c) || 0, v: v.slice(0, 60), f: x.f }); });
+    (Array.isArray(q.add) ? q.add : []).slice(0, 2).forEach((x) => { const v = String(x && x.v || "").trim(); if (!v || !x.k || !fOk(x) || !okNum(v, x.f)) return; o.add.push({ k: String(x.k), v: v.slice(0, 80), f: x.f }); });
+    out.push(o);
+  });
+  return { ok: true, pages: out, dropped: dropped.slice(0, 12), model: r.model };
+}
 async function cValExplain(b) {
   const checks = (b.checks || []).slice(0, 40).map((c) => "[" + String(c.level || "") + "] " + String(c.id || "") + " " + String(c.title || "") + ": " + String(c.detail || "").slice(0, 300)).join("\n");
   if (!checks) throw new Error("점검 결과가 비었습니다");
@@ -370,7 +398,7 @@ module.exports = async (req, res) => {
   let b = req.body; if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = {}; } } b = b || {};
   if (!same(b.t, tokenOf(OWN))) return res.status(401).json({ ok: false, error: "주인 인증이 필요합니다" });
   const CM = { caption: async (x) => Object.assign({ ok: true }, await caption(x)), verify: cVerify, weekly: cWeekly, today: cToday, research: cResearch };
-  CM.valexplain = cValExplain; CM.subsread = cSubsRead; CM.gather = cGather;
+  CM.valexplain = cValExplain; CM.subsread = cSubsRead; CM.gather = cGather; CM.mix = cMix;
   if (process.env.ANTHROPIC_API_KEY && b.engine !== "openai" && process.env.TEXT_ENGINE !== "openai") { CM.extract = cExtract; CM.plan = cPlan; CM.fill = cFill; CM.insight = cInsight; CM.read = cRead; }   /* v9.62 글 기능은 Claude 우선 */
   if (CM[b.mode]) { try { return res.status(200).json(await CM[b.mode](b)); } catch (e) { return res.status(502).json({ ok: false, error: String(e && e.message || e).slice(0, 300) }); } }
   if (!KEY) return res.status(500).json({ ok: false, error: "OPENAI_API_KEY 가 없습니다" });

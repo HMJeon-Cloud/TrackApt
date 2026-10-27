@@ -1,8 +1,56 @@
 {
  "v": 1,
- "builtAt": "2026-10-26T22:20:47.042Z",
- "asOf": 20261027,
+ "builtAt": "2026-10-27T21:51:45.120Z",
+ "asOf": 20261028,
  "items": [
+  {
+   "kind": "transit",
+   "line": "GTX-A 운정중앙~서울역",
+   "what": "일정 변경",
+   "date": "2026-10-27",
+   "title": "'철근 누락' GTX-A 삼성역 구간, 무정차 통과 내년 연기 불가피",
+   "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTE55VDV5U2tOdldXZ3JfN0dDXzdKSnQ4Y2o2TXhpc3JNczVlTGdOcTdXalY2RXZhWnp4NjdoMmNaOTlDUzliYXlMOHFTZjdYV3pLNnJfOHktdTR5YVRLY3JjTDQ1Q25rY09qMFpBMXZB0gFzQVVfeXFMT3hwU0NjM2t6QzJyNHVVdDZsaXBYNGNHU2s1RjRpQmV4T1A3ajJ3LXpBUTV1c1BsZ3EwTGZ5VG5IMDJMTElLeTJfM0I0dGVsR1U2U0NodWl3WEh3VTkwMHNCUlR5cTZva0JGM1M5eDVTTEI1VQ?oc=5",
+   "src": "한국일보",
+   "official": false,
+   "todo": "data/manual/transit.json 에서 'GTX-A 운정중앙~서울역' 의 status·open·note 를 확인해 주세요",
+   "firstSeen": "2026-10-28",
+   "isNew": true
+  },
+  {
+   "kind": "transit",
+   "line": "GTX-B 인천대입구~마석",
+   "what": "개통 소식",
+   "date": "2026-10-27",
+   "title": "구영미 연수구의원,GTX-B 청학역 조기 개통, 말이 아닌 실행으로 답하라",
+   "url": "https://news.google.com/rss/articles/CBMiY0FVX3lxTE9WY21qV0lueXlRUFpUdEZFR19Sbl9BcFNVcjdsb0ticUdEb3R3VWZNSjhuOG9PaHZPNmdHeGhZclJEbU9MWno3WWJ2NzVjMGlPVUJKR2VOYnFSb2ZNOXZnbHhVSQ?oc=5",
+   "src": "우리일보",
+   "official": false,
+   "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
+   "firstSeen": "2026-10-28",
+   "isNew": true
+  },
+  {
+   "kind": "loan",
+   "date": "2026-10-27",
+   "title": "‘5%대’ 보금자리론 금리, 더 오르면 어쩌나…11월 금리에 촉각",
+   "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxPZXY4SXFOS3JQSFBGOXd4T0Z2Q0NjWUlGdlZpUGxJYVlmU0ZJMk5aWkwxbFpjeGxISmMxalhaQWhzd0YzZExBZURWMGltZWxIemgtdFUyZ281MndfdVhOMkVFVzd0N2ZxbVVkWGZ5T0Y2VzVzQmNxdkRia3VzMEdGQg?oc=5",
+   "src": "이데일리",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-10-28",
+   "isNew": true
+  },
+  {
+   "kind": "loan",
+   "date": "2026-10-27",
+   "title": "청년 전세대출 보금자리론 요건 완화 | 청년 대출 문턱 낮아져요",
+   "url": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5nNHFSa1ZrRWYwM3hWVHZkZENyWTBDZXJFcGZ3b1lyQmo3aWQxcUpDNU1KNnRRemNTdkVCQ21nSHNDeVNiYWJfY3F4MjFTWjVha1g4VW1oVnBUdWNjVktUR2ZkT3dkTHNVNjM4TFF1QU1ScnJKVElR?oc=5",
+   "src": "KB Think",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-10-28",
+   "isNew": true
+  },
   {
    "kind": "loan",
    "date": "2026-10-26",
@@ -12,17 +60,6 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-27",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-10-24",
-   "title": "보금자리론 금리 0.3% 인하",
-   "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTFBqOERJTkhXZ0tPUFI0dGV0VlZ5Y0RIQWhpT0dvdnJySHRPOXVBM0VkRzBocVJXUDA3WlNwVmF5UEl2N09nVDZtYkhQX2dmSGItLUdRNEx1cklQc1RmcU5HTlFoWVM0dkdCM1JN?oc=5",
-   "src": "제주일보",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-10-26",
    "isNew": false
   }
  ]

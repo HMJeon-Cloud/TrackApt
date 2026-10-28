@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.86.3">
+<link rel="stylesheet" href="style.css?v=9.87">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.86.3</span>
+    <span class="ver">v9.87</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.86.3"></script>
+<script src="cards.js?v=9.87"></script>
 <script>
 "use strict";
 
@@ -7976,11 +7976,7 @@ function inPaint() {
   /* ⑤ 비교 — v9.46 브리핑 4장으로 이동 */
   if (false) h += '<div class="card in-sec"><div class="in-q"><i>Q</i>지금은 어디쯤이야? <small>지금 · 1년 전 · 2020~22 고점 · 그 뒤 저점</small></div><p class="in-a">서울 매매지수는 고점(' + inYmOf(cp.pk) + ') 대비 <b>' + inPct(cp.chg.fromPk) + '</b>, 저점(' + inYmOf(cp.tr) + ') 대비 <b>' + inPct(cp.chg.fromTr) + '</b>.</p><div class="in-tblw"><table class="in-tbl"><tr><th></th>' + cp.cols.map(function (c) { return "<th>" + inE(c) + "</th>"; }).join("") + '</tr>' + cp.rows.map(function (r) { return "<tr>" + r.map(function (c, i) { return "<td" + (i ? "" : ' class="nm"') + ">" + inE(c) + "</td>"; }).join("") + "</tr>"; }).join("") + '</table></div><p class="hint">지수 = 서울 25개 구 ㎡당 중위(3개월 이동) 지수의 균등 평균(채널 MDD 코너와 같은 기준). 84㎡ 중위는 그 달 팔린 집의 중위라 어느 동네가 많이 팔렸느냐에 따라 지수와 다르게 움직인다 — 참고로만. 빈칸(–)은 그 시점 자료를 수집하지 않은 것. 추정하지 않는다.</p></div>';
   /* AI */
-  h += '<div class="card in-sec in-ai"><div class="in-q"><i>AI</i>넌 어떻게 생각하는데? <small>누를 때만 Claude 호출 · 재료 = 위 숫자 + 권역 · 일정 · 오늘 자료 · 외부 조사 · 답의 숫자는 재료와 대조 · 상승·하락 논리 · 지역 차이 · 확인 일정까지</small></div>' +
-    '<div class="in-aiopt"><small class="hint">' + (typeof tdAiNote === "function" ? inE(tdAiNote()) : "") + '</small><label><input type="checkbox" data-inopt="deep"' + (IN.deep === true ? " checked" : "") + '> 깊게(Opus · 느림, 시간 초과될 수 있음)</label><label><input type="checkbox" data-inopt="web"' + (IN.web === true ? " checked" : "") + '> 웹 검색 추가(보통 필요 없음)</label>' + ((IN.hist || []).length ? '<small class="hint">앞선 질문: ' + IN.hist.map(function (x) { return inE(x.q); }).join(" → ") + "</small>" : "") + "</div>" +
-    '<div class="in-aiq">' + ["어떤 상황이야?", "어떻게 하면 좋을 것 같아?", "넌 어떻게 생각하는데?", "앞으로 어떤 일이 벌어질 것 같아?"].map(function (q) { return '<button type="button" class="btn sm' + (IN.aiQ === q ? "" : " ghost") + '" data-inai="' + inE(q) + '">' + inE(q) + "</button>"; }).join("") + '</div>' +
-    '<div class="in-aicustom"><input id="in-aiq" placeholder="직접 묻기 — 예: 무주택 신혼부부가 지금 서울 외곽 84㎡를 사도 될까?" value="' + inE(/\?$/.test(IN.aiQ) && ["어떤 상황이야?", "어떻게 하면 좋을 것 같아?", "넌 어떻게 생각하는데?", "앞으로 어떤 일이 벌어질 것 같아?"].indexOf(IN.aiQ) < 0 ? IN.aiQ : "") + '"><button type="button" class="btn sm" data-inai="custom">묻기</button></div>' +
-    (IN.busy ? '<p class="rc-busy"><i class="rc-spin"></i>' + inE(IN.busy) + "</p>" : "") + (IN.aiErr ? '<p class="rc-err">' + inE(IN.aiErr) + "</p>" : "") + inAiHtml() + '</div>';
+  h += inAskBoxHtml();   /* v9.87 프롬프트 → 직접 붙여넣기 */
   /* ⑥ 검증 */
   h += '<div class="card in-sec" id="in-journal"><div class="in-q"><i>Q</i>지난 예상은 맞았어? <small>예상을 적어 두면 기한이 왔을 때 데이터로 채점</small></div>' + inJournalHtml() + '</div>';
   box.innerHTML = h;
@@ -8027,12 +8023,12 @@ function inAiHtml() {
     (r.because && r.because.length ? '<h4>왜</h4><ul class="in-ul">' + r.because.map(function (x) { return "<li>" + mark(x) + "</li>"; }).join("") + "</ul>" : "") +
     (r.counter && r.counter.view ? '<h4>반대로 보면</h4><div class="in-counter"><p>' + mark(r.counter.view) + '</p>' + ((r.counter.because || []).length ? '<ul class="in-ul">' + r.counter.because.map(function (x) { return "<li>" + mark(x) + "</li>"; }).join("") + "</ul>" : "") + (r.counter.rebut ? '<p><small>그래도</small> ' + mark(r.counter.rebut) + "</p>" : "") + "</div>" : "") +
     (r.regions && r.regions.length ? '<h4>지역마다</h4><div class="in-rg">' + r.regions.map(function (g) { return '<div><b>' + inE(g.region) + "</b><p>" + mark(g.view) + "</p><small>" + mark(g.why) + "</small></div>"; }).join("") + "</div>" : "") +
-    (r.stances && r.stances.length ? '<h4>입장별로</h4><div class="in-st">' + r.stances.map(function (s) { return '<div class="in-stc"><b>' + inE(s.who) + "</b><p>" + mark(s.todo) + "</p><small>" + mark(s.why) + "</small></div>"; }).join("") + "</div>" : "") +
+    (r.stances && r.stances.length ? '<h4>입장별로</h4><div class="in-st">' + r.stances.map(function (s) { return '<div class="in-stc"><b>' + inE(s.who) + "</b><p>" + mark(s.todo) + "</p><small>" + mark(s.why) + "</small>" + (s.avoid ? '<small class="in-st-x"><u>피할 것</u> ' + mark(s.avoid) + "</small>" : "") + (s.watch ? '<small class="in-st-w"><u>이러면 바꾼다</u> ' + mark(s.watch) + "</small>" : "") + "</div>"; }).join("") + "</div>" : "") +
     (r.scenarios && r.scenarios.length ? '<h4>앞으로</h4><div class="in-sc">' + r.scenarios.map(function (s, k) { return '<div class="in-scc k' + k + '"><b>' + inE(s.name) + "</b><small>조건</small><p>" + mark(s.cond) + "</p><small>그러면</small><p>" + mark(s.then) + "</p></div>"; }).join("") + "</div>" : "") +
     (r.calendar && r.calendar.length ? '<h4>확인할 일정</h4><ul class="in-ul">' + r.calendar.map(function (c) { return "<li><b>" + inE(c.when) + "</b> " + inE(c.what) + (c.why ? " — <small>" + inE(c.why) + "</small>" : "") + "</li>"; }).join("") + "</ul>" : "") +
     (r.watch && r.watch.length ? '<h4>확인할 신호</h4><ul class="in-ul">' + r.watch.map(function (x) { return "<li>" + mark(x) + "</li>"; }).join("") + "</ul>" : "") +
     (r.risk ? '<p class="hint"><b>틀릴 수 있는 이유</b> ' + mark(r.risk) + "</p>" : "") +
-    '<h4>이어서 묻기</h4><div class="in-aiq">' + ["이 판단이 틀리면 먼저 어디서 보일까?", "지금 무주택 실수요자라면?", "다음 2주에 무엇을 확인해야 해?"].map(function (x) { return '<button type="button" class="btn sm ghost" data-infollow="' + inE(x) + '">' + inE(x) + "</button>"; }).join("") + '</div><div class="in-aicustom"><input id="in-fq" placeholder="이 답에 이어서 묻기"><button type="button" class="btn sm" data-infollowc="1">이어서</button></div>' +
+    '<h4>이어서 묻기 <small class="hint">앞 답을 넣은 프롬프트를 만듭니다</small></h4><div class="in-aiq">' + ["이 판단이 틀리면 먼저 어디서 보일까?", "지금 무주택 실수요자라면?", "다음 2주에 무엇을 확인해야 해?"].map(function (x) { return '<button type="button" class="btn sm ghost" data-infollow="' + inE(x) + '">' + inE(x) + "</button>"; }).join("") + '</div><div class="in-aicustom"><input id="in-fq" placeholder="이 답에 이어서 묻기"><button type="button" class="btn sm" data-infollowc="1">이어서</button></div>' +
     ((r.content || []).length ? '<p class="hint"><b>콘텐츠로 만들 만한 것</b> ' + r.content.map(inE).join(" / ") + "</p>" : "") +
     '<div class="tpx-tools"><button type="button" class="btn sm ghost" data-inpub="1">공개 글로 바꾸기(Claude)</button><span class="hint" id="in-pubmsg">투자 권유 없는 정보형 인스타·스레드 글로</span></div>' + (IN.pub ? '<div class="cap-aix"><textarea class="chpost" id="in-pubtxt" rows="12" spellcheck="false">' + inE(IN.pub) + '</textarea><div class="tpx-tools"><button type="button" class="btn sm ghost" data-inpubcopy="1">복사</button></div></div>' : "") +
     ((A.sources || []).length ? '<p class="hint"><b>웹 출처</b> ' + A.sources.slice(0, 8).map(function (s) { return '<a href="' + inE(s.url) + '" target="_blank" rel="noopener">' + inE(s.title) + "</a>"; }).join(" · ") + "</p>" : "") +
@@ -8071,10 +8067,12 @@ function inJournalCheck() {
 function inClick(ev) {
   var t = ev.target; if (!t || !t.closest) return;
   var a = t.closest("[data-in]"), q = t.closest("[data-inai]");
-  if (q) { var qq = q.dataset.inai; if (qq === "custom") { qq = (document.getElementById("in-aiq") || {}).value || ""; if (!qq.trim()) return; } inAsk(qq); return; }
+  if (q) { var qq = q.dataset.inai; if (qq === "custom") { qq = (document.getElementById("in-aiq") || {}).value || ""; if (!qq.trim()) return; } IN.follow = false; inPromptMake(qq.trim()); return; }
+  if (t.closest("[data-inptcopy]")) { var pt = document.getElementById("in-pt"); if (pt && typeof chCopy === "function") { chCopy(pt.value); var m0 = document.getElementById("in-askmsg"); if (m0) m0.textContent = "프롬프트를 복사했습니다 — AI에 붙여 넣고(깊게 생각·웹 검색 켜기 권장) 답을 아래에"; } return; }
+  if (t.closest("[data-inanssave]")) { inAnsSave(); return; }
   var op = t.closest("[data-inopt]"); if (op) { IN[op.dataset.inopt] = !!op.checked; return; }
-  var fu = t.closest("[data-infollow]"); if (fu) { IN.follow = true; inAsk(fu.dataset.infollow); return; }
-  if (t.closest("[data-infollowc]")) { var fq = (document.getElementById("in-fq") || {}).value || ""; if (!fq.trim()) return; IN.follow = true; inAsk(fq.trim()); return; }
+  var fu = t.closest("[data-infollow]"); if (fu) { IN.follow = true; inPromptMake(fu.dataset.infollow); return; }
+  if (t.closest("[data-infollowc]")) { var fq = (document.getElementById("in-fq") || {}).value || ""; if (!fq.trim()) return; IN.follow = true; inPromptMake(fq.trim()); return; }
   if (t.closest("[data-inpub]")) { inPublic(); return; }
   if (t.closest("[data-inpubcopy]")) { var pt = document.getElementById("in-pubtxt"); if (pt && typeof chCopy === "function") chCopy(pt.value); return; }
   var cd = t.closest("[data-inctxdel]"); if (cd) { if (!confirm("이 메모를 지울까요?")) return; asApi("del", { id: cd.dataset.inctxdel }).then(inJournalLoad); return; }
@@ -10096,7 +10094,7 @@ TPL.outro = { nm: "마무리", cat: "term", fields: [["src", "출처·기준", "
 
 /* ══ v9.83 긴 화면 접기 — 인사이트·분석 브리핑의 뒷 장은 제목 줄만 보이고, 누르면 펼친다(한 번 펼친 장은 그 세션 동안 유지) ══ */
 var UXF = { open: {} };
-function uxFoldLabel(card) { var h = card.querySelector("h2,h3,h4"); var t = h ? (h.childNodes[0] && h.childNodes[0].nodeType === 3 ? h.childNodes[0].textContent : h.textContent) : ""; if (!t.trim()) { var b = card.querySelector("b, strong, .in-k, summary"); t = b ? b.textContent : card.textContent; } return String(t || "").replace(/\s+/g, " ").trim().slice(0, 40); }
+function uxFoldLabel(card) { var h = card.querySelector(":scope > .in-q") || card.querySelector("h2,h3,h4"); if (h && h.classList.contains("in-q")) { var cq = h.cloneNode(true); Array.prototype.forEach.call(cq.querySelectorAll("small,i"), function (x) { x.remove(); }); return cq.textContent.replace(/\s+/g, " ").trim().slice(0, 40); } var t = h ? (h.childNodes[0] && h.childNodes[0].nodeType === 3 ? h.childNodes[0].textContent : h.textContent) : ""; if (!t.trim()) { var b = card.querySelector("b, strong, .in-k, summary"); t = b ? b.textContent : card.textContent; } return String(t || "").replace(/\s+/g, " ").trim().slice(0, 40); }
 function uxFoldCards(sec, cards) {
   cards.forEach(function (card, i) {
     if (card.querySelector(":scope > .ux-fold")) return; var lb = uxFoldLabel(card); if (!lb) return; var key = sec + "|" + lb;
@@ -10189,6 +10187,63 @@ function shotButtons(id) {
   ["Report", "Insight"].forEach(function (n) { var fn = window["render" + n]; if (typeof fn !== "function") return; window["render" + n] = function () { fn.apply(this, arguments); [500, 1800, 4500].forEach(function (ms) { setTimeout(function () { shotButtons(n.toLowerCase()); }, ms); }); }; });
   if (typeof inPaint === "function") { var ip = inPaint; inPaint = function () { ip.apply(this, arguments); setTimeout(function () { shotButtons("insight"); }, 80); }; }
 })();
+/* ══ v9.87 인사이트 「넌 어떻게 생각하는데?」 — 프롬프트를 만들어 주면 ChatGPT·Claude·Gemini 어디서든(깊게·웹 검색 포함) 묻고 답을 붙여 넣어 저장. 앱은 호출하지 않는다 ══ */
+var IN_QS = ["어떤 상황이야?", "어떻게 하면 좋을 것 같아?", "넌 어떻게 생각하는데?", "앞으로 어떤 일이 벌어질 것 같아?"];
+var IN_WHO = ["무주택 · 첫 집 실거주(매수 검토)", "무주택 · 전세 세입자(만기 앞둠)", "신혼·청년 · 청약 대기", "1주택 · 실거주 유지", "1주택 · 갈아타기(상급지·평형 이동)", "일시적 2주택(처분 기한 안)", "다주택(2주택 이상)", "임대·투자 목적 매수 검토", "은퇴·다운사이징(줄여 가기)"];
+var IN_AI_LS = "trackapt_in_ai_v1";
+function inAskBoxHtml() {
+  var q = IN.aiQ || "", E = inE;
+  return '<div class="card in-sec in-ai"><div class="in-q"><i>AI</i>넌 어떻게 생각하는데? <small>프롬프트를 복사해 ChatGPT·Claude·Gemini 어디서든 묻고(깊게 생각 · 웹 검색 켜기 권장), 답을 붙여 넣어 저장 — 앱은 호출하지 않음</small></div>' +
+    '<div class="in-aiq">' + IN_QS.map(function (x) { return '<button type="button" class="btn sm' + (q === x ? "" : " ghost") + '" data-inai="' + E(x) + '">' + E(x) + "</button>"; }).join("") + "</div>" +
+    '<div class="in-aicustom"><input id="in-aiq" placeholder="직접 묻기 — 예: 무주택 신혼부부가 지금 서울 외곽 84㎡를 사도 될까?" value="' + E(q && IN_QS.indexOf(q) < 0 ? q : "") + '"><button type="button" class="btn sm" data-inai="custom">프롬프트 만들기</button></div>' +
+    (IN.pt ? '<div class="in-askbox"><div class="in-askh"><b>프롬프트 — ' + E(IN.pt.q) + '</b><small class="hint">재료 ' + IN.pt.n + '줄' + (IN.pt.prev ? " · 앞 답 포함" : "") + ' · ' + (/어떻게 하면/.test(IN.pt.q) ? "상황 " + IN_WHO.length + "가지 모두 답하게" : "상황별 답 포함") + '</small><button type="button" class="btn sm" data-inptcopy="1">프롬프트 복사</button></div><textarea id="in-pt" rows="8" readonly>' + E(IN.pt.text) + '</textarea>' +
+      '<div class="in-askh"><b>답 붙여넣기</b><small class="hint">AI가 준 JSON(앞뒤 설명은 있어도 됨 · 따옴표 모양 상관없음)</small><button type="button" class="btn sm" data-inanssave="1">저장</button></div><textarea id="in-ans" rows="6" placeholder="{&quot;headline&quot;:&quot;...&quot;,&quot;answer&quot;:&quot;...&quot;, ...}"></textarea></div>' : '<p class="hint">질문을 고르면 프롬프트가 만들어집니다. 재료 = 위 숫자 · 권역 · 일정 · 오늘 자료 · 외부 조사 · 속사정 메모.</p>') +
+    '<p class="hint" id="in-askmsg">' + E(IN.askMsg || "") + "</p>" + (IN.aiErr ? '<p class="rc-err">' + E(IN.aiErr) + "</p>" : "") + inAiHtml() + "</div>";
+}
+function inPromptMake(q) {
+  if (typeof inPrep === "function") try { inPrep(); } catch (e) {}
+  var F = inFacts(); if (!F.length) { IN.aiErr = "재료가 없습니다 — 데이터가 다 불러와진 뒤 다시"; inPaint(); return; }
+  var how = /어떻게 하면|해야|사도|팔아|살까|팔까|갈아타|무주택|다주택|전세/.test(q), prev = IN.follow && IN.ai ? { q: IN.ai.q, answer: (IN.ai.r.headline ? IN.ai.r.headline + " — " : "") + (IN.ai.r.answer || "") } : null; IN.follow = false;
+  var d = typeof dyDate === "function" ? dyDate().txt : "";
+  var shape = '{"headline":"한 줄 결론(30자 안팎)","answer":"질문에 대한 답 3~5문장","because":["근거 1(F번호)","근거 2","근거 3"],"counter":{"view":"반대 견해","because":["반대 근거"],"rebut":"그래도 이렇게 보는 이유"},"regions":[{"region":"서울 상급지 · 서울 외곽 · 경기 남부 · 경기 북부·인천 · 지방 광역시 등","view":"전망 한 줄","why":"근거"}],' +
+    '"stances":[{"who":"상황 이름","todo":"지금 할 일(구체적으로, 금액·시점·조건)","why":"이유(F번호)","avoid":"피할 것","watch":"이 신호가 오면 판단을 바꾼다"}],"scenarios":[{"name":"기준 · 상방 · 하방","cond":"조건","then":"그러면"}],"calendar":[{"when":"날짜","what":"일정","why":"왜 중요"}],"watch":["확인 신호: 지표 · 수준 · 의미"],"confidence":{"level":"높음|보통|낮음","why":"이유"},"risk":"틀릴 수 있는 이유","content":["콘텐츠로 만들 만한 각도"],' +
+    '"web":[{"id":"W1","text":"웹에서 찾은 사실(숫자 포함)","src":"출처 이름","date":"날짜","url":"주소"}]}';
+  var L = [];
+  L.push("당신은 한국 주택시장을 20년 이상 분석해 온 부동산·금융 애널리스트입니다. 아래 [앱이 아는 것]은 제가 운영하는 프로그램이 공공데이터로 집계한 사실입니다. 이것과 당신의 조사(웹 검색 가능)를 합쳐 질문에 답해 주세요.");
+  L.push(""); L.push("[오늘] " + d); L.push("[질문] " + q);
+  if (prev) { L.push(""); L.push("[앞선 질문과 답 — 이어서 답할 것]"); L.push("Q: " + prev.q); L.push("A: " + String(prev.answer).slice(0, 800)); }
+  L.push(""); L.push("[앱이 아는 것 — 이 숫자는 그대로 쓰고 바꾸지 마세요. 인용할 때 F번호를 붙이세요]"); F.forEach(function (f) { L.push(f.id + ": " + f.text); });
+  L.push(""); L.push("[답하는 규칙]");
+  L.push("1. 숫자는 [앱이 아는 것]의 원문 그대로 쓰거나, 웹에서 찾은 사실이면 web 항목에 W번호·출처·날짜를 남기고 본문에 (W1)처럼 표시하세요. 근거 없는 숫자는 쓰지 마세요.");
+  L.push("2. 최근 3개월 정책·금리·공급 뉴스는 웹에서 확인해 반영하세요. 추정은 '(추정)'이라고 쓰세요.");
+  L.push("3. 특정 단지·종목 매수/매도 추천, 수익 보장, '무조건' 같은 단정은 하지 마세요. 정보 제공 목적입니다.");
+  if (how) { L.push("4. stances 에는 아래 상황을 모두 하나씩 답하세요(사람마다 상황이 다르므로). todo 는 지금 할 일을 금액·시점·조건까지 구체적으로, avoid 는 피할 것, watch 는 판단을 바꿀 신호입니다."); IN_WHO.forEach(function (w) { L.push("   - " + w); }); }
+  else L.push("4. stances 에는 무주택 실거주 · 1주택 갈아타기 · 다주택 · 전세 세입자 네 가지 상황을 최소한으로 답하세요.");
+  L.push("5. regions 는 서울 상급지 · 서울 외곽 · 경기 남부 · 경기 북부·인천 · 지방 광역시를 나눠 답하세요.");
+  L.push(""); L.push("[답 형식] 아래 JSON 하나만 출력하세요(설명 문장 없이). 모르는 칸은 빈 문자열이나 빈 배열로 두세요.");
+  L.push(shape);
+  IN.aiQ = q; IN.pt = { q: q, text: L.join("\n"), n: F.length, facts: F, prev: prev }; IN.aiErr = ""; IN.askMsg = "프롬프트를 만들었습니다 — [프롬프트 복사] 뒤 AI에 붙여 넣고, 답을 아래 칸에 붙여 [저장]"; inPaint();
+  setTimeout(function () { inAiOpen(); var el = document.getElementById("in-pt"); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 120);
+}
+function inAnsSave() {
+  var ta = document.getElementById("in-ans"), txt = ta ? ta.value : ""; if (!txt.trim()) { IN.askMsg = "답을 붙여 넣어 주세요"; inPaint(); return; }
+  var J = typeof rpParseAnswer === "function" ? rpParseAnswer(txt) : null; if (J && J.insight && typeof J.insight === "object") J = J.insight;
+  if (!J || !(J.answer || J.headline)) { IN.aiErr = "답을 읽지 못했습니다 — { 로 시작해 } 로 끝나는 JSON을 그대로 붙여 넣어 주세요" + (typeof RP2 !== "undefined" && RP2.jsonErr ? " · 멈춘 곳: " + String(RP2.jsonErr).slice(0, 60) : ""); inPaint(); return; }
+  ["because", "regions", "stances", "scenarios", "calendar", "watch", "content", "web"].forEach(function (k) { if (!Array.isArray(J[k])) J[k] = J[k] ? [J[k]] : []; });
+  var P = IN.pt || { q: IN.aiQ || "질문", facts: inFacts(), prev: null }, W = J.web.map(function (w, i) { return { id: w.id || "W" + (i + 1), text: String(w.text || "") + (w.src ? " (" + w.src + (w.date ? " " + w.date : "") + ")" : "") }; });
+  if (IN.ai) IN.hist = (IN.hist || []).concat([{ q: IN.ai.q, h: IN.ai.r.headline || String(IN.ai.r.answer || "").slice(0, 60) }]).slice(-6);
+  IN.ai = { q: P.q, at: new Date(), facts: (P.facts || []).concat(W), r: J, model: "직접 붙여 넣은 답" + (W.length ? " · 웹 사실 " + W.length + "개" : ""), sources: J.web.filter(function (w) { return w.url; }).map(function (w) { return { title: (w.src || w.text || "").slice(0, 40), url: w.url }; }), prev: P.prev, manual: 1 }; IN.pub = null;
+  try { localStorage.setItem(IN_AI_LS, JSON.stringify({ day: chKstDate().key, ai: Object.assign({}, IN.ai, { at: IN.ai.at.getTime() }) })); } catch (e) {}
+  if (typeof hubLogSet === "function") hubLogSet("insight", { q: P.q, h: J.headline || String(J.answer || "").slice(0, 60), cf: (J.confidence || {}).level || "", day: chKstDate().key });
+  if (typeof dailyPush === "function") dailyPush();
+  IN.aiErr = ""; IN.askMsg = "저장했습니다 — 아래에 답이 보이고, 오늘 작업·브리핑·인사이트 기록에 반영됩니다(PC·휴대폰 공통)"; inPaint();
+  setTimeout(function () { inAiOpen(); var el = document.querySelector(".in-aiout"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 120);
+}
+function inAiOpen() { var c = document.querySelector("#tab-insight .in-ai"); if (c && c.classList.contains("ux-folded")) { var b = c.querySelector(":scope > .ux-fold"); if (b) b.click(); else c.classList.remove("ux-folded"); } }   /* 접힌 섹션이면 펼친다 */
+/* 새로고침해도 오늘 저장한 답 유지 */
+(function () { try { var o = JSON.parse(localStorage.getItem(IN_AI_LS) || "null"); if (o && o.day === chKstDate().key && o.ai && typeof IN !== "undefined" && (!IN.ai || !IN.ai.at)) { o.ai.at = new Date(o.ai.at); IN.ai = o.ai; } } catch (e) {} })();
+/* 오늘 작업의 [인사이트(선택)]도 같은 방식 — 인사이트 화면으로 가서 프롬프트를 만든다 */
+if (typeof hubJudge === "function") hubJudge = function (q, cb) { showTab("insight"); setTimeout(function () { inPromptMake(q || "어떤 상황이야?"); }, 1200); cb && cb(false); };
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {
   root.innerHTML =

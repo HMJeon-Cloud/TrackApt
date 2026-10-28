@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.86">
+<link rel="stylesheet" href="style.css?v=9.86.1">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.86</span>
+    <span class="ver">v9.86.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.86"></script>
+<script src="cards.js?v=9.86.1"></script>
 <script>
 "use strict";
 
@@ -10133,7 +10133,7 @@ function shotTitleOf(el) {
 }
 function shotSave(el) {
   if (typeof html2canvas === "undefined") { alert("이미지 도구를 불러오지 못했습니다 — 새로고침 뒤 다시"); return; }
-  var small = el.matches(".rp2-rgi,.in-stc,.in-side,.in-scc"), w = Math.max(small ? 400 : 640, Math.min(760, el.offsetWidth || 640));
+  var small = el.matches(".rp2-rgi,.in-stc,.in-side,.in-scc"), wideT = !!el.querySelector("table") && el.querySelectorAll("tr:first-child > *").length >= 5, w = wideT ? 1000 : Math.max(small ? 400 : 640, Math.min(760, el.offsetWidth || 640));   /* v9.86.1 칸 5개 이상 표는 폭 1000에서 글이 줄바꿈되게 */
   var title = shotTitleOf(el), prev = el.previousElementSibling, preH = !el.querySelector("h3,h4,h2") && prev && /^H[3-5]$/.test(prev.tagName) ? prev.cloneNode(true) : null;
   var host = document.createElement("div"); host.className = "shot-host"; host.style.cssText = "position:absolute;left:0;top:" + (window.pageYOffset || 0) + "px;z-index:-1;pointer-events:none;width:" + (w + 40) + "px";
   var basis = (typeof inBasisLine === "function" ? inBasisLine() : "").slice(0, 110);
@@ -10144,7 +10144,12 @@ function shotSave(el) {
   c.classList.remove("ux-folded"); Array.prototype.forEach.call(c.querySelectorAll(".ux-folded"), function (x) { x.classList.remove("ux-folded"); });
   Array.prototype.forEach.call(c.querySelectorAll(".ux-fold,[data-shot],button,input,textarea,select,.in-ctxform,.in-jform,.in-aiopt,.in-aiq,.in-aicustom,.shot-btn"), function (x) { x.remove(); });
   if (c.tagName === "DETAILS") c.open = true; Array.prototype.forEach.call(c.querySelectorAll("details"), function (d) { d.open = true; });
+  Array.prototype.forEach.call(c.querySelectorAll(".fid"), function (x) { x.remove(); });
+  Array.prototype.forEach.call(c.querySelectorAll("td,th"), function (td) { var t = (td.textContent || "").trim(); if (t.length <= 12 || Array.prototype.every.call(td.children, function (k) { return (k.textContent || "").trim().length <= 12; }) && !/\s.{14,}/.test(t)) td.style.setProperty("white-space", "nowrap", "important"); });   /* 짧은 칸(값·분류)은 한 줄로 */
   c.style.margin = "0"; c.style.boxShadow = "none"; body.appendChild(c); document.body.appendChild(host);
+  /* v9.86.1 가로로 넓은 표(근거 신호표 등)는 잘리지 않게 이미지 폭을 표 폭에 맞춘다 */
+  var need = Math.max(c.scrollWidth, body.scrollWidth); Array.prototype.forEach.call(c.querySelectorAll("table, .in-tblw, .rp2-rg"), function (t) { need = Math.max(need, t.scrollWidth); });
+  if (need > w + 2) { w = Math.min(1600, need + 4); host.style.width = (w + 40) + "px"; need = Math.max(c.scrollWidth, body.scrollWidth); Array.prototype.forEach.call(c.querySelectorAll("table"), function (t) { need = Math.max(need, t.scrollWidth); }); if (need > w + 2) host.style.width = (Math.min(1800, need + 4) + 40) + "px"; }
   if (typeof progOpen === "function") progOpen("이미지 만드는 중", 0);
   var fr = host.querySelector(".shot-frame");
   html2canvas(fr, { backgroundColor: "#ffffff", scale: 2, useCORS: true }).then(function (cv) {

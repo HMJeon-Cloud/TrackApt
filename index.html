@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.86.1">
+<link rel="stylesheet" href="style.css?v=9.86.2">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.86.1</span>
+    <span class="ver">v9.86.2</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.86.1"></script>
+<script src="cards.js?v=9.86.2"></script>
 <script>
 "use strict";
 
@@ -8226,13 +8226,24 @@ function rpPromptFor(id) {
     '"outlook":[{"horizon":"3개월|6개월|12개월","base":"기준 전망 한 문장","cond_up":"상방 조건 → 결과","cond_down":"하방 조건 → 결과"}],' +
     '"drivers":[{"axis":"공급|수요|심리|정책|금융","direction":"상승|하락|중립","why":"한 줄"}],"risks":["틀릴 수 있는 이유"],"watch":["확인 신호: 지표 · 수준 · 의미"]}';
 }
+/* v9.86.2 붙여 넣은 답이 메모·메신저를 거치며 따옴표가 “ ” 로 바뀐 경우까지 읽는다 — 구조 자리(키·값 경계)의 굽은 따옴표는 " 로, 글 안의 굽은 따옴표는 그대로 둔다 */
+function rpJsonFix(s) {
+  s = String(s || "").replace(/```(?:json)?/gi, "").replace(/\u00a0/g, " ").replace(/[\u200b\ufeff]/g, "");
+  var Q = "[\u201c\u201d\u201e\u201f\u2033\u00ab\u00bb]", t = s;
+  t = t.replace(new RegExp("([\\{\\[,:]\\s*)" + Q, "g"), '$1"');            /* { [ , : 바로 뒤 → 여는 따옴표 */
+  t = t.replace(new RegExp(Q + "(\\s*[:,\\}\\]])", "g"), '"$1');            /* : , } ] 바로 앞 → 닫는 따옴표 */
+  t = t.replace(new RegExp(Q, "g"), "\\\"");                                  /* 글 안에 남은 굽은 큰따옴표 → \" */
+  return t.replace(/,\s*([}\]])/g, "$1");
+}
 function rpParseAnswer(txt) {
-  var s = String(txt || "").trim(), m = s.match(/\{[\s\S]*\}/); if (!m) return null;
-  try { var j = JSON.parse(m[0]); return j && typeof j === "object" ? j : null; } catch (e) { return null; }
+  var s = String(txt || "").trim(), a = s.search(/[\{]/), z = s.lastIndexOf("}"); if (a < 0 || z < a) return null;
+  var body = s.slice(a, z + 1), tries = [body, rpJsonFix(body)];
+  for (var i = 0; i < tries.length; i++) { try { var j = JSON.parse(tries[i]); if (j && typeof j === "object") return j; } catch (e) { RP2.jsonErr = e.message; } }
+  return null;
 }
 function rpExtSave(topicId, txt) {
   var J = rpParseAnswer(txt), t = rpTopic(topicId), today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
-  if (!J) { RP2.msg = "JSON 을 찾지 못했습니다 — AI 답에서 { } 로 시작·끝나는 부분을 그대로 붙여 넣어 주세요(앞뒤 설명은 있어도 됩니다)."; rpPaint(); return; }
+  if (!J) { RP2.msg = "JSON 을 읽지 못했습니다 — AI 답에서 { 로 시작해 } 로 끝나는 부분을 그대로 붙여 넣어 주세요(앞뒤 설명은 있어도 됩니다)" + (RP2.jsonErr ? " · 읽다 멈춘 곳: " + String(RP2.jsonErr).slice(0, 80) : ""); rpPaint(); return; }
   if (!Array.isArray(J.findings)) J.findings = [];
   /* v9.61 Claude 조사: 숫자 인용이 없는 항목은 재료에서 빼고(unverified 로 보관), 출처 링크를 함께 저장 */
   var cl = RP2.cl && RP2.cl.topic === topicId ? RP2.cl : null, via = cl ? "Claude " + (cl.model || "") : "";

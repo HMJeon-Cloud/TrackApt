@@ -223,9 +223,9 @@ var TPR = {
       return tprPaged({ _cat: "subs", src: tprSubsBasis() + " · 당첨자 발표 기준", title: "몇 점이면 당첨됐나 — 당첨 가점", sub: "단지별 커트라인(가장 낮게 당첨된 주택형) 높은 순 · 84점 만점", badge: "청약", cols: "단지 | 지역·거주·주택형 | 커트라인 | 최고", foot: "가점 = 무주택 기간 32 + 부양가족 35 + 통장 가입 기간 17 · 추첨제·공공분양은 가점 없음" }, rows.map(function (x) { return x.row; }), 14); } },
   subsPrice: { nm: "분양가 vs 주변 시세", grp: "청약·일정", opts: [], tpls: ["lineTable", "denseTable"], per: 10,
     hint: "접수 중·예정 단지의 분양가(주택형 최고가)와 같은 시군구 실거래(같은 면적) 비교 — 차이 큰 순",
-    build: function () { if (!tprSubs() || typeof sbChAll !== "function") return []; var t = sbToday(), L = sbChAll().filter(function (it) { return it.cmp && Math.max(it.e || 0, it.r2 || 0, it.win || 0) >= t; }).sort(function (a, b) { return b.cmp.diff - a.cmp.diff; }); if (!L.length) return [];
+    build: function (o, tid) { if (!tprSubs() || typeof sbChAll !== "function") return []; var t = sbToday(), L = sbChAll().filter(function (it) { return it.cmp && Math.max(it.e || 0, it.r2 || 0, it.win || 0) >= t; }).sort(function (a, b) { return b.cmp.diff - a.cmp.diff; }); if (!L.length) return [];
       return tprPaged({ _cat: "subs", src: tprSubsBasis() + " · 국토부 실거래(같은 시군구·같은 면적대 ㎡당 중위)", title: "새 분양가, 주변보다 얼마나 비쌀까", sub: "같은 면적 기준 · 차이 큰 순", badge: "청약", cols: "단지 | 주택형 | 분양가 | 주변 같은 면적 | 차이", foot: "분양가는 최고층 기준·발코니 확장 별도 · 주변 값은 구축 포함 중위라 새 아파트끼리 비교는 아님" },
-        L.map(function (it) { var x = sbCmpLine(it); return [tpShort(it.nm, 16) + " · " + it.cmp.gu.replace(/^\S+\s/, ""), sbTy(it.cmp.ty), eok(x.sale), eok(x.near), (x.diff > 0 ? "+" : "") + x.diff.toFixed(1) + "%"]; }), 10); } },
+        L.map(function (it) { var x = sbCmpLine(it); return [tpShort(it.nm, 16) + " · " + it.cmp.gu.replace(/^\S+\s/, ""), sbTy(it.cmp.ty), eok(x.sale), eok(x.near), (x.diff > 0 ? "+" : "") + x.diff.toFixed(1) + "%"]; }), tid === "lineTable" ? 7 : 10); } },   /* v9.84 노선표 꼴은 줄이 두 줄로 접혀 한 장 7줄 */
   subsShort: { nm: "미달 난 청약 단지", grp: "청약·일정", opts: [], tpls: ["denseTable", "lineTable"], per: 14,
     hint: "최근 60일 발표 단지 중 신청이 공급보다 적었던 주택형이 있는 곳 (무순위·잔여세대로 다시 나올 수 있음)",
     build: function () { var L = tprSubsRes().filter(function (r) { return /미달/.test(r.status || ""); }).sort(function (a, b) { return (a.req || 0) / (a.sup || 1) - (b.req || 0) / (b.sup || 1); }); if (!L.length) return [];

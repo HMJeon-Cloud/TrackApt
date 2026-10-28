@@ -1,8 +1,32 @@
 {
  "v": 1,
- "builtAt": "2026-10-27T21:51:45.120Z",
- "asOf": 20261028,
+ "builtAt": "2026-10-28T22:15:59.841Z",
+ "asOf": 20261029,
  "items": [
+  {
+   "kind": "loan",
+   "date": "2026-10-29",
+   "title": "보금자리론 요건 완화에도 금리 5%대…신혼부부 내 집 마련 ‘험로’",
+   "url": "https://news.google.com/rss/articles/CBMimAJBVV95cUxNLWh6elI4QTFjcEtXOGt6UVVOclZTZzR6NExOY3Q1T1FnRlllU1BxT2ZRYlNaUVpxRDNQUWZjOE9JYTlHTVEtWmtiSXM4dzJQT3dNTWJ1ZVQzQnQwRktNMmhmQmRwaXQzSU5sN1Jrb09GZlpWaFFsRnZQek54SmRIXzZhSG5OcC1DLTVVdk42NnNub1JTRFFVMTdKSkhleEU1REJWMkE4OE85UHRwUWdQaDcxM1pHNW9PQXpFR0g2dV9zZmZkakczMkN1UXBNeDJ0WWRkS1lWQlk5SmtPTHBCbEJuRG85d3FROEEzaEhDWEdoZUtnUW1lT2ZkbXVrcjRBc2w1ZjVkVlFOWk5nb3FqS2I5SXlvbkY1?oc=5",
+   "src": "데일리안",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-10-29",
+   "isNew": true
+  },
+  {
+   "kind": "transit",
+   "line": "GTX-B 인천대입구~마석",
+   "what": "일정 변경",
+   "date": "2026-10-28",
+   "title": "“GTX-B 청학역, 더 이상 지연 안 된다”",
+   "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE9Ibm9Gd2o4aW80VTdBWkFqMXh5SVZXX1UtcXpxTHAwYmVIU3FZcHNfSlFOU0d4SE5NVFZHa3R4UWlrSkpvUUI3YzZjYlVNdGxsUGQ4ZnAzSWZndTVDNnhhalBzazdYY0k?oc=5",
+   "src": "인천자치신문",
+   "official": false,
+   "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
+   "firstSeen": "2026-10-29",
+   "isNew": true
+  },
   {
    "kind": "transit",
    "line": "GTX-A 운정중앙~서울역",
@@ -14,7 +38,7 @@
    "official": false,
    "todo": "data/manual/transit.json 에서 'GTX-A 운정중앙~서울역' 의 status·open·note 를 확인해 주세요",
    "firstSeen": "2026-10-28",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "transit",
@@ -27,7 +51,7 @@
    "official": false,
    "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
    "firstSeen": "2026-10-28",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "loan",
@@ -38,7 +62,7 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-28",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "loan",
@@ -49,17 +73,6 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-28",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-10-26",
-   "title": "“보금자리론·주택연금 한눈에”…주금공, 스마트주택금융 앱 개편",
-   "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE9BYkt1NzBfQ1JERVZpR2V0RUlnTDJucmtPazhsMkY4RHg4NnVPWFZLV2tLLUpqQzJTS3VsaV94UzNOQm9yWFdfRGZiRkhCQ1JqOWJudzREcnEyQXpzX19vSFVB?oc=5",
-   "src": "이코노미스트",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-10-27",
    "isNew": false
   }
  ]

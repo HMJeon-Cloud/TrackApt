@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.85">
+<link rel="stylesheet" href="style.css?v=9.86">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.85</span>
+    <span class="ver">v9.86</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.85"></script>
+<script src="cards.js?v=9.86"></script>
 <script>
 "use strict";
 
@@ -10124,143 +10124,50 @@ function chFlexOf(cols, rows) {
   return cols.map(function (c, j) { var L = 0; rows.forEach(function (r) { String(r[j] || "").split(/\s+\/\s+|\(|·/).forEach(function (x) { L = Math.max(L, x.trim().length); }); }); L = Math.max(L, String(c).length * 0.8); return Math.max(0.8, Math.min(2.2, L / 6)).toFixed(2); });
 }
 
-/* ── ③ 글 요약 카드 — 인사이트 · 분석 브리핑의 글을 섹션마다 한두 문장으로. 숫자는 원문 그대로(줄이기만 한다) ── */
-function tsClean(h) { return thrTxt(String(h || "").replace(/<i class="(?:fid|cite)">[\s\S]*?<\/i>/g, "")).replace(/\s*…\s*/g, " ").replace(/\s*·\s*(?=[,.)])/g, "").replace(/\s+([,.])/g, "$1").replace(/,\s*,/g, ",").replace(/\s+/g, " ").trim(); }
-function tsShort(t, n) {
-  n = n || 100; t = String(t || ""); if (t.length <= n) return t;
-  var S = t.split(/(?<=[.다])\s+/), out = "";
-  for (var i = 0; i < S.length; i++) { if ((out + " " + S[i]).trim().length > n) { if (out.length < n * 0.55) { var rest = S[i].slice(0, n - out.length - 1), k2 = Math.max(rest.lastIndexOf(", "), rest.lastIndexOf(" — "), rest.lastIndexOf(" · ")); out = (out + " " + (k2 > 12 ? rest.slice(0, k2) : rest.replace(/\s+\S*$/, "")) + "…").trim(); } break; } out = (out + " " + S[i]).trim(); }   /* 첫 문장이 짧으면 다음 문장을 쉼표 단위로 이어 붙인다 */
-  if (!out) { var cut = t.slice(0, n), k = Math.max(cut.lastIndexOf(" — "), cut.lastIndexOf(", "), cut.lastIndexOf(" · ")); out = (k > n * 0.5 ? cut.slice(0, k) : cut.replace(/\s+\S*$/, "")) + "…"; }
-  return out;
+/* ══ v9.86 인사이트 · 분석 브리핑 — 화면에 정리된 덩어리를 그대로 이미지로(위에 우상향연구소 · UPHILL.LAB 띠, 아래 기준·고지). 섹션 전체 · 지역 카드 · 표 · 입장/시나리오 카드마다 [이미지] ══ */
+var SHOT_SEL = { report: [".rp2-cover", ".card.rp2-sec", ".rp2-rgi", ".in-tblw", ".rp2-axl", ".rp2-oll", ".rp2-phl"], insight: ["#in-body > .card.in-sec:not(.in-ai)", ".in-rep", ".in-stc", ".in-side", ".in-scc", ".in-tblw", ".in-det"] };
+function shotTitleOf(el) {
+  var h = el.querySelector(":scope > h3, :scope > h2, :scope > h1, :scope > .in-q, :scope > .in-reph b, :scope > summary, .rp2-rgh b, :scope > b"); var t = h ? h.textContent : "";
+  if (!t) { var p = el.previousElementSibling; if (p && /^H[3-5]$/.test(p.tagName)) t = p.textContent; }
+  return String(t || "").replace(/\s+/g, " ").replace(/누를 때만.*$/, "").trim().slice(0, 40);
 }
-TPL.textSum = { nm: "글 요약 카드", cat: "market", fields: [["src", "출처·기준", "text", ""], ["badge", "분류 띠", "text", "인사이트"], ["title", "제목", "text", ""], ["sub", "한 줄", "text", ""], ["items", "섹션(머리 | 글)", "rows", "한 줄로 | 관망 — 가격은 오르는데 거래는 따라오지 않는다"], ["foot", "맨 아래 메모", "text", ""]],
-  auto: function () { return null; },
-  render: function (d) { var R = tpRows(d.items).filter(function (r) { return (r[1] || r[0] || "").trim(); });
-    return tpFrame(d._cat || "market", d, '<div class="tp-ts">' + R.map(function (r, i) { return '<div class="tp-tsi' + (i === 0 && d._hl ? " hl" : "") + '">' + (String(r[0] || "").trim() ? "<small>" + tpE(r[0]) + "</small>" : "") + "<p>" + tpE(r.slice(1).join(" | ")) + "</p></div>"; }).join("") + "</div>"); } };
-if (typeof TPL_ORDER !== "undefined" && TPL_ORDER.indexOf("textSum") < 0) TPL_ORDER.push("textSum");
-function tsPages(base, items) {
-  var per = tpReel() ? 6 : 4;
-  if (tprOne()) { var d = tprClone(base); d.items = items.slice(0, per); d._hl = 1; if (items.length > per) d.foot = (d.foot ? d.foot + " · " : "") + "전체는 '여러 장'"; return [d]; }
-  var out = [], n = Math.ceil(items.length / per); for (var i = 0; i < n; i++) { var e = tprClone(base); e.items = items.slice(i * per, (i + 1) * per); e._hl = i === 0 ? 1 : 0; if (n > 1) e.badge = base.badge + " " + (i + 1) + "/" + n; out.push(e); } return out;
+function shotSave(el) {
+  if (typeof html2canvas === "undefined") { alert("이미지 도구를 불러오지 못했습니다 — 새로고침 뒤 다시"); return; }
+  var small = el.matches(".rp2-rgi,.in-stc,.in-side,.in-scc"), w = Math.max(small ? 400 : 640, Math.min(760, el.offsetWidth || 640));
+  var title = shotTitleOf(el), prev = el.previousElementSibling, preH = !el.querySelector("h3,h4,h2") && prev && /^H[3-5]$/.test(prev.tagName) ? prev.cloneNode(true) : null;
+  var host = document.createElement("div"); host.className = "shot-host"; host.style.cssText = "position:absolute;left:0;top:" + (window.pageYOffset || 0) + "px;z-index:-1;pointer-events:none;width:" + (w + 40) + "px";
+  var basis = (typeof inBasisLine === "function" ? inBasisLine() : "").slice(0, 110);
+  host.innerHTML = '<div class="shot-frame"><div class="shot-top"><span class="shot-brand">' + (typeof UB_MARK !== "undefined" ? UB_MARK : "") + '<b>우상향연구소</b><em>@uphill.lab</em></span><span class="shot-wm">UPHILL.LAB</span></div><div class="shot-body"></div><div class="shot-foot"><span>' + escHtml(basis) + '</span><span>정보 제공 목적 · 투자 권유 아님 · 판단과 책임은 본인에게</span></div></div>';
+  var body = host.querySelector(".shot-body"), c = el.cloneNode(true);
+  if (!preH && !el.querySelector("h1,h2,h3,h4,h5,.in-q,summary,.rp2-rgh") && !el.matches(".card")) { var sc = el.closest(".card"), sh = sc && sc.querySelector(":scope > h3, :scope > .in-q"); if (sh) { preH = document.createElement("h4"); var cc = sh.cloneNode(true); Array.prototype.forEach.call(cc.querySelectorAll("small,i,button"), function (x) { x.remove(); }); preH.textContent = cc.textContent.replace(/\s+/g, " ").trim(); if (!title) title = preH.textContent; } }   /* 제목 없는 표는 섹션 제목을 위에 */
+  if (preH) { preH.style.margin = "0 0 8px"; body.appendChild(preH); }
+  c.classList.remove("ux-folded"); Array.prototype.forEach.call(c.querySelectorAll(".ux-folded"), function (x) { x.classList.remove("ux-folded"); });
+  Array.prototype.forEach.call(c.querySelectorAll(".ux-fold,[data-shot],button,input,textarea,select,.in-ctxform,.in-jform,.in-aiopt,.in-aiq,.in-aicustom,.shot-btn"), function (x) { x.remove(); });
+  if (c.tagName === "DETAILS") c.open = true; Array.prototype.forEach.call(c.querySelectorAll("details"), function (d) { d.open = true; });
+  c.style.margin = "0"; c.style.boxShadow = "none"; body.appendChild(c); document.body.appendChild(host);
+  if (typeof progOpen === "function") progOpen("이미지 만드는 중", 0);
+  var fr = host.querySelector(".shot-frame");
+  html2canvas(fr, { backgroundColor: "#ffffff", scale: 2, useCORS: true }).then(function (cv) {
+    host.remove(); if (typeof progClose === "function") progClose();
+    var a = document.createElement("a"); a.download = (title || "인사이트").replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "_").slice(0, 40) + "_" + chToday().replace(/\(.*\)/, "").replace(".", "") + ".png"; a.href = cv.toDataURL("image/png"); document.body.appendChild(a); a.click(); a.remove();
+  }, function (e) { host.remove(); if (typeof progClose === "function") progClose(); alert("이미지 저장 실패: " + e.message); });
 }
-function tsInsightItems() {
-  if (typeof inPrep === "function") try { inPrep(); } catch (e) {}
-  var S = IN.S || inSignals(); if (!S || !S.length) return null; var T = IN.T || inTemp(S), sit = inSituation(S, T), sc = IN.sc || inScenarios(S, T), items = [];
-  var A = IN.ai && IN.ai.r && IN.ai.at && new Date(IN.ai.at).getTime() > Date.now() - 20 * 3600e3 ? IN.ai.r : null;   /* 오늘 Claude 인사이트가 있으면 그 결론을 먼저 */
-  if (A && A.answer) { items.push(["결론", tsShort(tsClean(A.answer), 110)]); (A.because || []).slice(0, 3).forEach(function (b, i) { items.push(["이유 " + (i + 1), tsShort(tsClean(b.text || b), 100)]); }); if (A.counter && A.counter.view) items.push(["반대로 보면", tsShort(tsClean(A.counter.view) + (A.counter.rebut ? " → " + tsClean(A.counter.rebut) : ""), 110)]); if ((A.watch || []).length) items.push(["앞으로 볼 것", tsShort(A.watch.map(function (w) { return tsClean(w.text || w); }).join(" · "), 100)]); }
-  inReport(S, T, sit, sc).forEach(function (p) { if (!p.t) return; if (A && /^(한 줄로|그래서)$/.test(p.h)) return; items.push([p.h, tsShort(tsClean(p.t), p.h === "한 줄로" ? 120 : 105)]); });
-  var c = typeof inCounter === "function" ? inCounter(S, T) : null; if (c && c.ctx) items.push(["가장 강한 반론", tsShort(tsClean(c.ctx.title), 90) + (c.ctx.src ? " (" + String(c.ctx.src).split(" · ")[0] + ")" : "")]);
-  return { T: T, sit: sit, items: items, ai: !!A };
+function shotButtons(id) {
+  var root = document.getElementById("tab-" + id); if (!root) return;
+  (SHOT_SEL[id] || []).forEach(function (sel) { Array.prototype.forEach.call(root.querySelectorAll(sel), function (el) {
+    if (el.querySelector(":scope > .shot-btn") || el.closest(".shot-host")) return; if ((el.textContent || "").trim().length < 20) return;
+    if (el.tagName === "DETAILS" && (!el.querySelector("table") || el.querySelector(".in-tblw"))) return;   /* 접힌 상세는 표가 있는 것만(안의 표에 이미 버튼이 있으면 생략) */
+    if (!/relative|absolute/.test(getComputedStyle(el).position)) el.style.position = "relative";
+    var b = document.createElement("button"); b.type = "button"; b.className = "shot-btn" + (el.matches(".card") ? " big" : ""); b.textContent = el.matches(".card") ? "섹션 이미지" : "이미지"; b.title = "이 덩어리를 이미지(PNG)로 저장";
+    b.addEventListener("click", function (ev) { ev.stopPropagation(); ev.preventDefault(); shotSave(el); });
+    if (el.tagName === "DETAILS") { var sm = el.querySelector(":scope > summary"); if (sm) { sm.appendChild(b); return; } }
+    el.insertBefore(b, el.firstChild);
+  }); });
 }
-function tsReportItems() {
-  if (typeof inPrep === "function") try { inPrep(); } catch (e) {}
-  var S = IN.S || inSignals(); if (!S || !S.length) return null; var T = IN.T || inTemp(S), sit = inSituation(S, T), sc = IN.sc || inScenarios(S, T), an = IN.an || inAnalogs(), items = [];
-  items.push(["요약", tsShort(tsClean(sit), 115)]);
-  try { var cy = rpCycle(); if (cy) items.push(["사이클 위치", cy.ph + " — 서울 지수 고점(" + cy.pk + ") 대비 " + rpPct(cy.fromPk) + ", 저점(" + cy.tr + ") 대비 " + rpPct(cy.fromTr)]); } catch (e) {}
-  if (an && an.n) items.push(["비슷했던 국면", "과거 " + an.n + "번 중 12개월 뒤 상승 " + an.up12 + "/" + an.n12 + "번, 중위 " + rpPct(an.m12) + (an.r12 ? "(범위 " + rpPct(an.r12[0]) + "~" + rpPct(an.r12[1]) + ")" : "")]);
-  try { var dv = IN.dv || inDivergence(); if (dv && dv.past.length) items.push(["거래 급감 + 가격 상승", "과거 " + dv.past.length + "번 중 12개월 뒤 하락 " + dv.dn12 + "번" + (dv.now ? " — 지금도 같은 국면(" + inYmOf(dv.now.i) + "~)" : "")]); } catch (e) {}
-  try { var S0 = rpPhSimilar(1)[0]; if (S0) items.push(["비슷한 정책 조합", S0.e.name + "(" + S0.e.date.slice(0, 7).replace("-", ".") + ") — 그 뒤 6개월 " + rpPct(S0.p6) + " · 12개월 " + rpPct(S0.p12)]); } catch (e) {}
-  try { rpAxes(S).filter(function (a) { return a.sc != null && Math.abs(a.sc) >= 1; }).slice(0, 3).forEach(function (a) { var top = a.sig.slice().sort(function (p, q) { return Math.abs(q.sc * q.w) - Math.abs(p.sc * p.w); })[0]; items.push([a.nm + " (" + (a.sc > 0 ? "+" : "") + a.sc.toFixed(1) + ")", tsShort(top ? top.nm + " " + top.val + " — " + top.read.split(" — ")[0] : a.dir, 95)]); }); } catch (e) {}
-  try { rpOutlook(S, T, an, sc).forEach(function (o) { items.push([o.h + " 전망", tsShort(tsClean(o.base), 80) + (o.range ? " · 범위 " + o.range : "")]); }); } catch (e) {}
-  return { T: T, items: items };
-}
-if (typeof TPR !== "undefined") {
-  TPR.inText = { nm: "인사이트 요약(글 카드)", grp: "인사이트", opts: [], tpls: ["textSum"], noX: true, hint: "인사이트 화면의 판단 글을 섹션마다 한두 문장으로 — 한 줄로 · 숫자가 말하는 것 · 속사정 · 양쪽 의견 · 그래서 · 가장 강한 반론 (오늘 Claude 인사이트가 있으면 결론·이유가 먼저)",
-    build: function () { cdNeed("macro", "inText"); cdNeed("daily", "inText"); var X = tsInsightItems(); if (!X || !X.items.length) return []; return tsPages({ _cat: "market", _noNote: 1, noLead: 1, src: (typeof inBasisLine === "function" ? inBasisLine() : "").slice(0, 70), badge: "인사이트", title: "오늘 시장, " + X.T.nm, sub: "신호 " + (IN.S || []).length + "개 · 더운 쪽 " + X.T.up + " · 식는 쪽 " + X.T.dn + (X.ai ? " · 결론은 Claude 정리" : " · 규칙으로 쓴 판단"), foot: "숫자는 앱 집계 원문 · 기사 의견은 출처 기준 · 투자 권유 아님" }, X.items); } };
-  TPR.rpText = { nm: "분석 브리핑 요약(글 카드)", grp: "인사이트", opts: [], tpls: ["textSum"], noX: true, hint: "분석 브리핑의 요약 · 사이클 위치 · 비슷했던 국면 · 정책 조합 · 크게 움직인 축 · 3·6·12개월 전망을 한두 문장씩",
-    build: function () { cdNeed("macro", "rpText"); cdNeed("daily", "rpText"); if (typeof rpPhLoad === "function" && typeof RP2 !== "undefined" && !(RP2.ph && RP2.ph.length) && !RP2._phw) { RP2._phw = 1; rpPhLoad(function () { if (TP.r === "rpText") tprRebuild(); }); } var X = tsReportItems(); if (!X || !X.items.length) return []; return tsPages({ _cat: "market", _noNote: 1, noLead: 1, src: (typeof inBasisLine === "function" ? inBasisLine() : "").slice(0, 70), badge: "분석 브리핑", title: (typeof dyDate === "function" ? dyDate().txt.slice(5) + " " : "") + "서울·수도권 시장 브리핑", sub: X.T.nm + " · 신호 " + X.T.n + "개 · 과거 사례와 정책으로 본 지금", foot: "규칙으로 계산한 요약 · 과거 수치는 앱 집계 · 투자 권유 아님" }, X.items); } };
-  if (typeof TPR_ORDER !== "undefined") ["inText", "rpText"].forEach(function (id) { if (TPR_ORDER.indexOf(id) < 0) { var k = TPR_ORDER.indexOf("free"); TPR_ORDER.splice(k < 0 ? TPR_ORDER.length : k, 0, id); } });
-}
-/* 인사이트·분석 브리핑 화면의 [카드로] 버튼이 글 카드로 바로 가게 */
-document.addEventListener("click", function (ev) { var b = ev.target.closest("[data-tstocard]"); if (!b) return; TP.r = b.dataset.tstocard; TP.id = "textSum"; TP.o.size = "multi"; showTab("tpl"); setTimeout(function () { if (typeof tprRebuild === "function") tprRebuild(); }, 400); });
 (function () {
-  ["Insight", "Report"].forEach(function (n) { var fn = window["render" + n]; if (typeof fn !== "function") return; window["render" + n] = function () { fn.apply(this, arguments); var sec = document.getElementById("tab-" + n.toLowerCase()), hd = sec && sec.querySelector(".card .in-hd, .card.in-hd, .card .tpx-tools, .card"); if (!sec) return; setTimeout(function () { var box = sec.querySelector(".card"); if (!box || box.querySelector("[data-tstocard]")) return; var btns = box.querySelectorAll("button"); var last = btns[btns.length - 1]; var b = document.createElement("button"); b.type = "button"; b.className = last ? last.className : "btn sm ghost"; b.dataset.tstocard = n === "Insight" ? "inText" : "rpText"; b.textContent = "글 요약 카드로"; if (last) last.insertAdjacentElement("afterend", b); else box.appendChild(b); }, 200); }; });
+  ["Report", "Insight"].forEach(function (n) { var fn = window["render" + n]; if (typeof fn !== "function") return; window["render" + n] = function () { fn.apply(this, arguments); [500, 1800, 4500].forEach(function (ms) { setTimeout(function () { shotButtons(n.toLowerCase()); }, ms); }); }; });
+  if (typeof inPaint === "function") { var ip = inPaint; inPaint = function () { ip.apply(this, arguments); setTimeout(function () { shotButtons("insight"); }, 80); }; }
 })();
-
-/* ══ v9.85 인사이트 · 분석 브리핑 '화면 전체'를 카드 세트로 — 표는 표 카드 그대로, 글만 섹션마다 한두 문장으로 줄인 글 카드. 화면에 그려진 내용을 그대로 읽어 만든다(새 계산·호출 없음) ══ */
-var DECK = { wait: {} };
-var DECK_SKIP = ".ux-fold,button,input,textarea,select,label,.fid,.cite,.hint,.in-gauge,.in-aiopt,.in-aiq,.in-aicustom,.in-jform,.in-ctxform,.rp2-prompt,.in-fork,.stu-toc,.in-srcs,.in-q,.in-reph,.chip-x";
-function dkTxt(el) { var c = el.cloneNode(true); Array.prototype.forEach.call(c.querySelectorAll(DECK_SKIP), function (x) { x.remove(); }); Array.prototype.forEach.call(c.querySelectorAll(".chip,.ax-sig > span,.cl,.cs"), function (x) { x.insertAdjacentText("afterend", " · "); }); Array.prototype.forEach.call(c.querySelectorAll("br,li,p,div,section,h4,h5,tr,span,b,em,small"), function (x) { x.insertAdjacentText("beforebegin", " "); x.insertAdjacentText("afterend", " "); }); return String(c.textContent || "").replace(/\s*…\s*/g, " ").replace(/\s+([,.)])/g, "$1").replace(/\(\s+/g, "(").replace(/\s+/g, " ").replace(/\|/g, "/").replace(/(\s·\s*)+(?=$|[.,)])/g, "").replace(/·\s+·/g, "·").trim(); }
-function dkHead(el) { var h = el.querySelector(":scope > h3, :scope > h2, :scope > h1, :scope > .in-q, :scope > .in-reph b"); if (!h) return ""; var c = h.cloneNode(true); Array.prototype.forEach.call(c.querySelectorAll("small,i,.hint"), function (x) { x.remove(); }); return c.textContent.replace(/\s+/g, " ").trim(); }
-function dkSkipEl(el) { return el.matches(DECK_SKIP) || /^(H1|H2|H3)$/.test(el.tagName) || (el.tagName === "SMALL" && el.parentNode && el.parentNode.classList.contains("rp2-cover")); }
-function dkSub(el) { var c = el.cloneNode(true); Array.prototype.forEach.call(c.querySelectorAll("small,.hint,i"), function (x) { x.remove(); }); return c.textContent.replace(/\s+/g, " ").trim().slice(0, 40); }
-/* 한 섹션 → 블록 목록: {k:"t", head, text} 글 · {k:"tbl", sub, cols, rows} 표 */
-function dkBlocks(sec) {
-  var B = [], sub = "";
-  var tbl = function (t) { var R = Array.prototype.map.call(t.querySelectorAll("tr"), function (tr) { return Array.prototype.map.call(tr.children, function (c) { return dkTxt(c); }); }).filter(function (r) { return r.join("").trim(); }); if (R.length < 2) return; var hd = t.querySelector("tr th") ? R.shift() : R[0].map(function (_, i) { return i ? "" : "항목"; }); hd = hd.map(function (x, i) { return x || (i ? "" : "항목"); }); var keep = hd.map(function (_, j) { return R.some(function (r) { return String(r[j] || "").trim(); }); }); var cols = hd.filter(function (_, j) { return keep[j]; }); R = R.map(function (r) { return r.filter(function (_, j) { return keep[j]; }); }); if (cols.length > 6) { cols = cols.slice(0, 6); R = R.map(function (r) { return r.slice(0, 6); }); } B.push({ k: "tbl", sub: sub, cols: cols, rows: R }); };
-  var txt = function (head, text, n) { text = String(text || "").trim(); if (text.length < 6) return; B.push({ k: "t", head: head || sub || "", text: tsShort(text, n || 105) }); };
-  /* 목록 한 줄: 맨 앞 굵은 글(제목 역할)만 머리로, 문장 안 강조(b)는 머리로 쓰지 않는다 */
-  var listOf = function (el) { Array.prototype.forEach.call(el.children, function (ch) { if (dkSkipEl(ch)) return; var all = dkTxt(ch), hb = ch.querySelector("b, strong, h4, h5"), head = hb ? dkTxt(hb).slice(0, 30) : ""; if (!head || all.indexOf(head) !== 0 || head.length > 24 || ch.tagName === "LI") head = ""; var body = head ? all.slice(head.length).trim() : all; if (head && body.length < 4) { body = head; head = ""; } txt(head || sub, body, 110); }); };
-  var walk = function (el) {
-    Array.prototype.forEach.call(el.children, function (ch) {
-      if (dkSkipEl(ch)) return;
-      var tag = ch.tagName;
-      if (tag === "H4" || tag === "H5" || tag === "SUMMARY") { sub = dkSub(ch); return; }
-      if (tag === "TABLE") { tbl(ch); return; }
-      if (tag === "DETAILS") { var s0 = sub; walk(ch); sub = s0; return; }
-      if (ch.querySelector("table")) { if (ch.children.length === 1 || ch.matches(".in-tblw,.rp2-rg")) { Array.prototype.forEach.call(ch.querySelectorAll("table"), tbl); return; } walk(ch); return; }
-      if (tag === "OL" || tag === "UL" || ch.matches(".rp2-axl,.rp2-oll,.rp2-phl,.in-st,.in-sc,.in-recap,.rp2-topics,.in-side,.in-vs")) { if (ch.matches(".in-vs")) { Array.prototype.forEach.call(ch.children, function (side) { var s0 = sub; sub = (side.querySelector("h3,h4,b") || {}).textContent || sub; sub = String(sub).replace(/데이터 \d+.*$/, "").trim(); listOf(side.querySelector("ul,ol") || side); sub = s0; }); return; } listOf(ch); return; }
-      if (tag === "SECTION") { var h5 = ch.querySelector("h5"); txt(h5 ? h5.textContent.trim() : sub, dkTxt(ch).replace(h5 ? h5.textContent.trim() : "", ""), 110); return; }
-      if (ch.children.length > 1 && !/^(P|SPAN|B|SMALL)$/.test(tag) && dkTxt(ch).length > 260) { walk(ch); return; }
-      txt(sub, dkTxt(ch), 110);
-    });
-  };
-  walk(sec);
-  return B;
-}
-function dkSections(id) {
-  var root = document.getElementById("tab-" + id); if (!root) return [];
-  var secs = id === "report" ? Array.prototype.slice.call(root.querySelectorAll(".rp2-cover, .card.rp2-sec")) : Array.prototype.slice.call(root.querySelectorAll("#in-body > .card"));
-  return secs.map(function (s, i) { var t = dkHead(s); if (id === "report" && s.classList.contains("rp2-cover")) t = "요약 — " + ((s.querySelector(".rp2-temp b") || {}).textContent || ""); if (id === "insight" && i === 0) t = "지금 시장, " + ((s.querySelector(".in-temp b, .in-temp .nm, .in-tlab") || {}).textContent || (IN.T && IN.T.nm) || ""); return { t: String(t || "").replace(/\s+/g, " ").replace(/\s*누를 때만.*$/, "").trim().slice(0, 34), el: s }; }).filter(function (x) { return x.t && !/^AI|어떻게 생각|지난 예상/.test(x.t); });
-}
-function dkReady(id, rid) {
-  var root = document.getElementById("tab-" + id), ok = root && root.querySelector(id === "report" ? ".card.rp2-sec" : "#in-body > .card");
-  if (ok) return true; if (DECK.wait[id]) return false; DECK.wait[id] = 1;
-  try { (id === "report" ? renderReport : renderInsight)(); } catch (e) {}
-  var t0 = Date.now(), tm = setInterval(function () { var r2 = document.getElementById("tab-" + id); if ((r2 && r2.querySelector(id === "report" ? ".card.rp2-sec" : "#in-body > .card")) || Date.now() - t0 > 15000) { clearInterval(tm); DECK.wait[id] = 0; if (TP.r === rid) tprRebuild(); } }, 600);
-  return false;
-}
-function dkDeck(id, rid, o) {
-  if (!dkReady(id, rid)) return [];
-  var S = dkSections(id); TP.deckSecs = S.map(function (x) { return x.t; });
-  var pick = TP.o.deck == null || TP.o.deck === "all" ? null : Number(TP.o.deck), badge = id === "report" ? "분석 브리핑" : "인사이트", reel = tpReel(), perT = reel ? 6 : 4, out = [];
-  var basis = (typeof inBasisLine === "function" ? inBasisLine() : "").slice(0, 70);
-  S.forEach(function (s, si) {
-    if (pick != null && pick !== si) return;
-    var B = dkBlocks(s.el), run = [];
-    var flush = function () { if (!run.length) return; var cnt = {}; run.forEach(function (x) { cnt[x.head] = (cnt[x.head] || 0) + 1; }); var no = {}; run.forEach(function (x) { if (x.head && cnt[x.head] > 1) { no[x.head] = (no[x.head] || 0) + 1; x.head = x.head + " " + no[x.head]; } });   /* 같은 머리가 여러 번이면 번호 */ for (var i = 0; i < run.length; i += perT) out.push({ _tpl: "textSum", _cat: "market", _noNote: 1, noLead: 1, src: basis, badge: badge, title: s.t, sub: "", items: run.slice(i, i + perT).map(function (x) { return [x.head, x.text]; }), _hl: out.length === 0 && i === 0 ? 1 : 0, foot: "글은 화면 내용을 줄인 것 · 숫자는 원문 그대로 · 투자 권유 아님" }); run = []; };
-    B.forEach(function (b) {
-      if (b.k === "t") { run.push(b); return; }
-      var mx = 0; b.rows.forEach(function (r) { mx = Math.max(mx, r.join("").length); });
-      /* 칸이 많고 글이 긴 표(신호표 등)는 줄마다 글 카드 한 칸으로: 머리 = 앞 칸들, 글 = 나머지 "칸 이름 값" */
-      if (b.cols.length >= 5 && mx > 80) { b.rows.forEach(function (r) { var g = String(r[0] || "").length <= 4 ? 2 : 1; run.push({ head: r.slice(0, g).join(" · ").slice(0, 30), text: tsShort(r.slice(g).map(function (v, j) { var c = b.cols[j + g]; return v && v !== "–" ? (c && !/^(신호|항목|내용)$/.test(c) ? c + " " : "") + v : ""; }).filter(Boolean).join(" · "), 120) }); }); return; }
-      flush(); var per = mx > 120 ? 5 : mx > 80 ? 6 : mx > 50 ? 8 : mx > 30 ? 10 : 12; if (reel) per = Math.round(per * 1.4);
-      for (var i = 0; i < b.rows.length; i += per) out.push({ _tpl: "denseTable", _cat: "market", _noNote: 1, noLead: 1, src: basis, badge: badge, title: s.t, sub: b.sub || "", cols: b.cols.join(" | "), rows: b.rows.slice(i, i + per), _off: i, foot: "화면의 표 그대로 · 투자 권유 아님" });
-    });
-    flush();
-  });
-  if (out.length > 1) out.forEach(function (d, i) { d.badge = badge + " " + (i + 1) + "/" + out.length; });
-  return out;
-}
-if (typeof TPR !== "undefined") {
-  TPR.inDeck = { nm: "인사이트 화면 전체(카드 세트)", grp: "인사이트", opts: [], tpls: ["textSum"], noX: true, hint: "인사이트 화면의 모든 섹션을 카드로 — 표는 표 카드 그대로, 글은 섹션마다 한두 문장으로 줄인 글 카드. 위 '섹션'에서 하나만 고를 수도 있음",
-    build: function (o) { cdNeed("macro", "inDeck"); cdNeed("daily", "inDeck"); return dkDeck("insight", "inDeck", o); } };
-  TPR.rpDeck = { nm: "분석 브리핑 화면 전체(카드 세트)", grp: "인사이트", opts: [], tpls: ["textSum"], noX: true, hint: "분석 브리핑 1~8장 전부를 카드로 — 표는 표 카드 그대로, 글은 섹션마다 한두 문장으로 줄인 글 카드. 위 '섹션'에서 하나만 고를 수도 있음",
-    build: function (o) { cdNeed("macro", "rpDeck"); cdNeed("daily", "rpDeck"); return dkDeck("report", "rpDeck", o); } };
-  if (typeof TPR_ORDER !== "undefined") ["inDeck", "rpDeck"].forEach(function (id) { if (TPR_ORDER.indexOf(id) < 0) { var k = TPR_ORDER.indexOf("inText"); TPR_ORDER.splice(k < 0 ? TPR_ORDER.length : k, 0, id); } });
-}
-/* 섹션 고르기 줄(카드 세트일 때만) */
-(function () {
-  if (typeof tprOptsHtml !== "function") return; var oo = tprOptsHtml;
-  tprOptsHtml = function () { var h = oo(); if (!/^(inDeck|rpDeck)$/.test(TP.r) || !(TP.deckSecs || []).length) return h; var cur = TP.o.deck == null ? "all" : String(TP.o.deck); var seg = '<div class="tpr-g"><small>섹션 <i class="hint">인스타는 한 번에 20장까지 — 많으면 섹션별로</i></small><div class="tpr-list tpr-deck"><button type="button" data-tpdeck="all" class="' + (cur === "all" ? "on" : "") + '">전체 ' + (TP.pages || []).length + "장</button>" + TP.deckSecs.map(function (t, i) { return '<button type="button" data-tpdeck="' + i + '" class="' + (cur === String(i) ? "on" : "") + '">' + tpE(t) + "</button>"; }).join("") + "</div></div>"; return seg + h; };
-  document.addEventListener("click", function (ev) { var b = ev.target.closest("[data-tpdeck]"); if (b) { TP.o.deck = b.dataset.tpdeck; tprRebuild(); } });
-})();
-/* 화면 위 버튼: [글 요약 카드로] 옆에 [화면 전체를 카드로] */
-document.addEventListener("click", function (ev) { var b = ev.target.closest("[data-dktocard]"); if (!b) return; TP.r = b.dataset.dktocard; TP.id = "textSum"; TP.o.size = "multi"; TP.o.deck = "all"; showTab("tpl"); setTimeout(function () { if (typeof tprRebuild === "function") tprRebuild(); }, 400); });
-(function () {
-  ["Insight", "Report"].forEach(function (n) { var fn = window["render" + n]; if (typeof fn !== "function") return; window["render" + n] = function () { fn.apply(this, arguments); var sec = document.getElementById("tab-" + n.toLowerCase()); if (!sec) return; setTimeout(function () { var ref = sec.querySelector("[data-tstocard]"); if (!ref || sec.querySelector("[data-dktocard]")) return; var b = document.createElement("button"); b.type = "button"; b.className = ref.className; b.dataset.dktocard = n === "Insight" ? "inDeck" : "rpDeck"; b.textContent = "화면 전체를 카드로"; ref.insertAdjacentElement("beforebegin", b); }, 400); }; });
-})();
-
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {
   root.innerHTML =

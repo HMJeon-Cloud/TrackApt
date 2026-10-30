@@ -1,7 +1,7 @@
 {
  "v": 1,
- "builtAt": "2026-10-29T22:30:28.585Z",
- "asOf": 20261030,
+ "builtAt": "2026-10-30T22:02:12.318Z",
+ "asOf": 20261031,
  "items": [
   {
    "kind": "loan",
@@ -12,40 +12,7 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-30",
-   "isNew": true
-  },
-  {
-   "kind": "policy",
-   "date": "2026-10-29",
-   "title": "[10.28 주택공급대책] “신규 택지 후보지역 환영…“당장 집값 안정엔 역부족”",
-   "url": "https://news.google.com/rss/articles/CBMidEFVX3lxTFBpMGNUZTRHUW9GazdMZGkyUFBNRG5PWHpsR1FZb1BHcjBna05fWjBxdElyMDRLV0h2Wm1YLXFYLUtaV2pqVGc0MXFOVzZySUxvbUJXQTZOQktKeGZPc25iNDc4bTk2dnA0WDBLY1NfSFk3YUNO?oc=5",
-   "src": "대한경제",
-   "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-30",
-   "isNew": true
-  },
-  {
-   "kind": "policy",
-   "date": "2026-10-29",
-   "title": "[10·29 공급대책] 서울 그린벨트 빠진 이유는…정부 권한에도 서울시 협의 과제",
-   "url": "https://news.google.com/rss/articles/CBMiXEFVX3lxTFBGWUtyT2RhUW02OV83eDV3eWV6SzUtajhleklQMm4xQ0ktVEg1cVF0SEZsMm9vQzdsNlNpQVpsdThoV2FoRXpFVEtKczR1V09Ta29VaFBUcEdaWmJ4?oc=5",
-   "src": "뉴스핌",
-   "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-30",
-   "isNew": true
-  },
-  {
-   "kind": "policy",
-   "date": "2026-10-29",
-   "title": "[10·29 공급대책] 서울 제외된 수도권 공공택지 추가 지정…공급난 해소 미지수",
-   "url": "https://news.google.com/rss/articles/CBMiXEFVX3lxTFA0QVNHMlI2bThYamtoWm1IWmZNclNNcWlKOTlZaGk4VTgwaUwtRldEdm1pQXRTNlpZVjhQdkFMRmY4QzlySG5iTmx1NHhGbkIxZl9WdUI2YmFGY19B?oc=5",
-   "src": "뉴스핌",
-   "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-10-30",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "loan",
@@ -56,7 +23,7 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-30",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "loan",
@@ -68,6 +35,19 @@
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-29",
    "isNew": false
+  },
+  {
+   "kind": "transit",
+   "line": "GTX-B 인천대입구~마석",
+   "what": "일정 변경",
+   "date": "2026-10-28",
+   "title": "“GTX-B 청학역, 더 이상 지연 안 된다”",
+   "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE9Ibm9Gd2o4aW80VTdBWkFqMXh5SVZXX1UtcXpxTHAwYmVIU3FZcHNfSlFOU0d4SE5NVFZHa3R4UWlrSkpvUUI3YzZjYlVNdGxsUGQ4ZnAzSWZndTVDNnhhalBzazdYY0k?oc=5",
+   "src": "인천자치신문",
+   "official": false,
+   "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
+   "firstSeen": "2026-10-31",
+   "isNew": true
   },
   {
    "kind": "loan",

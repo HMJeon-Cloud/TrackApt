@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.87">
+<link rel="stylesheet" href="style.css?v=9.88">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.87</span>
+    <span class="ver">v9.88</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.87"></script>
+<script src="cards.js?v=9.88"></script>
 <script>
 "use strict";
 
@@ -8292,7 +8292,7 @@ function rpRegionStats(g) {
   var codes = rpGroupCodes(g), o = { g: g, codes: codes, regN: codes.filter(rpIsReg).length, n: codes.length };
   try {
     /* 가격 — 구별 균등 지수(채널 MDD 와 같은 방식), 1년·2020~22 고점 대비 */
-    if (typeof chGroupSer === "function" && inMcOk()) { var ser = chGroupSer(g.nm, codes); if (ser) { var L = inLastIdx(ser); o.idx = ser; o.yoy = L >= 12 && ser[L - 12] ? (ser[L] / ser[L - 12] - 1) * 100 : null; var serW = chGroupSer(g.nm, codes, "vol"); if (serW) { var LW = inLastIdx(serW); o.yoyW = LW >= 12 && serW[LW - 12] ? (serW[LW] / serW[LW - 12] - 1) * 100 : null; } var t0 = ymNum(DB.sale.dates[0]), dd = typeof chDD === "function" ? chDD(g.id, (2020 * 12 + 1) - t0, (2022 * 12 + 12) - t0, ser) : null; if (dd) { o.fromPk = dd.now; o.pkYm = inYmOf(dd.pi); } } }
+    if (typeof chGroupSer === "function" && inMcOk()) { var ser = chGroupSer(g.nm, codes); if (ser) { var L = inLastIdx(ser.slice(0, Math.max(1, ser.length - inProv()))); o.idx = ser; o.yoyYm = typeof inYmOf === "function" ? inYmOf(L) : ""; o.yoy = L >= 12 && ser[L - 12] ? (ser[L] / ser[L - 12] - 1) * 100 : null; var serW = chGroupSer(g.nm, codes, "vol"); if (serW) { var LW = inLastIdx(serW.slice(0, Math.max(1, serW.length - inProv()))); o.yoyW = LW >= 12 && serW[LW - 12] ? (serW[LW] / serW[LW - 12] - 1) * 100 : null; } var t0 = ymNum(DB.sale.dates[0]), dd = typeof chDD === "function" ? chDD(g.id, (2020 * 12 + 1) - t0, (2022 * 12 + 12) - t0, ser) : null; if (dd) { o.fromPk = dd.now; o.pkYm = inYmOf(dd.pi); } } }
     /* 월 거래(확정 달) — 코드별 합, 12개월 평균 대비 */
     if (inMcOk()) { var V = null; codes.forEach(function (k) { var a = inSer("vol", k); if (!a.length) return; if (!V) V = a.map(function (v) { return v || 0; }); else a.forEach(function (v, i) { V[i] = (V[i] || 0) + (v || 0); }); }); if (V) { var LV = inLastIdx(V); o.volM = V[LV]; o.volAvg = inMean(V.slice(LV - 12, LV)); o.volYm = inYmOf(LV); } }
     /* 30일 거래·신고가·오른 지역 */
@@ -8309,7 +8309,7 @@ function rpRegionStats(g) {
           if (IXs && IXs[c[2]] && typeof inFresh === "function" && inFresh(IXs[c[2]], 4)) { var il = inLast(IXs[c[2]]), ip = inPrev(IXs[c[2]], 1); if (il && ip) r.ix = (il[1] / ip[1] - 1) * 100; } } catch (e) { r.err = e.message; }
         return r; }).filter(function (r) { return r.n || r.ix != null; }); }
     /* 전세가율 — 코드별 마지막 확정 달 평균 */
-    if (inMcOk()) { var J = []; codes.forEach(function (k) { var a = inSer("jr", k), L2 = inLastIdx(a); if (L2 >= 0 && a[L2]) J.push(a[L2]); }); o.jr = J.length ? inMean(J) : null; o.jrN = J.length; }
+    if (inMcOk()) { var J = []; codes.forEach(function (k) { var a = inSer("jr", k), L2 = inLastIdx(a); if (L2 >= 0 && a[L2] && a[L2] > 20 && a[L2] <= 100) J.push(a[L2]); }); o.jr = J.length ? inMean(J) : null; o.jrN = J.length; }   /* v9.88 100% 넘는 전세가율(점검 A7 · 표본 적은 군)은 뺌 */
     /* 청약 — 주소로 묶기 */
     if (typeof sbChAll === "function" && typeof tprSubs === "function" && tprSubs()) { var nmRe = new RegExp(codes.map(function (k) { var nm = typeof tprNm === "function" ? tprNm(k) : k; return nm.replace(/^(서울|경기|인천|부산|대구|광주|대전|울산|세종|전광)\s+/, "").split(" ").pop(); }).filter(Boolean).map(function (x) { return x.replace(/[.*+?^${}()|[\]\\]/g, ""); }).join("|")); var t = sbToday(), S = sbChAll().filter(function (it) { return nmRe.test(it.addr || "") && (g.id !== "seoul" || /서울/.test(it.addr || "")) && (g.id !== "metro" || !/경기|인천|서울/.test(it.addr || "")); }); o.subsOpen = S.filter(function (it) { return Math.max(it.e || 0, it.r2 || 0) >= t; }).length; var RS = (typeof tprSubsRes === "function" ? tprSubsRes() : []).filter(function (r) { return nmRe.test(r.addr || "") || (r.area && g.id === "metro" && /부산|대구|대전|울산|세종|광주/.test(r.area)); }); o.subsN = RS.length; var rates = RS.filter(function (r) { return r.rate != null; }).map(function (r) { return r.rate; }).sort(function (a, b) { return a - b; }); o.subsMed = rates.length ? rates[Math.floor(rates.length / 2)] : null; o.subsShort = RS.filter(function (r) { return /미달/.test(r.status || ""); }).length; }
     /* 미분양 — 시군구 자료는 수집하지 않으므로 권역 합계만 */
@@ -8358,7 +8358,7 @@ function rpRegionsHtml() {
   return '<div class="rp2-rg">' + all.map(function (o) { var g = o.g, vr = o.volM && o.volAvg ? o.volM / o.volAvg : null, R = rpRegionRead(o);
     var spk = o.idx && typeof fSpark === "function" ? (function () { var L = inLastIdx(o.idx); return L >= 13 ? fSpark(o.idx.slice(L - 12, L + 1), 84, 24) : ""; })() : "";
     return '<div class="rp2-rgi"><div class="hd"><b>' + rpE(g.nm) + '</b>' + (spk ? '<span class="spk" title="최근 12개월 균등 지수">' + spk + '</span>' : '') + '<i class="fid ' + (g.reg === "all" || g.reg === "most" ? "on" : "") + '">' + (g.reg === "all" ? "전역 규제" : g.reg === "most" ? "대부분 규제(" + o.regN + "/" + o.n + ")" : g.reg === "mixed" ? "규제 " + o.regN + "/" + o.n + " 혼재" : "규제 밖") + "</i><small>" + rpE(g.sub) + "</small></div>" +
-      '<div class="kp">' + c("1년 지수", o.yoy != null ? inSgn(o.yoy) : "–", o.yoyW != null ? "거래 가중 " + inPct(o.yoyW) : "") + c("고점 대비", o.fromPk != null ? inSgn(o.fromPk) : "–", o.pkYm || "") + c("30일 거래", o.d30 != null ? fmt(o.d30) + "건" : "–", o.d30chg != null ? inSgn(o.d30chg, 0) + " 한 달 전" : "") + c("월 거래", o.volM != null ? fmt(o.volM) + "건" : "–", vr != null ? "12개월 평균의 " + vr.toFixed(2) + "배" : "") + c("신고가 비율", o.hiRate != null ? o.hiRate.toFixed(1) + "%" : "–", o.hiN != null ? o.hiN + "건" : "") + c("오른 지역", o.mvN ? o.upN + "/" + o.mvN : "–", "거래 10건↑") + c("전세가율", o.jr != null ? o.jr.toFixed(0) + "%" : "–", o.jrN ? o.jrN + "곳 평균" : "") + c("청약 경쟁률", o.subsMed != null ? o.subsMed.toFixed(1) + ":1" : "–", (o.subsN ? o.subsN + "단지 · 미달 " + o.subsShort : "") + (o.subsOpen ? " · 접수 중 " + o.subsOpen : "")) + "</div>" +
+      '<div class="kp">' + c("1년 지수", o.yoy != null ? inSgn(o.yoy) : "–", (o.yoyYm ? o.yoyYm + " 확정 · " : "") + (o.yoyW != null ? "거래 가중 " + inPct(o.yoyW) : "")) + c("고점 대비", o.fromPk != null ? inSgn(o.fromPk) : "–", o.pkYm || "") + c("30일 거래", o.d30 != null ? fmt(o.d30) + "건" : "–", o.d30chg != null ? inSgn(o.d30chg, 0) + " 한 달 전" : "") + c("월 거래", o.volM != null ? fmt(o.volM) + "건" : "–", vr != null ? "12개월 평균의 " + vr.toFixed(2) + "배" : "") + c("신고가 비율", o.hiRate != null ? o.hiRate.toFixed(1) + "%" : "–", o.hiN != null ? o.hiN + "건" : "") + c("오른 지역", o.mvN ? o.upN + "/" + o.mvN : "–", "거래 10건↑") + c("전세가율", o.jr != null ? o.jr.toFixed(0) + "%" : "–", o.jrN ? "구·시 " + o.jrN + "곳 평균(전 면적)" : "") + c("청약 경쟁률", o.subsMed != null ? o.subsMed.toFixed(1) + ":1" : "–", (o.subsN ? o.subsN + "단지 · 미달 " + o.subsShort : "") + (o.subsOpen ? " · 접수 중 " + o.subsOpen : "")) + "</div>" +
       (o.cities && o.cities.length ? '<div class="in-tblw"><table class="in-tbl sm rp2-city"><tr><th>도시</th><th>1년 지수</th><th>30일 거래</th><th>월 거래(확정)</th><th>공식지수 전월</th></tr>' + o.cities.map(function (r) { return "<tr><td>" + rpE(r.nm) + "</td><td>" + (r.yoy != null ? inSgn(r.yoy) : "–") + "</td><td>" + (r.d30 != null ? fmt(r.d30) + "건" + (r.d30chg != null ? " <small>" + inSgn(r.d30chg, 0) + "</small>" : "") : "–") + "</td><td>" + (r.volM != null ? fmt(r.volM) + "건" + (r.vr != null ? " <small>" + r.vr.toFixed(2) + "배</small>" : "") : "–") + "</td><td>" + (r.ix != null ? inSgn(r.ix, 2) : "–") + "</td></tr>"; }).join("") + '</table></div>' : "") +
       '<ul class="rd">' + R.map(function (t) { return "<li>" + rpE(t) + "</li>"; }).join("") + '</ul><p class="why"><b>이 지역의 논리</b> ' + rpE(g.why) + '</p><p class="ol">' + rpE(rpRegionOutlook(o)) + "</p></div>"; }).join("") + "</div>" +
     '<p class="hint">지수 = 권역 시군구 균등 지수(채널 MDD 방식) · 작은 글씨 "거래 가중"은 최근 12개월 거래량 가중 — 둘이 2%p 이상 다르면 읽기 줄에 적는다 · 30일 거래는 계약일 기준 최근 30일(한 달 전 같은 시점 대비) · 월 거래는 마지막 확정 달 · 청약은 주소로 묶음 · 시군구 미분양은 수집하지 않아 권역 합계만 — 평택·대구 같은 곳은 외부 조사 "공급" 항목으로 채운다.</p>';
@@ -10244,6 +10244,145 @@ function inAiOpen() { var c = document.querySelector("#tab-insight .in-ai"); if 
 (function () { try { var o = JSON.parse(localStorage.getItem(IN_AI_LS) || "null"); if (o && o.day === chKstDate().key && o.ai && typeof IN !== "undefined" && (!IN.ai || !IN.ai.at)) { o.ai.at = new Date(o.ai.at); IN.ai = o.ai; } } catch (e) {} })();
 /* 오늘 작업의 [인사이트(선택)]도 같은 방식 — 인사이트 화면으로 가서 프롬프트를 만든다 */
 if (typeof hubJudge === "function") hubJudge = function (q, cb) { showTab("insight"); setTimeout(function () { inPromptMake(q || "어떤 상황이야?"); }, 1200); cb && cb(false); };
+/* ══ v9.88 ① 진행 순서대로 보기(번호 단계 · 붙는 위 막대 · 섹션 바로가기 · 이전/다음) ② 외부 조사·AI 답이 '무엇을 더했는지' 비교 ③ 스레드 주제별 묶음 ══ */
+
+/* ── ① 진행 순서 ── */
+var STEP_NO = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧"];
+var STEP_DESC = { today: "준비 · 브리핑", brief: "숫자 확인", insight: "시장 판단", report: "분석 보고서", tpl: "카드 · 글", reel: "릴스 한 장", ops: "데이터 관리" };
+function stepIdx(id) { for (var i = 0; i < STUDIO.length; i++) if (STUDIO[i][0] === id) return i; return -1; }
+function stepNavHtml(id) {
+  var i = stepIdx(id); if (i < 0) return ""; var P = STUDIO[i - 1], N = STUDIO[i + 1];
+  var b = function (s, k, dir) { var j = stepIdx(s[0]); return '<button type="button" class="stu-nx ' + dir + '" data-stunext="' + s[0] + '"><small>' + (dir === "prev" ? "← 이전 단계" : "다음 단계 →") + "</small><b><i class=\"sn\">" + (j + 1) + "</i> " + s[1] + "</b><em>" + (STEP_DESC[s[0]] || "") + "</em></button>"; };
+  return '<nav class="stu-next">' + (P ? b(P, i - 1, "prev") : "<span></span>") + (N ? b(N, i + 1, "next") : "<span></span>") + "</nav>";
+}
+function tocBarFill(id) {
+  var bar = document.getElementById("stu-tocbar-" + id), sec = document.getElementById("tab-" + id); if (!bar || !sec) return;
+  var sel = id === "report" ? ".rp2-cover, .card.rp2-sec, .card.cmp-card" : id === "insight" ? "#in-body > .card, #tab-insight > .card.cmp-card" : id === "tpl" ? "#tpx-ch, #tpx-s1, #tpx-s2, #tpx-s3, #tpx-s4" : id === "brief" ? "#tab-brief > .card" : "";
+  if (!sel) { bar.hidden = true; return; }
+  var L = Array.prototype.slice.call(sec.querySelectorAll(sel)).filter(function (c) { return c.offsetParent !== null && !c.closest(".shot-host"); });
+  var lab = function (c) { if (c.classList.contains("rp2-cover")) return "요약"; var h = c.querySelector(":scope > .in-q, :scope > h3, :scope > h2, :scope > summary b, :scope > .tpx-hd h2, :scope > .cmp-h b"); if (!h) return ""; var x = h.cloneNode(true); Array.prototype.forEach.call(x.querySelectorAll("small,i:not(.keep),button"), function (k) { k.remove(); }); return x.textContent.replace(/\s+/g, " ").replace(/^\d+\.\s*/, "").replace(/\s*—.*$/, "").replace(/[?？]$/, "").trim().replace(/^(.{13}).+$/, "$1…"); };
+  var items = L.map(function (c, k) { if (!c.id) c.id = "sx-" + id + "-" + k; return { id: c.id, t: lab(c) }; }).filter(function (x) { return x.t; });
+  if (items.length < 3) { bar.hidden = true; return; }
+  bar.hidden = false; bar.innerHTML = items.map(function (x, k) { return '<button type="button" data-tocgo="' + x.id + '"><i>' + (k + 1) + "</i>" + escHtml(x.t) + "</button>"; }).join("");
+}
+function tocActive(id) {
+  var bar = document.getElementById("stu-tocbar-" + id); if (!bar || bar.hidden) return; var top = (document.querySelector("#tab-" + id + " .stu-bar") || { offsetHeight: 0 }).offsetHeight + bar.offsetHeight + 20, cur = null;
+  Array.prototype.forEach.call(bar.querySelectorAll("[data-tocgo]"), function (b) { var el = document.getElementById(b.dataset.tocgo); if (el && el.getBoundingClientRect().top - top <= 0) cur = b; });
+  Array.prototype.forEach.call(bar.querySelectorAll("[data-tocgo]"), function (b) { b.classList.toggle("on", b === cur); });
+  if (cur && bar.scrollWidth > bar.clientWidth) { var l = cur.offsetLeft - bar.clientWidth / 2 + cur.offsetWidth / 2; if (Math.abs(bar.scrollLeft - l) > 40) bar.scrollLeft = l; }
+}
+window.addEventListener("scroll", function () { var t = (location.hash || "").slice(1); if (/^(report|insight|tpl|brief)$/.test(t)) { clearTimeout(window.__tocT); window.__tocT = setTimeout(function () { tocActive(t); }, 80); } }, { passive: true });
+document.addEventListener("click", function (ev) {
+  var t = ev.target; if (!t || !t.closest) return;
+  var nx = t.closest("[data-stunext]"); if (nx) { showTab(nx.dataset.stunext); window.scrollTo(0, 0); return; }
+  var g = t.closest("[data-tocgo]"); if (g) { var el = document.getElementById(g.dataset.tocgo); if (!el) return; if (el.classList.contains("ux-folded")) { var fb = el.querySelector(":scope > .ux-fold"); if (fb) fb.click(); } if (el.tagName === "DETAILS") el.open = true; var off = 0, sec = el.closest("section, [id^='tab-']"); if (sec) { var sb = sec.querySelector(".stu-bar"), tb = sec.querySelector(".stu-tocbar:not([hidden])"), ts = document.getElementById("tpx-steps"); off = (sb ? sb.offsetHeight : 0) + (tb ? tb.offsetHeight : 0) + (ts && sec.contains(ts) ? ts.offsetHeight : 0) + 10; } window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - off, behavior: "smooth" }); return; }
+});
+(function () {
+  if (typeof studioBar !== "function") return; var o = studioBar;
+  studioBar = function (id) {
+    o(id); var sec = document.getElementById("tab-" + id), bar = sec && sec.querySelector(".stu-bar"); if (!bar || stepIdx(id) < 0) return;
+    bar.classList.add("stepper");
+    Array.prototype.forEach.call(bar.querySelectorAll("[data-stu]"), function (b) { if (b.querySelector("i.sn")) return; var j = stepIdx(b.dataset.stu); if (j >= 0) b.insertAdjacentHTML("afterbegin", '<i class="sn">' + (j + 1) + "</i>"); });
+    var on = bar.querySelector("button.on"); if (on && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = on.offsetLeft - 12;
+    /* 섹션 바로가기(긴 화면) */
+    if (/^(report|insight|tpl|brief)$/.test(id)) { var tb = document.getElementById("stu-tocbar-" + id); if (!tb) { tb = document.createElement("nav"); tb.className = "stu-tocbar"; tb.id = "stu-tocbar-" + id; tb.hidden = true; var guide = sec.querySelector(".stu-guide"); (guide || bar).insertAdjacentElement("afterend", tb); } [400, 1500, 3500, 7000].forEach(function (ms) { setTimeout(function () { tocBarFill(id); tocActive(id); }, ms); }); }
+    /* 이전/다음 단계 */
+    var old = sec.querySelector(":scope > .stu-next"); if (old) old.remove(); sec.insertAdjacentHTML("beforeend", stepNavHtml(id));
+    document.documentElement.style.setProperty("--stuH", bar.offsetHeight + "px");
+  };
+})();
+
+/* ── ② 무엇이 더해졌나 — 외부 조사(분석 브리핑) ── */
+function cmpCut(s, n) { s = String(s || "").replace(/\s+/g, " ").trim(); n = n || 90; if (s.length <= n) return s; var c = s.slice(0, n), k = Math.max(c.lastIndexOf(". "), c.lastIndexOf(" — "), c.lastIndexOf(", ")); return (k > n * 0.5 ? c.slice(0, k + 1) : c.replace(/\s+\S*$/, "")) + "…"; }
+function cmpDir(s) { s = String(s || ""); return /상승|오름|강세|확대|늘/.test(s) ? "up" : /하락|내림|약세|축소|줄|위축/.test(s) ? "down" : "flat"; }
+var CMP_DIRNM = { up: "상승 압력", down: "하락 압력", flat: "중립" };
+function rpCmpHtml() {
+  var X = (typeof RP2 !== "undefined" && RP2.ext) || [], E = rpE;
+  if (!X.length) return '<div class="card cmp-card cmp-empty"><div class="cmp-h"><b>외부 조사로 더해진 것</b><span class="cmp-tag ext">외부 조사 0건</span></div><p class="hint">아직 외부 조사가 없습니다. 아래 7장에서 주제(정책·금융·공급…)를 골라 [프롬프트 복사] → AI 답 붙여넣기 → [저장]하면, 이 자리에 <b>앱 계산과 외부 조사가 같은지 · 다른지</b>가 표로 나옵니다.</p></div>';
+  var S = IN.S || inSignals(), T = IN.T || inTemp(S), AX = rpAxes(S), sc = IN.sc || inScenarios(S, T), an = IN.an || inAnalogs(), OL = rpOutlook(S, T, an, sc), sit = inSituation(S, T);
+  var newest = X.slice().sort(function (a, b) { return String(b.data.asOf).localeCompare(String(a.data.asOf)); });
+  var topics = RP_TOPICS.map(function (t) { var x = newest.filter(function (e) { return e.data.topic === t[0]; })[0]; return '<span class="cmp-chip' + (x ? " on" : "") + '">' + E(t[1]) + (x ? " <small>" + E(String(x.data.asOf).slice(5).replace("-", ".")) + " · " + ((x.data.j.findings || []).length) + "항목</small>" : " <small>없음</small>") + "</span>"; }).join("");
+  /* 축 비교 */
+  var D = {}; newest.forEach(function (x) { (x.data.j.drivers || []).forEach(function (d) { if (d && d.axis && !D[d.axis]) D[d.axis] = { d: d, t: x.data.topicNm }; }); });
+  var axN = {}; AX.forEach(function (a) { axN[a.nm] = a; }); var names = AX.map(function (a) { return a.nm; }); Object.keys(D).forEach(function (k) { if (names.indexOf(k) < 0) names.push(k); });
+  var same = 0, diff = 0, rows = names.map(function (nm) { var a = axN[nm], d = D[nm], ad = a && a.sc != null ? (a.sc > 0.5 ? "up" : a.sc < -0.5 ? "down" : "flat") : null, ed = d ? cmpDir(d.d.direction) : null, st = ad && ed ? (ad === ed ? "same" : "diff") : d ? "new" : "app"; if (st === "same") same++; if (st === "diff") diff++;
+    return '<tr class="' + st + '"><td><b>' + E(nm) + '</b></td><td>' + (ad ? '<span class="dir ' + ad + '">' + CMP_DIRNM[ad] + "</span>" + (a.sc != null ? " <small>" + (a.sc > 0 ? "+" : "") + a.sc.toFixed(1) + "</small>" : "") : '<span class="hint">앱 자료 없음</span>') + '</td><td>' + (ed ? '<span class="dir ' + ed + '">' + CMP_DIRNM[ed] + "</span><small class=\"why\">" + E(cmpCut(d.d.why, 70)) + "</small>" : '<span class="hint">조사 없음</span>') + '</td><td class="st">' + ({ same: "✓ 같음", diff: "≠ 다름", "new": "＋ 외부만", app: "앱만" })[st] + "</td></tr>"; }).join("");
+  /* 전망 비교 */
+  var EO = {}; newest.forEach(function (x) { (x.data.j.outlook || []).forEach(function (o) { var h = String(o.horizon || "").replace(/\s/g, ""); if (h && !EO[h]) EO[h] = { o: o, t: x.data.topicNm }; }); });
+  var orows = OL.map(function (r) { var e = EO[String(r.h).replace(/\s/g, "")]; return "<tr><td><b>" + E(r.h) + "</b></td><td>" + E(cmpCut(r.base, 70)) + (r.range ? ' <small>범위 ' + E(r.range) + "</small>" : "") + "</td><td>" + (e ? E(cmpCut(e.o.base, 90)) : '<span class="hint">조사 없음</span>') + "</td></tr>"; }).join("");
+  var dg = newest.filter(function (x) { return x.data.j.diagnosis; })[0];
+  var nf = 0, fq = []; newest.forEach(function (x) { (x.data.j.findings || []).forEach(function (f) { nf++; if (fq.length < 6 && f.q) fq.push(f.q.replace(/^\d+\.\s*/, "")); }); });
+  return '<div class="card cmp-card"><div class="cmp-h"><b>외부 조사로 더해진 것</b><span class="cmp-tag ext">외부 조사 ' + X.length + "건 · 사실 " + nf + "개</span>" + (rows ? '<span class="cmp-tag ' + (diff ? "diff" : "same") + '">축 판단 같음 ' + same + " · 다름 " + diff + "</span>" : "") + '</div><div class="cmp-chips">' + topics + "</div>" +
+    (dg ? '<div class="cmp-two"><div><small>앱 계산(규칙)</small><p>' + E(cmpCut(sit, 130)) + '</p></div><div class="ext"><small>외부 조사 진단 · ' + E(dg.data.topicNm + " " + dg.data.asOf) + "</small><p>" + E(cmpCut(dg.data.j.diagnosis, 160)) + "</p></div></div>" : "") +
+    (rows ? '<h4>축별 판단 — 앱 데이터 vs 외부 조사</h4><div class="in-tblw"><table class="in-tbl sm cmp-tbl"><tr><th>축</th><th>앱 데이터</th><th>외부 조사</th><th></th></tr>' + rows + "</table></div>" : "") +
+    (orows && Object.keys(EO).length ? '<h4>전망 — 과거 유사 국면(앱) vs 외부 조사</h4><div class="in-tblw"><table class="in-tbl sm cmp-tbl o"><tr><th>기간</th><th>앱</th><th>외부 조사</th></tr>' + orows + "</table></div>" : "") +
+    (fq.length ? '<h4>앱이 몰랐던 사실 <small>' + nf + '개 · 전부는 7장</small></h4><div class="cmp-facts">' + fq.map(function (q) { return "<span>" + E(cmpCut(q, 30)) + "</span>"; }).join("") + "</div>" : "") +
+    '<p class="hint">본문에서 <span class="cmp-tag ext sm">외부 조사</span> 표시가 붙은 칸이 외부 조사로 더해진 내용입니다. 나머지는 앱이 공공데이터로 계산한 것.</p></div>';
+}
+function rpExtMark() {
+  var sec = document.getElementById("tab-report"); if (!sec) return;
+  Array.prototype.forEach.call(sec.querySelectorAll(".ax-x"), function (x) { x.classList.add("ext-mark"); });
+  Array.prototype.forEach.call(sec.querySelectorAll(".card.rp2-sec h4"), function (h) { if (!/^외부 조사/.test(h.textContent.trim()) || h.closest(".ext-mark")) return; var w = document.createElement("div"); w.className = "ext-mark"; h.parentNode.insertBefore(w, h); w.appendChild(h); var n = w.nextElementSibling; if (n && /^(UL|OL|DIV)$/.test(n.tagName) && !/^H/.test(n.tagName)) w.appendChild(n); });
+}
+(function () {
+  if (typeof renderReport !== "function") return; var o = renderReport;
+  renderReport = function () { o.apply(this, arguments); setTimeout(function () { var sec = document.getElementById("tab-report"), cv = sec && sec.querySelector(".rp2-cover"); if (!cv) return; var old = sec.querySelector(".cmp-card"); if (old) old.remove(); try { cv.insertAdjacentHTML("afterend", rpCmpHtml()); } catch (e) { if (window.console) console.error(e); } rpExtMark(); tocBarFill("report"); }, 60); };
+  if (typeof rpPaint === "function") { var op = rpPaint; rpPaint = function () { op.apply(this, arguments); setTimeout(function () { var sec = document.getElementById("tab-report"), cv = sec && sec.querySelector(".rp2-cover"); if (cv && !sec.querySelector(".cmp-card")) { try { cv.insertAdjacentHTML("afterend", rpCmpHtml()); } catch (e) {} } rpExtMark(); }, 60); }; }
+})();
+
+/* ── ② 무엇이 더해졌나 — 인사이트 AI 답 vs 앱 규칙 판단 ── */
+function inCmpHtml() {
+  var A = IN.ai; if (!A || !A.r) return ""; var r = A.r, E = inE, S = IN.S || inSignals(), T = IN.T || inTemp(S), sit = inSituation(S, T), sc = IN.sc || inScenarios(S, T), st = IN.st || inStances(S, T), c = typeof inCounter === "function" ? inCounter(S, T) : null;
+  var aiSc = (r.scenarios || []).filter(function (s) { return /기준/.test(s.name || ""); })[0] || (r.scenarios || [])[0];
+  var appWho = st.map(function (s) { return s.who; }), aiWho = (r.stances || []).map(function (s) { return s.who; }), newWho = aiWho.filter(function (w) { return !appWho.some(function (a) { return String(a).slice(0, 4) === String(w).slice(0, 4); }); });
+  var W = (A.facts || []).filter(function (f) { return /^W\d+/.test(f.id); });
+  var row = function (k, a, b) { return "<tr><td><b>" + k + "</b></td><td>" + a + '</td><td class="ai">' + b + "</td></tr>"; };
+  return '<div class="cmp-card in-cmp"><div class="cmp-h"><b>앱 판단 vs 저장한 AI 답 — 무엇이 달라졌나</b><span class="cmp-tag ai">AI 답 ' + E(A.at.toLocaleTimeString ? A.at.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }) : "") + "</span>" + (W.length ? '<span class="cmp-tag ext">웹 사실 ' + W.length + "개</span>" : "") + "</div>" +
+    '<div class="in-tblw"><table class="in-tbl sm cmp-tbl"><tr><th></th><th>앱(공공데이터 · 규칙)</th><th>AI 답(앱 재료 + 조사)</th></tr>' +
+    row("결론", "<b>" + E(T.nm) + "</b> — " + E(cmpCut(sit, 90)), "<b>" + E(r.headline || "") + "</b>" + (r.confidence && r.confidence.level ? ' <span class="in-cf c-' + E(r.confidence.level) + '">확신 ' + E(r.confidence.level) + "</span>" : "")) +
+    row("기준 시나리오", E((sc[0] || {}).name || "–") + (sc[0] && sc[0].desc ? " — " + E(cmpCut(sc[0].desc, 60)) : ""), aiSc ? E(aiSc.name || "") + " — " + E(cmpCut(aiSc.then || "", 70)) : '<span class="hint">없음</span>') +
+    row("가장 강한 반론", c && c.ctx ? E(cmpCut(c.ctx.title, 70)) : c && c.sig ? E(c.sig.nm + " " + c.sig.val) : "–", r.counter && r.counter.view ? E(cmpCut(r.counter.view, 80)) : '<span class="hint">없음</span>') +
+    row("입장별", appWho.length + "가지", aiWho.length + "가지" + (newWho.length ? ' <small class="new">＋ ' + newWho.map(E).join(" · ") + "</small>" : "")) +
+    row("지역 · 일정", "권역 9곳 숫자 · 이번 주 일정", (r.regions || []).length + "개 지역 · 일정 " + (r.calendar || []).length + "개") +
+    "</table></div>" + (W.length ? '<p class="hint"><span class="wid">W</span> 표시는 AI가 웹에서 가져온 사실(출처·날짜 포함), <span class="fid">F</span> 표시는 앱 재료입니다. 재료에도 웹 사실에도 없는 숫자는 빨갛게.</p>' : '<p class="hint"><span class="fid">F</span> 표시는 앱 재료. 재료에 없는 숫자는 빨갛게 표시됩니다.</p>') + "</div>";
+}
+(function () {
+  if (typeof inAiHtml !== "function") return; var o = inAiHtml;
+  inAiHtml = function () { var h = o.apply(this, arguments); if (!IN.ai) return h; h = h.replace('<div class="in-aiout">', '<div class="in-aiout">' + inCmpHtml()); return h.replace(/<i class="fid">(W\d+)<\/i>/g, '<i class="wid">$1</i>'); };
+})();
+/* AI 답의 W번호도 칩으로(원래는 F번호만) — 본문 끝 (W1) 표시를 칩으로 바꾼다 */
+(function () { if (typeof inPaint !== "function") return; var o = inPaint; inPaint = function () { o.apply(this, arguments); var out = document.querySelector("#tab-insight .in-aiout"); if (!out) return; Array.prototype.forEach.call(out.querySelectorAll("p, li, small"), function (el) { if (el.closest(".cmp-card")) return; var h0 = el.innerHTML, h1 = h0.replace(/\(\s*W\s*(?:<[^>]*>)*\s*(\d+)\s*(?:<\/[^>]*>)*\s*\)/g, function (_, n) { return '<i class="wid">W' + n + "</i>"; }); if (h1 !== h0) el.innerHTML = h1; }); }; })();
+
+/* ── ③ 스레드 주제별 묶음 — 정기 코너 카드를 주제(카테고리)로 묶어 '한 묶음 = 본문 + 답글'을 한 번에 복사 ── */
+var THR_CATS = [["금리·대출", /금리|대출|주담대|예금|적금|DSR|LTV|디딤돌|보금자리|정책대출/], ["정책·규제", /정책|대책|규제|토허|허가구역|세금|세제|양도|종부|취득세|법/], ["청약·분양", /청약|분양|공고|당첨|경쟁률|가점|무순위/], ["교통·개발", /GTX|노선|교통|철도|개통|역세권|개발/], ["공급·입주", /공급|입주|미분양|착공|인허가|물량/], ["전세·월세", /전세|월세|전월세|임대/], ["시세·거래", /거래|신고가|실거래|시세|대장|값|지수|상승|하락|매매|최고가|평당|국평/], ["상식·용어", /용어|뜻|상식|단어/]];
+function thrCatOf(o) { var s = thrTxt(o.tag || "") + " " + thrTxt(o.q || ""); for (var i = 0; i < THR_CATS.length; i++) if (THR_CATS[i][1].test(s)) return THR_CATS[i][0]; return "그 밖"; }
+function thrSeries(tab, cards) {
+  var C = (cards || []).filter(function (o) { return o && !/chc-verify|확인 전/.test(String(o.a || "") + String(o.body || "")); }); if (!C.length) return [];
+  var k = chKstDate(), date = k.m + "." + k.d, by = {}, order = [];
+  C.forEach(function (o) { var c = thrCatOf(o); if (!by[c]) { by[c] = []; order.push(c); } by[c].push(o); });
+  return order.map(function (cat) {
+    var L = by[cat], first = (typeof thrPolite === "function" && thrPolite(L[0].q)) || thrTxt(L[0].q).replace(/\s*[?？]?$/, "?");
+    var lines = L.map(function (o) { var q = thrTxt(o.q).replace(/[?？]$/, ""), a = thrTxt(o.a); return "· " + q + (a ? " — " + a : ""); });
+    var basis = L.map(function (o) { return thrTxt(o.date || ""); }).filter(Boolean)[0] || "", src = String(L[0].src || "").replace(/^출처:\s*/, "").replace(/\s*·\s*투자 권유 아님/, "");
+    var posts = [], head = "[" + cat + "] " + date + "\n" + first + "\n", cur = head;
+    lines.forEach(function (ln) { ln = typeof thrCut === "function" ? thrCut(ln, 140) : ln.slice(0, 140); if ((cur + "\n" + ln).length > 480) { posts.push(cur.trim()); cur = ln; } else cur += "\n" + ln; });
+    posts.push(cur.trim());
+    posts.push(["기준 " + (basis || date) + (src ? " · " + thrCut(src, 80) : ""), "정보 제공 목적이며 투자 권유가 아닙니다.", "카드 전체는 인스타 @uphill.lab · 궁금한 동네는 댓글로"].join("\n"));
+    var text = posts.map(function (p, i) { return i ? "―――――― 답글 " + i + "\n" + p : p; }).join("\n\n");
+    return { cat: cat, n: L.length, posts: posts.length, text: text, main: posts[0].length };
+  });
+}
+function thrSeriesPaint() {
+  var anchor = document.getElementById("ch-text2"); if (!anchor) return; var cap = anchor.closest(".cap2"); if (!cap) return;
+  var box = document.getElementById("ch-thrser"); if (!box) { box = document.createElement("details"); box.id = "ch-thrser"; box.className = "thr-ser"; cap.insertAdjacentElement("afterend", box); }
+  var cards = []; try { cards = rcChannelCards(CH.tab); } catch (e) {}
+  var G = thrSeries(CH.tab, cards); THR_SER = G;
+  box.innerHTML = '<summary><b>스레드 연재 · 주제별 묶음</b><small class="hint">카드 ' + cards.length + "장 → 주제 " + G.length + "묶음 · 묶음마다 본문 + 답글을 한 번에 복사</small></summary>" + (G.length ? '<div class="thr-grid">' + G.map(function (g, i) { return '<div class="thr-g"><div class="thr-gh"><b>' + escHtml(g.cat) + '</b><small>카드 ' + g.n + "장 · 글 " + g.posts + "개(본문 " + g.main + '자)</small><button type="button" class="btn sm" data-thrcopy="' + i + '">이 묶음 복사</button></div><textarea rows="7" readonly>' + escHtml(g.text) + "</textarea></div>"; }).join("") + "</div>" : '<p class="hint">카드가 없습니다</p>') + '<p class="hint">붙여 넣은 뒤 "―― 답글 n" 줄에서 나눠 스레드의 이어 쓰기(답글)로 올리면 됩니다. 주제가 하나뿐인 코너는 묶음도 하나입니다.</p>';
+}
+var THR_SER = [];
+document.addEventListener("click", function (ev) { var b = ev.target.closest("[data-thrcopy]"); if (!b) return; var g = THR_SER[Number(b.dataset.thrcopy)]; if (g && typeof chCopy === "function") { chCopy(g.text); b.textContent = "복사됨 ✓"; setTimeout(function () { b.textContent = "이 묶음 복사"; }, 1800); } });
+(function () { if (typeof chShowText !== "function") return; var o = chShowText; chShowText = function () { o.apply(this, arguments); try { thrSeriesPaint(); } catch (e) { if (window.console) console.error(e); } }; })();
+
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {
   root.innerHTML =
@@ -10643,7 +10782,7 @@ function regionSale(k, area) {
   var pm = lastVal("salePm", k);
   return pm != null ? { v: pm * area, basis: "pm" } : null;
 }
-function regionJr(k) { return median(lastVals("jr", k, 3)); }
+function regionJr(k) { var v = median(lastVals("jr", k, 3)); return v != null && v > 100 ? null : v; }   /* v9.88 100% 넘는 전세가율은 표본 부족 — 쓰지 않음 */
 function regionJeonse(k, sale) {
   var jr = regionJr(k);
   return (sale != null && jr != null) ? sale * jr / 100 : null;

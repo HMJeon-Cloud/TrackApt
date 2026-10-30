@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.88">
+<link rel="stylesheet" href="style.css?v=9.89">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.88</span>
+    <span class="ver">v9.89</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.88"></script>
+<script src="cards.js?v=9.89"></script>
 <script>
 "use strict";
 
@@ -9737,7 +9737,7 @@ function hubPaint() {
   var list = '<div class="card hub-list"><h3>오늘 올릴 것 <small>' + (A ? "정기 코너 + 오늘 이슈·데이터 추천" : "정기 코너 + 데이터 추천 · 자료를 모으면 이슈 추천이 더해짐") + '</small></h3>' +
     (items.length ? '<div class="hub-rows">' + items.map(function (it) {
       var chips = (it.kind === "ch" ? (it.pre ? hubChip("ok", "글 준비") : hubChip("", "글")) : "") + (it.vf ? hubChip(it.vf.ok ? "ok" : "warn", it.vf.ok ? "숫자 검사 ✓" : "숫자 검사 " + it.vf.n) : hubChip("", "숫자 검사")) + (it.kind === "ch" ? (it.posted ? hubChip("ok", "올림 ✓") : hubChip("", "올림")) : "");
-      return '<div class="hub-row' + (it.posted ? " done" : "") + (it.isNew ? " new" : "") + '"><em class="t-' + (it.tag === "정기" ? "reg" : it.tag === "이슈" ? "iss" : it.kind === "subs" ? "sub" : "rec") + '">' + hubE(it.tag) + "</em><div class=\"hub-rn\"><b>" + (it.isNew ? '<i class="hub-new">NEW</i>' : "") + hubE(it.nm) + "</b>" + (it.why ? "<small>" + hubE(it.why) + "</small>" : "") + "</div><div class=\"hub-rc\">" + chips + '</div><button type="button" class="btn sm' + (it.posted ? " ghost" : "") + '" ' + (it.kind === "ch" ? 'data-hubch="' + hubE(it.id) + '"' : it.kind === "subs" ? 'data-hubsubs="' + hubE(it.id) + '"' : 'data-hubtd="' + it.id + '"') + ">" + (it.kind === "ch" ? "코너 열기" : it.kind === "subs" ? "청약 카드" : "카드 만들기") + "</button></div>";
+      return '<div class="hub-row' + (it.posted ? " done" : "") + (it.isNew ? " new" : "") + (it.kind === "new" ? " newdata" : "") + '"><em class="t-' + (it.tag === "정기" ? "reg" : it.tag === "이슈" ? "iss" : it.kind === "subs" ? "sub" : it.kind === "new" ? "newd" : "rec") + '">' + hubE(it.tag) + "</em><div class=\"hub-rn\"><b>" + (it.isNew ? '<i class="hub-new">NEW</i>' : "") + hubE(it.nm) + "</b>" + (it.why ? "<small>" + hubE(it.why) + "</small>" : "") + "</div><div class=\"hub-rc\">" + chips + '</div><button type="button" class="btn sm' + (it.posted ? " ghost" : "") + '" ' + (it.kind === "ch" ? 'data-hubch="' + hubE(it.id) + '"' : it.kind === "subs" ? 'data-hubsubs="' + hubE(it.id) + '"' : it.kind === "new" ? 'data-hubnew="' + hubE(it.r) + '"' : 'data-hubtd="' + it.id + '"') + ">" + (it.kind === "ch" ? "코너 열기" : it.kind === "subs" ? "청약 카드" : "카드 만들기") + "</button></div>";
     }).join("") + "</div>" : '<p class="hint">자료를 불러오는 중</p>') +
     '<p class="hint">열어서 카드 확인 → [숫자 검사] → 글 복사 → 인스타·스레드에 올리고 [올림 표시]. 코너·카드 모두 [카드 만들기] 한 화면에서.</p></div>';
   /* 4 접어 둔 것 */
@@ -10382,6 +10382,82 @@ function thrSeriesPaint() {
 var THR_SER = [];
 document.addEventListener("click", function (ev) { var b = ev.target.closest("[data-thrcopy]"); if (!b) return; var g = THR_SER[Number(b.dataset.thrcopy)]; if (g && typeof chCopy === "function") { chCopy(g.text); b.textContent = "복사됨 ✓"; setTimeout(function () { b.textContent = "이 묶음 복사"; }, 1800); } });
 (function () { if (typeof chShowText !== "function") return; var o = chShowText; chShowText = function () { o.apply(this, arguments); try { thrSeriesPaint(); } catch (e) { if (window.console) console.error(e); } }; })();
+
+/* ══ v9.89 ① 오늘 작업 '새로 들어온 자료'(청약 공고 외: 새 대책 · 청약 당첨 발표·경쟁률 · 정책대출 기준 변경 · 금리 공시 갱신) ② 단지 고르기: 지역별 묶음 + 찾기 ③ 무순위(잔여세대) 카드 내용 채움 ══ */
+
+/* ── ① 새로 들어온 자료 → 오늘 올릴 것 맨 위(신규 청약 줄과 같은 자리) ── */
+var NEW_SEEN_LS = "trackapt_new_seen_v1";
+function newSeen() { try { return JSON.parse(localStorage.getItem(NEW_SEEN_LS) || "{}"); } catch (e) { return {}; } }
+function newMark(id) { try { var o = newSeen(); o[id] = Date.now(); localStorage.setItem(NEW_SEEN_LS, JSON.stringify(o)); } catch (e) {} }
+function ymdN(s) { var m = String(s || "").match(/(\d{4})\D?(\d{2})\D?(\d{2})/); return m ? Number(m[1] + m[2] + m[3]) : 0; }
+function hubNewOther() {
+  var tk = chDayKey(chKstNow()), from = chDayKey(chShift(chKstNow(), -3)), out = [], seen = newSeen(), E = function (s) { return String(s || ""); };
+  /* 새 대책(policy.json) — 발표일 또는 시행일이 최근 3일 */
+  try { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, pm = (D.policy && D.policy.manual && D.policy.manual.items) || [];
+    pm.forEach(function (x) { var d1 = ymdN(x.date), d2 = ymdN(x.effective), hit = (d1 >= from && d1 <= tk) || (d2 >= from && d2 <= tk); if (!hit) return; var id = "pol:" + (x.date || "") + ":" + E(x.title).slice(0, 20); out.push({ kind: "new", id: id, r: "policy", nm: E(x.title), tag: d2 >= from && d2 <= tk && d2 !== d1 ? "대책 시행" : "새 대책", why: (d1 ? "발표 " + chMD(d1) : "") + (d2 && d2 !== d1 ? " · 시행 " + chMD(d2) : "") + (x.table && x.table.rows ? " · 변경 전후 표 " + x.table.rows.length + "줄" : ""), isNew: !seen[id] }); }); } catch (e) {}
+  /* 청약 결과 — 당첨자 발표가 최근 3일(경쟁률 카드) */
+  try { if (typeof tprSubs === "function" && typeof sbResults === "function") { var X = tprSubs(); if (X) { var R = sbResults(X).filter(function (r) { return r.win && r.win >= from && r.win <= tk && r.nm; }).sort(function (a, b) { return (b.rate || 0) - (a.rate || 0); }); if (R.length) { var id2 = "win:" + R.map(function (r) { return r.no; }).slice(0, 5).join(","); out.push({ kind: "new", id: id2, r: "subsRate", nm: "청약 당첨자 발표 " + R.length + "곳", tag: "청약 결과", why: R.slice(0, 2).map(function (r) { return E(r.nm).replace(/\(.*?\)/g, "").trim().slice(0, 14) + (r.rate != null && typeof sbRate === "function" ? " " + sbRate(r.rate) : ""); }).join(" · ") + (R.length > 2 ? " 외 " + (R.length - 2) : ""), isNew: !seen[id2] }); } } } } catch (e) {}
+  /* 정책대출 기준(loans.json asOf) · 금리 공시(rates asOf) 가 최근 3일에 바뀜 */
+  try { var la = ymdN(D.loans && D.loans.manual && D.loans.manual.asOf); if (la >= from && la <= tk) { var id3 = "loan:" + la; out.push({ kind: "new", id: id3, r: "loans", nm: "정책대출 기준 갱신", tag: "대출 기준", why: "디딤돌·보금자리 등 기준일 " + chMD(la), isNew: !seen[id3] }); } } catch (e) {}
+  try { var RT = typeof rtData === "function" ? rtData() : null; if (RT && RT.asOf && RT.prevAt) { var ra = ymdN(RT.asOf); if (ra >= from && ra <= tk && RT.asOf !== RT.prevAt) { var ch = 0; ["mortgage", "jeonse", "deposit", "saving"].forEach(function (k) { (RT[k] || []).forEach(function (x) { if (x.dLo || x.dHi) ch++; }); }); if (ch) { var id4 = "rate:" + ra; out.push({ kind: "new", id: id4, r: "rateChange", nm: "금리 공시 갱신 — 바뀐 곳 " + ch, tag: "금리 변동", why: chMD(ra) + " 수집 · 지난주(" + chMD(ymdN(RT.prevAt)) + ") 대비", isNew: !seen[id4] }); } } } } catch (e) {}
+  return out.slice(0, 6);
+}
+(function () { if (typeof hubItems !== "function") return; var o = hubItems; hubItems = function () { var out = o(); var N = []; try { N = hubNewOther(); } catch (e) {} N.reverse().forEach(function (it) { out.splice(0, 0, it); }); return out; }; })();
+document.addEventListener("click", function (ev) {
+  var b = ev.target && ev.target.closest && ev.target.closest("[data-hubnew]"); if (!b) return;
+  var row = b.closest(".hub-row"), id = row && row.getAttribute("data-newid"); var items = hubItems().filter(function (x) { return x.kind === "new" && x.r === b.dataset.hubnew; }); items.forEach(function (x) { newMark(x.id); });
+  TP.r = b.dataset.hubnew; if (TPR[TP.r] && TPR[TP.r].tpls) TP.id = TPR[TP.r].tpls[0]; TP.auto = true; showTab("tpl"); setTimeout(function () { if (typeof tprRebuild === "function") tprRebuild(); }, 60);
+});
+
+/* ── ② 단지 고르기 — 지역별 묶음 + 찾기 + 신규/무순위 표시 ── */
+function tpoItemOptions(q, cur) {
+  var L = (typeof sbItems === "function" ? sbItems() : []).filter(function (i) { return (i.kind === "apt" || i.kind === "rem") && i.nm; }), t = sbToday();
+  q = String(q || "").trim().toLowerCase();
+  if (q) L = L.filter(function (i) { return (String(i.nm) + " " + String(i.area || "") + " " + String(i.addr || "")).toLowerCase().indexOf(q) >= 0; });
+  var by = {}, order = []; L.forEach(function (i) { var a = String(i.area || "기타").replace(/특별시|광역시|특별자치시|특별자치도/g, ""); if (!by[a]) { by[a] = []; order.push(a); } by[a].push(i); });
+  var pri = ["서울", "경기", "인천"]; order.sort(function (a, b) { var pa = pri.indexOf(a), pb = pri.indexOf(b); if (pa < 0) pa = 9; if (pb < 0) pb = 9; return pa - pb || a.localeCompare(b); });
+  var lab = function (i) { var d = i.r1 || i.b || 0, st = d && d >= t ? "접수 " + chMD(d) : i.win && i.win >= t ? "발표 " + chMD(i.win) : d ? "마감" : ""; return (i.kind === "rem" ? "[무순위] " : "") + String(i.nm).replace(/\((공공분양|민간분양|본청약|사전청약)\)/g, "").trim() + (i.n ? " · " + fmt(i.n) + "세대" : "") + (st ? " · " + st : ""); };
+  return order.map(function (a) { return '<optgroup label="' + tpE(a) + " (" + by[a].length + ')">' + by[a].sort(function (x, y) { return (y.r1 || y.b || 0) - (x.r1 || x.b || 0); }).map(function (i) { return '<option value="' + tpE(i.no) + '"' + (String(i.no) === String(cur) ? " selected" : "") + ">" + tpE(lab(i)) + "</option>"; }).join("") + "</optgroup>"; }).join("") || '<option value="">찾는 단지가 없습니다</option>';
+}
+(function () {
+  if (typeof tprOptsHtml !== "function") return; var o = tprOptsHtml;
+  tprOptsHtml = function () {
+    var h = o();
+    return h.replace(/<label>단지<select data-tpo="item">[\s\S]*?<\/select><\/label>/, function () { return '<label class="tpo-item">단지<span class="tpo-wrap"><input type="search" data-tpoq="1" placeholder="찾기 — 단지명·지역" value="' + tpE(TP.itemQ || "") + '"><select data-tpo="item">' + tpoItemOptions(TP.itemQ, SB.card.item) + '</select></span><small class="hint">지역별로 묶음 · 접수 가까운 순 · [무순위] 표시</small></label>'; });
+  };
+  document.addEventListener("input", function (ev) { var q = ev.target && ev.target.closest && ev.target.closest("[data-tpoq]"); if (!q || ev.isComposing) return; TP.itemQ = q.value; var sel = q.parentNode.querySelector("select[data-tpo=item]"); if (sel) sel.innerHTML = tpoItemOptions(q.value, SB.card.item); });
+  document.addEventListener("compositionend", function (ev) { var q = ev.target && ev.target.closest && ev.target.closest("[data-tpoq]"); if (!q) return; TP.itemQ = q.value; var sel = q.parentNode.querySelector("select[data-tpo=item]"); if (sel) sel.innerHTML = tpoItemOptions(q.value, SB.card.item); });
+})();
+
+/* ── ③ 무순위(잔여세대) 카드 — 주택형·분양가가 없는 공고는 일정·공급·위치·조건으로 채운다 ── */
+(function () {
+  if (typeof TPL === "undefined" || !TPL.aptNotice) return; var T = TPL.aptNotice, oa = T.auto;
+  var md = function (n) { return n ? chMD(n) + "(" + chWd(n) + ")" : ""; };
+  T.auto = function () {
+    var d = oa.apply(this, arguments); if (!d) return d;
+    var it = typeof sbCardItem === "function" ? sbCardItem() : null; if (!it || it.kind !== "rem") return d;
+    var N = typeof sbNote === "function" ? sbNote(it) : {}, area = String(it.area || "").replace(/특별시|광역시|특별자치시|특별자치도/g, ""), T2 = String(it.addr || "").replace(/\[.*?\]/g, "").split(/\s+/), gu = T2[1] || "", dong = (T2.slice(2).filter(function (w) { return /(동|읍|면|가|리)$/.test(w) && !/^\d/.test(w); })[0]) || "";
+    var typ = /계약취소|취소/.test(String(it.type || "") + String(it.nm || "")) ? "계약취소주택" : /잔여/.test(String(it.type || "")) ? "잔여세대" : "무순위";
+    var rows = [["공급", it.n ? fmt(it.n) + "세대" : "공고 확인", typ], ["접수", md(it.b) + (it.e && it.e !== it.b ? " ~ " + md(it.e) : ""), it.b && it.b >= sbToday() ? "D-" + Math.max(0, Math.round((new Date(String(it.b).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3")) - new Date(String(sbToday()).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3"))) / 864e5)) : "마감"], ["당첨 발표", md(it.win), ""], ["계약", md(it.cB) + (it.cE && it.cE !== it.cB ? " ~ " + md(it.cE) : ""), ""], ["위치", [area, gu, dong].filter(Boolean).join(" "), ""]].filter(function (r) { return r[1]; });
+    var R = tprTypeRows(it); var hasTypes = R && R.length;
+    d.pills = [typ, area + (gu ? " " + gu : ""), it.hot ? "투기과열지구" : it.adj ? "조정대상지역" : ""].filter(Boolean).join(" | ");
+    if (!hasTypes) { d.cols = "구분 | 내용 | 비고"; d.rows = rows; d.compact = 1; d.kv = []; }
+    var B = [];
+    B.push("무순위·잔여세대 공고 — 신청 자격(지역·주택 수·청약통장 여부)은 공고마다 달라 입주자모집공고에서 확인");
+    if (it.n) B.push("공급 " + fmt(it.n) + "세대" + (it.n <= 5 ? " · 소수 물량이라 경쟁률이 높게 나올 수 있음" : ""));
+    if (N.firstRank) B.push("자격 " + N.firstRank); if (N.res) B.push("거주 " + N.res + (N.resPeriod ? " · " + N.resPeriod : ""));
+    if (N.down || N.mid) B.push("계약금 " + (N.down || "공고 확인") + (N.mid ? " · 중도금 " + N.mid : ""));
+    var loc = typeof sbLocRows === "function" ? sbLocRows(it) : []; if (loc.length) B.push("입지 " + loc.slice(0, 2).map(function (r) { return r[1]; }).join(" · "));
+    B.push("접수는 청약홈(applyhome.go.kr) · 당첨 뒤 계약 기간 안에 계약하지 않으면 재당첨 제한이 생길 수 있음 — 공고 확인");
+    d.bullets = B.slice(0, 5);
+    d.side = [["유형", typ], ["규제지역", it.hot ? "투기과열" : it.adj ? "조정대상" : "해당 없음"], ["청약통장", N.account || "공고 확인"], ["거주요건", N.res || "공고 확인"], ["재당첨제한", N.rewin || "공고 확인"], ["전매제한", N.resale || "공고 확인"]];
+    d.src = "모집공고일 " + (it.notice ? String(it.notice).replace(/(\d{4})(\d\d)(\d\d)/, "$1년 $2월 $3일") : "") + " · 청약홈 무순위";
+    d.sub = [area + (gu ? " " + gu : ""), it.n ? "공급 " + fmt(it.n) + "세대" : "", it.b ? "접수 " + chMD(it.b) + (it.e && it.e !== it.b ? "~" + chMD(it.e) : "") : ""].filter(Boolean).join(" · ");
+    d.foot = "무순위 공고는 주택형·분양가가 공고문에만 있는 경우가 많음 — 청약홈 공고 원문 기준 · 투자 권유 아님";
+    return d;
+  };
+  /* 비고 칸이 있는 3칸 표도 그리도록 — 기존 render 는 cols 수만큼 td 를 그리므로 그대로 동작 */
+})();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

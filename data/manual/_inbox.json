@@ -1,7 +1,7 @@
 {
  "v": 1,
- "builtAt": "2026-10-31T21:01:46.676Z",
- "asOf": 20261101,
+ "builtAt": "2026-11-01T21:43:28.862Z",
+ "asOf": 20261102,
  "items": [
   {
    "kind": "loan",
@@ -15,14 +15,14 @@
    "isNew": false
   },
   {
-   "kind": "policy",
+   "kind": "loan",
    "date": "2026-10-29",
-   "title": "[10.28 주택공급대책] “신규 택지 후보지역 환영…“당장 집값 안정엔 역부족”",
-   "url": "https://news.google.com/rss/articles/CBMidEFVX3lxTFBpMGNUZTRHUW9GazdMZGkyUFBNRG5PWHpsR1FZb1BHcjBna05fWjBxdElyMDRLV0h2Wm1YLXFYLUtaV2pqVGc0MXFOVzZySUxvbUJXQTZOQktKeGZPc25iNDc4bTk2dnA0WDBLY1NfSFk3YUNO?oc=5",
-   "src": "대한경제",
+   "title": "주담대 고정금리 사상 첫 5% 돌파, 보금자리론도 이미 5% 넘었어 — 대출자·예금자 영향 총정리 🏠📈",
+   "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTFBhZ09xVm1NaVJEcUtTU1BEU3hKRUtnNTQydEp5Sk5RTmx3SGdveTY2aU96OU5JaU1HcGtYQm02WkVRdklEQzlpc2dxZEpvUTRuY2dR?oc=5",
+   "src": "뉴닉",
    "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-11-01",
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-02",
    "isNew": true
   },
   {
@@ -37,16 +37,27 @@
    "isNew": false
   },
   {
+   "kind": "loan",
+   "date": "2026-10-29",
+   "title": "보금자리론 요건 완화에도 금리 5%대…신혼부부 내 집 마련 ‘험로’",
+   "url": "https://news.google.com/rss/articles/CBMimAJBVV95cUxNLWh6elI4QTFjcEtXOGt6UVVOclZTZzR6NExOY3Q1T1FnRlllU1BxT2ZRYlNaUVpxRDNQUWZjOE9JYTlHTVEtWmtiSXM4dzJQT3dNTWJ1ZVQzQnQwRktNMmhmQmRwaXQzSU5sN1Jrb09GZlpWaFFsRnZQek54SmRIXzZhSG5OcC1DLTVVdk42NnNub1JTRFFVMTdKSkhleEU1REJWMkE4OE85UHRwUWdQaDcxM1pHNW9PQXpFR0g2dV9zZmZkakczMkN1UXBNeDJ0WWRkS1lWQlk5SmtPTHBCbEJuRG85d3FROEEzaEhDWEdoZUtnUW1lT2ZkbXVrcjRBc2w1ZjVkVlFOWk5nb3FqS2I5SXlvbkY1?oc=5",
+   "src": "데일리안",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-02",
+   "isNew": true
+  },
+  {
    "kind": "transit",
    "line": "GTX-B 인천대입구~마석",
-   "what": "개통 소식",
-   "date": "2026-10-27",
-   "title": "구영미 연수구의원,GTX-B 청학역 조기 개통, 말이 아닌 실행으로 답하라",
-   "url": "https://news.google.com/rss/articles/CBMiY0FVX3lxTE9WY21qV0lueXlRUFpUdEZFR19Sbl9BcFNVcjdsb0ticUdEb3R3VWZNSjhuOG9PaHZPNmdHeGhZclJEbU9MWno3WWJ2NzVjMGlPVUJKR2VOYnFSb2ZNOXZnbHhVSQ?oc=5",
-   "src": "우리일보",
+   "what": "일정 변경",
+   "date": "2026-10-28",
+   "title": "“GTX-B 청학역, 더 이상 지연 안 된다”",
+   "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE9Ibm9Gd2o4aW80VTdBWkFqMXh5SVZXX1UtcXpxTHAwYmVIU3FZcHNfSlFOU0d4SE5NVFZHa3R4UWlrSkpvUUI3YzZjYlVNdGxsUGQ4ZnAzSWZndTVDNnhhalBzazdYY0k?oc=5",
+   "src": "인천자치신문",
    "official": false,
    "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-11-01",
+   "firstSeen": "2026-11-02",
    "isNew": true
   }
  ]

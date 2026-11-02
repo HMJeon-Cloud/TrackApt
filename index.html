@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.90">
+<link rel="stylesheet" href="style.css?v=9.91">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.90</span>
+    <span class="ver">v9.91</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.90"></script>
+<script src="cards.js?v=9.91"></script>
 <script>
 "use strict";
 
@@ -7577,6 +7577,8 @@ function inLast(a) { if (!a) return null; for (var i = a.length - 1; i >= 0; i--
 function inPrev(a, n) { if (!a) return null; var c = 0; for (var i = a.length - 1; i >= 0; i--) if (a[i] && a[i][1] != null) { if (c === (n || 1)) return a[i]; c++; } return null; }
 function inYm(t) { t = Number(t); return t > 999999 ? Math.floor(t / 10000) % 100 + "." + (Math.floor(t / 100) % 100) + "." + (t % 100) : "'" + (Math.floor(t / 100) % 100) + "." + (t % 100); }
 function inMcOk() { return typeof DB !== "undefined" && DB && DB.sale && DB.salePm && DB.salePm.series["서울"]; }
+/* v9.91 다음 확정 안내 — 잠정 달 중 가장 오래된 달이 언제 확정되는지(그 달 말일 + 30일 신고기한 + 수집 여유 2일 = 다다음 달 3일) */
+function mcNextFinal() { var P = (typeof MC !== "undefined" && MC && MC.prov) || []; if (!P.length) return ""; var ym = Math.min.apply(null, P), y = Math.floor(ym / 100), m = ym % 100, k = chKstDate(), fy = y + (m + 2 > 12 ? 1 : 0), fm = ((m + 1) % 12) + 1; var due = fy * 10000 + fm * 100 + 3, today = k.y * 10000 + k.m * 100 + k.d; return (m) + "월분은 " + (due <= today ? "다음 수집 때" : fm + "." + 3) + " 확정"; }
 function inProv() { return (typeof MC !== "undefined" && MC && MC.prov && MC.prov.length) || 0; }
 /* 가격 기준은 하나로 — 서울 25개 구 지수를 균등 평균한 '서울 매매지수'(채널 MDD 코너와 같은 chGroupSer). 잠정 달(최근 2개월)도 앱 다른 화면과 같이 포함하고 표기한다.
    거래량은 신고 지연 때문에 잠정 달을 뺀다. 84㎡ 중위가는 '그 달 거래된 것'의 중위라 표본 구성에 따라 출렁인다(참고로만). */
@@ -7927,7 +7929,7 @@ function renderInsight() {
 }
 function inBasisLine() {
   var L = []; if (typeof CH !== "undefined" && CH.data && CH.data.asOf) L.push("실거래 " + inYm(CH.data.asOf) + " 수집");
-  if (inMcOk()) { var i = inLastIdx(inIdx()); if (i >= 0) L.push("월별 지수 ~" + inProvYm(i) + " · 거래량 ~" + inYmOf(inLastIdx(inSer("vol")))); }
+  if (inMcOk()) { var i = inLastIdx(inIdx()); if (i >= 0) L.push("월별 지수 ~" + inProvYm(i) + " · 거래량 ~" + inYmOf(inLastIdx(inSer("vol"))) + (typeof mcNextFinal === "function" && mcNextFinal() ? "(" + mcNextFinal() + ")" : "")); }
   var M = IN.metrics || {}; if (M.idxSeoul) L.push("부동산원 " + M.idxSeoul.at); if (M.mort) L.push("금리 " + M.mort.at); if (M.unsold) L.push("미분양 " + M.unsold.at); if (M.subsMed) L.push("청약 최근 60일");
   return L.join(" · ");
 }

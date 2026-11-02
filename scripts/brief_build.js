@@ -346,7 +346,8 @@ async function summarize(lawd, today) {
   rp.forEach(function (a) { rent = rent.concat(a); rdrop = rdrop.concat(a.dropped || []); });
   /* 월별 집계 장부 — 옛 저장본 규칙 그대로(필터 없음: 뺀 거래도 합쳐서) */
   try {
-    var dom = today.getDate(), finalBefore = dom >= 5 ? ymPrev(ymPrev(ym)) : ymPrev(ymPrev(ymPrev(ym)));
+    /* v9.91 확정 기준: 계약일로부터 30일 안에 신고 → 전전달은 그 달 말일+30일이 지난 뒤(= 이달 3일부터) 확정. 예) 9월분은 11월 3일부터 확정(전에는 5일) */
+    var dom = today.getDate(), finalBefore = dom >= 3 ? ymPrev(ymPrev(ym)) : ymPrev(ymPrev(ymPrev(ym)));
     saveMonthly(lawd, monthlyCells(sale.concat(drop), rent.concat(rdrop), months, months.slice(0, 3)), finalBefore, ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ym))))));
   } catch (e) { console.warn(lawd, "월별 장부 실패:", e.message); }
   var cur = sale.filter(function (t) { return dnum(t) > d0; });

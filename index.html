@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.89">
+<link rel="stylesheet" href="style.css?v=9.90">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.89</span>
+    <span class="ver">v9.90</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.89"></script>
+<script src="cards.js?v=9.90"></script>
 <script>
 "use strict";
 
@@ -10458,6 +10458,90 @@ function tpoItemOptions(q, cur) {
   };
   /* 비고 칸이 있는 3칸 표도 그리도록 — 기존 render 는 cols 수만큼 td 를 그리므로 그대로 동작 */
 })();
+
+/* ══ v9.90 오늘 자료 — 프롬프트로 깊게 모으기(직접 붙여넣기). API 모으기와 결과 모양이 같아 브리핑·카드 취합·글 미리 쓰기가 그대로 쓴다 ══ */
+var TDP = { ls: "trackapt_tdp_v1" };
+function tdpPrompt() {
+  var today = typeof dyDate === "function" ? dyDate().txt : tpToday(), L = [];
+  var cands = tdCandidates().sort(function (a, b) { return b.sc - a.sc; }).slice(0, 25);
+  var recipes = TPR_ORDER.filter(function (id) { return TPR[id] && id !== "free" && id !== "aiIssue" && !/^(cc_|bf_)/.test(id); });
+  var news = ((CH.data && CH.data.news && CH.data.news.items) || []).slice(0, 30);
+  var ev = ""; try { ev = cdEvents("week").rows.slice(0, 20).map(function (r) { return r.join(" · "); }).join("\n"); } catch (e) {}
+  var reg = (typeof chPlanRegular === "function" ? chPlanRegular() : []).concat(typeof chPlanTheme === "function" && chPlanTheme() ? [chPlanTheme()] : []);
+  var F = []; try { if (typeof inPrep === "function") inPrep(); F = inFacts().slice(0, 45); } catch (e) {}
+  L.push("당신은 부동산 데이터 SNS 채널 '우상향연구소'의 편집장 겸 조사원입니다. 하루 한 번, 오늘 필요한 바깥 자료를 웹에서 확인해 모으고 '오늘 무엇을 올릴지' 고릅니다. 이 결과는 오늘 하루 아침 브리핑·인사이트·카드·글쓰기가 다시 검색하지 않고 그대로 씁니다 — 빠뜨리지 말고, 확인된 것만. 깊게 생각하고 웹 검색을 충분히(10~20번) 쓰세요.");
+  L.push(""); L.push("[오늘] " + today); L.push("[오늘 정기 코너] " + (reg.join(", ") || "없음"));
+  L.push(""); L.push("[모을 것 — 네 부분]");
+  L.push("A. 오늘·어제 이슈(최근 48시간): 정책 발표·대책 후속·대출 규제·금리·청약 큰 건·통계 발표. 사람들이 오늘 궁금해할 것 위주. 8~12개.");
+  L.push("B. 앞 2주 일정: 한국은행 금통위, 국토부·부동산원·KB 통계 발표, 대책·법령 시행일, 주요 청약 입주자모집공고·접수. 날짜가 확인된 것만.");
+  L.push("C. 최근 지표·정책: 부동산원 주간 매매가격 변동률(서울·수도권), KB 매수우위·전망지수, 미분양, 주담대 금리 동향, 지금 시행 중인 핵심 규제(규제지역·대출 한도·토허제) 요점.");
+  L.push("D. 오늘 추천: 아래 카드 주제 id 중 오늘 올릴 만한 것 8~12개(이슈와 앱 데이터 신호가 겹치는 것 위로)와, 아래 코너 id 중 오늘 올릴 코너 2~3개. 각각 고른 이유 한 줄.");
+  L.push(""); L.push("[앱이 아는 것 — 이 숫자는 그대로 쓰고 바꾸지 마세요]"); F.forEach(function (f) { L.push(f.id + ": " + f.text); });
+  if (cands.length) { L.push(""); L.push("[앱 데이터 신호로 고른 후보 — 점수 높을수록 신호가 강함]"); cands.forEach(function (c) { L.push(c.r + " · 점수 " + Math.round(c.sc) + " · " + String(c.why || "").slice(0, 100)); }); }
+  L.push(""); L.push("[만들 수 있는 카드 주제 id = 이름(분류)]"); recipes.forEach(function (id) { L.push(id + " = " + TPR[id].nm + " (" + TPR[id].grp + ")"); });
+  L.push(""); L.push("[코너 id = 이름] " + (typeof CH_TABS !== "undefined" ? CH_TABS : []).map(function (t) { return t[0] + " = " + t[1]; }).join(", "));
+  if (news.length) { L.push(""); L.push("[앱이 이미 모은 기사 제목 — 참고, 중복 피하기]"); news.forEach(function (n) { L.push("- " + String(n.t || "").slice(0, 120) + " (" + (n.s || "") + " " + (typeof cdNewsDate === "function" ? cdNewsDate(n.d) : n.d || "") + ")"); }); }
+  if (ev) { L.push(""); L.push("[앱이 아는 이번 주 일정]"); L.push(ev); }
+  L.push(""); L.push("[규칙]");
+  L.push("1. facts 의 text 는 한 줄(25~90자), 숫자·날짜는 원문 그대로. 항목마다 src(출처 이름)·date(날짜)·url(원문 주소)·quote(숫자가 들어 있는 원문 문장 그대로, 60자 안팎)를 꼭 채우세요. quote 에 없는 숫자는 text 에 쓰지 마세요 — 앱이 quote 와 대조해 없는 숫자는 뺍니다.");
+  L.push("2. 공공기관·통계기관·주요 언론만. 확인되지 않으면 적지 마세요. 추정은 '(추정)'.");
+  L.push("3. 특정 단지·종목 추천, 매수·매도 권유, 수익 보장, '무조건' 같은 단정 금지. 이모지 금지. 한국어.");
+  L.push("4. cards 의 r 은 위 카드 주제 id 만(또는 issue:이슈번호 — 위 issues 배열의 0부터 번호). corners 의 tab 은 위 코너 id 만.");
+  L.push(""); L.push("[답 형식] 아래 JSON 하나만 출력하세요(설명 문장 없이).");
+  L.push('{"summary":"오늘 시장 한 줄(40자 안팎)","facts":[{"text":"","kind":"이슈|일정|지표|정책","src":"","date":"YYYY-MM-DD 또는 YYYY.MM.DD","url":"","quote":""}],"issues":[{"title":"이슈 제목(25자 이내)","why":"왜 오늘 중요한지 한 줄","points":["핵심 사실 1~4줄(숫자는 quote 와 같게)"],"src":"","date":"","url":"","card":"연결할 카드 id(없으면 빈칸)"}],"cards":[{"r":"카드 id 또는 issue:0","why":"고른 이유 한 줄"}],"corners":[{"tab":"코너 id","why":"한 줄"}]}');
+  return { text: L.join("\n"), n: F.length, cand: cands.length };
+}
+function tdpNumCheck(f) {
+  if (typeof rcNumTokens !== "function") return [];
+  var q = String(f.quote || "") + " " + String(f.date || ""), set = {}, add = function (x) { set[x] = 1; set[String(x).replace(/^-/, "")] = 1; };
+  rcNumTokens(q).forEach(add);
+  /* 날짜는 표기가 달라도 같은 날 — 인용문의 'M월 D일'·'YYYY-MM-DD' 를 'M.D' 꼴로도 넣어 준다 */
+  (q.match(/(\d{1,2})월\s*(\d{1,2})일/g) || []).forEach(function (m) { var a = m.match(/(\d{1,2})월\s*(\d{1,2})일/); add(Number(a[1]) + "." + Number(a[2])); add(Number(a[1]) + "." + ("0" + a[2]).slice(-2)); });
+  (q.match(/\d{4}[-./](\d{1,2})[-./](\d{1,2})/g) || []).forEach(function (m) { var a = m.match(/\d{4}[-./](\d{1,2})[-./](\d{1,2})/); add(Number(a[1]) + "." + Number(a[2])); add(Number(a[1]) + "." + ("0" + a[2]).slice(-2)); });
+  var t = String(f.text || "").replace(/\d{4}[-./]\d{1,2}([-./]\d{1,2})?/g, " ");
+  return typeof rcCheckText === "function" ? rcCheckText(t, set) : [];
+}
+function tdpSave(txt) {
+  var m = document.getElementById("tdp-msg"), J = typeof rpParseAnswer === "function" ? rpParseAnswer(txt) : null;
+  if (!J || (!Array.isArray(J.facts) && !Array.isArray(J.issues))) { if (m) m.textContent = "답을 읽지 못했습니다 — { 로 시작해 } 로 끝나는 JSON을 그대로 붙여 넣어 주세요" + (typeof RP2 !== "undefined" && RP2.jsonErr ? " · 멈춘 곳: " + String(RP2.jsonErr).slice(0, 60) : ""); return; }
+  var dropped = [], facts = [], seen = {};
+  (J.facts || []).forEach(function (f) { if (!f || !f.text) return; var k = String(f.text).replace(/\s+/g, ""); if (seen[k]) return; seen[k] = 1; var bad = tdpNumCheck(f); var o = { text: String(f.text).slice(0, 200), kind: String(f.kind || "이슈").slice(0, 10), src: String(f.src || "").slice(0, 40), date: String(f.date || "").slice(0, 20), url: /^https?:\/\//.test(String(f.url || "")) ? String(f.url) : "", quote: String(f.quote || "").slice(0, 200), part: /일정/.test(f.kind || "") ? "calendar" : /지표|정책/.test(f.kind || "") ? "indicators" : "issues" }; if (bad.length) { o.unverified = bad.join(","); dropped.push(o.text.slice(0, 80) + " [인용문에 없는 숫자: " + bad.join(", ") + "]"); } facts.push(o); });
+  var good = facts.filter(function (f) { return !f.unverified; }), flagged = facts.filter(function (f) { return f.unverified; });
+  var issues = (J.issues || []).filter(function (x) { return x && x.title; }).slice(0, 14).map(function (x) { return { title: String(x.title).slice(0, 40), why: String(x.why || "").slice(0, 120), points: (x.points || []).map(String).slice(0, 4), src: String(x.src || "").slice(0, 40), date: String(x.date || "").slice(0, 20), url: /^https?:\/\//.test(String(x.url || "")) ? String(x.url) : "", card: TPR[x.card] ? String(x.card) : "" }; });
+  var cards = (J.cards || []).filter(function (c) { return c && c.r && (TPR[c.r] || /^issue:\d+$/.test(String(c.r)) && issues[Number(String(c.r).slice(6))]); }).slice(0, 14).map(function (c) { return { r: String(c.r), why: String(c.why || "").slice(0, 120) }; });
+  var corners = (J.corners || []).filter(function (c) { return c && c.tab && typeof CH_TAB_SHORT !== "undefined" && CH_TAB_SHORT[c.tab]; }).slice(0, 4).map(function (c) { return { tab: String(c.tab), why: String(c.why || "").slice(0, 120) }; });
+  var o = { day: chKstDate().key, at: Date.now(), model: "직접(프롬프트) · " + (TDP.model || "Claude"), searches: 0, summary: String(J.summary || "").slice(0, 120), facts: good.concat(flagged.map(function (f) { return Object.assign({}, f, { text: f.text + " (확인 필요)" }); })), issues: issues, cards: cards, corners: corners, sources: good.filter(function (f) { return f.url; }).slice(0, 15).map(function (f) { return { title: f.src + (f.date ? " " + f.date : ""), url: f.url }; }), dropped: dropped, manual: 1, unverifiedN: flagged.length };
+  TD.ai = o; try { localStorage.setItem(TD_AI_LS, JSON.stringify(o)); } catch (e) {}
+  try { localStorage.setItem(TDP.ls, JSON.stringify({ day: o.day, at: o.at })); } catch (e) {}
+  if (typeof dailyPush === "function") dailyPush();
+  if (m) m.textContent = "저장했습니다 — 사실 " + good.length + "줄" + (flagged.length ? "(+확인 필요 " + flagged.length + ")" : "") + " · 이슈 " + issues.length + "건 · 추천 카드 " + cards.length + " · 코너 " + corners.length + " → 글 미리 쓰기로 이어갑니다";
+  HUB.tdp = false; if (typeof hubPaint === "function") hubPaint(); if (typeof tdPaint === "function") try { tdPaint(); } catch (e) {}
+  if (typeof hubPreCaptions === "function") setTimeout(function () { hubPreCaptions(function () { if (typeof hubPaint === "function") hubPaint(); }); }, 300);
+}
+function tdpPanelHtml() {
+  var P = TDP.cur || null, A = typeof tdAiGet === "function" ? tdAiGet() : null, E = function (t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  return '<div class="card hub-det tdp" id="hub-tdp"><div class="in-askh"><b>오늘 자료 — 프롬프트로 깊게 모으기</b><small class="hint">복사해 Claude(Fable 5.1 · 없으면 Opus 5.5)에 "깊게 생각 + 웹 검색"으로 묻고, 답을 붙여 넣어 [저장] · 앱 호출 없음 · 결과는 API 모으기와 똑같이 쓰임</small><button type="button" class="btn sm ghost" data-tdpclose="1">닫기</button></div>' +
+    (P ? '<div class="in-askh"><b>프롬프트</b><small class="hint">앱 재료 ' + P.n + '줄 · 후보 ' + P.cand + '개 · 카드 주제 전부 포함</small><button type="button" class="btn sm" data-tdpcopy="1">프롬프트 복사</button></div><textarea id="tdp-pt" rows="7" readonly>' + E(P.text) + '</textarea>' +
+      '<div class="in-askh"><b>답 붙여넣기</b><small class="hint">JSON(앞뒤 설명 있어도 됨 · 따옴표 모양 상관없음)</small><label class="hint"><input type="checkbox" data-tdpmodel="1"' + (TDP.model === "Opus 5.5" ? " checked" : "") + '> Opus 5.5로 답함</label><button type="button" class="btn sm" data-tdpsave="1">저장</button></div><textarea id="tdp-ans" rows="6" placeholder="{&quot;summary&quot;:&quot;...&quot;,&quot;facts&quot;:[...],&quot;issues&quot;:[...],&quot;cards&quot;:[...],&quot;corners&quot;:[...]}"></textarea>' : '<p class="hint">[프롬프트 만들기]를 누르면 오늘 재료(앱 숫자·후보·기사 제목·일정·카드 주제 목록)를 담은 프롬프트가 만들어집니다.</p><button type="button" class="btn sm" data-tdpmake="1">프롬프트 만들기</button>') +
+    '<p class="hint" id="tdp-msg">' + (A && A.manual ? "오늘 자료는 직접 모은 것(" + E(A.model) + " · " + (typeof tdAiAt === "function" ? tdAiAt() : "") + ")" + (A.unverifiedN ? " · 인용문에 없는 숫자 " + A.unverifiedN + "줄은 '확인 필요' 표시" : "") : A ? "오늘 자료는 API로 모은 것(" + E(A.model || "") + ") — 여기서 저장하면 바꿔 씁니다" : "") + "</p></div>";
+}
+document.addEventListener("click", function (ev) {
+  var t = ev.target; if (!t || !t.closest) return;
+  if (t.closest("[data-tdpopen]")) { HUB.tdp = true; if (!TDP.cur) try { TDP.cur = tdpPrompt(); } catch (e) {} if (typeof hubPaint === "function") hubPaint(); setTimeout(function () { var el = document.getElementById("hub-tdp"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60); return; }
+  if (t.closest("[data-tdpclose]")) { HUB.tdp = false; hubPaint(); return; }
+  if (t.closest("[data-tdpmake]")) { try { TDP.cur = tdpPrompt(); } catch (e) { alert("프롬프트를 만들지 못했습니다: " + e.message); return; } hubPaint(); return; }
+  if (t.closest("[data-tdpcopy]")) { var pt = document.getElementById("tdp-pt"); if (pt && typeof chCopy === "function") { chCopy(pt.value); var m0 = document.getElementById("tdp-msg"); if (m0) m0.textContent = "프롬프트를 복사했습니다 — Claude 에 붙여 넣고(깊게 생각·웹 검색 켜기) 답을 아래 칸에"; } return; }
+  if (t.closest("[data-tdpsave]")) { var ta = document.getElementById("tdp-ans"); tdpSave(ta ? ta.value : ""); return; }
+});
+document.addEventListener("change", function (ev) { var c = ev.target && ev.target.closest && ev.target.closest("[data-tdpmodel]"); if (c) TDP.model = c.checked ? "Opus 5.5" : "Fable 5.1"; });
+TDP.model = "Fable 5.1";
+/* 오늘 작업 화면: 큰 버튼 옆에 [프롬프트로 깊게] · 패널은 브리핑 위 */
+(function () {
+  if (typeof hubPaint !== "function") return; var o = hubPaint;
+  hubPaint = function () { o(); var box = document.getElementById("hub-body"), hero = box && box.querySelector(".hub-hero"); if (!hero) return; if (!hero.querySelector("[data-tdpopen]")) { var sp = hero.querySelector("span"); hero.insertAdjacentHTML("beforeend", '<button type="button" class="btn sm ghost tdp-btn" data-tdpopen="1" title="API 대신 프롬프트를 복사해 Claude 앱에서 깊게 조사하고 답을 붙여 넣음">프롬프트로 깊게</button>'); } if (HUB.tdp) hero.insertAdjacentHTML("afterend", tdpPanelHtml()); var A = tdAiGet(); if (A && A.manual) Array.prototype.forEach.call(box.querySelectorAll(".hub-top .hub-chip"), function (c) { if (/^오늘 자료 \d/.test(c.textContent)) c.textContent += " · 직접"; }); };
+})();
+/* 오늘 자료 칩에 '직접' 표시 */
+(function () { if (typeof tdAiNote !== "function") return; var o = tdAiNote; tdAiNote = function () { var s = o(); var A = tdAiGet(); return A && A.manual ? s.replace("오늘 자료 ", "오늘 자료(직접 모음) ") : s; }; })();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

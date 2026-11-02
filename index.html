@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.92">
+<link rel="stylesheet" href="style.css?v=9.93">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.92</span>
+    <span class="ver">v9.93</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.92"></script>
+<script src="cards.js?v=9.93"></script>
 <script>
 "use strict";
 
@@ -3961,7 +3961,7 @@ var RP_REFS = {
     { h: "전고점 넘은 곳: 강남3구·용산·성동·마포·양천", w: "1·2단계 먼저", d: "2025.06", t: "전고점 넘은 곳: 강남3구·용산·성동·마포·양천 / 노도강·금천은 83~89% 수준", l: "도봉 82.7% · 노원 85.7% · 강북 86.5% · 금천 88.9%", src: "뉴시스" },
     { h: "한강벨트 2주 +1.3~1.6%", w: "2단계 차례", d: "2025.10", t: "다음 차례 한강벨트: 성동 +1.63%, 광진 +1.49%, 마포 +1.29% (2주)", l: "한국부동산원 주간 · 노도강도 9월부터 주간 상승폭 확대", src: "뉴시스 · 세계일보" },
     { h: "대출 막히자 노도강·금관구로 이동", w: "4단계 차례", d: "2026.07", t: "대출 막히자 '하향 이동' — 성북→노도강, 영등포→금관구", l: "상반기 노도강 매수 중 다른 구 주민 +95.4% · 금관구 매수 5년 만 최대", src: "뉴시스" },
-    { h: "동탄 주간 +0.73% 전국 1위", w: "경기 3단계", d: "2026.07", t: "경기로 번진 상승 — 화성 동탄 주간 +0.73%, 전국 1위", l: "한국부동산원 7월 2주 · 서울 +0.30% · 구리·동탄 등 비규제지역으로 풍선효과", src: "디지털데일리 · 머니투데이방송" }
+    { h: "동탄 주간 +0.73% 전국 1위", w: "경기 3단계", d: "2026.07", t: "경기로 번진 상승 — 화성 동탄 주간 +0.73%, 전국 1위", l: "한국부동산원 7월 2주 · 서울 +0.30% · 상반기 비규제였던 구리·동탄·기흥으로 풍선효과 → 6.30 규제지역 지정(7.1 시행)", src: "디지털데일리 · 머니투데이방송" }
   ]
 };
 function rpOn() { return typeof MC !== "undefined" && MC && MC.regions; }
@@ -8277,21 +8277,25 @@ function rpExtAsCtx() {
 
 /* ══ 지역별 진단 — 서울 / 경기 남부 1·2·3군 / 경기 북부 / 인천 송도·그 외 / 지방 광역시 ══
    같은 숫자라도 규제지역(토허제·LTV 40%)이냐 아니냐에 따라 뜻이 다르다: 규제지역의 거래 감소 = 대출·실거주 의무로 '살 수 있는 사람'이 줄어든 것, 규제 밖의 감소 = 수요 자체가 식은 것. */
-var RP_REG = ["11", "41290", "41210", "41135", "41131", "41133", "41117", "41111", "41115", "41173", "41465", "41430", "41450"];   /* 10·15 규제지역(서울 전역 + 경기 12곳) */
+/* v9.93 규제지역은 한 곳(RULES.regulated, 기준·설정 탭에서 수정)만 본다 — 예전엔 여기 10·15 목록(경기 12곳)을 따로 들고 있어 2026.7.1 추가된 동탄·기흥·구리가 "규제 밖"으로 나왔다 */
+function rpRegList() { var L = typeof RULES !== "undefined" && RULES && RULES.regulated; return L && L.length ? L : DEFAULT_RULES.regulated; }
 var RP_GROUPS = [
   { id: "seoul", nm: "서울", sub: "25개 구 · 전역 규제지역·토허구역", pfx: ["11"], reg: "all", why: "실수요 중 현금 비중이 높은 수요만 움직일 수 있는 시장 — 상급지 조정이 외곽으로 번지는지가 관건" },
-  { id: "gs1", nm: "경기 남부 핵심", sub: "과천 · 분당(판교) · 안양 동안(평촌) · 용인 수지 · 화성 동탄 · 수원 영통(광교)", codes: ["41290", "41135", "41173", "41465", "41597", "41117"], reg: "most", why: "서울 대체 수요가 먼저 오는 곳. 동탄을 빼면 모두 규제지역이라 서울과 같은 규칙(토허제·LTV 40%) 아래 움직인다" },
+  { id: "gs1", nm: "경기 남부 핵심", sub: "과천 · 분당(판교) · 안양 동안(평촌) · 용인 수지 · 화성 동탄 · 수원 영통(광교)", codes: ["41290", "41135", "41173", "41465", "41597", "41117"], reg: "all", why: "서울 대체 수요가 먼저 오는 곳. 여섯 곳 모두 규제지역(동탄은 2026.7.1 추가 지정)이라 서울과 같은 규칙(토허제·LTV 40%) 아래 움직인다" },
   { id: "gs2", nm: "경기 남부 주변", sub: "성남 수정·중원 · 의왕 · 군포 · 광명 · 하남 · 수원 장안·권선·팔달 · 용인 기흥 · 안양 만안 · 화성 병점·효행 · 광주 · 오산", codes: ["41131", "41133", "41430", "41410", "41210", "41450", "41111", "41113", "41115", "41463", "41171", "41595", "41593", "41610", "41370"], reg: "mixed", why: "규제지역과 비규제가 섞인 띠 — 풍선효과를 여기서 본다. 단, 연구(양지영 2026)대로 풍선효과는 '인접'이 아니라 입지·가격 격차·개발 기대가 겹친 곳(동탄·광교·판교 급)으로 선택적으로 가고, 비강남이 먼저 오른 뒤 강남으로 돌아오는 U자형이었다" },
   { id: "gs3", nm: "경기 남부 그 외", sub: "평택 · 안성 · 이천 · 여주 · 안산 · 시흥 · 부천 · 용인 처인 · 화성 만세 · 양평", codes: ["41220", "41550", "41500", "41670", "41271", "41273", "41390", "41192", "41194", "41196", "41461", "41591", "41830"], reg: "none", why: "공급(입주·미분양)과 금리에 민감한 곳 — 평택·안성·이천은 미분양 부담을 따로 봐야 한다" },
-  { id: "gn", nm: "경기 북부", sub: "고양 · 파주 · 의정부 · 남양주 · 구리 · 양주 · 동두천 · 포천 · 김포 · 연천 · 가평", codes: ["41281", "41285", "41287", "41480", "41150", "41360", "41310", "41630", "41250", "41650", "41570", "41800", "41820"], reg: "none", why: "교통 재료(GTX·지하철 연장)와 입주 물량이 번갈아 작용 — 규제 밖이라 거래 감소는 수요 약화로 읽는다" },
+  { id: "gn", nm: "경기 북부", sub: "고양 · 파주 · 의정부 · 남양주 · 구리 · 양주 · 동두천 · 포천 · 김포 · 연천 · 가평", codes: ["41281", "41285", "41287", "41480", "41150", "41360", "41310", "41630", "41250", "41650", "41570", "41800", "41820"], reg: "mixed", why: "교통 재료(GTX·지하철 연장)와 입주 물량이 번갈아 작용 — 구리(2026.7.1 지정)만 규제, 나머지는 규제 밖이라 거래 감소는 수요 약화로 읽는다" },
   { id: "songdo", nm: "인천 송도", sub: "연수구(송도 포함)", codes: ["28185"], reg: "none", why: "인천 안에서 따로 움직이는 시장 — 신축 비중·입주 물량·바이오 일자리가 변수" },
   { id: "inc", nm: "인천 그 외", sub: "연수구 제외", pfx: ["28"], skip: ["28185"], reg: "none", why: "입주 물량(검단·영종 등)과 서울 외곽 가격 차이에 따라 움직인다" },
   { id: "metro", nm: "지방 광역시", sub: "부산 · 대구 · 대전 · 울산 · 세종 · 광주", pfx: ["26", "27", "30", "31", "36"], codes: ["12210", "12240", "12270", "12300", "12330"], reg: "none", why: "미분양·인구가 먼저이고 금리 인하 효과는 늦게 온다 — 수도권 지표를 그대로 적용하면 틀린다" }
 ];
 function rpGroupCodes(g) { var all = typeof tprReg === "function" ? Object.keys(tprReg()) : (typeof DB !== "undefined" && DB ? Object.keys(DB.sale.series) : []); var out = (g.codes || []).slice(); (g.pfx || []).forEach(function (p) { all.forEach(function (k) { if (k.indexOf(p) === 0 && out.indexOf(k) < 0 && !(g.skip || []).some(function (x) { return x === k; }) && !(typeof MC_GROUP !== "undefined" && MC_GROUP[k])) out.push(k); }); }); return out.filter(function (k) { return !(g.skip || []).some(function (x) { return x === k; }); }); }
-function rpIsReg(k) { return RP_REG.some(function (p) { return p.length === 2 ? k.indexOf(p) === 0 : k === p; }); }
+function rpIsReg(k) { return rpRegList().indexOf(k) >= 0; }
+/* 묶음의 규제 구분(all/most/mixed/none)도 목록에서 계산 — 글자로 박아 두면 지정·해제 때 어긋난다 */
+function rpRegMode(regN, n) { return !n ? "none" : regN === n ? "all" : regN === 0 ? "none" : (n >= 4 && regN >= n - 1) ? "most" : "mixed"; }
 function rpRegionStats(g) {
   var codes = rpGroupCodes(g), o = { g: g, codes: codes, regN: codes.filter(rpIsReg).length, n: codes.length };
+  g.reg = rpRegMode(o.regN, o.n);
   try {
     /* 가격 — 구별 균등 지수(채널 MDD 와 같은 방식), 1년·2020~22 고점 대비 */
     if (typeof chGroupSer === "function" && inMcOk()) { var ser = chGroupSer(g.nm, codes); if (ser) { var L = inLastIdx(ser.slice(0, Math.max(1, ser.length - inProv()))); o.idx = ser; o.yoyYm = typeof inYmOf === "function" ? inYmOf(L) : ""; o.yoy = L >= 12 && ser[L - 12] ? (ser[L] / ser[L - 12] - 1) * 100 : null; var serW = chGroupSer(g.nm, codes, "vol"); if (serW) { var LW = inLastIdx(serW.slice(0, Math.max(1, serW.length - inProv()))); o.yoyW = LW >= 12 && serW[LW - 12] ? (serW[LW] / serW[LW - 12] - 1) * 100 : null; } var t0 = ymNum(DB.sale.dates[0]), dd = typeof chDD === "function" ? chDD(g.id, (2020 * 12 + 1) - t0, (2022 * 12 + 12) - t0, ser) : null; if (dd) { o.fromPk = dd.now; o.pkYm = inYmOf(dd.pi); } } }
@@ -8347,7 +8351,7 @@ function rpRegionRead(o) {
 function rpRegionOutlook(o) {
   var g = o.g, reg = g.reg === "all" || g.reg === "most", b = IN.metrics && IN.metrics.base, up = b && b.dir === "인상";
   if (g.id === "seoul") return "기준: 상급지 숨 고르기 + 중저가 외곽 키 맞추기. 금리 인상이 이어지면 외곽부터 거래가 끊긴다 · 확인: 강남3구 주간 하락 폭, 노도강 신고가 비율";
-  if (g.id === "gs1") return "기준: 서울과 동행(규칙이 같다). 서울 상급지가 더 조정되면 판교·분당이 먼저 따라가고, 동탄은 규제 밖이라 따로 움직임 · 확인: 분당 거래량, 동탄 신고가";
+  if (g.id === "gs1") return "기준: 서울과 동행(규칙이 같다). 서울 상급지가 더 조정되면 판교·분당이 먼저 따라가고, 동탄은 7월 규제 지정 뒤 거래가 어디까지 줄었는지가 관건 · 확인: 분당 거래량, 동탄 30일 거래·신고가";
   if (g.id === "gs2") return "기준: 풍선효과 관찰 지대 — 규제 밖 동네(군포·오산·광주 등)로 거래가 옮겨 가면 상승 신호, 같이 줄면 수요 약화 · 확인: 비규제 시군구 30일 거래 증감";
   if (g.id === "gs3") return "기준: 공급 소화가 먼저 — 미분양·입주가 줄기 전엔 가격 반등이 늦다. 금리 인상기엔 가장 먼저 식는다 · 확인: 평택·안성 미분양(외부), 분양 미달 수";
   if (g.id === "gn") return "기준: 교통 개통 재료가 있는 곳(고양·구리·남양주)만 선별 상승, 나머지는 보합 · 확인: GTX·지하철 개통 일정, 양주·파주 입주";

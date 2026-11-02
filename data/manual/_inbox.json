@@ -1,8 +1,19 @@
 {
  "v": 1,
- "builtAt": "2026-11-01T21:43:28.862Z",
+ "builtAt": "2026-11-02T04:30:24.453Z",
  "asOf": 20261102,
  "items": [
+  {
+   "kind": "loan",
+   "date": "2026-11-02",
+   "title": "김경환號 주금공, 청년 전세보증·보금자리론 지원 확대…디지털 혁신·외화조달 강화 [금융공기업 이슈]",
+   "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1Xcy14RkQtVDctTm9LLVdRdl9JaXdnakpmMU8xV09rckhSZmZza3pfcVI5UkNvR1lJQ1NNQzd5Y3FXZGdZaTFJY1FFSDFzUVQtYXZWa1g0VVNhU1N4UmJaTTNLdzcyMHNyb1VPQjM1bExYNG5kS3hYZ0trcW8?oc=5",
+   "src": "금융신문",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-02",
+   "isNew": true
+  },
   {
    "kind": "loan",
    "date": "2026-10-30",
@@ -23,7 +34,7 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-11-02",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "loan",
@@ -35,30 +46,6 @@
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-10-30",
    "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-10-29",
-   "title": "보금자리론 요건 완화에도 금리 5%대…신혼부부 내 집 마련 ‘험로’",
-   "url": "https://news.google.com/rss/articles/CBMimAJBVV95cUxNLWh6elI4QTFjcEtXOGt6UVVOclZTZzR6NExOY3Q1T1FnRlllU1BxT2ZRYlNaUVpxRDNQUWZjOE9JYTlHTVEtWmtiSXM4dzJQT3dNTWJ1ZVQzQnQwRktNMmhmQmRwaXQzSU5sN1Jrb09GZlpWaFFsRnZQek54SmRIXzZhSG5OcC1DLTVVdk42NnNub1JTRFFVMTdKSkhleEU1REJWMkE4OE85UHRwUWdQaDcxM1pHNW9PQXpFR0g2dV9zZmZkakczMkN1UXBNeDJ0WWRkS1lWQlk5SmtPTHBCbEJuRG85d3FROEEzaEhDWEdoZUtnUW1lT2ZkbXVrcjRBc2w1ZjVkVlFOWk5nb3FqS2I5SXlvbkY1?oc=5",
-   "src": "데일리안",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-02",
-   "isNew": true
-  },
-  {
-   "kind": "transit",
-   "line": "GTX-B 인천대입구~마석",
-   "what": "일정 변경",
-   "date": "2026-10-28",
-   "title": "“GTX-B 청학역, 더 이상 지연 안 된다”",
-   "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE9Ibm9Gd2o4aW80VTdBWkFqMXh5SVZXX1UtcXpxTHAwYmVIU3FZcHNfSlFOU0d4SE5NVFZHa3R4UWlrSkpvUUI3YzZjYlVNdGxsUGQ4ZnAzSWZndTVDNnhhalBzazdYY0k?oc=5",
-   "src": "인천자치신문",
-   "official": false,
-   "todo": "data/manual/transit.json 에서 'GTX-B 인천대입구~마석' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-11-02",
-   "isNew": true
   }
  ]
 }

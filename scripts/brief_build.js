@@ -61,6 +61,15 @@ function monthlyCells(saleAll, rentAll, saleMonths, rentMonths) {
   });
   return out;
 }
+function finalYmAsOf(today) {
+  var t0 = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()), y = today.getFullYear(), m = today.getMonth() + 1, best = 0;
+  for (var k = 1; k <= 4; k++) {
+    var mm = m - k, yy = y; while (mm < 1) { mm += 12; yy--; }
+    var lastDay = Date.UTC(yy, mm, 0); /* 그 달 마지막 날 */
+    if (t0 > lastDay + 31 * 86400000) { best = yy * 100 + mm; break; }
+  }
+  return best;
+}
 function saveMonthly(lawd, cells, finalBefore, keepFrom) {
   var p = path.join(MO_DIR, lawd + ".json"), L; try { L = JSON.parse(fs.readFileSync(p, "utf8")); } catch (e) { L = { v: 1, m: {}, raw: {} }; }
   Object.keys(cells).forEach(function (ym) {
@@ -346,8 +355,9 @@ async function summarize(lawd, today) {
   rp.forEach(function (a) { rent = rent.concat(a); rdrop = rdrop.concat(a.dropped || []); });
   /* 월별 집계 장부 — 옛 저장본 규칙 그대로(필터 없음: 뺀 거래도 합쳐서) */
   try {
-    /* v9.91 확정 기준: 계약일로부터 30일 안에 신고 → 전전달은 그 달 말일+30일이 지난 뒤(= 이달 3일부터) 확정. 예) 9월분은 11월 3일부터 확정(전에는 5일) */
-    var dom = today.getDate(), finalBefore = dom >= 3 ? ymPrev(ymPrev(ym)) : ymPrev(ymPrev(ymPrev(ym)));
+    /* v9.92 확정 기준(정확 계산): 어떤 달의 마지막 계약일 + 30일(신고기한) + 1일(기한일 신고분 API 반영) 이 지나면 그 달 확정.
+       예) 9월(30일) → 10.30 기한 → 11.1 확정 / 10월(31일) → 11.30 기한 → 12.2 확정 / 1월(31일) → 3.2 기한(2월 28일) → 3.4 확정 */
+    var finalBefore = finalYmAsOf(today);
     saveMonthly(lawd, monthlyCells(sale.concat(drop), rent.concat(rdrop), months, months.slice(0, 3)), finalBefore, ymPrev(ymPrev(ymPrev(ymPrev(ymPrev(ym))))));
   } catch (e) { console.warn(lawd, "월별 장부 실패:", e.message); }
   var cur = sale.filter(function (t) { return dnum(t) > d0; });

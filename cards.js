@@ -255,7 +255,10 @@ var TPR = {
     build: function () { var D = typeof rtData === "function" && rtData(); if (!D || !D.prevAt || typeof rtChanges !== "function") return []; var C = rtChanges(D); if (!C.length) return [];
       return tprPaged({ _cat: "rate", src: tprRateBasis(D) + " · " + chMD(D.prevAt) + " 대비", title: "이번 주 금리 바꾼 곳", sub: "변화 큰 순", badge: "금리비교", cols: "금융사 | 상품 | 지금 | 지난주 대비", foot: "공시 금리는 금융사가 새로 올려야 바뀜 · 시장금리보다 몇 주 늦을 수 있음" },
         C.map(function (x) { var l = rtIsLoan(x.k); return [rtCo(x.c.co), x.nm + (l ? " 최저" : " 최고"), rtP(l ? x.c.lo : x.c.hi), (x.d > 0 ? "+" : "") + x.d.toFixed(2) + "%p"]; }), 14); } },
-  aptNotice: { nm: "청약 단지 한 장", grp: "청약·일정", opts: ["item"], tpls: ["aptNotice"], build: function () { var d = TPL.aptNotice.auto(); return d ? [d] : []; } },
+  aptNotice: { nm: "청약 단지 한 장", grp: "청약·일정", opts: ["item"], tpls: ["aptNotice"], build: function () {
+      /* v9.97.1 단지를 아직 안 골랐으면 카드가 쓰는 기본 단지(7일 안 접수 → 첫 항목)를 선택칸에도 똑같이 넣는다 — 전에는 카드와 선택칸이 서로 다른 단지를 보여 줬다 */
+      if (typeof sbCardItem === "function" && !sbCardItem()) { var it0 = sbItems().filter(function (x) { return x.kind === "apt" && x.b && x.b >= sbToday() - 7; })[0] || sbItems()[0]; if (it0) { SB.card.item = String(it0.no); TP.o.item = String(it0.no); } }
+      var d = TPL.aptNotice.auto(); return d ? [d] : []; } },
   calendar: { nm: "부동산 달력", grp: "청약·일정", opts: [], tpls: ["calendar"], build: function () { var d = TPL.calendar.auto(); return d ? [d] : []; } },
   policy: { nm: "대책 총정리", grp: "정책·대출·교통", opts: [], tpls: ["policyTimeline"], hint: "한 장 = 최근 대책 4개 요점 · 여러 장 = 표지 + 대책마다 한 장(요점 전부·변경 전후 표·누구에게 무슨 뜻)", build: function () { var d = TPL.policyTimeline.auto(); return d ? [d] : []; },
     detail: function (o) { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, pm = (D.policy && D.policy.manual && D.policy.manual.items) || []; if (!pm.length) return null; var cover = TPL.policyTimeline.auto(); var N = Math.min(pm.length, Math.max(2, (o.maxp || 3) * 2)), P = pm.slice(0, N), out = cover ? [cover] : [];

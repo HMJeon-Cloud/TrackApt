@@ -11061,7 +11061,15 @@ document.addEventListener("click", function (ev) {
   T.render = function (d) { var h = o(d), R = tpRows(d.rows).filter(function (r) { return r.join("").trim(); }), tot = Number(d._nbTot) || Number(d._tot) || R.length, per = tpReel() ? 12 : 8, rowsN = Math.ceil(per / 2), few = tot <= 6;
     if (!R.length) return h.replace(/<div class="nb-grid( nb-few)?"><\/div>/, "");   /* 포인트만 있는 장 */
     h = h.replace(/<div class="nb-grid( nb-few)?">/, '<div class="nb-grid' + (few ? " nb-few" : "") + '" style="grid-template-rows:repeat(' + (few && tpReel() ? Math.max(R.length, 1) : rowsN) + ',minmax(0,1fr))">'); return h; };
-  if (typeof nbPages === "function") { var np = nbPages; nbPages = function (rows, points, base) { var P = np(rows, points, base); P.forEach(function (p) { p._nbTot = rows.length; }); return P; }; }
+  /* v9.99.1 주제별로 모아 번호를 매긴다(같은 분류가 2·4·8·12번처럼 흩어지지 않게) — 분류는 건수 많은 순, 날짜 띠 아래 '금리·대출 1~4 · 분양·신축 5~8' 목차 줄 */
+  if (typeof nbPages === "function") { var np = nbPages; nbPages = function (rows, points, base) {
+    var R = (rows || []).filter(function (r) { return r && r.join("").trim(); }), cnt = {}; R.forEach(function (r) { var c = r[0] || "기타"; cnt[c] = (cnt[c] || 0) + 1; });
+    var ord = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a] || (NB_CATS.indexOf(a) < 0 ? 99 : NB_CATS.indexOf(a)) - (NB_CATS.indexOf(b) < 0 ? 99 : NB_CATS.indexOf(b)); });
+    var sorted = R.map(function (r, i) { return { r: r, i: i }; }).sort(function (x, y) { return ord.indexOf(x.r[0] || "기타") - ord.indexOf(y.r[0] || "기타") || x.i - y.i; }).map(function (x) { return x.r; });
+    var legend = [], k = 1; ord.forEach(function (c) { var n = cnt[c]; legend.push({ c: c, a: k, b: k + n - 1 }); k += n; });
+    var P = np(sorted, points, base); P.forEach(function (p) { p._nbTot = sorted.length; p._nbLegend = legend; }); return P; }; }
+  var o2 = T.render; T.render = function (d) { var h = o2(d); if (!d._nbLegend || !tpRows(d.rows).length) return h;
+    return h.replace(/(<div class="nb-date">[\s\S]*?<\/div>)/, '$1<div class="nb-leg">' + d._nbLegend.map(function (g) { return '<span style="--nbc:' + nbColOf(g.c) + '"><i></i>' + tpE(g.c) + " <b>" + (g.a === g.b ? g.a : g.a + "~" + g.b) + "</b></span>"; }).join("") + "</div>"); };
 })();
 /* 2) 정책대출 한 장 — 조건표(항목|내용) + 만기별 금리표 + 우대 칩 + 가산·비고 */
 TPL.loanOne = { nm: "정책대출 한 장", cat: "loan",

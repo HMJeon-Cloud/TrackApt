@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.98">
+<link rel="stylesheet" href="style.css?v=9.99">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.98</span>
+    <span class="ver">v9.99</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.98"></script>
+<script src="cards.js?v=9.99"></script>
 <script>
 "use strict";
 
@@ -10573,14 +10573,15 @@ TPL.newsBoard = { nm: "오늘의 주요뉴스 보드", cat: "issue",
     var R = tpRows(d.rows).filter(function (r) { return r.join("").trim(); }), off = Number(d._off) || 0, P = tpRows(d.points || []).filter(function (r) { return r.join("").trim(); }).slice(0, 5);
     var items = R.map(function (r, i) { var cat = r[0] || "", col = nbColOf(cat), pts = r.slice(2).filter(Boolean).slice(0, 3);
       return '<div class="nb-it" style="--nbc:' + col + '"><div class="nb-hd"><b class="nb-no">' + (off + i + 1) + '</b><i class="nb-cat">' + tpE(cat) + '</i></div><div class="nb-t">' + tpE(r[1] || "") + "</div>" + (pts.length ? '<ul class="nb-ul">' + pts.map(function (p) { return "<li>" + tpE(p) + "</li>"; }).join("") + "</ul>" : "") + "</div>"; }).join("");
-    var pts = P.length ? '<div class="nb-pts"><b>오늘의 핵심 포인트</b><div class="nb-prow" style="grid-template-columns:repeat(' + P.length + ',1fr)">' + P.map(function (p, i) { return '<div class="nb-pt" style="--nbc:' + NB_COL[i % NB_COL.length] + '"><i>' + tpE(p[0]) + "</i>" + tpE(p[1] || "") + "</div>"; }).join("") + "</div></div>" : "";
+    var pts = P.length ? '<div class="nb-pts' + (R.length ? "" : " only") + '"><b>오늘의 핵심 포인트</b><div class="nb-prow" style="grid-template-columns:repeat(' + P.length + ',1fr)">' + P.map(function (p, i) { return '<div class="nb-pt" style="--nbc:' + NB_COL[i % NB_COL.length] + '"><i>' + tpE(p[0]) + "</i>" + tpE(p[1] || "") + "</div>"; }).join("") + "</div></div>" : "";
     return tpFrame("issue", d, (d.date ? '<div class="nb-date">' + tpE(d.date) + "</div>" : "") + '<div class="nb-grid' + (R.length <= (tpReel() ? 8 : 6) ? " nb-few" : "") + '">' + items + "</div>" + pts, { small: true });
   } };
 if (TPL_ORDER.indexOf("newsBoard") < 0) TPL_ORDER.push("newsBoard");
 function nbPages(rows, points, base) {
   var per = tpReel() ? 12 : 8, b = base || {}, d0 = { noLead: true, src: b.src || nbSrcOf(), date: b.date || nbToday(), title: b.title || "오늘의 부동산 주요뉴스", sub: b.sub || ("핵심만 정리한 " + rows.length + "개 기사로 보는 부동산 시장 흐름"), rows: [], points: [], foot: b.foot || "", _cat: "issue", badge: "오늘의 주요뉴스" };
   var pages = tprPaged(d0, rows, per); if (!pages.length) return pages;
-  pages[pages.length - 1].points = points || [];   /* 포인트 띠는 마지막 장에만 */
+  if (pages.length > 1 && points && points.length) { var pp = tprClone(d0); pp.rows = []; pp.points = points; pp._off = rows.length; pp.badge = (d0.badge || "") + " 포인트"; pp.sub = "오늘 기사 " + rows.length + "건을 관통하는 핵심 " + points.length + "가지"; pages.push(pp); }   /* v9.99 여러 장이면 포인트는 따로 한 장 — 기사 장들의 칸 크기가 같아진다 */
+  else pages[pages.length - 1].points = points || [];   /* 한 장이면 아래 띠로 */
   if (pages.length === 1 && rows.length > per && !tpReel()) pages[0].rows = rows.slice(0, per);   /* 한 장이면 담기는 만큼만(접히는 줄 없이) */
   return pages;
 }
@@ -11051,6 +11052,61 @@ document.addEventListener("click", function (ev) {
   if (typeof buildReel === "function") { var o2 = buildReel; buildReel = function (sec) { o2.apply(this, arguments); var st = sec.querySelector("#rl-studio"); if (st && !document.getElementById("fav-slot-reel")) { var d = document.createElement("div"); d.id = "fav-slot-reel"; d.className = "card fav-card"; sec.insertBefore(d, st); } favPaintAll(); }; }
   if (typeof renderReel === "function") { var o3 = renderReel; renderReel = function () { o3.apply(this, arguments); var st = document.getElementById("rl-studio"); if (st && !document.getElementById("fav-slot-reel")) { var d = document.createElement("div"); d.id = "fav-slot-reel"; d.className = "card fav-card"; st.parentNode.insertBefore(d, st); } favPaintAll(); favPull(); }; }
   if (typeof hubPaint === "function") { var o4 = hubPaint; hubPaint = function () { o4.apply(this, arguments); try { var box = document.getElementById("hub-body"), first = box && box.querySelector(".card.hub-list"); if (box && !document.getElementById("fav-slot-hub")) { var d = document.createElement("div"); d.id = "fav-slot-hub"; if (first) box.insertBefore(d, first); else box.appendChild(d); } favPaintAll(); } catch (e) {} }; }
+})();
+
+/* ══ v9.99 카드 품질 — 뉴스 보드 칸 크기 통일 · 정책대출 한 장(조건표+금리표+우대) · 비교표 4상품 ══ */
+/* 1) 뉴스 보드: 장마다 줄 수를 고정(게시형 4줄×2 = 8칸, 릴스형 6줄×2 = 12칸) — 7건·6건 장의 칸 크기가 달라지지 않게. 글자 크기(nb-few)도 전체 건수로 정한다 */
+(function () {
+  var T = TPL.newsBoard; if (!T) return; var o = T.render;
+  T.render = function (d) { var h = o(d), R = tpRows(d.rows).filter(function (r) { return r.join("").trim(); }), tot = Number(d._nbTot) || Number(d._tot) || R.length, per = tpReel() ? 12 : 8, rowsN = Math.ceil(per / 2), few = tot <= 6;
+    if (!R.length) return h.replace(/<div class="nb-grid( nb-few)?"><\/div>/, "");   /* 포인트만 있는 장 */
+    h = h.replace(/<div class="nb-grid( nb-few)?">/, '<div class="nb-grid' + (few ? " nb-few" : "") + '" style="grid-template-rows:repeat(' + (few && tpReel() ? Math.max(R.length, 1) : rowsN) + ',minmax(0,1fr))">'); return h; };
+  if (typeof nbPages === "function") { var np = nbPages; nbPages = function (rows, points, base) { var P = np(rows, points, base); P.forEach(function (p) { p._nbTot = rows.length; }); return P; }; }
+})();
+/* 2) 정책대출 한 장 — 조건표(항목|내용) + 만기별 금리표 + 우대 칩 + 가산·비고 */
+TPL.loanOne = { nm: "정책대출 한 장", cat: "loan",
+  fields: [["src", "출처·기준", "text", "주택도시기금 2026.11.3 확인"], ["title", "상품", "text", "디딤돌대출"], ["sub", "한 줄", "text", "무주택 · 연 2.85~4.15% · 한도 2억"], ["kv", "조건표(항목 | 내용)", "rows", "대상 | 무주택 세대주\n소득 | 6,000만 이하"], ["rateCols", "금리표 머리(| 구분)", "text", "소득 | 10년 | 15년 | 20년 | 30년"], ["rateRows", "금리표 줄(| 구분)", "rows", "2천만 이하 | 2.85 | 2.95 | 3.05 | 3.10"], ["disc", "우대(구분 | 우대)", "rows", "다자녀 | −0.7%p"], ["extra", "가산·비고(한 줄에 하나)", "lines", ""], ["foot", "맨 아래 메모", "text", ""]],
+  auto: function () { return null; },
+  render: function (d) {
+    var KV = tpRows(d.kv).filter(function (r) { return r.join("").trim(); }), RC = tpRows(d.rateCols)[0] || [], RR = tpRows(d.rateRows).filter(function (r) { return r.join("").trim(); }), DC = tpRows(d.disc).filter(function (r) { return r.join("").trim(); }), EX = tpLines(d.extra);
+    var cell = function (v) { return tpE(v).replace(/ · /g, "<br>"); };
+    var kv = KV.length ? '<table class="lo-kv tp-nofold">' + KV.map(function (r) { return "<tr><th>" + tpE(r[0]) + "</th><td>" + cell(r[1] || "") + "</td></tr>"; }).join("") + "</table>" : "";
+    var rt = RC.length && RR.length ? '<div class="lo-h">만기별 금리 <small>연 % · 우대·가산 전</small></div><table class="lo-rt tp-nofold' + (RR.length > 6 ? " dense" : "") + '"><tr>' + RC.map(function (c, i) { return "<th" + (i ? "" : ' class="l"') + ">" + tpE(c) + "</th>"; }).join("") + "</tr>" + RR.map(function (r) { return "<tr>" + r.map(function (c, i) { return i ? "<td>" + tpE(c) + "</td>" : '<th class="l">' + tpE(c) + "</th>"; }).join("") + "</tr>"; }).join("") + "</table>" : "";
+    var dc = DC.length ? '<div class="lo-h">우대 금리 <small>' + DC.length + "가지</small></div><div class=\"lo-chips" + (DC.some(function (r) { return String(r[0]).length + String(r[1] || "").length > 18; }) ? " wide" : "") + "\">" + DC.map(function (r) { return "<span><b>" + tpE(r[0]) + "</b><em>" + tpE(r[1] || "") + "</em></span>"; }).join("") + "</div>" : "";
+    var ex = EX.length ? '<ul class="lo-ex">' + EX.map(function (t) { return "<li>" + tpE(t) + "</li>"; }).join("") + "</ul>" : "";
+    return tpFrame("loan", d, kv + rt + dc + ex, { small: true });
+  } };
+if (TPL_ORDER.indexOf("loanOne") < 0) TPL_ORDER.push("loanOne");
+function loanKv(p) {
+  if (p.kv && p.kv.length) return p.kv.map(function (r) { return r.slice(0, 2); });
+  var K = [];
+  if (p.who) K.push(["대상", p.who]);
+  K.push(["소득(부부합산)", (p.income ? eok(p.income) + " 이하" : "") + (p.incomeNote ? " · " + p.incomeNote : "")]);
+  K.push(["주택가격", (p.price ? eok(p.price) + " 이하" : "") + (p.priceNote ? " · " + p.priceNote : "")]);
+  K.push(["한도", (p.limit ? eok(p.limit) : "–") + (p.limitNote ? " · " + p.limitNote : "")]);
+  if (p.ltv) K.push(["LTV · DTI", p.ltv]);
+  if (!(p.rateTable && p.rateTable.rows && p.rateTable.rows.length)) K.push(["금리", "연 " + (p.rate || "") + "%"]);
+  if (p.note) K.push(["조건·비고", p.note]);
+  return K;
+}
+function loanOnePage(p, src) {
+  var rt = p.rateTable || {}, kv = loanKv(p), ex = [];
+  if (p.discountNote) ex.push(p.discountNote); (p.surcharge || []).forEach(function (r) { ex.push(r.join(" ")); }); if (p.kvNote) ex.push(p.kvNote); if (rt.note) ex.push(rt.note);
+  return { _tpl: "loanOne", _cat: "loan", src: src, badge: "정책대출 " + p.name, title: p.name, sub: "연 " + (p.rate || "") + "% · 한도 " + (p.limit ? eok(p.limit) : "–") + (p.limitNote ? "(" + p.limitNote.split(" (")[0] + ")" : "") + " · " + (p.who || "").split("(")[0].trim(), kv: kv, rateCols: rt.cols ? [[rt.rowHd || "부부합산 소득"].concat(rt.cols)] : [], rateRows: rt.rows || [], disc: p.discounts || [], extra: ex.slice(0, 3), foot: "" };
+}
+(function () {
+  var R = TPR.loans; if (!R) return;
+  R.tpls = ["compareTable", "loanOne"];
+  R.detail = function () { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, pr = (D.loans && D.loans.manual && D.loans.manual.programs) || []; if (!pr.length) return null; var cover = TPL.compareTable.auto(), out = cover ? [cover] : [], src = "주택도시기금·주택금융공사 " + (D.loans.manual.asOf || "") + " 확인"; pr.slice(0, 6).forEach(function (p) { out.push(loanOnePage(p, src)); }); out.forEach(function (d, i) { if (i) d.badge = "정책대출 " + i + "/" + (out.length - 1); }); return out; };
+  R.hint = "한 장 = 4상품 비교표 · 여러 장 = 비교표 + 상품마다 한 장(조건표·만기별 금리표·우대 칩)";
+  /* 비교표: 상품 4개까지 · 긴 칸은 '·' 마다 줄 나눔 */
+  var C = TPL.compareTable, oa = C.auto, orr = C.render;
+  C.auto = function () { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, pr = (D.loans && D.loans.manual && D.loans.manual.programs) || []; if (!pr.length) return null; var P = pr.slice(0, 4), au = D.loans.auto || {};
+    return { src: "주택도시기금·주택금융공사 " + (D.loans.manual.asOf || "") + " 확인", title: "정책대출 " + P.length + "종 한눈에 비교", cols: P.map(function (p) { return p.name.replace(/\s*디딤돌$/, "").replace("전용 구입자금", ""); }).join(" | "),
+      rows: [["대상"].concat(P.map(function (p) { return (p.who || "").replace(/\(.*?\)/g, "").trim(); })), ["소득(부부합산)"].concat(P.map(function (p) { return (p.income ? eok(p.income) + " 이하" : "") + (p.incomeNote ? " · " + p.incomeNote.replace(/\s*\(.*?\)\s*/g, " ").trim() : ""); })), ["주택가격"].concat(P.map(function (p) { return (p.price ? eok(p.price) + " 이하" : "") + (p.priceNote ? " · " + p.priceNote : ""); })), ["최대 한도"].concat(P.map(function (p) { return (p.limit ? eok(p.limit) : "–") + (p.limitNote ? " · " + p.limitNote.split(" (")[0] : ""); })), ["금리(연)"].concat(P.map(function (p) { return (au[p.name] ? au[p.name].rate : p.rate) + "%"; })), ["LTV · DTI"].concat(P.map(function (p) { return p.ltv || "지역·조건별"; }))], foot: "조건은 자주 바뀜 · 신청 전 기금e든든·주택금융공사에서 재확인" }; };
+  C.render = function (d) { var cols = tpRows(d.cols)[0] || [], R2 = tpRows(d.rows); if (cols.length < 4) return orr(d);
+    var cell = function (v) { var s = tpE(v); var m = s.match(/^(.+?)\s+·\s+(.+)$/); return m ? "<b>" + m[1] + "</b><small>" + m[2].replace(/ · /g, "<br>") + "</small>" : "<b>" + s + "</b>"; };
+    return tpFrame("loan", d, '<table class="tp-cmp n4"><tr><th></th>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R2.map(function (r) { return "<tr><th>" + tpE(r[0]) + "</th>" + cols.map(function (_, i) { return "<td>" + cell(r[i + 1] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>", { small: true }); };
 })();
 
 /* ══ 시작 탭 ══════════════════════════════════ */

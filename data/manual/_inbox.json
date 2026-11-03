@@ -1,51 +1,51 @@
 {
  "v": 1,
- "builtAt": "2026-11-02T04:46:38.735Z",
- "asOf": 20261102,
+ "builtAt": "2026-11-03T00:31:49.664Z",
+ "asOf": 20261103,
  "items": [
   {
    "kind": "loan",
+   "date": "2026-11-03",
+   "title": "주금공, 9일부터 보금자리론 금리 0.1%p 인상…최저 연 4.0%",
+   "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTFAtZjgtUlpYTmlnb1BZVk5qZEVvTTM0VXlkVW96QkhxZmNLbDBRbS1KYWR6NWs4VG1JaW1aRnZVX0o3bVlhUjRnTDJ4WFJkelc2RndCS0cwVGQ0cWpORlUySmdwT1hlMm1Jb3Qw0gFvQVVfeXFMTWRvazJlWUpEb2xlV1FlVF9qQUVMWmI2VjFsWWxpdVFrQnc1SF9WbkhzQUViellnSHZiLTBBNmV6bWw2SUNRS1dJeE1wbEdPWHp3ZHNwZC1OYkdIVDBhUGJoT3lPMF9pcWZxcDFzV2pv?oc=5",
+   "src": "한국아이닷컴",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-03",
+   "isNew": true
+  },
+  {
+   "kind": "loan",
    "date": "2026-11-02",
-   "title": "김경환號 주금공, 청년 전세보증·보금자리론 지원 확대…디지털 혁신·외화조달 강화 [금융공기업 이슈]",
-   "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1Xcy14RkQtVDctTm9LLVdRdl9JaXdnakpmMU8xV09rckhSZmZza3pfcVI5UkNvR1lJQ1NNQzd5Y3FXZGdZaTFJY1FFSDFzUVQtYXZWa1g0VVNhU1N4UmJaTTNLdzcyMHNyb1VPQjM1bExYNG5kS3hYZ0trcW8?oc=5",
-   "src": "금융신문",
+   "title": "보금자리론 10년 만기 금리 연 5%대 돌파",
+   "url": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE9DTDluaDVPR0trQ1YyU21HQmNQeE03SjBwXzNsdjRkZUYyMmMwZ0s2a2ZrTEs1WG9wcVZORlZFb2ZTRllUOFlYYjhsX0VIVzhaVWRnb3N0NFZMZw?oc=5",
+   "src": "한국경제",
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-02",
-   "isNew": false
+   "firstSeen": "2026-11-03",
+   "isNew": true
   },
   {
    "kind": "loan",
-   "date": "2026-10-30",
-   "title": "‘보금자리론까지⋯’ 주담대 고정금리 5% 넘었다",
-   "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE14Q2xGRkUwZ2RLeFBMWUFHYjRFdXJKNlV0cmtGWHY5VTN1MnVRSnFBRGlyLUNmaEVIbGlLREdtdTdVbDJlZlhUam9qaUgwenpxb3ZxN1dtbVk?oc=5",
-   "src": "국민일보",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-10-30",
-   "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-10-29",
-   "title": "주담대 고정금리 사상 첫 5% 돌파, 보금자리론도 이미 5% 넘었어 — 대출자·예금자 영향 총정리 🏠📈",
-   "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTFBhZ09xVm1NaVJEcUtTU1BEU3hKRUtnNTQydEp5Sk5RTmx3SGdveTY2aU96OU5JaU1HcGtYQm02WkVRdklEQzlpc2dxZEpvUTRuY2dR?oc=5",
+   "date": "2026-11-02",
+   "title": "보금자리론 금리 올해만 여섯 번째 인상, 11월 9일부터 연 5.0~5.3%로 오르는 이유는? 🏠📈",
+   "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTE82bVloc0t0WnJtb0FjdGI1V3NRbE1GVkVKTVMtY1g0Vy11MFF6SjFnLVFNbmo4Y0VYVjNHN1hFQ2VzeVotbGZ5ZXVIWGZtU2FzRi1V?oc=5",
    "src": "뉴닉",
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-02",
-   "isNew": false
+   "firstSeen": "2026-11-03",
+   "isNew": true
   },
   {
    "kind": "loan",
-   "date": "2026-10-29",
-   "title": "보금자리론 금리 5% 진입, 주담대 상단 7% 위협⋯예금자 웃고 대출자 운다",
-   "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTFB3NldZZk1Za24wYk8xbjVqSGdGLTNiMjJ5NFpPMFlvcTJkd2ZHZ2lpTDV6MURETC05YWJxU2ZReDh4VmVoUVNUV1c3UDJzUDE2dnV4czRPdl8?oc=5",
-   "src": "국민일보",
+   "date": "2026-11-02",
+   "title": "보금자리론 금리 0.10%p 인상… 11월 9일부터 적용",
+   "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNbGJDZ3RGNGg5UnZKZXV0ZUVhVDZXU2xEQng2ZERQRzBUY045Vnh3c1hPNkdTems4TXRnUVl4VkRUY1BYczVJa0ZsakNTZ1pudGF0c1VDT3BkMXg3SGVqd20wQ0lmdlRvUG5tX0tMRmxjZUxUVEFIN3NsUEhnUDlaWDln?oc=5",
+   "src": "아시아경제",
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-10-30",
-   "isNew": false
+   "firstSeen": "2026-11-03",
+   "isNew": true
   }
  ]
 }

@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.96">
+<link rel="stylesheet" href="style.css?v=9.97">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.96</span>
+    <span class="ver">v9.97</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.96"></script>
+<script src="cards.js?v=9.97"></script>
 <script>
 "use strict";
 
@@ -10998,6 +10998,54 @@ vxText = function () { var rows = vx2AssetRows(), V = vx2Vars(), C = vxCore(), L
 document.addEventListener("click", function (ev) { var b = ev.target && ev.target.closest && ev.target.closest("[data-vx]"); if (!b) return; var k = b.dataset.vx; if (k === "introoff") { try { localStorage.setItem("trackapt_vx_intro", "1"); } catch (e) {} vxPaint(); } if (k === "raw") { var r = document.querySelector("#vx-s6 .vx-raw"); if (r) r.hidden = !r.hidden; } });
 /* 넓은 화면 */
 (function () { if (typeof studioBar !== "function") return; var o = studioBar; studioBar = function (id) { o.apply(this, arguments); if (id === "value") document.body.classList.add("stu-wide"); }; })();
+
+/* ══ v9.97 즐겨찾기 — 카드 만들기(주제+모양+조건)와 릴스 카드(재료+주제+목적+요청+AI 범위)를 저장해 '오늘 할 일'보다 위에, 더 크게 ══
+   저장: 이 기기(localStorage) + 보관함 서버(주인 토큰이 있으면 kind insight · type fav 한 건으로 PC·휴대폰 공통). */
+var FAV = { items: null, srvId: null, tm: null, msg: "" }, FAV_LS = "trackapt_fav_v1";
+function favLoad() { if (FAV.items) return FAV.items; try { var o = JSON.parse(localStorage.getItem(FAV_LS) || "null"); FAV.items = (o && o.items) || []; FAV.at = (o && o.at) || 0; } catch (e) { FAV.items = []; FAV.at = 0; } return FAV.items; }
+function favStore() { FAV.at = Date.now(); try { localStorage.setItem(FAV_LS, JSON.stringify({ items: FAV.items, at: FAV.at })); } catch (e) {} favPush(); favPaintAll(); }
+function favPush() { if (typeof asApi !== "function" || typeof asTok !== "function" || !asTok()) return; clearTimeout(FAV.tm); FAV.tm = setTimeout(function () { var d = { type: "fav", at: FAV.at, items: FAV.items }; var go = function () { if (FAV.srvId) return asApi("update", { id: FAV.srvId, patch: { data: d, name: "즐겨찾기 " + FAV.items.length + "개" } }); return asApi("add", { item: { kind: "insight", type: "fav", name: "즐겨찾기 " + FAV.items.length + "개", tags: ["즐겨찾기"], data: d } }).then(function (j) { if (j && j.item) FAV.srvId = j.item.id; }); }; go().then(function () { FAV.msg = "서버 저장 · PC·휴대폰 공통"; favPaintAll(); }, function (e) { FAV.msg = "이 기기에만 저장(" + e.message + ")"; favPaintAll(); }); }, 800); }
+function favPull() { if (typeof asApi !== "function" || typeof asTok !== "function" || !asTok() || FAV.pulled) return; FAV.pulled = 1; asApi("list").then(function (j) { var it = (j.items || []).filter(function (x) { return x.kind === "insight" && x.data && x.data.type === "fav"; }).sort(function (a, b) { return (b.data.at || 0) - (a.data.at || 0); })[0]; if (!it) return; FAV.srvId = it.id; favLoad(); if ((it.data.at || 0) > (FAV.at || 0)) { FAV.items = it.data.items || []; FAV.at = it.data.at; try { localStorage.setItem(FAV_LS, JSON.stringify({ items: FAV.items, at: FAV.at })); } catch (e) {} FAV.msg = "서버 것 불러옴"; favPaintAll(); } }, function () {}); }
+function favE(s) { return escHtml(String(s == null ? "" : s)); }
+function favOf(kind) { return favLoad().filter(function (f) { return f.kind === kind; }); }
+/* 카드 만들기 — 지금 상태를 한 줄로 */
+function favTplSummary(t) { var R = TPR[t.r] || {}, T = TPL[t.id] || {}, o = t.o || {}, L = []; if (o.scope && typeof tprScopeNm === "function") L.push(tprScopeNm(o.scope)); if (o.band) L.push(o.band === "all" ? "전 면적" : o.band + "㎡"); if (o.wk) L.push({ this: "이번 주", next: "다음 주" }[o.wk] || o.wk); L.push(o.size === "one" ? "한 장" : "여러 장"); L.push(o.ratio === "reel" ? "릴스형 9:16" : "게시형 4:5"); if (T.nm) L.push(T.nm); return { nm: R.nm || t.r, sub: L.join(" · ") }; }
+function favTplNow() { var o = {}; for (var k in TP.o) o[k] = TP.o[k]; return { r: TP.r, id: TP.id, o: o, draw: TP.draw || "ours" }; }
+function favAddTpl() { var t = favTplNow(), s = favTplSummary(t), nm = prompt("즐겨찾기 이름", s.nm + " · " + (TPL[t.id] ? TPL[t.id].nm : "")); if (nm === null) return; favLoad(); FAV.items.unshift({ id: Date.now(), kind: "tpl", nm: nm || s.nm, at: Date.now(), tpl: t }); FAV.msg = "즐겨찾기에 넣었습니다"; favStore(); }
+function favApplyTpl(f) { var t = f.tpl; if (!t || !TPR[t.r]) { FAV.msg = "이 주제(" + (t && t.r) + ")가 지금 버전에 없습니다"; favPaintAll(); return; } TP.r = t.r; TP.id = TPL[t.id] ? t.id : (TPR[t.r].tpls ? TPR[t.r].tpls[0] : TP.id); for (var k in t.o) TP.o[k] = t.o[k]; if (t.draw) TP.draw = t.draw; tprRebuild(); var s3 = document.getElementById("tpx-s3"); if (s3) setTimeout(function () { s3.scrollIntoView({ behavior: "smooth", block: "start" }); }, 150); }
+/* 릴스 카드 */
+function favReelNow() { var c = RC.cur || {}, h = RC.host; var picks = h ? Array.prototype.filter.call(h.querySelectorAll("[data-src]"), function (x) { return x.checked; }).map(function (x) { return x.dataset.src; }) : (c.picks || []); var g = function (id) { var el = h && h.querySelector("#" + id); return el ? el.value : ""; }; return { topic: g("rc-topic") || c.topic || "", purpose: g("rc-purpose") || c.purpose || "", note: g("rc-note") || c.note || "", extra: g("rc-extra") || c.extra || "", mode: c.mode || "ours", picks: picks }; }
+function favReelSummary(r) { var L = []; (r.picks || []).forEach(function (p) { var m = p.split(":"); if (m[0] === "tpr" && TPR[m[1]]) L.push(TPR[m[1]].nm); else if (m[0] === "brief") L.push("지금 시장 " + m[1]); else if (m[0] === "ch") L.push((typeof CH_TAB_SHORT !== "undefined" && CH_TAB_SHORT[m[1]]) || m[1]); }); return { nm: r.topic || (L[0] || "릴스 카드"), sub: (L.length ? "재료 " + L.slice(0, 3).join("·") + (L.length > 3 ? " 외 " + (L.length - 3) : "") + " · " : "") + ({ ours: "우리 양식", exact: "배경만 AI", ai: "전부 AI" }[r.mode] || "") + (r.purpose ? " · " + r.purpose : "") }; }
+function favAddReel() { var r = favReelNow(), s = favReelSummary(r); if (!r.picks.length && !r.topic) { FAV.msg = "재료나 주제를 먼저 고르세요"; favPaintAll(); return; } var nm = prompt("즐겨찾기 이름", s.nm); if (nm === null) return; favLoad(); FAV.items.unshift({ id: Date.now(), kind: "reel", nm: nm || s.nm, at: Date.now(), reel: r }); FAV.msg = "즐겨찾기에 넣었습니다"; favStore(); }
+function favApplyReel(f) { var r = f.reel, st = document.getElementById("rl-studio"); if (!st) return; rcOpen({ topic: r.topic, facts: [], basis: "", host: st, picker: true, note: r.note, mode: r.mode, purpose: r.purpose, extra: r.extra }); RC.cur.picks = (r.picks || []).slice(); rcPaint(); if (RC.cur.picks.length && typeof rcPickRefresh === "function") { rcPickRefresh(); var c0 = RC.cur, n = 0, w = setInterval(function () { if (!c0.picking || ++n > 60) { clearInterval(w); if (RC.cur === c0 && r.topic) { c0.topic = r.topic; c0.note = r.note || c0.note; rcPaint(); } } }, 250); } st.scrollIntoView({ behavior: "smooth", block: "start" }); }
+/* 그리기 — 공통 상자 */
+function favBoxHtml(kind, opts) { opts = opts || {}; var L = favOf(kind), add = kind === "tpl" ? '<button type="button" class="btn sm" data-favadd="tpl" title="지금 고른 주제·모양·조건을 저장">☆ 지금 구성 즐겨찾기</button>' : '<button type="button" class="btn sm" data-favadd="reel" title="지금 고른 재료·주제·요청·AI 범위를 저장">☆ 지금 구성 즐겨찾기</button>';
+  return '<div class="fav-box' + (L.length ? "" : " empty") + '" data-favkind="' + kind + '"><div class="fav-hd"><b>★ 즐겨찾기</b><small class="hint">' + (L.length ? L.length + "개 · 누르면 바로 그 구성으로" : "자주 쓰는 구성을 저장해 두세요 — 오늘 할 일보다 위에 둡니다") + "</small>" + (opts.noAdd ? "" : add) + '<span class="hint fav-msg">' + favE(FAV.msg) + "</span></div>" +
+    (L.length ? '<div class="fav-list">' + L.map(function (f, i) { var s = f.kind === "tpl" ? favTplSummary(f.tpl) : favReelSummary(f.reel); return '<div class="fav-it"><button type="button" class="fav-go" data-favgo="' + f.id + '"><b>' + favE(f.nm) + "</b><small>" + favE(s.sub) + '</small></button><span class="fav-ops"><button type="button" data-favup="' + f.id + '" title="위로">↑</button><button type="button" data-favren="' + f.id + '" title="이름 바꾸기">✎</button><button type="button" data-favdel="' + f.id + '" title="지우기">✕</button></span></div>'; }).join("") + "</div>" : "") + "</div>"; }
+function favPaintAll() {
+  var slot = document.getElementById("fav-slot-tpl"); if (slot) slot.innerHTML = favBoxHtml("tpl");
+  var rs = document.getElementById("fav-slot-reel"); if (rs) rs.innerHTML = favBoxHtml("reel");
+  var hs = document.getElementById("fav-slot-hub"); if (hs) hs.innerHTML = favHubHtml();
+}
+function favHubHtml() { var L = favLoad(); if (!L.length) return ""; return '<div class="fav-box hub"><div class="fav-hd"><b>★ 즐겨찾기</b><small class="hint">가장 먼저 만들 것 — 카드 만들기·릴스 카드에서 저장한 구성</small></div><div class="fav-list">' + L.map(function (f) { var s = f.kind === "tpl" ? favTplSummary(f.tpl) : favReelSummary(f.reel); return '<div class="fav-it"><button type="button" class="fav-go" data-favgo="' + f.id + '"><em>' + (f.kind === "tpl" ? "카드" : "릴스") + "</em><b>" + favE(f.nm) + "</b><small>" + favE(s.sub) + "</small></button></div>"; }).join("") + "</div></div>"; }
+function favGo(id) { var f = favLoad().filter(function (x) { return String(x.id) === String(id); })[0]; if (!f) return; var cur = (document.querySelector("section.tab.on") || {}).id || "";
+  if (f.kind === "tpl") { if (cur !== "tab-tpl") { showTab("tpl"); window.scrollTo(0, 0); setTimeout(function () { favApplyTpl(f); }, 350); } else favApplyTpl(f); }
+  else { if (cur !== "tab-reel") { showTab("reel"); window.scrollTo(0, 0); setTimeout(function () { favApplyReel(f); }, 350); } else favApplyReel(f); } }
+document.addEventListener("click", function (ev) {
+  var t = ev.target; if (!t || !t.closest) return; var b;
+  if ((b = t.closest("[data-favadd]"))) { if (b.dataset.favadd === "tpl") favAddTpl(); else favAddReel(); return; }
+  if ((b = t.closest("[data-favgo]"))) { favGo(b.dataset.favgo); return; }
+  if ((b = t.closest("[data-favdel]"))) { var f = favLoad().filter(function (x) { return String(x.id) === b.dataset.favdel; })[0]; if (f && confirm("'" + f.nm + "' 즐겨찾기를 지울까요?")) { FAV.items = FAV.items.filter(function (x) { return x !== f; }); FAV.msg = "지웠습니다"; favStore(); } return; }
+  if ((b = t.closest("[data-favren]"))) { var f2 = favLoad().filter(function (x) { return String(x.id) === b.dataset.favren; })[0]; if (!f2) return; var nm = prompt("이름", f2.nm); if (nm === null || !nm.trim()) return; f2.nm = nm.trim(); favStore(); return; }
+  if ((b = t.closest("[data-favup]"))) { var L = favLoad(), i = -1; L.forEach(function (x, k) { if (String(x.id) === b.dataset.favup) i = k; }); if (i > 0) { var x = L.splice(i, 1)[0]; L.splice(i - 1, 0, x); favStore(); } return; }
+});
+/* 끼워 넣기 — 카드 만들기 ① 위(오늘 할 일 위) · 릴스 스튜디오 위 · 오늘 작업 맨 위 */
+(function () {
+  if (typeof tdMount === "function") { var o = tdMount; tdMount = function (sec) { o.apply(this, arguments); var slot = sec.querySelector("#td-slot"); if (slot && !document.getElementById("fav-slot-tpl")) { var d = document.createElement("div"); d.id = "fav-slot-tpl"; slot.insertBefore(d, slot.firstChild); } favPaintAll(); favPull(); }; }
+  if (typeof buildReel === "function") { var o2 = buildReel; buildReel = function (sec) { o2.apply(this, arguments); var st = sec.querySelector("#rl-studio"); if (st && !document.getElementById("fav-slot-reel")) { var d = document.createElement("div"); d.id = "fav-slot-reel"; d.className = "card fav-card"; sec.insertBefore(d, st); } favPaintAll(); }; }
+  if (typeof renderReel === "function") { var o3 = renderReel; renderReel = function () { o3.apply(this, arguments); var st = document.getElementById("rl-studio"); if (st && !document.getElementById("fav-slot-reel")) { var d = document.createElement("div"); d.id = "fav-slot-reel"; d.className = "card fav-card"; st.parentNode.insertBefore(d, st); } favPaintAll(); favPull(); }; }
+  if (typeof hubPaint === "function") { var o4 = hubPaint; hubPaint = function () { o4.apply(this, arguments); try { var box = document.getElementById("hub-body"), first = box && box.querySelector(".card.hub-list"); if (box && !document.getElementById("fav-slot-hub")) { var d = document.createElement("div"); d.id = "fav-slot-hub"; if (first) box.insertBefore(d, first); else box.appendChild(d); } favPaintAll(); } catch (e) {} }; }
+})();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

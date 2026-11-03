@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.93">
+<link rel="stylesheet" href="style.css?v=9.94">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.93</span>
+    <span class="ver">v9.94</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.93"></script>
+<script src="cards.js?v=9.94"></script>
 <script>
 "use strict";
 
@@ -6719,8 +6719,8 @@ function tpFit(root) {
       Array.prototype.forEach.call(c.querySelectorAll("[data-cut]"), function (x) { x.style.display = ""; x.removeAttribute("data-cut"); });   /* 앞 회차 맞춤 흔적 지우고 다시 잰다 */
       Array.prototype.forEach.call(c.querySelectorAll(".tp-body table, .tp-body tr"), function (x) { x.style.height = ""; }); Array.prototype.forEach.call(body.children, function (x) { x.style.minHeight = ""; }); Array.prototype.forEach.call(body.querySelectorAll(".tp-grid"), function (g) { var m = (String(g.style.gridTemplateRows || "").match(/repeat\((\d+)/) || [])[1]; if (m) g.style.gridTemplateRows = "repeat(" + m + ",minmax(0,1fr))"; g.style.flex = ""; g.style.alignContent = ""; });
       Array.prototype.forEach.call(c.querySelectorAll(".tp-li, .tp-bar, .tp-tli, .tp-ldr, .tp-cell, .tp-pins li"), function (x) { x.style.paddingTop = x.style.paddingBottom = ""; });
-      var over = function () { var bb = body.getBoundingClientRect().bottom, m = -1e9;   /* v9.31: 0 으로 두면 화면을 내려 둔 상태(측정용 복제본 좌표가 음수)에서 늘 '넘침'으로 판단해 줄을 접었다 */ Array.prototype.forEach.call(body.querySelectorAll("tr, li, .tp-li, .tp-bar, .tp-cell, .tp-tli, p"), function (x) { if (x.style.display !== "none") m = Math.max(m, x.getBoundingClientRect().bottom); }); return m > bb + 0.5 || body.scrollHeight > body.clientHeight + 1; };
-      var more = c.classList.contains("tp-more"), rows = Array.prototype.slice.call(body.querySelectorAll("table:not(.tp-cal):not(.tp-nofold) tr:not(:first-child), .tp-li, .tp-bar, .tp-tli, .tp-pins li, .tp-ldr")), cut = 0, nRows = rows.length;
+      var over = function () { var bb = body.getBoundingClientRect().bottom, m = -1e9;   /* v9.31: 0 으로 두면 화면을 내려 둔 상태(측정용 복제본 좌표가 음수)에서 늘 '넘침'으로 판단해 줄을 접었다 */ Array.prototype.forEach.call(body.querySelectorAll("tr, li, .tp-li, .tp-bar, .tp-cell, .tp-tli, .nb-it, .nb-pts, p"), function (x) { if (x.style.display !== "none") m = Math.max(m, x.getBoundingClientRect().bottom); }); return m > bb + 0.5 || body.scrollHeight > body.clientHeight + 1; };
+      var more = c.classList.contains("tp-more"), rows = Array.prototype.slice.call(body.querySelectorAll("table:not(.tp-cal):not(.tp-nofold) tr:not(:first-child), .tp-li, .tp-bar, .tp-tli, .tp-pins li, .tp-ldr, .nb-it")), cut = 0, nRows = rows.length;
       /* v9.57 줄을 더 담은 장(릴스 한 장)은 글자를 줄이기 전에 넘치는 줄부터 접는다 — 남는 줄 3개 밑으로는 접지 않고 그때만 글자를 줄인다 */
       if (more) while (over() && rows.length > 3) { var r0 = rows.pop(); r0.style.display = "none"; r0.setAttribute("data-cut", "1"); cut++; }
       /* 격자 칸(순위 격자)은 한 줄(열 수만큼)씩 통째로 접는다 — 마지막 줄이 비지 않게 · 2줄 밑으로는 접지 않음 */
@@ -10548,6 +10548,88 @@ TDP.model = "Fable 5.1";
 })();
 /* 오늘 자료 칩에 '직접' 표시 */
 (function () { if (typeof tdAiNote !== "function") return; var o = tdAiNote; tdAiNote = function () { var s = o(); var A = tdAiGet(); return A && A.manual ? s.replace("오늘 자료 ", "오늘 자료(직접 모음) ") : s; }; })();
+
+/* ══ v9.94 오늘의 주요뉴스 보드 — 기사 여러 건을 한 장에(번호 · 분류 · 제목 · 요점 3줄 · 아래 핵심 포인트) ══
+   재료: ① 오늘 자료(TD.ai.issues — Claude 가 모은 이슈 + 요점) ② 없으면 앱이 모은 기사 제목(CH.data.news / MACRO policy.news)
+   ③ [프롬프트 복사] → Claude 답을 [붙여넣기] 하면 줄·포인트가 그대로 들어간다(요점은 기사에서 읽은 것만 — 앱은 숫자를 만들지 않는다). */
+var NB_CATS = ["정책·행정", "시장 동향", "분양·신축", "금리·대출", "청약", "정비사업", "교통 인프라", "전세시장", "경매", "산업·입지", "세제", "서울시 정책", "공급", "행사·정보"];
+var NB_COL = ["#be123c", "#1d4ed8", "#0f766e", "#6d28d9", "#b45309", "#0369a1", "#9f1239", "#047857", "#7c2d12", "#374151"];
+function nbCatOf(t) { t = String(t || ""); var M = [[/금리|대출|주담대|DSR|LTV|디딤돌|보금자리|은행/, "금리·대출"], [/청약|당첨|경쟁률|무순위|특공/, "청약"], [/전세|전셋|월세|임대차|보증금/, "전세시장"], [/경매|낙찰/, "경매"], [/재건축|재개발|정비사업|조합|공사비|시공사/, "정비사업"], [/GTX|지하철|철도|고속도로|개통|착공|노선/, "교통 인프라"], [/분양가|분양|신축|입주/, "분양·신축"], [/세금|세제|양도세|취득세|종부세|보유세/, "세제"], [/서울시|오세훈/, "서울시 정책"], [/공급|택지|공공주택/, "공급"], [/국토부|정부|대책|규제|법안|국회|정책|허가/, "정책·행정"], [/공장|산단|입지|일자리/, "산업·입지"], [/박람회|세미나|설명회|행사/, "행사·정보"]]; for (var i = 0; i < M.length; i++) if (M[i][0].test(t)) return M[i][1]; return "시장 동향"; }
+function nbColOf(cat) { var i = NB_CATS.indexOf(cat); if (i < 0) { i = 0; for (var k = 0; k < String(cat).length; k++) i += String(cat).charCodeAt(k); } return NB_COL[i % NB_COL.length]; }
+function nbToday() { var k = chKstDate(); return k.y + "년 " + k.m + "월 " + k.d + "일 (" + ["일", "월", "화", "수", "목", "금", "토"][k.w] + ")"; }
+function nbNewsDate(d) { try { if (typeof cdNewsDate === "function") return cdNewsDate(d); } catch (e) {} return String(d || "").slice(0, 10); }
+/* 재료 줄: [분류, 제목, 요점…] */
+function nbAutoRows() {
+  var A = typeof tdAiGet === "function" ? tdAiGet() : null, R = [];
+  if (A && (A.issues || []).length) A.issues.forEach(function (x) { var pts = (x.points || []).slice(0, 3); if (!pts.length && x.why) pts = [x.why]; pts.push((x.src || "") + (x.date ? " · " + x.date : "")); var c1 = nbCatOf(x.title); if (c1 === "시장 동향") c1 = nbCatOf(pts.join(" ")); R.push([c1, x.title].concat(pts.filter(Boolean).slice(0, 3))); });
+  if (!R.length) { var N = ((typeof CH !== "undefined" && CH.data && CH.data.news && CH.data.news.items) || []).slice(); if (!N.length) { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}; N = ((D.policy && D.policy.news) || []).concat((D.loans && D.loans.news) || [], (D.transit && D.transit.news) || []); } N.slice(0, 13).forEach(function (n) { R.push([nbCatOf(n.t), n.t, (n.s || "") + (n.d ? " · " + nbNewsDate(n.d) : "")]); }); }
+  return R;
+}
+function nbSrcOf() { var A = typeof tdAiGet === "function" ? tdAiGet() : null; return (A && (A.issues || []).length ? "오늘 자료(Claude 정리) · 기사 원문 기준" : "구글 뉴스 검색 제목 · 내용은 원문 확인") + " · " + nbToday(); }
+TPL.newsBoard = { nm: "오늘의 주요뉴스 보드", cat: "issue",
+  fields: [["src", "출처·기준", "text", "기사 13건 · 2026.11.3"], ["date", "날짜 띠", "text", "2026년 11월 3일 (화)"], ["title", "제목", "text", "오늘의 부동산 주요뉴스"], ["sub", "부제", "text", "핵심만 정리한 13개 기사로 보는 부동산 시장 흐름"], ["rows", "기사 줄(분류 | 제목 | 요점1 | 요점2 | 요점3)", "rows", "정책·행정 | 공장 인허가 요건 스마트폰으로 확인 | 국토부 모바일 서비스 도입 | 입지·규제 한눈에 | 기업 투자 검토 시간 절감"], ["points", "오늘의 핵심 포인트(라벨 | 한 줄)", "rows", "전셋값 상승 전망 | 전문가 10인 전원 상승 전망"], ["foot", "맨 아래 메모", "text", ""]],
+  auto: function () { var R = nbAutoRows(); if (!R.length) return null; return { src: nbSrcOf(), date: nbToday(), title: "오늘의 부동산 주요뉴스", sub: "핵심만 정리한 " + R.length + "개 기사로 보는 부동산 시장 흐름", rows: R.slice(0, tpReel() ? 12 : 8), points: [], foot: "", noLead: true }; },
+  render: function (d) {
+    var R = tpRows(d.rows).filter(function (r) { return r.join("").trim(); }), off = Number(d._off) || 0, P = tpRows(d.points || []).filter(function (r) { return r.join("").trim(); }).slice(0, 5);
+    var items = R.map(function (r, i) { var cat = r[0] || "", col = nbColOf(cat), pts = r.slice(2).filter(Boolean).slice(0, 3);
+      return '<div class="nb-it" style="--nbc:' + col + '"><div class="nb-hd"><b class="nb-no">' + (off + i + 1) + '</b><i class="nb-cat">' + tpE(cat) + '</i></div><div class="nb-t">' + tpE(r[1] || "") + "</div>" + (pts.length ? '<ul class="nb-ul">' + pts.map(function (p) { return "<li>" + tpE(p) + "</li>"; }).join("") + "</ul>" : "") + "</div>"; }).join("");
+    var pts = P.length ? '<div class="nb-pts"><b>오늘의 핵심 포인트</b><div class="nb-prow" style="grid-template-columns:repeat(' + P.length + ',1fr)">' + P.map(function (p, i) { return '<div class="nb-pt" style="--nbc:' + NB_COL[i % NB_COL.length] + '"><i>' + tpE(p[0]) + "</i>" + tpE(p[1] || "") + "</div>"; }).join("") + "</div></div>" : "";
+    return tpFrame("issue", d, (d.date ? '<div class="nb-date">' + tpE(d.date) + "</div>" : "") + '<div class="nb-grid' + (R.length <= (tpReel() ? 8 : 6) ? " nb-few" : "") + '">' + items + "</div>" + pts, { small: true });
+  } };
+if (TPL_ORDER.indexOf("newsBoard") < 0) TPL_ORDER.push("newsBoard");
+function nbPages(rows, points, base) {
+  var per = tpReel() ? 12 : 8, b = base || {}, d0 = { noLead: true, src: b.src || nbSrcOf(), date: b.date || nbToday(), title: b.title || "오늘의 부동산 주요뉴스", sub: b.sub || ("핵심만 정리한 " + rows.length + "개 기사로 보는 부동산 시장 흐름"), rows: [], points: [], foot: b.foot || "", _cat: "issue", badge: "오늘의 주요뉴스" };
+  var pages = tprPaged(d0, rows, per); if (!pages.length) return pages;
+  pages[pages.length - 1].points = points || [];   /* 포인트 띠는 마지막 장에만 */
+  if (pages.length === 1 && rows.length > per && !tpReel()) pages[0].rows = rows.slice(0, per);   /* 한 장이면 담기는 만큼만(접히는 줄 없이) */
+  return pages;
+}
+TPR.newsBoard = { nm: "오늘의 주요뉴스 보드", grp: "이슈 한 장씩", opts: [], tpls: ["newsBoard"], per: 8, noX: 1,
+  hint: "기사 여러 건을 한 장에 — 번호·분류·제목·요점 3줄 + 아래 핵심 포인트. 한 장 = 8건(릴스 12건), 여러 장 = 전부. 요점은 오늘 자료(Claude 정리)에서, 없으면 제목·출처만. [프롬프트 복사] → Claude 답을 [붙여넣기] 하면 13건이 그대로 들어감",
+  build: function () { var R = nbAutoRows(); if (!R.length) return []; return nbPages(R, [], null); } };
+if (TPR_ORDER.indexOf("newsBoard") < 0) TPR_ORDER.splice(Math.max(0, TPR_ORDER.indexOf("newsIssue")), 0, "newsBoard");
+/* 오늘 올릴 것 후보 — 오늘 자료 이슈가 4건 이상이면 보드 한 장을 권한다 */
+(function () { if (typeof tdCandidates !== "function") return; var o = tdCandidates; tdCandidates = function () { var C = o(); try { var A = tdAiGet(); if (A && (A.issues || []).length >= 4 && !C.some(function (c) { return c.r === "newsBoard"; })) C.push({ sc: 86, r: "newsBoard", why: "오늘 이슈 " + A.issues.length + "건 — 한 장에 번호·분류·요점으로 정리(주요뉴스 보드)", o: {} }); } catch (e) {} return C; }; })();
+/* 프롬프트 — 기사 13건을 보드 줄 형식으로 */
+function nbPrompt() {
+  var L = [], A = typeof tdAiGet === "function" ? tdAiGet() : null, N = ((typeof CH !== "undefined" && CH.data && CH.data.news && CH.data.news.items) || []).slice(0, 30);
+  if (!N.length) { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}; N = ((D.policy && D.policy.news) || []).concat((D.loans && D.loans.news) || [], (D.transit && D.transit.news) || []).slice(0, 30); }
+  L.push("당신은 부동산 데이터 SNS 채널 '우상향연구소'의 뉴스 편집자입니다. 오늘(" + nbToday() + ") 기준 최근 24시간 한국 부동산 주요 기사를 웹에서 확인해 '오늘의 부동산 주요뉴스' 한 장(13건)으로 정리합니다.");
+  L.push(""); L.push("[고르는 기준] 정책·규제 발표, 대출·금리, 분양·청약, 정비사업·공사비, 교통, 전세·경매, 시장 통계(거래량·가격), 서울시·국토부 행정, 산업·입지, 행사. 같은 사건은 1건으로. 광고성·종목 추천성 기사 제외. 전국지·경제지·공공기관 발표 우선.");
+  L.push("[분류 이름은 이 중에서] " + NB_CATS.join(", "));
+  if (A && (A.issues || []).length) { L.push(""); L.push("[오늘 이미 모은 이슈 — 겹치면 이쪽 숫자를 그대로]"); A.issues.slice(0, 15).forEach(function (x, i) { L.push((i + 1) + ". " + x.title + (x.src ? " (" + x.src + (x.date ? " " + x.date : "") + ")" : "") + ((x.points || []).length ? " — " + x.points.slice(0, 2).join(" / ") : "")); }); }
+  if (N.length) { L.push(""); L.push("[앱이 모은 기사 제목 — 참고]"); N.forEach(function (n) { L.push("- " + String(n.t || "").slice(0, 120) + " (" + (n.s || "") + " " + nbNewsDate(n.d) + ")"); }); }
+  L.push(""); L.push("[출력 형식 — 이 형식 그대로, 다른 말 없이]");
+  L.push("[기사]"); L.push("분류 | 제목(26자 안) | 요점1 | 요점2 | 요점3"); L.push("(13줄 — 한 줄에 기사 1건, 칸은 세로줄 | 로 구분, 요점은 각 22자 안, 숫자·날짜는 기사 원문 그대로)");
+  L.push("[포인트]"); L.push("라벨(10자 안) | 한 줄(30자 안)"); L.push("(5줄 — 오늘 기사 13건을 관통하는 핵심 5가지)");
+  L.push(""); L.push("[규칙] 1. 기사에 없는 숫자·단정 금지, 모르면 비움. 2. 특정 단지·종목 추천, 매수·매도 권유, '무조건' 같은 말 금지. 3. 이모지 금지, 한국어. 4. 제목은 기사 제목을 그대로 베끼지 말고 사실을 압축(예: '보금자리론 금리 0.1%p 인상, 11.9부터'). 5. 요점에는 매체 이름을 넣지 말고 사실만 적고, 마지막에 [출처] 줄로 13건의 매체·날짜를 '번호. 매체 날짜' 로 적으세요.");
+  return L.join("\n");
+}
+function nbParse(txt) {
+  var out = { rows: [], points: [], src: [] }, mode = "rows";
+  String(txt || "").split(/\n/).forEach(function (l0) { var l = l0.trim(); if (!l) return; if (/^\[기사\]/.test(l)) { mode = "rows"; return; } if (/^\[포인트\]/.test(l)) { mode = "points"; return; } if (/^\[출처\]/.test(l)) { mode = "src"; return; } if (/^\(/.test(l) && /\)$/.test(l)) return; if (/^분류 \| 제목|^라벨\(/.test(l)) return;
+    l = l.replace(/^\d+[.)]\s*/, "");
+    if (mode === "src") { out.src.push(l); return; }
+    var c = l.split("|").map(function (s) { return s.trim(); }); if (c.length < 2) return; if (mode === "rows") { if (c[1]) out.rows.push(c.slice(0, 5)); } else out.points.push(c.slice(0, 2)); });
+  return out;
+}
+function nbApply(txt) {
+  var p = nbParse(txt); if (!p.rows.length) return "줄을 읽지 못했습니다 — '분류 | 제목 | 요점…' 형식인지 확인";
+  var base = (TP.pages && TP.pages[0]) || {}; base.src = "기사 " + p.rows.length + "건 · " + nbToday() + (p.src.length ? " · 출처 " + p.src.map(function (s) { return s.replace(/^\d+[.)]\s*/, ""); }).join(", ").slice(0, 160) : "");
+  base.sub = "핵심만 정리한 " + p.rows.length + "개 기사로 보는 부동산 시장 흐름";
+  TP.pages = nbPages(p.rows, p.points, base); TP.pg = 0; TP.auto = false; TP.autoOk = true; TP.bad = []; tpPaint();
+  return "기사 " + p.rows.length + "건 · 포인트 " + p.points.length + "개 → " + TP.pages.length + "장" + (TP.pages.length > 1 ? " (한 장만 쓰려면 '한 장'으로 바꾸거나 릴스형)" : "");
+}
+(function () {
+  var o = tpFormHtml; tpFormHtml = function (t, d) { var h = o(t, d); if (!(t === TPL.newsBoard || (typeof TP !== "undefined" && TP.r === "newsBoard"))) return h;
+    return '<div class="nb-tool"><div class="nb-toolh"><b>Claude 로 13건 채우기</b><small class="hint">프롬프트를 복사해 Claude(웹 검색 켜기)에 붙여 넣고, 답을 아래 칸에 붙여 [적용]</small></div><div class="nb-toolb"><button type="button" class="btn sm" data-nbcopy="1">프롬프트 복사</button><button type="button" class="btn sm ghost" data-nbshow="1">프롬프트 보기</button></div><textarea id="nb-pt" rows="6" readonly style="display:none"></textarea><textarea id="nb-ans" rows="5" placeholder="Claude 답 붙여넣기 — [기사] 분류 | 제목 | 요점1 | 요점2 | 요점3 … [포인트] 라벨 | 한 줄"></textarea><div class="nb-toolb"><button type="button" class="btn sm" data-nbapply="1">적용</button><small id="nb-msg" class="hint"></small></div></div>' + h; };
+  document.addEventListener("click", function (ev) {
+    var t = ev.target; if (!t || !t.closest) return;
+    if (t.closest("[data-nbcopy]")) { var txt = nbPrompt(); if (typeof chCopy === "function") chCopy(txt); else if (navigator.clipboard) navigator.clipboard.writeText(txt); var m = document.getElementById("nb-msg"); if (m) m.textContent = "프롬프트를 복사했습니다 — Claude 에 붙여 넣고 답을 아래 칸에"; return; }
+    if (t.closest("[data-nbshow]")) { var pt = document.getElementById("nb-pt"); if (pt) { pt.value = nbPrompt(); pt.style.display = pt.style.display === "none" ? "" : "none"; } return; }
+    if (t.closest("[data-nbapply]")) { var a = document.getElementById("nb-ans"), m2 = document.getElementById("nb-msg"), r = a ? nbApply(a.value) : ""; var m3 = document.getElementById("nb-msg") || m2; if (m3) m3.textContent = r; return; }
+  });
+})();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

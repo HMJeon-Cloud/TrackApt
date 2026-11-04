@@ -1,32 +1,41 @@
 {
  "v": 1,
- "builtAt": "2026-11-03T22:55:35.413Z",
- "asOf": 20261104,
+ "builtAt": "2026-11-04T23:14:53.869Z",
+ "asOf": 20261105,
  "items": [
   {
    "kind": "transit",
    "line": "GTX-A 운정중앙~서울역",
    "what": "일정 변경",
-   "date": "2026-11-03",
-   "title": "국토부 ‘GTX-A 삼성역 보강’ 지연… “재정 손실 증대·국민 이동권 제약”",
-   "url": "https://news.google.com/rss/articles/CBMiREFVX3lxTE05LTRqY3lzdUR3RDUxdHFYb0ZCLW5ZQVNpTjh5Rld6dE9zWlRFZG9XNGpDUVhQMjNUQzh0UEc0dHk2Qlps?oc=5",
-   "src": "매일건설신문",
+   "date": "2026-11-04",
+   "title": "'철근누락' GTX-A 삼성역 무정차 통과, 내년 상반기로 1년 지연",
+   "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE9XMTFFcVZnY1J2LWZueUhkczJQeXRaNHp4T1ZBUVN5WEFUa1ZRNG9mYVpXV2hLcGFRTXVTVzIwY2dZODNFczR4VUpkcFNGcVEweDk3bnFMZnlFYktjXzFUMDkydWU0WGtEaFE?oc=5",
+   "src": "고양신문",
    "official": false,
    "todo": "data/manual/transit.json 에서 'GTX-A 운정중앙~서울역' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-11-04",
+   "firstSeen": "2026-11-05",
    "isNew": true
   },
   {
-   "kind": "transit",
-   "line": "GTX-A 삼성역(전 구간 직결)",
-   "what": "개통 소식",
-   "date": "2026-11-03",
-   "title": "GTX-A 삼성역 연내 개통 무산…국토부 “내년 상반기나 가능”",
-   "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9WYzRVdkhrZjFiRTI5RGozeXh6a3BPT2NqODByaEdtX2ZzMkFTNTU1dmZLdXpzYUJZQjNjQlA3WG55WkNQb0Vjc3N4aTA5a0pYMkxBZE93?oc=5",
-   "src": "헤럴드경제",
+   "kind": "loan",
+   "date": "2026-11-04",
+   "title": "서울 신생아 가구도 5.0%…금리 경쟁력 잃은 보금자리론",
+   "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE8yM2NWNTB6SDBqSGNKQW1KV1I2TThIS1lDbnJwcEV4UXRoRUdBU2ppWV9VaGl2NXg5QmF2dnJBYnF4N3JTZUZtdFAzUU1mYXNKWXfSAVNBVV95cUxOUFdUNXZFV1RrRlEyZnpiVHYwZmFrZnZMR1NSZGRRbHdES3B4Z3c0S010XzU3VjlmZjBIUEhQaTJEaTk0QkhORmVkSEkyemRvZXllZw?oc=5",
+   "src": "서울경제",
    "official": false,
-   "todo": "data/manual/transit.json 에서 'GTX-A 삼성역(전 구간 직결)' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-11-04",
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-05",
+   "isNew": true
+  },
+  {
+   "kind": "loan",
+   "date": "2026-11-04",
+   "title": "\"이달 말 계약인데 금리 또 오른다\"…보금자리론 인상에 실수요자 '한숨'",
+   "url": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE9ZdDBmSGc3cmc1OXhKTVEyQ2VzYlpBNW9lOVNFSTM5bUpCWm5QLW1WVmlWTEJYWERJaGZ1eWxTOUxYRm1YXy00NmIzSzk1bkpsRkVnOWhfT1RSb1EweGcyQw?oc=5",
+   "src": "뉴스토마토",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-05",
    "isNew": true
   },
   {
@@ -38,7 +47,7 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-11-04",
-   "isNew": true
+   "isNew": false
   },
   {
    "kind": "loan",
@@ -49,29 +58,7 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-11-04",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-03",
-   "title": "서민 정책대출마저 고금리 부담…아낌e-보금자리론 출시 이후 첫 5%대",
-   "url": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE1TQVE0LVQyckZCeDdheng1OVBSM3Q2dGxuNW9QX00zQ2JEdmdhdjU3UzhuazdfTk1FUHQyX0xuY1ZwLThqTmF0N0ROcGU0ZWRlM0VnMF9wWi1kM3V5ZHBvctIBeEFVX3lxTE93Z0tSdVZBUDdFYUVCZXpyY3ZXblM0RVl0UG00dm1QcWlORmktMjVkX1IzSElJNm53dV9tTDdTelVNQnQxaV9iRjhfalhDU3JfTVNOM2Vac1VPTlR6SXN2V2tyMXoxT0RBdG41TUpZRGNITkJWbDJLSQ?oc=5",
-   "src": "뉴시스",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-04",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-03",
-   "title": "보금자리론 금리 5%대 진입…9일부터 0.10%p 인상",
-   "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTFA4a0pvWm9wb2tuRzJpWnNiYXNrLUdPTnJkQ1pIRnhfVER2OWdQakZObDNSY21wMkpkcF96VkdaN3VRNUtBWFpfTU4yMTJmTU8tVmV5R3F3LXNpMU1XclNJNmNSdGE0T05BQl95RkZR?oc=5",
-   "src": "폴리뉴스 Polinews",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-04",
-   "isNew": true
+   "isNew": false
   }
  ]
 }

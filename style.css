@@ -2037,6 +2037,11 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .tp-card .tp-bav i:empty{display:none}
 /* A → B 목록 */
 .tp-card .tp-list{display:flex;flex-direction:column}
+/* v10.0 지역 칩 · 즐겨찾기 지역 · 대장 */
+.rg-chips{display:flex;flex-wrap:wrap;gap:5px}.rg-chips button{border:1.5px solid #d1d5db;background:#fff;border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#374151}.rg-chips button.on{background:#111;border-color:#111;color:#fff}.rg-chips button:hover{border-color:#111}
+.tpr-g.rg-g .tpr-list{display:flex!important;align-items:center;gap:10px;flex-wrap:wrap}.rg-chips{display:flex!important;flex-direction:row!important;flex-wrap:wrap}.rg-chips button{width:auto!important;min-width:0!important;flex:none!important;height:auto!important;padding:6px 14px!important;border-radius:999px!important}.rg-chips button.on{background:#111!important;color:#fff!important}.fav-rg .rg-chips{gap:4px}.fav-rg .rg-chips button{padding:3px 9px!important;font-size:12px!important}
+.fav-it{flex-wrap:wrap}.fav-rg{flex-basis:100%;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:2px 2px 0}.fav-rg>small{color:#7a5a14;font-size:11.5px;font-weight:700}.fav-rg .rg-chips button{padding:3px 9px;font-size:12px}
+.tp-card .tp-ldw{display:flex;flex-direction:column;gap:4px;flex:1;margin:2px 0 0}.tp-card .ld2 .tp-ldc b{color:#111}.tp-card .ld2 .tp-ldc em{color:#111}.tp-card .ld2 .tp-ldc small.vm{font-weight:800}.tp-card .ld2 .tp-ldc small.vm.hi{color:#be123c}.tp-card .ld2 .tp-ldc small.vm.lo{color:#1d4ed8}
 /* v9.99 정책대출 한 장 · 비교표 4상품 */
 .tp-card .lo-kv{width:100%;border-collapse:collapse;margin:2px 0 3px}.tp-card .lo-kv th{width:21%;text-align:left;font-size:7px;font-weight:900;padding:3px 4px;border-bottom:1px solid #e5e7eb;background:#f6f7f9;color:#111;vertical-align:top;white-space:nowrap}.tp-card .lo-kv td{font-size:7.2px;font-weight:600;padding:3px 5px;border-bottom:1px solid #e5e7eb;line-height:1.3;word-break:keep-all;overflow-wrap:anywhere;color:#111}
 .tp-card .lo-h{font-size:7.4px;font-weight:900;margin:4px 0 2px;color:var(--tpc)}.tp-card .lo-h small{font-weight:600;color:#6b7280;margin-left:4px;font-size:6px}

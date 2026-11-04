@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=9.99">
+<link rel="stylesheet" href="style.css?v=10.0">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v9.99</span>
+    <span class="ver">v10.0</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=9.99"></script>
+<script src="cards.js?v=10.0"></script>
 <script>
 "use strict";
 
@@ -11121,6 +11121,105 @@ function loanOnePage(p, src) {
   C.render = function (d) { var cols = tpRows(d.cols)[0] || [], R2 = tpRows(d.rows); if (cols.length < 4) return orr(d);
     var cell = function (v) { var s = tpE(v); var m = s.match(/^(.+?)\s+·\s+(.+)$/); return m ? "<b>" + m[1] + "</b><small>" + m[2].replace(/ · /g, "<br>") + "</small>" : "<b>" + s + "</b>"; };
     return tpFrame("loan", d, '<table class="tp-cmp n4"><tr><th></th>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R2.map(function (r) { return "<tr><th>" + tpE(r[0]) + "</th>" + cols.map(function (_, i) { return "<td>" + cell(r[i + 1] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>", { small: true }); };
+})();
+
+/* ══ v10.0 지역 조건 확대 · 즐겨찾기 지역 바꿔 만들기 · 대장아파트 양식 7종(데이터 전부) ══ */
+/* ── 1) 지역 칩: 서울 · 경기 · 수도권 · 광역시 · 지방 · 전국 ── */
+var RG_MAIN = [["seoul", "서울"], ["gg", "경기"], ["metro", "수도권"], ["city", "광역시"], ["local", "지방"], ["all", "전국"]];
+function rgKeyOf(R) { R = R || {}; return (R.opts || []).indexOf("scope") >= 0 ? "scope" : (R.opts || []).indexOf("sscope") >= 0 ? "sscope" : ""; }
+function rgCur(k) { return TP.o[k] || (k === "sscope" ? "all" : "seoul"); }
+function rgChipsHtml(k, cur, attr) { var main = String(cur || "").split(":")[0]; return '<div class="rg-chips">' + RG_MAIN.map(function (x) { return '<button type="button" ' + attr + '="' + x[0] + '" class="' + (main === x[0] ? "on" : "") + '">' + x[1] + "</button>"; }).join("") + "</div>"; }
+/* 청약 주제도 지역을 고른다 — 기본은 전국(sscope). 고른 지역의 공고·결과만 남긴 사본으로 잠깐 바꿔 만든 뒤 되돌린다 */
+function rgSubsTest(sc) {
+  sc = sc || "all"; var p = sc.split(":"), g = p[0], s = p[1];
+  var inAddr = function (it, L) { var a = String(it.addr || ""); return L.some(function (n) { return a.indexOf(n) >= 0; }); };
+  if (g === "all") return function () { return true; };
+  if (g === "seoul") return function (it) { return it.area === "서울" && (!s || typeof SEOUL_ZONE === "undefined" || !SEOUL_ZONE[s] || inAddr(it, SEOUL_ZONE[s])); };
+  if (g === "sz") return function (it) { return it.area === "서울" && (typeof SEOUL_ZONE === "undefined" || !SEOUL_ZONE[s] || inAddr(it, SEOUL_ZONE[s])); };
+  if (g === "gg") return function (it) { if (it.area !== "경기") return false; if (!s || typeof GG_NORTH === "undefined") return true; var n = inAddr(it, GG_NORTH); return s === "n" ? n : !n; };
+  if (g === "metro") return function (it) { return /^(서울|경기|인천)$/.test(it.area); };
+  if (g === "city") return function (it) { var C = typeof METRO_CITY !== "undefined" ? Object.keys(METRO_CITY) : ["부산", "대구", "인천", "광주", "대전", "울산", "세종"]; return s ? it.area === s : C.indexOf(it.area) >= 0; };
+  if (g === "local" || g === "prov") return function (it) { var P = typeof PROVINCES !== "undefined" ? PROVINCES : ["강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"]; return s ? it.area === s : P.indexOf(it.area) >= 0; };
+  return function () { return true; };
+}
+(function () {
+  ["subsWeek", "subsRate", "subsScore", "subsPrice", "subsShort", "subsCal"].forEach(function (id) { var R = TPR[id]; if (R && (R.opts || []).indexOf("sscope") < 0) R.opts = ["sscope"].concat(R.opts || []); });
+  if (typeof tprRebuild !== "function") return; var o = tprRebuild;
+  tprRebuild = function () {
+    var R = TPR[TP.r] || {}, sc = (R.opts || []).indexOf("sscope") >= 0 ? (TP.o.sscope || "all") : "all", D = typeof DY !== "undefined" && DY.data, X = D && D.subs, swapped = false;
+    if (sc !== "all" && X && X.items) { var t = rgSubsTest(sc), keep = {}, F = {}; for (var k in X) F[k] = X[k]; F.items = X.items.filter(function (it) { var ok = t(it); if (ok) keep[String(it.no)] = 1; return ok; }); if (X.results) F.results = X.results.filter(function (r) { return keep[String(r.no)]; }); D.subs = F; swapped = true; }
+    try { o.apply(this, arguments); } finally { if (swapped) D.subs = X; }
+    /* 카드 제목·부제에 지역 이름 — 이미 지역 이름이 들어 있으면 그대로 */
+    if (swapped && TP.pages) { var nm = typeof tprScopeNm === "function" ? tprScopeNm(sc) : sc; TP.pages.forEach(function (d) { if (d.title && String(d.title).indexOf(nm.split(" ")[0]) < 0) d.title = nm + " " + d.title; }); if (typeof tpPaint === "function") tpPaint(); }
+    if (swapped && TP.pages && TP.pages.length === 1 && !TP.autoOk) { var m = document.getElementById("tp-msg"); if (m) m.textContent = (typeof tprScopeNm === "function" ? tprScopeNm(sc) : sc) + "에는 지금 해당하는 청약이 없습니다 — 지역을 넓혀 보세요"; }
+  };
+})();
+/* 조건 칸: 지역 칩(위) + 세부 지역 선택(아래). 청약 주제는 sscope 로 */
+(function () {
+  if (typeof tprOptsHtml !== "function") return; var o = tprOptsHtml;
+  tprOptsHtml = function () { var h = o.apply(this, arguments), R = TPR[TP.r] || {}, k = rgKeyOf(R); if (!k) return h;
+    var sel = k === "scope" ? null : '<label>지역<select data-tpo="sscope">' + tprScopes().map(function (s) { return '<option value="' + s[0] + '"' + (s[0] === (TP.o.sscope || "all") ? " selected" : "") + ">" + s[1] + "</option>"; }).join("") + "</select></label>";
+    var chips = '<div class="tpr-g rg-g"><small>지역</small><div class="tpr-list">' + rgChipsHtml(k, rgCur(k), 'data-rgset') + '<span class="hint">세부 지역은 아래 조건에서</span></div></div>';
+    if (sel) h = h.replace('<div class="tpr-list tpr-sel">', '<div class="tpr-list tpr-sel">' + sel);
+    if (sel && h.indexOf('tpr-sel') < 0) h = h.replace(/(<div class="tpr-g"><small>양식)/, '<div class="tpr-g"><small>조건</small><div class="tpr-list tpr-sel">' + sel + "</div></div>$1");
+    return h.replace(/(<div class="tpr-g"><small>조건<\/small>)/, chips + "$1"); };
+  document.addEventListener("click", function (ev) { var b = ev.target && ev.target.closest && ev.target.closest("[data-rgset]"); if (!b) return; var k = rgKeyOf(TPR[TP.r]); if (!k) return; TP.o[k] = b.dataset.rgset; tprRebuild(); });
+})();
+/* ── 2) 즐겨찾기 — 지역이 있는 주제는 카드마다 지역 칩: 누르면 그 지역으로 바로 만든다 ── */
+(function () {
+  if (typeof favPaintAll !== "function") return; var o = favPaintAll;
+  favPaintAll = function () { o.apply(this, arguments);
+    Array.prototype.forEach.call(document.querySelectorAll(".fav-it"), function (it) { if (it.querySelector(".rg-chips")) return; var b = it.querySelector("[data-favgo]"); if (!b) return; var f = favLoad().filter(function (x) { return String(x.id) === b.dataset.favgo; })[0]; if (!f || f.kind !== "tpl" || !f.tpl) return; var k = rgKeyOf(TPR[f.tpl.r]); if (!k) return;
+      var d = document.createElement("div"); d.className = "fav-rg"; d.innerHTML = '<small>지역 바꿔 만들기</small>' + rgChipsHtml(k, (f.tpl.o || {})[k] || (k === "sscope" ? "all" : "seoul"), 'data-favsc="' + f.id + '" data-sc'); it.appendChild(d); }); };
+  document.addEventListener("click", function (ev) { var b = ev.target && ev.target.closest && ev.target.closest("[data-favsc]"); if (!b) return; ev.stopPropagation(); var f = favLoad().filter(function (x) { return String(x.id) === b.dataset.favsc; })[0]; if (!f) return; var k = rgKeyOf(TPR[f.tpl.r]), g = {}; for (var a in f) g[a] = f[a]; g.tpl = {}; for (var c in f.tpl) g.tpl[c] = f.tpl[c]; g.tpl.o = {}; for (var q in f.tpl.o || {}) g.tpl.o[q] = f.tpl.o[q]; g.tpl.o[k] = b.dataset.sc; g.nm = f.nm + " · " + (typeof tprScopeNm === "function" ? tprScopeNm(b.dataset.sc) : b.dataset.sc);
+    var cur = (document.querySelector("section.tab.on") || {}).id || ""; if (cur !== "tab-tpl") { showTab("tpl"); window.scrollTo(0, 0); setTimeout(function () { favApplyTpl(g); }, 350); } else favApplyTpl(g); }, true);
+})();
+/* ── 3) 장 수 때문에 줄이 빠지면 알린다(전에는 조용히 잘렸다) ── */
+(function () {
+  if (typeof tprPaged !== "function") return; var o = tprPaged;
+  tprPaged = function (base, rows, per) { var P = o.apply(this, arguments); if (!tprOne() && P.length) { var shown = P.reduce(function (s, d) { return s + (d.rows ? d.rows.length : 0); }, 0); if (shown < rows.length) { var last = P[P.length - 1]; last.foot = (last.foot ? last.foot + " · " : "") + "상위 " + shown + "/" + rows.length + " — 최대 장 수를 늘리면 전부"; TP._cutNote = rows.length - shown; } } return P; };
+})();
+/* ── 4) 대장아파트 — 데이터 전부(단지·동·최근 거래가·거래일·층·최고가 대비·연식·세대·30일 거래) × 양식 7종 ── */
+function ldOf(o) { var R = tprReg(), b = !o.band || o.band === "all" ? "84" : o.band, out = []; tprCodes(o.scope).forEach(function (c) { var r = R[c], L = r && r.leaders && r.leaders[b]; if (L && L.length) out.push({ c: c, gu: tprGu(c), L: L.slice(0, 3), v: L[0].p ? L[0].p[0] : 0 }); }); out.sort(function (a, b2) { return b2.v - a.v; }); return { b: b, rows: out }; }
+function ldDate(n) { n = String(n || ""); return n.length === 8 ? Number(n.slice(4, 6)) + "." + Number(n.slice(6)) : ""; }
+function ldVsMax(x) { if (!x || !x.p || !x.mx || !x.mx[0]) return ""; var r = (x.p[0] / x.mx[0] - 1) * 100; if (r >= 0) return "최고가"; if (r > -1.5) return "최고가 수준"; return "최고 " + eok(x.mx[0]) + " 대비 " + r.toFixed(0).replace("-", "−") + "%"; }
+function ldDeal(x) { return x && x.p ? eok(x.p[0]) : "–"; }
+function ldWhen(x) { return x && x.p ? [ldDate(x.p[1]), x.p[2] ? x.p[2] + "층" : ""].filter(Boolean).join(" · ") : ""; }
+function ldMeta(x, dong) { return x ? [x.by ? x.by + "년" : "", x.hh ? fmt(x.hh) + "세대" : "", dong && x.dong ? x.dong : ""].filter(Boolean).join(" · ") : ""; }
+/* 격자·막대·타일은 줄(rows) 대신 칸(items) — 한 장이면 칸 수만큼만 담고 '상위 n/N' 을 직접 적는다 */
+function ldItems(P, tot, per) { P.forEach(function (d) { if (tprOne()) { d.rows = d.rows.slice(0, per); d.foot = String(d.foot || "").replace(/\s*·?\s*상위 \d+\/\d+ — 전체는 여러 장/, "") + (tot > per ? " · 상위 " + per + "/" + tot + " — 전체는 여러 장" : ""); } d.items = d.rows; delete d.rows; delete d._tot; delete d._more; }); }
+function ldNm(x) { return String(x.apt || "").replace(/&amp;/g, "&").replace(/;/g, ","); }
+(function () {
+  var R = TPR.leaders; if (!R) return;
+  R.tpls = ["leaderGrid", "denseTable", "lineTable", "rankGrid", "barRank", "kpiTiles", "issue"]; R.noX = 1; R.per = 4;
+  if (R.opts.indexOf("ldv") < 0) R.opts.push("ldv");
+  R.hint = "구·시마다 대장아파트 3곳(500세대↑·20년 이내 중 ㎡당가 상위) — 최근 거래가 · 거래일·층 · 최고가 대비 · 연식 · 세대 · 동. 양식 7종: TOP3 칸 · 표 · 단지 목록 · 거래가 TOP 격자 · 막대 · 숫자 타일 · 지역 한 장씩";
+  R.build = function (o, tid) {
+    var D = ldOf(o), rows = D.rows, bn = tprBandNm(D.b), nm = tprScopeNm(o.scope), src = "국토부 실거래 · K-apt 단지 정보 · " + bn + " · 가격 = 그 단지 최근 거래가", foot = "대장 = 500세대↑·20년 이내 중 ㎡당가 상위(없으면 300→150세대) · 매수 추천 아님", all3 = (o.ldv || "1") === "3";
+    if (!rows.length) return [];
+    var base = { _cat: "deal", src: src, badge: "대장아파트", foot: foot };
+    var B = function (x) { var d = tprClone(base); for (var k in x) d[k] = x[k]; return d; };
+    if (tid === "leaderGrid" || !tid) return tprPaged(B({ title: nm + " 대장아파트 TOP 3", sub: bn + " · 1위 단지 최근 거래가 높은 순 · 칸 = 단지 · 거래가(일자·층) · 연식·세대·동 · 최고가 대비", cols: "지역 | 대장 1·2·3위" }), rows.map(function (r) { return [r.gu].concat([0, 1, 2].map(function (i) { var x = r.L[i]; return x ? ldNm(x) + " ; " + ldDeal(x) + " ; " + [ldWhen(x), ldMeta(x, true)].filter(Boolean).join(" · ") + " ; " + ldVsMax(x) : ""; })); }), o.per || R.per);
+    if (tid === "denseTable" || tid === "lineTable") { var L = []; rows.forEach(function (r) { (all3 ? r.L : r.L.slice(0, 1)).forEach(function (x, i) { L.push(tid === "denseTable" ? [r.gu + (all3 ? " " + (i + 1) : ""), ldNm(x), ldDeal(x) + (x.p ? " · " + ldDate(x.p[1]) : ""), ldVsMax(x).replace(/^최고 /, "").replace(/ 대비 /, " · ") || "–", ldMeta(x)] : [ldNm(x) + " (" + r.gu + (all3 ? " " + (i + 1) + "위" : "") + ")", ldDeal(x) + (ldWhen(x) ? " · " + ldWhen(x) : ""), ldVsMax(x) || "–", ldMeta(x)]); }); });
+      return tprPaged(B({ title: nm + " 대장아파트 " + (all3 ? "TOP 3 전부" : "1위"), sub: bn + " · 최근 거래가 높은 지역 순" + (all3 ? " · 지역마다 3곳" : ""), cols: tid === "denseTable" ? "지역 | 대장 단지 | 최근 거래가·일 | 최고가 · 대비 | 연식·세대" : "단지(지역) | 최근 거래가 · 일자·층 | 최고가 대비 | 연식·세대" }), L, tid === "denseTable" ? 11 : 9); }
+    if (tid === "rankGrid" || tid === "barRank") { var F = [], seen = {}; rows.forEach(function (r) { r.L.forEach(function (x, i) { var k = ldNm(x) + r.c; if (seen[k] || !x.p) return; seen[k] = 1; F.push({ v: x.p[0], it: tid === "rankGrid" ? [ldNm(x), ldDeal(x), r.gu + " " + (i + 1) + "위 · " + [x.by ? x.by + "년" : "", ldDate(x.p[1])].filter(Boolean).join(" · ")] : [r.gu + " " + ldNm(x), ldDeal(x), [ldDate(x.p[1]), ldVsMax(x)].filter(Boolean).join(" · ")] }); }); });
+      if (tid === "barRank") { F = rows.map(function (r) { var x = r.L[0]; return { v: r.v, it: [r.gu, ldDeal(x), ldNm(x) + (ldWhen(x) ? " · " + ldWhen(x) : "")] }; }); }
+      F.sort(function (a, b2) { return b2.v - a.v; }); var per = tid === "rankGrid" ? 12 : (tpReel() ? 16 : 10), its = F.map(function (x) { return x.it; });
+      var P = tprPaged(B({ title: nm + (tid === "rankGrid" ? " 대장 단지 거래가 TOP" : " 지역별 대장 1위 거래가"), sub: bn + " · 최근 거래가 기준", cols: "" }), its, per); ldItems(P, its.length, per); return P; }
+    if (tid === "kpiTiles") { var K = tpReel() ? 10 : 6, T = rows.map(function (r) { var x = r.L[0], vm = ldVsMax(x); return [r.gu + " 1위 · " + ldNm(x), ldDeal(x), (ldWhen(x) ? ldWhen(x) + " · " : "") + (vm || ldMeta(x)), /^최고가/.test(vm) ? "up" : /−/.test(vm) ? "down" : "flat"]; });
+      var P2 = tprPaged(B({ title: nm + " 대장 1위 거래가", sub: bn + " · 지역마다 1위 단지 최근 거래가" }), T, K); ldItems(P2, T.length, K); return P2; }
+    if (tid === "issue") { var n = tprOne() ? 1 : Math.min(rows.length, TP.o.maxp || 3), out = [];
+      rows.slice(0, n).forEach(function (r, q) { out.push(B({ _tpl: "issue", badge: "대장아파트" + (n > 1 ? " " + (q + 1) + "/" + n : ""), tag: r.gu, title: r.gu + " 대장아파트 TOP 3", sub: bn + " · 최근 거래가 · 1위 " + ldNm(r.L[0]) + " " + ldDeal(r.L[0]), body: r.L.map(function (x, i) { return (i + 1) + "위 " + ldNm(x) + " — " + ldDeal(x) + (ldWhen(x) ? "(" + ldWhen(x) + ")" : "") + (ldVsMax(x) ? " · " + ldVsMax(x) : "") + " · " + ldMeta(x, true) + (x.n30 ? " · 30일 거래 " + x.n30 + "건" : ""); }).join("\n"), cols: "순위 | 단지 | 거래가 | 최고가 대비 | 연식·세대", rows: r.L.map(function (x, i) { return [(i + 1) + "위", ldNm(x), ldDeal(x), ldVsMax(x).replace(/^최고 /, "") || "–", ldMeta(x)]; }) })); });
+      if (!tprOne() && rows.length > n) out[out.length - 1].foot = foot + " · 상위 " + n + "/" + rows.length + "곳 — 최대 장 수를 늘리면 전부"; return out; }
+    return [];
+  };
+  /* 범위를 바꾸면 '최대 장 수'를 그 범위 전부가 들어가는 만큼으로(최대 10장) — 서울 25개 구가 3장에 잘리던 것 */
+  var o = tprRebuild; tprRebuild = function () { if (TP.r === "leaders" && !tprOne()) { var key = (TP.o.scope || "") + "|" + TP.id + "|" + (TP.o.ldv || "1"); if (TP._ldKey !== key) { TP._ldKey = key; var D = ldOf(TP.o), per = TP.id === "leaderGrid" ? (TP.o.per || R.per) : TP.id === "denseTable" ? 11 : TP.id === "lineTable" ? 9 : TP.id === "rankGrid" ? 12 : TP.id === "barRank" ? 10 : TP.id === "kpiTiles" ? 6 : 1, n = D.rows.length * ((TP.o.ldv === "3" && /dense|line/.test(TP.id)) ? 3 : 1); TP.o.maxp = Math.max(1, Math.min(10, Math.ceil(n / per))); } } return o.apply(this, arguments); };
+  /* 보기 선택(표·목록): 1위만 / TOP3 전부 */
+  var oo = tprOptsHtml; tprOptsHtml = function () { var h = oo.apply(this, arguments); if (TP.r === "leaders") h = h.replace(">노선 · 현황 표<", ">단지 목록 표<").replace(">이슈 한 장(제목·내용)<", ">지역 한 장씩(TOP 3 상세)<").replace(">순위 격자 Top 12<", ">거래가 TOP 12 격자<").replace(">가로 막대 순위<", ">지역별 1위 막대<").replace(">숫자 타일(핵심 지표)<", ">1위 거래가 타일<"); if (TP.r !== "leaders" || !/denseTable|lineTable/.test(TP.id)) return h.replace(/<label>보기<select data-tpo="ldv">[\s\S]*?<\/label>/, ""); return h.replace('<div class="tpr-list tpr-sel">', '<div class="tpr-list tpr-sel"><label>보기<select data-tpo="ldv">' + [["1", "지역마다 1위만"], ["3", "지역마다 TOP 3 전부"]].map(function (x) { return '<option value="' + x[0] + '"' + ((TP.o.ldv || "1") === x[0] ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + "</select></label>"); };
+  /* TOP3 칸: 네 번째 줄(최고가 대비) — 최고가면 빨강, 아래면 파랑 */
+  var T = TPL.leaderGrid; if (T) T.render = function (d) { var Rw = tpRows(d.rows);
+    return tpFrame(d._cat || "deal", d, '<div class="tp-ldw ld2"><div class="tp-ldh"><span></span><b>1위</b><b>2위</b><b>3위</b></div>' + Rw.map(function (r) { return '<div class="tp-ldr"><span class="tp-ldg">' + tpE(r[0]) + "</span>" + [1, 2, 3].map(function (k) { var x = String(r[k] || "").split(/\s*;\s*/); return '<div class="tp-ldc' + (k === 1 ? " g" : "") + '">' + (x[0] ? "<b>" + tpE(x[0]) + "</b><em>" + tpE(x[1] || "") + "</em>" + (x[2] ? "<small>" + tpE(x[2]) + "</small>" : "") + (x[3] ? '<small class="vm ' + (/^최고가/.test(x[3]) ? "hi" : "lo") + '">' + tpE(x[3]) + "</small>" : "") : "<i>–</i>") + "</div>"; }).join("") + "</div>"; }).join("") + "</div>"); };
 })();
 
 /* ══ 시작 탭 ══════════════════════════════════ */

@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=10.1">
+<link rel="stylesheet" href="style.css?v=10.2">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v10.1</span>
+    <span class="ver">v10.2</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=10.1"></script>
+<script src="cards.js?v=10.2"></script>
 <script>
 "use strict";
 
@@ -11229,6 +11229,49 @@ favBoxHtml = function (kind, opts) { opts = opts || {}; var L = favOf(kind), add
       if (f.kind === "tpl" && typeof rgKeyOf === "function" && rgKeyOf(TPR[f.tpl.r]) && typeof tprScopeNm === "function") { var sc = (f.tpl.o || {})[rgKeyOf(TPR[f.tpl.r])]; if (sc) sub = sub.replace(tprScopeNm(sc) + " · ", ""); }
       return '<div class="fav-it"><div class="fv-top"><button type="button" class="fav-go" data-favgo="' + f.id + '"><b>' + favE(f.nm) + "</b><small>" + favE(sub) + '</small></button><span class="fav-ops"><button type="button" data-favup="' + f.id + '" title="앞으로">↑</button><button type="button" data-favren="' + f.id + '" title="이름 바꾸기">✎</button><button type="button" data-favdel="' + f.id + '" title="지우기">✕</button></span></div></div>'; }).join("") + "</div>" : "") + "</div>"; };
 favHubHtml = function () { var L = favLoad(); if (!L.length) return ""; return '<div class="fav-box hub v2"><div class="fav-hd"><b>★ 즐겨찾기</b><small class="hint">가장 먼저 만들 것 — 이름을 누르면 저장한 구성으로, 지역을 누르면 그 지역으로</small></div><div class="fav-list">' + L.map(function (f) { var s = f.kind === "tpl" ? favTplSummary(f.tpl) : favReelSummary(f.reel), sub = s.sub; if (f.kind === "tpl" && typeof rgKeyOf === "function" && rgKeyOf(TPR[f.tpl.r]) && typeof tprScopeNm === "function") { var sc = (f.tpl.o || {})[rgKeyOf(TPR[f.tpl.r])]; if (sc) sub = sub.replace(tprScopeNm(sc) + " · ", ""); } return '<div class="fav-it"><div class="fv-top"><button type="button" class="fav-go" data-favgo="' + f.id + '"><b><em class="fv-k ' + f.kind + '">' + (f.kind === "tpl" ? "카드" : "릴스") + "</em>" + favE(f.nm) + "</b><small>" + favE(sub) + "</small></button></div></div>"; }).join("") + "</div></div>"; };
+
+/* ══ v10.2 빈 카드 대신 '왜 비었는지 · 어떻게 하면 나오는지' 안내 ══
+   전에는 재료가 0건이면 빈 양식(검은 상자)이 그대로 그려졌다. 이제 카드 자리에 이유·조건·지금 숫자·바로 할 수 있는 버튼을 보여 준다. */
+function emRo(w) { var c = String(w).charCodeAt(String(w).length - 1); if (c < 0xAC00 || c > 0xD7A3) return w + "(으)로"; var jong = (c - 0xAC00) % 28; return w + (jong === 0 || jong === 8 ? "로" : "으로"); }
+function emE(s) { return escHtml(String(s == null ? "" : s)); }
+function emBriefNm() { return typeof briefScopeName === "function" && typeof BRIEF !== "undefined" && BRIEF.scope ? briefScopeName(BRIEF.scope) : "지금 시장 범위"; }
+function emWhy() {
+  var id = TP.r, R = TPR[id] || {}, o = TP.o || {}, out = { t: "이 조건에 맞는 자료가 없습니다", why: [], how: [], btn: [] };
+  var loading = typeof CD_WAIT !== "undefined" && Object.keys(CD_WAIT).some(function (k) { return CD_WAIT[k]; });
+  if (loading) { out.t = "자료를 불러오는 중입니다"; out.why.push("이 주제에 필요한 자료(" + Object.keys(CD_WAIT).filter(function (k) { return CD_WAIT[k]; }).map(function (k) { return { brief: "지금 시장", channel: "정기 코너", daily: "청약·지수", macro: "금리·정책" }[k] || k; }).join("·") + ")를 받는 중이라 아직 비어 있어요."); out.how.push("잠시 기다리면 자동으로 채워집니다. 10초 넘게 그대로면 [다시 만들기]를 눌러 주세요."); out.btn.push(["emre", "1", "다시 만들기"]); return out; }
+  var regionBtns = function (key) { RG_MAIN.forEach(function (x) { if ((o[key] || (key === "sscope" ? "all" : "seoul")).split(":")[0] !== x[0]) out.btn.push(["rgset", x[0], emRo(x[1]) + " 바꾸기"]); }); };
+  var briefBtns = function (L) { L.forEach(function (x) { if (BRIEF.scope !== x[0]) out.btn.push(["bfsc", x[0], "지금 시장 범위 → " + x[1]]); }); out.btn.push(["go", "brief", "지금 시장 화면 열기"]); };
+  if (/^bf_/.test(id)) {
+    var sec = id.slice(3), Ls = (typeof BRIEF !== "undefined" && BRIEF.last) || {}, nm = emBriefNm(), codes = Ls.codes || [], reg = codes.filter(function (k) { return typeof isRegulated === "function" && isRegulated(k); }).length;
+    out.t = "'" + (R.nm || sec) + "' 카드가 지금 " + nm + " 범위에서 0건입니다";
+    if (sec === "gap") { out.why.push("전세 끼고 = 규제지역이 아닌 곳에서, 최근 30일 안에 같은 단지의 매매와 전세가 각각 2건 이상 거래된 단지만 고릅니다(전세를 승계해 갭만으로 살 수 있는 곳)."); out.why.push(nm + " " + codes.length + "곳 중 규제지역이 " + reg + "곳" + (reg === codes.length && codes.length ? " — 전부 규제지역이라 실거주 의무(토허제 2년) 때문에 전세 끼고 매수 자체가 막혀 있어 나올 수 없습니다." : " — 남은 비규제 지역에서도 30일 안에 매매·전세가 함께 2건 넘게 거래된 단지가 없었습니다.")); out.how.push("범위를 규제지역이 적은 곳(경기·인천·지방)으로 넓히면 나옵니다."); briefBtns([["gg", "경기"], ["metro", "수도권"], ["all", "전국"]]); }
+    else if (sec === "pick") { out.why.push("참고 후보 = 30일 거래가 평소보다 20% 넘게 늘었는데 값(㎡당)은 ±3% 안에 머문 상위 급지 지역 — '거래가 먼저 움직이고 값은 아직'인 곳입니다."); out.why.push(nm + " " + codes.length + "곳 중 거래가 늘어난 곳 " + ((Ls.hotAll || []).length) + "곳 · 값이 크게 움직인 곳 " + (((Ls.upAll || []).length) + ((Ls.dnAll || []).length)) + "곳 — 세 조건을 한꺼번에 맞춘 곳이 없었습니다. 이 칸은 자주 비는 게 정상이에요."); out.how.push("범위를 넓히거나(수도권·전국) 며칠 뒤 다시 보세요. 비슷한 내용은 '거래 늘어난 지역' 주제로 만들 수 있습니다."); briefBtns([["metro", "수도권"], ["all", "전국"]]); out.btn.push(["tpr", "volUp", "'거래 늘어난 지역'으로"]); }
+    else if (sec === "lead") { out.why.push("대장아파트 칸은 지금 시장에서 고른 평형(" + (BRIEF.lband || "84") + "㎡)의 대장 단지가 있는 지역만 담습니다."); out.how.push("지금 시장에서 평형을 84㎡로 바꾸거나, '지역별 대장 TOP 3' 주제(양식 7종)를 쓰세요."); out.btn.push(["tpr", "leaders", "'지역별 대장 TOP 3'으로"]); briefBtns([]); }
+    else { out.why.push("지금 시장 화면의 '" + (R.nm || sec) + "' 칸이 " + nm + " · 고른 평형·조건에서 비어 있습니다."); out.how.push("지금 시장에서 범위·평형을 바꾸면 이 카드도 같이 바뀝니다."); briefBtns([["metro", "수도권"], ["all", "전국"]]); }
+    return out;
+  }
+  if (/^cc_/.test(id)) { out.t = "정기 코너 '" + (R.nm || id) + "' 카드가 오늘 비어 있습니다"; out.why.push("정기 코너는 그날 자료로 카드를 만듭니다. 오늘 이 코너에 해당하는 자료(실거래·청약·금리 등)가 없거나 아직 모이지 않았어요."); out.how.push("정기 코너를 열어 이 코너를 한 번 보면 어떤 칸이 비었는지 보입니다. 새벽 수집 뒤(아침)에 다시 만들면 채워지는 경우가 많습니다."); out.btn.push(["corner", id.slice(3), "정기 코너 열기"]); out.btn.push(["emre", "1", "다시 만들기"]); return out; }
+  if (/^(aiIssue|newsBoard|noteIssue)$/.test(id)) { out.t = "오늘 자료가 아직 없습니다"; out.why.push(id === "noteIssue" ? "메모 이슈는 인사이트에 저장한 상황 메모가 있어야 만들어집니다." : "이 주제는 오늘 작업의 [오늘 준비](오늘 자료 모으기)로 모은 이슈를 재료로 씁니다."); out.how.push(id === "newsBoard" ? "오늘 작업에서 [오늘 준비]를 하거나, 아래 '세부 고치기'의 [프롬프트 복사] → Claude 답 붙여넣기로 13건을 채우세요." : "오늘 작업에서 [오늘 준비]를 눌러 자료를 모은 뒤 다시 오세요."); out.btn.push(["go", "today", "오늘 작업 열기"]); return out; }
+  var key = typeof rgKeyOf === "function" ? rgKeyOf(R) : "", hasBand = (R.opts || []).indexOf("band") >= 0;
+  if (key) { var sn = typeof tprScopeNm === "function" ? tprScopeNm(o[key] || (key === "sscope" ? "all" : "seoul")) : ""; out.t = sn + "에는 '" + (R.nm || id) + "' 자료가 0건입니다"; out.why.push(R.grp === "청약·일정" ? sn + "에 지금 해당하는 청약 공고·결과가 없습니다(청약홈 공고 기준 — 지역마다 공고 시기가 몰려 있어 자주 비는 게 정상이에요)." : sn + "·고른 조건(" + (hasBand && o.band ? (o.band === "all" ? "전 면적" : o.band + "㎡") + " · " : "") + "최근 30일)에 맞는 거래가 없었습니다."); out.how.push(hasBand && o.band && o.band !== "all" ? "지역을 넓히거나 평형을 '전체 평형'으로 바꾸면 나옵니다." : "아래 버튼으로 지역을 넓히면 나옵니다."); regionBtns(key); if (hasBand && o.band && o.band !== "all") out.btn.push(["band", "all", "전체 평형으로"]); return out; }
+  out.why.push("이 주제의 재료가 지금 0건입니다" + (R.hint ? " — " + R.hint : "") + ".");
+  out.how.push("자료가 모이는 시간(새벽 수집) 뒤에 다시 만들거나, 아래 '세부 고치기'에서 직접 적어 만들 수 있어요."); out.btn.push(["emre", "1", "다시 만들기"]);
+  return out;
+}
+function emHtml() { var W = emWhy(); return '<div class="tp-empty"><b class="em-t">' + emE(W.t) + '</b><div class="em-sec"><i>왜 비었나</i><ul>' + W.why.map(function (t) { return "<li>" + emE(t) + "</li>"; }).join("") + '</ul></div><div class="em-sec"><i>이렇게 하면 나와요</i><ul>' + W.how.map(function (t) { return "<li>" + emE(t) + "</li>"; }).join("") + "</ul></div>" + (W.btn.length ? '<div class="em-btns">' + W.btn.map(function (b) { return '<button type="button" class="btn sm' + (b[0] === "go" || b[0] === "corner" ? " ghost" : "") + '" data-em="' + b[0] + '" data-v="' + emE(b[1]) + '">' + emE(b[2]) + "</button>"; }).join("") + "</div>" : "") + '<small class="hint">빈 카드는 저장·올리지 않도록 숨겼습니다 · 숫자는 앱 자료로만 채웁니다(지어내지 않음)</small></div>'; }
+(function () {
+  if (typeof tpPaintCard !== "function") return; var o = tpPaintCard;
+  tpPaintCard = function () { if (TP.autoOk === false && TP.r !== "free" && TP.auto !== false) { var box = document.getElementById("tp-cards"); if (box) { box.innerHTML = emHtml(); var cnt = document.getElementById("tp-cnt"); if (cnt) cnt.textContent = "0장"; var bad = document.getElementById("tp-bad"); if (bad) bad.innerHTML = ""; return; } } return o.apply(this, arguments); };
+  document.addEventListener("click", function (ev) { var b = ev.target && ev.target.closest && ev.target.closest("[data-em]"); if (!b) return; var k = b.dataset.em, v = b.dataset.v;
+    if (k === "emre") { tprRebuild(); return; }
+    if (k === "rgset") { var key = rgKeyOf(TPR[TP.r]); if (key) { TP.o[key] = v; tprRebuild(); } return; }
+    if (k === "band") { TP.o.band = v; tprRebuild(); return; }
+    if (k === "tpr" && TPR[v]) { TP.r = v; TP.id = TPR[v].tpls ? TPR[v].tpls[0] : TP.id; TP.o.per = TPR[v].per || 12; tprRebuild(); return; }
+    if (k === "go") { showTab(v); window.scrollTo(0, 0); return; }
+    if (k === "corner") { TP.openCh = true; TP.scrollCh = true; if (typeof chTab !== "undefined") try { CH.tab = v; } catch (e) {} showTab("tpl"); var d = document.getElementById("tpx-ch"); if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "start" }); } return; }
+    if (k === "bfsc" && typeof BRIEF !== "undefined") { BRIEF.scope = v; BRIEF.last = null; try { localStorage.setItem("trackapt_brief_scope", v); } catch (e) {} var box = document.getElementById("tp-cards"); if (box) box.innerHTML = '<div class="tp-empty"><b class="em-t">지금 시장 범위를 ' + emE(briefScopeName(v)) + "(으)로 바꾸고 다시 계산하는 중…</b></div>"; tprRebuild(); return; }
+  });
+})();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

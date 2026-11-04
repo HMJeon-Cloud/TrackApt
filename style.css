@@ -2037,6 +2037,12 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .tp-card .tp-bav i:empty{display:none}
 /* A → B 목록 */
 .tp-card .tp-list{display:flex;flex-direction:column}
+/* v10.2 빈 카드 안내 */
+.tp-empty{max-width:640px;margin:6px auto;border:2px dashed #d4af6a;border-radius:14px;background:#fffbf2;padding:16px 18px;font-size:13.5px;line-height:1.55;color:#1f2937}
+.tp-empty .em-t{display:block;font-size:16px;margin-bottom:8px;color:#7a5a14}
+.tp-empty .em-sec{margin:6px 0}.tp-empty .em-sec>i{font-style:normal;font-size:11.5px;font-weight:800;background:#16294a;color:#ffd978;border-radius:4px;padding:1px 7px}
+.tp-empty ul{margin:4px 0 0 18px;padding:0}.tp-empty li{margin:2px 0}
+.tp-empty .em-btns{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px}.tp-empty small{display:block;margin-top:4px}
 /* v10.1 즐겨찾기 카드 */
 .fav-box.v2 .fav-list{grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
 .fav-box.v2 .fav-it{display:flex;flex-direction:column;gap:0;background:#fff;border:1.5px solid #e4d2a8;border-radius:12px;overflow:hidden;min-width:0}

@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=10.0">
+<link rel="stylesheet" href="style.css?v=10.1">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v10.0</span>
+    <span class="ver">v10.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=10.0"></script>
+<script src="cards.js?v=10.1"></script>
 <script>
 "use strict";
 
@@ -11170,7 +11170,7 @@ function rgSubsTest(sc) {
   if (typeof favPaintAll !== "function") return; var o = favPaintAll;
   favPaintAll = function () { o.apply(this, arguments);
     Array.prototype.forEach.call(document.querySelectorAll(".fav-it"), function (it) { if (it.querySelector(".rg-chips")) return; var b = it.querySelector("[data-favgo]"); if (!b) return; var f = favLoad().filter(function (x) { return String(x.id) === b.dataset.favgo; })[0]; if (!f || f.kind !== "tpl" || !f.tpl) return; var k = rgKeyOf(TPR[f.tpl.r]); if (!k) return;
-      var d = document.createElement("div"); d.className = "fav-rg"; d.innerHTML = '<small>지역 바꿔 만들기</small>' + rgChipsHtml(k, (f.tpl.o || {})[k] || (k === "sscope" ? "all" : "seoul"), 'data-favsc="' + f.id + '" data-sc'); it.appendChild(d); }); };
+      var d = document.createElement("div"); d.className = "fav-rg"; d.innerHTML = '<small>지역</small>' + rgChipsHtml(k, (f.tpl.o || {})[k] || (k === "sscope" ? "all" : "seoul"), 'data-favsc="' + f.id + '" data-sc'); it.appendChild(d); }); };
   document.addEventListener("click", function (ev) { var b = ev.target && ev.target.closest && ev.target.closest("[data-favsc]"); if (!b) return; ev.stopPropagation(); var f = favLoad().filter(function (x) { return String(x.id) === b.dataset.favsc; })[0]; if (!f) return; var k = rgKeyOf(TPR[f.tpl.r]), g = {}; for (var a in f) g[a] = f[a]; g.tpl = {}; for (var c in f.tpl) g.tpl[c] = f.tpl[c]; g.tpl.o = {}; for (var q in f.tpl.o || {}) g.tpl.o[q] = f.tpl.o[q]; g.tpl.o[k] = b.dataset.sc; g.nm = f.nm + " · " + (typeof tprScopeNm === "function" ? tprScopeNm(b.dataset.sc) : b.dataset.sc);
     var cur = (document.querySelector("section.tab.on") || {}).id || ""; if (cur !== "tab-tpl") { showTab("tpl"); window.scrollTo(0, 0); setTimeout(function () { favApplyTpl(g); }, 350); } else favApplyTpl(g); }, true);
 })();
@@ -11221,6 +11221,14 @@ function ldNm(x) { return String(x.apt || "").replace(/&amp;/g, "&").replace(/;/
   var T = TPL.leaderGrid; if (T) T.render = function (d) { var Rw = tpRows(d.rows);
     return tpFrame(d._cat || "deal", d, '<div class="tp-ldw ld2"><div class="tp-ldh"><span></span><b>1위</b><b>2위</b><b>3위</b></div>' + Rw.map(function (r) { return '<div class="tp-ldr"><span class="tp-ldg">' + tpE(r[0]) + "</span>" + [1, 2, 3].map(function (k) { var x = String(r[k] || "").split(/\s*;\s*/); return '<div class="tp-ldc' + (k === 1 ? " g" : "") + '">' + (x[0] ? "<b>" + tpE(x[0]) + "</b><em>" + tpE(x[1] || "") + "</em>" + (x[2] ? "<small>" + tpE(x[2]) + "</small>" : "") + (x[3] ? '<small class="vm ' + (/^최고가/.test(x[3]) ? "hi" : "lo") + '">' + tpE(x[3]) + "</small>" : "") : "<i>–</i>") + "</div>"; }).join("") + "</div>"; }).join("") + "</div>"); };
 })();
+
+/* ══ v10.1 즐겨찾기 카드 정리 — 한 칸 = 머리(종류·이름·관리 아이콘) · 설명 한 줄 · 지역 한 줄(6칸 균등) ══ */
+favBoxHtml = function (kind, opts) { opts = opts || {}; var L = favOf(kind), add = '<button type="button" class="btn sm" data-favadd="' + kind + '" title="' + (kind === "tpl" ? "지금 고른 주제·모양·조건을 저장" : "지금 고른 재료·주제·요청·AI 범위를 저장") + '">☆ 지금 구성 즐겨찾기</button>';
+  return '<div class="fav-box v2' + (L.length ? "" : " empty") + '" data-favkind="' + kind + '"><div class="fav-hd"><b>★ 즐겨찾기</b><small class="hint">' + (L.length ? L.length + "개 · 이름을 누르면 저장한 지역으로, 아래 지역을 누르면 그 지역으로 바로 만듭니다" : "자주 쓰는 구성을 저장해 두세요 — 오늘 할 일보다 위에 둡니다") + "</small>" + (opts.noAdd ? "" : add) + (FAV.msg ? '<span class="hint fav-msg">' + favE(FAV.msg) + "</span>" : "") + "</div>" +
+    (L.length ? '<div class="fav-list">' + L.map(function (f) { var s = f.kind === "tpl" ? favTplSummary(f.tpl) : favReelSummary(f.reel), sub = s.sub;
+      if (f.kind === "tpl" && typeof rgKeyOf === "function" && rgKeyOf(TPR[f.tpl.r]) && typeof tprScopeNm === "function") { var sc = (f.tpl.o || {})[rgKeyOf(TPR[f.tpl.r])]; if (sc) sub = sub.replace(tprScopeNm(sc) + " · ", ""); }
+      return '<div class="fav-it"><div class="fv-top"><button type="button" class="fav-go" data-favgo="' + f.id + '"><b>' + favE(f.nm) + "</b><small>" + favE(sub) + '</small></button><span class="fav-ops"><button type="button" data-favup="' + f.id + '" title="앞으로">↑</button><button type="button" data-favren="' + f.id + '" title="이름 바꾸기">✎</button><button type="button" data-favdel="' + f.id + '" title="지우기">✕</button></span></div></div>'; }).join("") + "</div>" : "") + "</div>"; };
+favHubHtml = function () { var L = favLoad(); if (!L.length) return ""; return '<div class="fav-box hub v2"><div class="fav-hd"><b>★ 즐겨찾기</b><small class="hint">가장 먼저 만들 것 — 이름을 누르면 저장한 구성으로, 지역을 누르면 그 지역으로</small></div><div class="fav-list">' + L.map(function (f) { var s = f.kind === "tpl" ? favTplSummary(f.tpl) : favReelSummary(f.reel), sub = s.sub; if (f.kind === "tpl" && typeof rgKeyOf === "function" && rgKeyOf(TPR[f.tpl.r]) && typeof tprScopeNm === "function") { var sc = (f.tpl.o || {})[rgKeyOf(TPR[f.tpl.r])]; if (sc) sub = sub.replace(tprScopeNm(sc) + " · ", ""); } return '<div class="fav-it"><div class="fv-top"><button type="button" class="fav-go" data-favgo="' + f.id + '"><b><em class="fv-k ' + f.kind + '">' + (f.kind === "tpl" ? "카드" : "릴스") + "</em>" + favE(f.nm) + "</b><small>" + favE(sub) + "</small></button></div></div>"; }).join("") + "</div></div>"; };
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

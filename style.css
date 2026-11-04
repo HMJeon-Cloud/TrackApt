@@ -2037,6 +2037,25 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .tp-card .tp-bav i:empty{display:none}
 /* A → B 목록 */
 .tp-card .tp-list{display:flex;flex-direction:column}
+/* v10.1 즐겨찾기 카드 */
+.fav-box.v2 .fav-list{grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+.fav-box.v2 .fav-it{display:flex;flex-direction:column;gap:0;background:#fff;border:1.5px solid #e4d2a8;border-radius:12px;overflow:hidden;min-width:0}
+.fav-box.v2 .fav-it:hover{border-color:#b8902e;box-shadow:0 2px 8px rgba(184,144,46,.15)}
+.fav-box.v2 .fv-top{display:flex;align-items:flex-start;gap:6px;padding:10px 10px 8px 12px}
+.fav-box.v2 .fav-go{flex:1;border:0;background:none;padding:0;border-radius:0;gap:3px}.fav-box.v2 .fav-go:hover{background:none}.fav-box.v2 .fav-go:hover b{text-decoration:underline;text-underline-offset:3px}
+.fav-box.v2 .fav-go b{font-size:15px}.fav-box.v2 .fav-go small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.fav-box.v2 .fav-ops{flex-direction:row;gap:3px;flex:none}.fav-box.v2 .fav-ops button{width:24px;height:24px;flex:none;border-radius:6px;font-size:11px}
+.fav-box.v2 .fav-rg{margin-top:auto;flex-basis:auto;display:flex;align-items:center;gap:8px;flex-wrap:nowrap;padding:7px 10px 9px 12px;border-top:1px solid #f1e7cf;background:#fffaf0}
+.fav-box.v2 .fav-rg>small{flex:none;font-size:11px;color:#7a5a14;font-weight:800}
+.fav-box.v2 .fav-rg .rg-chips{flex:1;display:grid!important;grid-template-columns:repeat(6,1fr);gap:0;border:1px solid #e4d2a8;border-radius:8px;overflow:hidden;background:#fff}
+.fav-box.v2 .fav-rg .rg-chips button{border:0!important;border-left:1px solid #f1e7cf!important;border-radius:0!important;padding:5px 0!important;font-size:12px!important;font-weight:700;background:#fff;white-space:nowrap;color:#4b5563}
+.fav-box.v2 .fav-rg .rg-chips button:first-child{border-left:0!important}
+.fav-box.v2 .fav-rg .rg-chips button:hover{background:#fff3d6!important;color:#111}
+.fav-box.v2 .fav-rg .rg-chips button.on{background:#16294a!important;color:#ffd978!important}
+.fav-box.v2 .fav-hd{gap:8px}.fav-box.v2 .fav-hd>small{flex:1;min-width:0}
+.fav-box.hub .fav-list{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}.fav-box.v2 .fv-k{font-style:normal;font-size:10.5px;font-weight:800;color:#7a5a14;background:#f3e6c6;border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:2px}.fav-box.v2 .fv-k.reel{background:#e0e7ff;color:#3730a3}
+@media (max-width:640px){.fav-box.v2{padding:10px}.fav-box.v2 .fav-list{grid-template-columns:minmax(0,1fr)!important}.fav-box.v2 .fav-hd{flex-wrap:wrap}.fav-box.v2 .fav-hd>small{flex-basis:100%;order:3}.fav-box.v2 .fav-hd .btn{margin-left:auto}.fav-box.v2 .fav-rg{gap:6px;padding:7px 8px 8px}.fav-box.v2 .fav-rg .rg-chips button{font-size:11px!important;padding:6px 0!important}.fav-box.v2 .fv-top{padding:9px 8px 7px 10px}.fav-box.v2 .fav-go b{font-size:14px}}
+.fav-box.v2 .fav-go,.fav-box.v2 .fv-top{min-width:0}.fav-box.v2 .fav-go{overflow:hidden}.fav-box.v2 .fav-list>.fav-it{max-width:100%}
 /* v10.0 지역 칩 · 즐겨찾기 지역 · 대장 */
 .rg-chips{display:flex;flex-wrap:wrap;gap:5px}.rg-chips button{border:1.5px solid #d1d5db;background:#fff;border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#374151}.rg-chips button.on{background:#111;border-color:#111;color:#fff}.rg-chips button:hover{border-color:#111}
 .tpr-g.rg-g .tpr-list{display:flex!important;align-items:center;gap:10px;flex-wrap:wrap}.rg-chips{display:flex!important;flex-direction:row!important;flex-wrap:wrap}.rg-chips button{width:auto!important;min-width:0!important;flex:none!important;height:auto!important;padding:6px 14px!important;border-radius:999px!important}.rg-chips button.on{background:#111!important;color:#fff!important}.fav-rg .rg-chips{gap:4px}.fav-rg .rg-chips button{padding:3px 9px!important;font-size:12px!important}

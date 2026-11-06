@@ -1,14 +1,14 @@
 {
- "builtAt": "2026-11-05T14:00:23.280Z",
+ "builtAt": "2026-11-06T13:45:40.740Z",
  "steps": [
   "unsold 건너뜀(ONLY=subs)",
   "index 건너뜀(ONLY=subs)",
   "supply 건너뜀(ONLY=subs)",
   "weekly 건너뜀(ONLY=subs)",
-  "당첨 가점 행 1634 → 단지 71 (경쟁률 단지와 겹침 40)",
+  "당첨 가점 행 1697 → 단지 74 (경쟁률 단지와 겹침 45)",
   "경쟁률 행 1892 → 단지 112 (이름 붙은 곳 67)",
   "분양가 비교 77단지 · 못 맞춘 곳 8 (아크메르 동탄 99, 아크메르 동탄 95, 한양립스 에듀포레(조합원 취소분), 진도 승원팰리체 더 테라스, 향남역 그로브 스위첸)",
-  "청약 공고 145건(접수 중 2 · 예정 22) · 경쟁률 80 · 분양가 있는 단지 90",
+  "청약 공고 146건(접수 중 2 · 예정 24) · 경쟁률 80 · 분양가 있는 단지 90",
   "subs OK",
   "rates 건너뜀(ONLY=subs)",
   "경고: 준공 후 미분양(전국) 자료 없음 — 시도 합산 실패"
@@ -68,32 +68,32 @@
  ],
  "remSample": [
   {
-   "BSNS_MBY_NM": "삼천주공3 재건축정비사업조합",
-   "CNTRCT_CNCLS_BGNDE": "2026-11-19",
-   "CNTRCT_CNCLS_ENDDE": "2026-11-19",
+   "BSNS_MBY_NM": "(주)시티글로벌",
+   "CNTRCT_CNCLS_BGNDE": "2026-11-20",
+   "CNTRCT_CNCLS_ENDDE": "2026-11-20",
    "GNRL_RCEPT_BGNDE": null,
    "GNRL_RCEPT_ENDDE": null,
-   "HMPG_ADRES": "https://samcheon-hanulche.com",
-   "HOUSE_MANAGE_NO": "2026910286",
-   "HOUSE_NM": "삼천 하늘채 라비엘",
+   "HMPG_ADRES": "https://광명시티프라디움.com",
+   "HOUSE_MANAGE_NO": "2026910282",
+   "HOUSE_NM": "광명 시티프라디움 에듀하임",
    "HOUSE_SECD": "04",
    "HOUSE_SECD_NM": "무순위",
-   "HSSPLY_ADRES": "전북특별자치도 전주시 완산구 삼천동1가 585-4번지 일원",
-   "HSSPLY_ZIP": "55083",
-   "MDHS_TELNO": "15518836",
-   "MVN_PREARNGE_YM": "202911",
+   "HSSPLY_ADRES": "경기도 광명시 소하동 광명 구름산지구 도시개발사업지구 A6BL",
+   "HSSPLY_ZIP": "14326",
+   "MDHS_TELNO": "18996851",
+   "MVN_PREARNGE_YM": "202903",
    "NSPRC_NM": null,
-   "PBLANC_NO": "2026910286",
-   "PBLANC_URL": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910286&pblancNo=2026910286",
-   "PRZWNER_PRESNATN_DE": "2026-11-12",
-   "RCRIT_PBLANC_DE": "2026-11-04",
+   "PBLANC_NO": "2026910282",
+   "PBLANC_URL": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910282&pblancNo=2026910282",
+   "PRZWNER_PRESNATN_DE": "2026-11-13",
+   "RCRIT_PBLANC_DE": "2026-11-05",
    "SPSPLY_RCEPT_BGNDE": null,
    "SPSPLY_RCEPT_ENDDE": null,
-   "SUBSCRPT_AREA_CODE": "560",
-   "SUBSCRPT_AREA_CODE_NM": "전북",
-   "SUBSCRPT_RCEPT_BGNDE": "2026-11-09",
-   "SUBSCRPT_RCEPT_ENDDE": "2026-11-09",
-   "TOT_SUPLY_HSHLDCO": 5
+   "SUBSCRPT_AREA_CODE": "410",
+   "SUBSCRPT_AREA_CODE_NM": "경기",
+   "SUBSCRPT_RCEPT_BGNDE": "2026-11-10",
+   "SUBSCRPT_RCEPT_ENDDE": "2026-11-10",
+   "TOT_SUPLY_HSHLDCO": 21
   }
  ],
  "mdlSample": [
@@ -132,29 +132,29 @@
    "SUPLY_HSHLDCO": 116
   }
  ],
- "odcTotal_getAptLttotPblancScore": 30134,
+ "odcTotal_getAptLttotPblancScore": 30197,
  "scoreSample": [
   {
-   "AVRG_SCORE": "48.56",
-   "HOUSE_MANAGE_NO": "2026000508",
-   "HOUSE_TY": "084.9970C",
-   "LWET_SCORE": "40",
+   "AVRG_SCORE": "-",
+   "HOUSE_MANAGE_NO": "2026000513",
+   "HOUSE_TY": "075.9453 ",
+   "LWET_SCORE": "-",
    "MODEL_NO": "01",
-   "PBLANC_NO": "2026000508",
+   "PBLANC_NO": "2026000513",
    "RESIDE_SECD": "01",
    "RESIDE_SENM": "해당지역",
-   "TOP_SCORE": "75"
+   "TOP_SCORE": "-"
   },
   {
-   "AVRG_SCORE": "41.41",
-   "HOUSE_MANAGE_NO": "2026000508",
-   "HOUSE_TY": "084.9970C",
-   "LWET_SCORE": "35",
+   "AVRG_SCORE": "-",
+   "HOUSE_MANAGE_NO": "2026000513",
+   "HOUSE_TY": "075.9453 ",
+   "LWET_SCORE": "-",
    "MODEL_NO": "01",
-   "PBLANC_NO": "2026000508",
+   "PBLANC_NO": "2026000513",
    "RESIDE_SECD": "02",
    "RESIDE_SENM": "기타지역",
-   "TOP_SCORE": "56"
+   "TOP_SCORE": "-"
   }
  ],
  "errors": []

@@ -1,64 +1,6 @@
 {
  "v": 1,
- "builtAt": "2026-11-04T23:14:53.869Z",
- "asOf": 20261105,
- "items": [
-  {
-   "kind": "transit",
-   "line": "GTX-A 운정중앙~서울역",
-   "what": "일정 변경",
-   "date": "2026-11-04",
-   "title": "'철근누락' GTX-A 삼성역 무정차 통과, 내년 상반기로 1년 지연",
-   "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE9XMTFFcVZnY1J2LWZueUhkczJQeXRaNHp4T1ZBUVN5WEFUa1ZRNG9mYVpXV2hLcGFRTXVTVzIwY2dZODNFczR4VUpkcFNGcVEweDk3bnFMZnlFYktjXzFUMDkydWU0WGtEaFE?oc=5",
-   "src": "고양신문",
-   "official": false,
-   "todo": "data/manual/transit.json 에서 'GTX-A 운정중앙~서울역' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-11-05",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-04",
-   "title": "서울 신생아 가구도 5.0%…금리 경쟁력 잃은 보금자리론",
-   "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE8yM2NWNTB6SDBqSGNKQW1KV1I2TThIS1lDbnJwcEV4UXRoRUdBU2ppWV9VaGl2NXg5QmF2dnJBYnF4N3JTZUZtdFAzUU1mYXNKWXfSAVNBVV95cUxOUFdUNXZFV1RrRlEyZnpiVHYwZmFrZnZMR1NSZGRRbHdES3B4Z3c0S010XzU3VjlmZjBIUEhQaTJEaTk0QkhORmVkSEkyemRvZXllZw?oc=5",
-   "src": "서울경제",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-05",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-04",
-   "title": "\"이달 말 계약인데 금리 또 오른다\"…보금자리론 인상에 실수요자 '한숨'",
-   "url": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE9ZdDBmSGc3cmc1OXhKTVEyQ2VzYlpBNW9lOVNFSTM5bUpCWm5QLW1WVmlWTEJYWERJaGZ1eWxTOUxYRm1YXy00NmIzSzk1bkpsRkVnOWhfT1RSb1EweGcyQw?oc=5",
-   "src": "뉴스토마토",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-05",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-03",
-   "title": "금리 5% 넘고 연체는 3배로…빌리기도 갚기도 버거운 보금자리론",
-   "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxOQThHZUNlVmhiOHBrSktYYWgzU2pFczdXc1VWdXl6ZnN4dnhLTGZGTGJoYXhqYnZxcTNnY04zUUJzalpiWVkyTDFKd0E5SkJzTzBfLXV5T0hmZW9yOWJzZkNvcHVkLVNzZzhwdGNPMjNMb3l1bU1YSUR0aFRDdU50OA?oc=5",
-   "src": "이데일리",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-04",
-   "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-03",
-   "title": "주택금융공사, 11월 보금자리론 금리 0.10% 포인트 인상",
-   "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE01eW0zM2o0TFJWcFdZWlBEblZsWmxPcVloZzBqS0FXR1pDYjI3WTh1bGtWOUliTUhnRkhKandJSHp3dmd6bVdWejNxTTJERG5ZekIzcmlKQm9UOHdWa0dYSDlwU2U?oc=5",
-   "src": "매일일보",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-04",
-   "isNew": false
-  }
- ]
+ "builtAt": "2026-11-06T22:46:03.496Z",
+ "asOf": 20261107,
+ "items": []
 }

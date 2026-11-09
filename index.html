@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=11.3">
+<link rel="stylesheet" href="style.css?v=11.3.1">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v11.3</span>
+    <span class="ver">v11.3.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=11.3"></script>
+<script src="cards.js?v=11.3.1"></script>
 <script>
 "use strict";
 
@@ -11404,12 +11404,13 @@ TPR.wkGu = { nm: "서울 자치구 주간 변동", grp: "통계", opts: [], tpls
 if (typeof TPR_ORDER !== "undefined" && TPR_ORDER.indexOf("wkGu") < 0) { var _wi = TPR_ORDER.indexOf("idxWeekGrid"); TPR_ORDER.splice(_wi >= 0 ? _wi + 1 : TPR_ORDER.length, 0, "wkGu"); }
 /* ══ v11.3 R-ONE 주간 자료 더 쓰기 — ① 주간 변동 지도(서울 25구 · 수도권) ② 서울 매매·전세 주간 흐름 ══
    수도권 지도는 data/weekly_reg.json(지역별 52주, 수집기가 R-ONE 지역 이름 그대로 저장)을 지도를 그릴 때만 읽는다.
-   지역 이름 → 지도 코드는 '시도 + 시군구' 가 정확히 같은 것만 연결한다(짐작 없음). 연결 안 되는 곳은 회색(자료 없음). */
+   지역 이름 → 지도 코드는 '시도 + 시군구' 가 정확히 같은 것만 연결한다(짐작 없음). 연결 안 되는 곳은 회색(자료 없음).
+   R-ONE 이름은 '경기>경부1권>안양시>만안구' 처럼 > 로 이어진 계층(권역이 끼어 있음) — 시도 + 끝 두 토큰(안양 만안) 또는 시도 + 끝 토큰(과천)으로 맞춘다. 권역 이름(경부1권·도심권)은 지도에 없으니 저절로 빠진다. */
 var WKR = { loaded: false, data: null, idx: null };
 function wkRegLoad(cb) { if (WKR.loaded) { cb && cb(); return; } fetch("data/weekly_reg.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; })["catch"](function () { return null; }).then(function (j) { WKR.data = j && j.reg ? j : null; WKR.loaded = true; cb && cb(); }); }
-function wkNormTok(s) { return String(s || "").replace(/서울특별시/, "서울").replace(/경기도/, "경기").replace(/인천광역시/, "인천").replace(/부산광역시/, "부산").replace(/대구광역시/, "대구").replace(/광주광역시/, "광주").replace(/대전광역시/, "대전").replace(/울산광역시/, "울산").replace(/세종특별자치시/, "세종").trim().split(/\s+/).map(function (t) { return t.length > 1 ? t.replace(/(시|구|군)$/, "") : t; }).join(""); }
+function wkNormTok(s) { return String(s || "").replace(/서울특별시/, "서울").replace(/경기도/, "경기").replace(/인천광역시/, "인천").replace(/부산광역시/, "부산").replace(/대구광역시/, "대구").replace(/광주광역시/, "광주").replace(/대전광역시/, "대전").replace(/울산광역시/, "울산").replace(/세종특별자치시/, "세종").trim().split(/[>\s]+/).map(function (t) { return t.length > 1 ? t.replace(/(시|구|군)$/, "") : t; }).join(""); }
 function wkGeoIdx() { if (WKR.idx) return WKR.idx; var ix = {}, dup = {}; if (typeof GEO2 !== "undefined" && GEO2.names) Object.keys(GEO2.names).forEach(function (c) { var n = GEO2.names[c], k = wkNormTok(n[0] + " " + n[1]); if (ix[k] && ix[k] !== c) dup[k] = 1; ix[k] = c; }); Object.keys(dup).forEach(function (k) { delete ix[k]; }); return (WKR.idx = ix); }
-function wkRegCode(full) { var ix = wkGeoIdx(), T = String(full || "").trim().split(/\s+/); if (T.length < 2) return null; var sido = wkNormTok(T[0]), tries = [wkNormTok(full), sido + wkNormTok(T.slice(-2).join(" ")), sido + wkNormTok(T[T.length - 1])]; for (var i = 0; i < tries.length; i++) if (ix[tries[i]]) return ix[tries[i]]; return null; }
+function wkRegCode(full) { var ix = wkGeoIdx(), T = String(full || "").trim().split(/[>\s]+/); if (T.length < 2) return null; var sido = wkNormTok(T[0]), tries = [wkNormTok(full), sido + wkNormTok(T.slice(-2).join(" ")), sido + wkNormTok(T[T.length - 1])]; for (var i = 0; i < tries.length; i++) if (ix[tries[i]]) return ix[tries[i]]; return null; }
 function wkRegSeries() { var D = WKR.data; if (!D) return {}; var out = {}; Object.keys(D.reg).forEach(function (f) { var c = wkRegCode(f); if (!c || out[c]) return; var a = []; D.weeks.forEach(function (t, i) { if (D.reg[f][i] != null) a.push([t, D.reg[f][i]]); }); if (a.length >= 5) out[c] = a; }); return out; }
 function wkChg(A, back) { A = (A || []).filter(function (p) { return p[1] != null; }); if (A.length <= back) return null; var L = A[A.length - 1], P = A[A.length - 1 - back]; return { t: L[0], v: (L[1] / P[1] - 1) * 100 }; }
 TPR.mapWeek = { nm: "주간 변동 지도", grp: "지도·노선", opts: ["scope"], tpls: ["geoMap"], noX: true,

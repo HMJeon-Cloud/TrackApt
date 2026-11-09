@@ -334,7 +334,7 @@ async function subs() {
       var rem = await odc("ApplyhomeInfoDetailSvc/v1/getRemndrLttotPblancDetail");
       DBG.remSample = rem.slice(0, 1);
       rem.forEach(function (r) {
-        var it = { kind: "rem", no: r.HOUSE_MANAGE_NO, pno: r.PBLANC_NO, nm: r.HOUSE_NM, type: r.HOUSE_SECD_NM || "무순위", sub: r.HOUSE_DTL_SECD_NM, area: r.SUBSCRPT_AREA_CODE_NM, addr: r.HSSPLY_ADRES, n: num(r.TOT_SUPLY_HSHLDCO), notice: dn(r.RCRIT_PBLANC_DE), b: dn(r.SUBSCRPT_RCEPT_BGNDE || r.RCEPT_BGNDE), e: dn(r.SUBSCRPT_RCEPT_ENDDE || r.RCEPT_ENDDE), win: dn(r.PRZWNER_PRESNATN_DE), cB: dn(r.CNTRCT_CNCLS_BGNDE), cE: dn(r.CNTRCT_CNCLS_ENDDE), url: r.PBLANC_URL, home: r.HMPG_ADRES, tel: r.MDHS_TELNO };
+        var it = { kind: "rem", no: r.HOUSE_MANAGE_NO, pno: r.PBLANC_NO, nm: r.HOUSE_NM, type: r.HOUSE_SECD_NM || "무순위", sub: r.HOUSE_DTL_SECD_NM, area: r.SUBSCRPT_AREA_CODE_NM, addr: r.HSSPLY_ADRES, n: num(r.TOT_SUPLY_HSHLDCO), notice: dn(r.RCRIT_PBLANC_DE), b: dn(r.SUBSCRPT_RCEPT_BGNDE || r.RCEPT_BGNDE), e: dn(r.SUBSCRPT_RCEPT_ENDDE || r.RCEPT_ENDDE), win: dn(r.PRZWNER_PRESNATN_DE), cB: dn(r.CNTRCT_CNCLS_BGNDE), cE: dn(r.CNTRCT_CNCLS_ENDDE), move: String(r.MVN_PREARNGE_YM || "").replace(/\D/g, "") || null, builder: r.BSNS_MBY_NM || null, url: r.PBLANC_URL, home: r.HMPG_ADRES, tel: r.MDHS_TELNO };
         var last = Math.max(it.win || 0, it.e || 0, it.notice || 0);
         if (last >= since) out.items.push(it);
       });
@@ -353,6 +353,22 @@ async function subs() {
         if (tops.length) { it.pMin = Math.min.apply(null, tops.map(function (t) { return t.top; })); it.pMax = Math.max.apply(null, tops.map(function (t) { return t.top; })); var t84 = tops.filter(function (t) { return t.area && t.area >= 80 && t.area <= 86; })[0]; if (t84) it.p84 = t84.top; }
       });
     } catch (e) { log("주택형별 분양가 실패: " + e.message); }
+    /* 3-2 v11.1 무순위·잔여세대 주택형별 분양가·공급 수 — getRemndrLttotPblancMdl (같은 서비스, 무순위용 표). 없으면 조용히 넘어간다 */
+    try {
+      var rmdl = await odc("ApplyhomeInfoDetailSvc/v1/getRemndrLttotPblancMdl");
+      DBG.remMdlSample = rmdl.slice(0, 1);
+      var rByNo = {}; rmdl.forEach(function (m) { var k = String(m.HOUSE_MANAGE_NO); (rByNo[k] = rByNo[k] || []).push(m); });
+      var nr = 0;
+      out.items.forEach(function (it) {
+        if (it.kind !== "rem") return;
+        var L = rByNo[String(it.no)] || []; if (!L.length) return;
+        it.types = L.map(function (m) { return { ty: m.HOUSE_TY, n: num(m.SUPLY_HSHLDCO), sp: num(m.SPSPLY_HSHLDCO), top: num(m.LTTOT_TOP_AMOUNT), area: num(m.SUPLY_AR) }; });
+        var tops = it.types.filter(function (t) { return t.top; });
+        if (tops.length) { it.pMin = Math.min.apply(null, tops.map(function (t) { return t.top; })); it.pMax = Math.max.apply(null, tops.map(function (t) { return t.top; })); var t84 = tops.filter(function (t) { return t.area && t.area >= 80 && t.area <= 86; })[0]; if (t84) it.p84 = t84.top; }
+        var sumN = it.types.reduce(function (a, t) { return a + (t.n || 0); }, 0); if (!it.n && sumN) it.n = sumN; nr++;
+      });
+      log("무순위 주택형 " + nr + "단지");
+    } catch (e) { log("무순위 주택형별 분양가 실패(표가 없을 수 있음): " + e.message); }
     /* 4 경쟁률 (최근 공고 기준) */
     try {
       var cr = await odcRecent("ApplyhomeInfoCmpetRtSvc/v1/getAPTLttotPblancCmpet");
@@ -436,7 +452,7 @@ function subsCompare(items) {
   var ym = function (i) { var m = Number(MC.m0), y = Math.floor(m / 100), mo = m % 100 - 1 + i; return (y + Math.floor(mo / 12)) * 100 + (mo % 12) + 1; };
   var n = 0, miss = [];
   items.forEach(function (it) {
-    if (it.kind !== "apt" || !it.types || !it.types.length) return;
+    if ((it.kind !== "apt" && it.kind !== "rem") || !it.types || !it.types.length) return;   /* v11.1 무순위도 주택형이 있으면 주변 실거래와 비교 */
     if (/임대/.test(String(it.rent || "") + String(it.type || "") + String(it.nm || ""))) return;   /* 임대·분양전환은 분양가가 아니라서 비교하지 않는다 */
     var T = it.types.filter(function (t) { return t.top && parseFloat(t.ty) > 0; }); if (!T.length) return;
     var t84 = T.slice().sort(function (a, b) { return Math.abs(parseFloat(a.ty) - 84) - Math.abs(parseFloat(b.ty) - 84); })[0], ex = parseFloat(t84.ty);

@@ -2078,6 +2078,30 @@ details.ai-wrap .ai-studio{border:0;padding:6px 0 0;margin:0;background:none}
 .tp-card .lo-ex{margin:4px 0 0;padding:0 0 0 8px;font-size:6.2px;color:#374151;line-height:1.35}.tp-card .lo-ex li{word-break:keep-all;overflow-wrap:anywhere}
 .tp-card.tp-t1 .lo-kv td{font-size:6.6px}.tp-card.tp-t1 .lo-rt td{font-size:6.4px}.tp-card.tp-t2 .lo-kv td{font-size:6.2px;padding:2px 4px}.tp-card.tp-t2 .lo-kv th{font-size:6.4px;padding:2px 4px}.tp-card.tp-t2 .lo-rt td,.tp-card.tp-t2 .lo-rt th{font-size:6px;padding:1.6px 2px}.tp-card.tp-t2 .lo-chips span{font-size:5.6px}.tp-card.tp-t2 .lo-ex{font-size:5.6px}.tp-card.tp-t3 .lo-kv td{font-size:5.8px}.tp-card.tp-t3 .lo-ex{display:none}
 .tp-card .tp-cmp.n4 th{font-size:7px;padding:3px 2px}.tp-card .tp-cmp.n4 tr>th:first-child{width:14%;font-size:6.8px}.tp-card .tp-cmp.n4 td{font-size:6.3px;font-weight:600;padding:3px 2px;line-height:1.3;word-break:keep-all;overflow-wrap:anywhere;white-space:normal}.tp-card .tp-cmp.n4 td b{display:block;font-weight:900;font-size:7px}.tp-card .tp-cmp.n4 td small{display:block;font-size:5.8px;color:#374151;margin-top:1px;line-height:1.3}
+/* v11.1 무순위(줍줍) 카드 */
+.tp-card .tp-ap-pills.rm span.k{background:#b3261e}
+.tp-card .tp-tbl.rm-big{width:100%;border-collapse:collapse;margin:4px 0 2px}
+.tp-card .tp-tbl.rm-big th{font-size:8.5px;color:#6b6252;font-weight:800;padding:3px 4px;border-bottom:1.5px solid #17181c;text-align:left}
+.tp-card .tp-tbl.rm-big td{font-size:12px;font-weight:900;padding:4px 4px;border-bottom:1px solid #e6e1d6;letter-spacing:-.02em;white-space:nowrap}
+.tp-card .tp-tbl.rm-big td.p{color:#b3261e;font-size:14px}
+.tp-card .tp-tbl.rm-big td.n{color:#1f4d9e}
+.tp-card .tp-tbl.rm-big th.s,.tp-card .tp-tbl.rm-big td.s{text-align:right;font-size:9.5px;color:#4a4a4a;font-weight:700}
+.tp-card .tp-ap-kv.rm div{position:relative;background:#f6f3ec}
+.tp-card .tp-ap-kv.rm em{display:block;font-style:normal;font-size:8px;font-weight:900;color:#b3261e;margin-top:1px}
+.tp-card .tp-ap-2.rm{display:grid!important;grid-template-columns:1.25fr 1fr;gap:4px 10px;align-items:start;align-content:start;justify-content:stretch;flex:1 1 auto;margin-top:5px}
+.tp-card .tp-ap-2.rm .tp-pins{margin:0;min-width:0}
+.tp-card .tp-ap-2.rm .tp-pins li{font-size:8.8px;padding:2px 0 2px 11px;line-height:1.3}
+.tp-card .rm-side{border-collapse:collapse;width:100%;background:#faf8f3;border-radius:6px;overflow:hidden;margin:0}
+.tp-card .rm-side th{font-size:8.5px;color:#6b6252;font-weight:800;text-align:left;padding:3px 6px;border-bottom:1px solid #ebe6da;white-space:nowrap}
+.tp-card .rm-side td{font-size:9.5px;font-weight:900;text-align:right;padding:3px 6px;border-bottom:1px solid #ebe6da;white-space:nowrap}
+.tp-card .rm-side td.on{color:#b3261e}
+.tp-card .rm-side td.ask{color:#9a927f;font-weight:700}
+.tp-card .rm-side tr:last-child th,.tp-card .rm-side tr:last-child td{border-bottom:0}
+.tp-card .rm-hook{margin-top:auto;background:#17181c;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:900;letter-spacing:-.02em;text-align:center;white-space:normal}
+.tp-card.tp-t3 .tp-tbl.rm-big td{font-size:10.5px}.tp-card.tp-t3 .tp-tbl.rm-big td.p{font-size:12px}
+.tp-card.tp-big .tp-tbl.rm-big td{font-size:14px}.tp-card.tp-big .tp-tbl.rm-big td.p{font-size:17px}.tp-card.tp-big .tp-ap-2.rm .tp-pins li{font-size:11px}.tp-card.tp-big .rm-side th{font-size:10.5px}.tp-card.tp-big .rm-side td{font-size:12px}.tp-card.tp-big .rm-hook{font-size:14px;padding:9px 12px}
+.rm-tip{margin:6px 0 8px;border:1px dashed #d8c58a;background:#fffbea;border-radius:10px;padding:8px 12px;font-size:12.5px;line-height:1.5}
+.rm-tip b{display:block;margin-bottom:2px}.rm-tip p{margin:2px 0}.rm-tip u{text-decoration-style:dotted}
 /* v9.97 즐겨찾기 */
 .fav-box{margin:10px 0 6px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,#fff8e6,#fff);border:2px solid #d4af6a;box-shadow:0 2px 10px rgba(212,175,106,.18)}.fav-box.empty{background:#fffdf7;border-style:dashed;box-shadow:none}
 .fav-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.fav-hd>b{font-size:16px;color:#7a5a14}.fav-hd .btn{margin-left:auto}.fav-msg{flex-basis:100%;font-size:11.5px}

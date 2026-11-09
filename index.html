@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=11.0">
+<link rel="stylesheet" href="style.css?v=11.1">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v11.0</span>
+    <span class="ver">v11.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=11.0"></script>
+<script src="cards.js?v=11.1"></script>
 <script>
 "use strict";
 
@@ -8482,6 +8482,7 @@ var OPS = {
   run: [
     ["매일 03:00 KST", "전체 수집(실거래 → 월별 잇기 → 금리·정책 → 보조 지표 → 학군 → 점검 → 커밋)", "GitHub Actions 「지금 시장 데이터 갱신」 · 약 10분 · 몇 분 늦게 돌 수 있음"],
     ["매일 15:00 KST", "청약만 다시(그날 올라온 모집공고)", "같은 워크플로, ONLY=subs"],
+    ["목요일 15:40 KST", "주간 지수만 다시 — 부동산원이 목 14:00에 그 주(월요일 기준) 지수를 발표하므로 당일 반영(R-ONE 키 RONE_KEY 가 있을 때). 키가 없으면 KOSIS 경유라 1~2주 늦게 들어옴", "같은 워크플로, ONLY=weekly (v11.1)"],
     ["수동", "Actions → Run workflow. 「일부만」에 index,supply,weekly,subs,rates,unsold 중 골라 적으면 그 단계만(2~3분), 비우면 전체", OPS_REPO + "/actions"],
     ["앱 반영", "저장소에 커밋되면 앱은 GitHub raw 에서 직접 읽음(5분 캐시) — Vercel 재배포 없음. index.html·api·vercel.json 이 바뀔 때만 배포", "Vercel 용량 절약 구조(v9.39)"]
   ],
@@ -8492,7 +8493,7 @@ var OPS = {
     ["ECOS_KEY", "GitHub Secrets", "ecos.bok.or.kr → Open API → 인증키 신청", "기준금리(100대 지표·변경일) · 국고채 3년 · 예금은행 주담대·대출평균 금리(신규취급액) · 임금", "03:00 전체", "macro_data.json(rates)", "주담대 평균은 전월 값이라 한 달 늦음"],
     ["DATA_GO_KEY", "GitHub Secrets", "data.go.kr → 「한국부동산원 청약홈 분양정보 조회 서비스」 활용신청", "APT 분양·무순위·잔여세대 공고, 주택형별 분양가, 1·2순위 경쟁률, 당첨 가점", "03:00 + 15:00(청약만)", "daily_data.json(subs) · data/subs_hist.json", "공고일 기준 과거 45일~앞날 전부 · 같은 단지 중복 제거"],
     ["FSS_KEY", "GitHub Secrets", "finlife.fss.or.kr 금융상품한눈에 → 오픈API → 인증키", "주담대·전세대출·정기예금·적금 금리(은행·저축은행, 공시월 단위)", "03:00(주 1회 비교 기준 유지) · 일 10,000건 한도", "daily_data.json(rates) · data/rates_hist.json", "금감원 10월 공시는 10월 20일 전후에 올라옴 — 그 전엔 9월 공시가 최신"],
-    ["RONE_KEY", "GitHub Secrets(선택)", "reb.or.kr/r-one → 오픈API 신청", "주간 아파트 매매가격지수(표 ID 미확인 → 지금은 KOSIS 주간 표로 대체 수집)", "03:00", "daily_data.json(weekly)", "없어도 됨"],
+    ["RONE_KEY", "GitHub Secrets(선택)", "reb.or.kr/r-one → 오픈API 신청", "주간 아파트 매매가격지수 — 키가 있으면 발표 당일(목 15:40) 반영, 없으면 KOSIS 주간 표로 대체 수집(1~2주 지연)", "03:00 · 목 15:40", "daily_data.json(weekly)", "없어도 됨"],
     ["SCHOOLINFO_API_KEY", "GitHub Secrets", "schoolinfo.go.kr 학교알리미 → 알리미 소식 → OpenAPI 신청", "초·중·고 5,700곳 기본정보·학생수·입학생·전출입 + data/school 의 학업성취 CSV", "03:00 전체", "school_data.json", "학업성취도는 공시 엑셀을 손으로 내려받아 data/school 에 넣음(아래 수동)"],
     ["OWNER_KEY", "Vercel 환경변수", "직접 정한 비밀 문자열", "주인 인증(HMAC 토큰) — 인사이트·브리핑·카드 만들기·보관함 접근", "—", "api/owner.js", "바꾸면 모든 기기에서 다시 로그인"],
     ["OPENAI_API_KEY", "Vercel 환경변수", "platform.openai.com → API keys", "인사이트 「넌 어떻게 생각하는데?」 답 · 카드 AI 배경/전체 그림 · 릴스 설계", "버튼을 누를 때만 호출(자동 없음) · 과금 주의", "api/ai.js · api/img.js", "GEMINI_API_KEY 는 선택(그림 대체)"],
@@ -11305,6 +11306,89 @@ if (typeof STEP_DESC !== "undefined") { STEP_DESC.today = "자료 모으기 · �
     document.documentElement.style.setProperty("--stuH", bar.offsetHeight + "px");
   };
   document.addEventListener("click", function (ev) { var b = ev.target && ev.target.closest && ev.target.closest("[data-admhome]"); if (!b) return; showTab("home"); window.scrollTo(0, 0); });
+})();
+
+/* ══ v11.1 무순위(줍줍) 카드 2판 + 주간 지수 갱신 시점 안내 ══
+   무순위 카드: 머리 띠(유형·지역·규제) → 큰 숫자 줄(주택형 · 평형 · 분양가 · 주변 실거래) → 날짜 4칸(접수·발표·계약·입주) → 핵심 목록 | 조건표 → 한 줄 포인트 띠.
+   데이터: 청약홈 API(일정·공급·주택형·분양가 — v11.1 수집기부터) + 앱이 계산한 주변 실거래(cmp) + 직접 적는 조건(청약 탭 › 조건 적기: 청약통장·거주 요건·재당첨·전매·거주의무·분양가상한제·최초 공고·한 줄 포인트). */
+(function () {
+  if (typeof SB_TF === "undefined") return;
+  var add = [["account", "청약통장"], ["cap", "분양가상한제"], ["first", "최초 공고·당시 분양가"], ["hook", "한 줄 포인트(띠)"]];
+  add.forEach(function (f) { if (!SB_TF.some(function (x) { return x[0] === f[0]; })) SB_TF.push(f); });
+})();
+function rmTyRows(it) {
+  var T = (it.types || []).filter(function (t) { return t.ty; }), c = it.cmp, X = c && typeof sbCmpLine === "function" ? sbCmpLine(it) : null;
+  return T.map(function (t) { var ex = parseFloat(t.ty) || t.area || 0, py = t.area ? Math.round(t.area / 3.3058) + "평" : "", near = X && c.ty === t.ty ? eok(X.near) : (c && c.lead && Math.abs(ex - (c.lead.ar || 0)) <= 6 ? eok(c.lead.price) : ""); return [typeof sbTy === "function" ? sbTy(t.ty) : String(t.ty), py, t.top ? eok(t.top) : "공고 확인", near || "–", t.n != null ? fmt(t.n) + "세대" : ""]; });
+}
+(function () {
+  if (typeof TPL === "undefined" || !TPL.aptNotice) return; var T = TPL.aptNotice, oa = T.auto, orr = T.render;
+  var md = function (n) { return n ? chMD(n) + "(" + chWd(n) + ")" : ""; }, dday = function (n) { if (!n) return ""; var t = sbToday(); if (n < t) return "마감"; var d = Math.round((new Date(String(n).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3")) - new Date(String(t).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3"))) / 864e5); return d === 0 ? "오늘" : "D-" + d; };
+  T.auto = function () {
+    var d = oa.apply(this, arguments); if (!d) return d;
+    var it = typeof sbCardItem === "function" ? sbCardItem() : null; if (!it || it.kind !== "rem") return d;
+    var N = typeof sbNote === "function" ? sbNote(it) : {}, area = String(it.area || "").replace(/특별시|광역시|특별자치시|특별자치도/g, ""), T2 = String(it.addr || "").replace(/\[.*?\]/g, "").split(/\s+/), gu = T2[1] || "", dong = (T2.slice(2).filter(function (w) { return /(동|읍|면|가|리)$/.test(w) && !/^\d/.test(w); })[0]) || "";
+    var typ = /계약취소|취소/.test(String(it.type || "") + String(it.sub || "") + String(it.nm || "")) ? "계약취소주택" : /잔여/.test(String(it.type || "") + String(it.sub || "")) ? "잔여세대" : "무순위";
+    var rows = rmTyRows(it), c = it.cmp;
+    var paren = (String(it.nm || "").match(/\(([^)]+)\)/g) || []).map(function (m) { return m.slice(1, -1); }).filter(function (s) { return !/공공분양|민간분양|본청약|사전청약|무순위|잔여세대|계약취소주택/.test(s); })[0] || "";
+    d.rem = 1; d.pills = ["줍줍 · " + typ, area + (gu ? " " + gu : ""), it.hot ? "투기과열지구" : it.adj ? "조정대상지역" : "", paren].filter(Boolean).join(" | ");
+    if (rows.length) { d.cols = "주택형 | 평형 | 분양가 | 주변 실거래 | 공급"; d.rows = rows; d.compact = 0; d.big = 1; }
+    else { d.cols = "구분 | 내용"; d.rows = [["공급", (it.n ? fmt(it.n) + "세대" : "공고 확인") + " · " + typ], ["위치", [area, gu, dong].filter(Boolean).join(" ")], ["주택형·분양가", "입주자모집공고 확인"]]; d.compact = 1; }
+    d.kv = [["접수", md(it.b) + (it.e && it.e !== it.b ? "~" + chMD(it.e) : ""), dday(it.b)], ["당첨 발표", md(it.win), ""], ["계약", md(it.cB) + (it.cE && it.cE !== it.cB ? "~" + chMD(it.cE) : ""), ""], ["입주", it.move ? String(it.move).replace(/^(\d{4})(\d\d)$/, "$1.$2") : (N.move || "공고 확인"), ""]].filter(function (r) { return r[1]; });
+    var B = [];
+    if (N.first) B.push(N.first); else if (N.hook) B.push(N.hook);
+    B.push(typ + " 공급 " + (it.n ? fmt(it.n) + "세대" : "") + (rows.length > 1 ? " · 주택형 " + rows.length + "개" : rows.length === 1 ? " · " + rows[0][0] + "타입 " + (rows[0][4] || "") : ""));
+    if (c && typeof sbCmpLine === "function") { var X = sbCmpLine(it); B.push("분양가 " + eok(X.sale) + " vs 주변 " + c.band + "㎡ 실거래 " + eok(X.near) + " — " + (X.diff > 0 ? "분양가가 " + X.diff.toFixed(1) + "% 높음" : "분양가가 " + Math.abs(X.diff).toFixed(1) + "% 낮음") + (c.lead ? " · 대장 " + c.lead.apt + " " + eok(c.lead.price) : "")); }
+    B.push("자격 " + (N.res || N.firstRank || "공고 확인(거주지·주택 수)") + (N.resPeriod ? " · " + N.resPeriod : ""));
+    B.push("청약통장 " + (N.account || "공고 확인") + (N.point ? " · " + N.point : ""));
+    if (N.down || N.mid) B.push("계약금 " + (N.down || "공고 확인") + (N.mid ? " · 중도금 " + N.mid : ""));
+    var loc = typeof sbLocRows === "function" ? sbLocRows(it) : []; if (loc.length && B.length < 6) B.push("입지 " + loc.slice(0, 2).map(function (r) { return r[1]; }).join(" · "));
+    if (N.etc && B.length < 6) B.push(N.etc);
+    d.bullets = B.slice(0, 6);
+    d.side = [["분양가상한제", N.cap || (it.cap ? "적용" : "공고 확인")], ["재당첨제한", N.rewin || "공고 확인"], ["전매제한", N.resale || "공고 확인"], ["거주의무", N.live || "공고 확인"], ["규제지역", it.hot ? "투기과열" : it.adj ? "조정대상" : "해당 없음"]];
+    d.hook = N.hook || N.first || ((it.b ? chMD(it.b) + "(" + chWd(it.b) + ") 접수 · " : "") + typ + (it.n ? " " + fmt(it.n) + "세대" : "") + " · 자격·통장은 공고문 확인");
+    d.src = "모집공고일 " + (it.notice ? String(it.notice).replace(/(\d{4})(\d\d)(\d\d)/, "$1년 $2월 $3일") : "") + " · 청약홈 " + typ + (c ? " · 실거래 " + (c.basis === "m30" ? "최근 30일 " + c.gu + " " + c.band + "㎡ 중위" : "3개월 중위") : "");
+    d.title = String(it.nm || "").replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+    d.sub = [area + (gu ? " " + gu : "") + (dong ? " " + dong : ""), it.builder ? String(it.builder).replace(/\(주\)|주식회사|㈜/g, "").trim() : "", it.n ? "공급 " + fmt(it.n) + "세대" : ""].filter(Boolean).join(" · ");
+    d.foot = "분양가는 주택형 최고가(공고) · 주변 실거래는 같은 시군구 같은 면적대 중위 · 조건은 입주자모집공고문 기준 · 투자 권유 아님";
+    return d;
+  };
+  T.render = function (d) {
+    if (!d.rem) return orr(d);
+    var cols = tpRows(d.cols)[0] || [], R = tpRows(d.rows), KV = tpRows(d.kv || []), P = String(d.pills || "").split(/\s*\|\s*/).filter(Boolean), S = tpRows(d.side || []);
+    var big = cols.length >= 4;
+    return tpFrame("subs", d, (P.length ? '<div class="tp-ap-pills rm">' + P.map(function (p, i) { return '<span class="' + (i === 0 ? "k" : "") + '">' + tpE(p) + "</span>"; }).join("") + "</div>" : "") +
+      (big ? '<table class="tp-tbl rm-big tp-nogrow tp-nofold"><tr>' + cols.map(function (c, i) { return "<th" + (i === 4 ? ' class="s"' : "") + ">" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.slice(0, 4).map(function (r) { return "<tr>" + cols.map(function (_, i) { return "<td" + (i === 4 ? ' class="s"' : i === 2 ? ' class="p"' : i === 3 ? ' class="n"' : "") + ">" + tpE(r[i] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>"
+        : '<table class="tp-tbl cmp tp-ap-tbl tp-nogrow tp-nofold"><tr>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr>" + cols.map(function (_, i) { return "<td>" + tpE(r[i] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>") +
+      (KV.length ? '<div class="tp-ap-kv rm n' + KV.length + '">' + KV.map(function (r) { return "<div><small>" + tpE(r[0]) + "</small><b>" + tpE(r[1] || "") + "</b>" + (r[2] ? "<em>" + tpE(r[2]) + "</em>" : "") + "</div>"; }).join("") + "</div>" : "") +
+      '<div class="tp-ap-2 rm"><ul class="tp-pins">' + tpLines(d.bullets).map(function (b) { return "<li>" + tpE(b) + "</li>"; }).join("") + '</ul><table class="rm-side tp-nofold">' + S.map(function (r) { var v = String(r[1] || ""), ask = /공고 확인/.test(v); return "<tr><th>" + tpE(r[0]) + '</th><td class="' + (ask ? "ask" : /적용|투기|조정|있음|년/.test(v) ? "on" : "") + '">' + tpE(ask ? "확인" : v) + "</td></tr>"; }).join("") + "</table></div>" +
+      (d.hook ? '<div class="rm-hook"><b>' + tpE(d.hook) + "</b></div>" : ""));
+  };
+  /* 공고문·사진에서 읽기(Claude)에 새 항목도 뽑도록 */
+})();
+/* ── 주간 지수 갱신 시점 안내 — 카드 기준 줄 · 데이터 운영 ── */
+function wkUpdateNote() {
+  var W = (typeof DY !== "undefined" && DY.data && DY.data.weekly) || null; if (!W || !W.seoul || !W.seoul.length) return "";
+  var last = W.seoul[W.seoul.length - 1][0], t = sbToday(), lag = Math.round((new Date(String(t).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3")) - new Date(String(last).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3"))) / 864e5);
+  var viaKosis = /KOSIS/.test(String(W.src || "")), d = new Date(String(t).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3")), wd = d.getUTCDay();
+  var nextThu = new Date(d.getTime() + ((4 - wd + 7) % 7 || 7) * 864e5), nt = chMD(Number(nextThu.toISOString().slice(0, 10).replace(/-/g, "")));
+  return "마지막 주 " + chMD(last) + "(" + lag + "일 전)" + (viaKosis ? " · KOSIS 경유라 발표보다 1~2주 늦음" : " · R-ONE 당일 반영") + " · 부동산원은 매주 목요일 14시에 그 주(월요일 기준) 지수를 발표 → 앱은 목 15:40(주간만)·금 03:00 반영 · 다음 발표 " + nt + "(목)";
+}
+(function () {
+  ["idxWeekGrid", "idxWeekly"].forEach(function (id) { var R = TPR[id]; if (!R) return; ["build", "detail"].forEach(function (k) { if (typeof R[k] !== "function") return; var o = R[k]; R[k] = function () { var P = o.apply(this, arguments); try { var n = wkUpdateNote(); if (n && P) P.forEach(function (d) { if (d && d.src && String(d.src).indexOf("마지막 주") < 0) d.src = String(d.src).replace(/\s*·\s*전주 대비 = 지수 변화/, "") + " · " + n.split(" · ")[0] + (n.indexOf("늦음") > 0 ? "(KOSIS 1~2주 지연)" : ""); }); } catch (e) {} return P; }; }); });
+})();
+/* ── 카드 만들기: 무순위 단지를 고르면 카드 위에 '어디서 채우나' 안내 — 카드에는 넣지 않고 화면에만 ── */
+function rmTipHtml(it) {
+  var N = typeof sbNote === "function" ? sbNote(it) : {}, hasT = (it.types || []).some(function (t) { return t.top; });
+  var miss = [["account", "청약통장"], ["res", "거주 요건"], ["rewin", "재당첨"], ["resale", "전매"], ["live", "거주의무"], ["cap", "분양가상한제"], ["first", "최초 공고·당시 분양가"], ["hook", "한 줄 포인트"]].filter(function (f) { return !N[f[0]]; }).map(function (f) { return f[1]; });
+  if (hasT && !miss.length) return "";
+  return '<div class="rm-tip"><b>줍줍 카드 채우기</b>' +
+    (hasT ? "" : "<p>주택형·분양가가 비었습니다. 청약홈에 공급 상세가 올라오면 다음 새벽(03시)·15시 수집 때 자동으로 채워집니다. 그래도 비면 아래 세부 고치기에서 표 머리를 '주택형 | 평형 | 분양가 | 주변 실거래 | 공급'으로 바꾸고, 표 줄에 공고문 1쪽 '공급 내역'을 한 주택형씩(예: 84A | 34평 | 11.2억 | – | 2세대) 적으세요.</p>") +
+    (miss.length ? "<p>공고문에서 적을 것(" + miss.length + "개): " + miss.map(escHtml).join(" · ") + " — <u>청약 탭 › 이 단지 › 조건 적기</u>에서 공고문 텍스트나 사진을 넣고 [공고문에서 읽기]를 누르면 Claude가 뽑아 줍니다(없는 건 비움).</p>" : "") +
+    '<p class="hint">출처: 청약홈 공고 상세(' + (it.url ? '<a href="' + escHtml(it.url) + '" target="_blank" rel="noopener">열기</a>' : "모집공고") + ') · 자격·통장·재당첨·전매·거주의무는 공고 2~4쪽 "신청 자격"과 "유의사항" · 최초 공고일·당시 분양가는 같은 단지의 첫 모집공고(청약홈 › 과거 공고)</p></div>';
+}
+(function () {
+  if (typeof tprRebuild !== "function") return; var o = tprRebuild;
+  tprRebuild = function () { var r = o.apply(this, arguments); try { var old = document.getElementById("rm-tip"); if (old) old.remove(); var box = document.getElementById("tp-cards"); var it = TP.r === "aptNotice" && typeof sbCardItem === "function" ? sbCardItem() : null; if (box && it && it.kind === "rem") { var h = rmTipHtml(it); if (h) { var d = document.createElement("div"); d.id = "rm-tip"; d.innerHTML = h; box.parentNode.insertBefore(d, box); } } } catch (e) {} return r; };
 })();
 
 /* ══ 시작 탭 ══════════════════════════════════ */

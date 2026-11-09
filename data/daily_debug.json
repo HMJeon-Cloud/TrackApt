@@ -1,5 +1,5 @@
 {
- "builtAt": "2026-11-08T21:43:45.758Z",
+ "builtAt": "2026-11-09T07:18:00.566Z",
  "steps": [
   "KOSIS unsold 분류 단: {\"ITM_NM\":\"호\",\"C1_NM\":\"전국/수도권/서울/부산/전남광주/대구/인천/대전/울산/경기/강원/충북/세종/충남 …18\",\"C2_NM\":\"총합/공공부문/민간부문\",\"C3_NM\":\"총합/공공부문/소계/40㎡이하/60∼85㎡/40∼60㎡/85㎡초과\"}",
   "KOSIS unsold 좁혀 받기: {\"objL2\":\"13102792722B.0001\",\"objL3\":\"13102792722C.0001+13102792722C.0002\"}",
@@ -23,17 +23,19 @@
   "KOSIS completes 분류 단: {\"ITM_NM\":\"사용검사실적\",\"C1_NM\":\"총계/수도권소계/서울/인천/경기/지방소계/기타광역시/전남광주/부산/대구/대전/울산/기타지방/세종 …21\",\"C2_NM\":\"계(다가구동수기준)/계(다가구가구수기준)/단독/다세대/연립/아파트\",\"C3_NM\":\"계(다가구동수기준)/계(다가구가구수기준)/단독/다가구/다세대/연립/아파트\",\"C4_NM\":\"계(다가구동수기준)/계(다가구가구수기준)/단독/동수/가구수/다세대/연립/아파트\"}",
   "KOSIS completes 좁혀 받기: {\"objL2\":\"13102766973B.0002+13102766973B.0006\",\"objL3\":\"13102766973C.0002+13102766973C.0007\",\"objL4\":\"13102766973D.0002+13102766973D.0008\"}",
   "supply OK",
+  "R-ONE 주간 지수 서울 104주 ~20261102 · 자치구 25개",
   "KOSIS 주간 DT_304004_WEEK_002_B 최신 20260706 — 오래됨",
   "KOSIS 주간 DT_304004_WEEK_002_A 최신 20260202 — 오래됨",
   "KOSIS 주간 지역 이름(219개, 앞 40): 전국 | 수도권 | 지방 | 4대광역시 | (구)5대광역시 | 7개도 | (구)8개도 | 서울 | 강북권역 | 도심권 | 종로 | 중 | 용산 | 동북권 | 성동 | 광진 | 동대문 | 중랑 | 성북 | 강북 | 도봉 | 노원 | 서북권 | 은평 | 서대문 | 마포 | 강남권역 | 서남권 | 양천 | 강서 | 구로 | 금천 | 영등포 | 동작 | 관악 | 동남권 | 서초 | 강남 | 송파 | 강동",
   "KOSIS 주간 표 선택: DT_304004_WEEK_002_C ~20261026",
+  "R-ONE·KOSIS 일치(3주) · R-ONE 사용, KOSIS 마지막 20261026",
   "weekly OK",
+  "무순위 주택형 59단지",
   "당첨 가점 행 1707 → 단지 73 (경쟁률 단지와 겹침 45)",
   "경쟁률 행 1892 → 단지 112 (이름 붙은 곳 67)",
-  "분양가 비교 80단지 · 못 맞춘 곳 8 (아크메르 동탄 99, 아크메르 동탄 95, 한양립스 에듀포레(조합원 취소분), 진도 승원팰리체 더 테라스, 향남역 그로브 스위첸)",
-  "청약 공고 152건(접수 중 18 · 예정 14) · 경쟁률 80 · 분양가 있는 단지 93",
+  "분양가 비교 134단지 · 못 맞춘 곳 13 (아크메르 동탄 99, 아크메르 동탄 95, 한양립스 에듀포레(조합원 취소분), 진도 승원팰리체 더 테라스, 향남역 그로브 스위첸)",
+  "청약 공고 152건(접수 중 18 · 예정 14) · 경쟁률 80 · 분양가 있는 단지 152",
   "subs OK",
-  "금리 비교: mortgage 30곳 · jeonse 17곳 · deposit 97곳 · saving 97곳",
   "rates OK",
   "경고: 준공 후 미분양(전국) 자료 없음 — 시도 합산 실패"
  ],
@@ -640,6 +642,59 @@
    "C2_OBJ_NM": "대분류"
   }
  ],
+ "roneSample": [
+  {
+   "STATBL_ID": "T244183132827305",
+   "DTACYCLE_CD": "WK",
+   "WRTTIME_IDTFR_ID": "202401",
+   "GRP_ID": null,
+   "GRP_NM": null,
+   "CLS_ID": 50071,
+   "CLS_NM": "과천시",
+   "ITM_ID": 10001,
+   "ITM_NM": "지수",
+   "DTA_VAL": 78.2689390684947,
+   "UI_NM": "지수",
+   "GRP_FULLNM": null,
+   "CLS_FULLNM": "경기>경부1권>과천시",
+   "ITM_FULLNM": "지수",
+   "WRTTIME_DESC": "2024-01-01"
+  },
+  {
+   "STATBL_ID": "T244183132827305",
+   "DTACYCLE_CD": "WK",
+   "WRTTIME_IDTFR_ID": "202401",
+   "GRP_ID": null,
+   "GRP_NM": null,
+   "CLS_ID": 50187,
+   "CLS_NM": "상당구",
+   "ITM_ID": 10001,
+   "ITM_NM": "지수",
+   "DTA_VAL": 98.0481501417983,
+   "UI_NM": "지수",
+   "GRP_FULLNM": null,
+   "CLS_FULLNM": "충북>청주시>상당구",
+   "ITM_FULLNM": "지수",
+   "WRTTIME_DESC": "2024-01-01"
+  },
+  {
+   "STATBL_ID": "T244183132827305",
+   "DTACYCLE_CD": "WK",
+   "WRTTIME_IDTFR_ID": "202401",
+   "GRP_ID": null,
+   "GRP_NM": null,
+   "CLS_ID": 50132,
+   "CLS_NM": "중구",
+   "ITM_ID": 10001,
+   "ITM_NM": "지수",
+   "DTA_VAL": 104.380663281778,
+   "UI_NM": "지수",
+   "GRP_FULLNM": null,
+   "CLS_FULLNM": "부산>중부산권>중구",
+   "ITM_FULLNM": "지수",
+   "WRTTIME_DESC": "2024-01-01"
+  }
+ ],
  "weeklyRegions": [
   "전국",
   "수도권",
@@ -965,6 +1020,18 @@
    "YGMN_HSHLDCO": 0
   }
  ],
+ "remMdlSample": [
+  {
+   "HOUSE_MANAGE_NO": "2026930044",
+   "HOUSE_TY": "066.8113 ",
+   "LTTOT_TOP_AMOUNT": "51220",
+   "MODEL_NO": "01",
+   "PBLANC_NO": "2026930044",
+   "SPSPLY_HSHLDCO": 1,
+   "SUPLY_AR": "94.9824",
+   "SUPLY_HSHLDCO": 0
+  }
+ ],
  "odcTotal_getAPTLttotPblancCmpet": 55892,
  "cmpetSample": [
   {
@@ -1005,184 +1072,5 @@
    "TOP_SCORE": "-"
   }
  ],
- "fssPages_mortgageLoanProductsSearch020000": {
-  "pages": 1,
-  "max": 1,
-  "base": 36,
-  "opt": 111
- },
- "fssPages_mortgageLoanProductsSearch050000": {
-  "pages": 1,
-  "max": 1,
-  "base": 20,
-  "opt": 36
- },
- "fssMortgageSample": {
-  "base": [
-   {
-    "dcls_month": "202610",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "1054",
-    "kor_co_nm": "우리은행",
-    "fin_prdt_nm": "우리아파트론",
-    "join_way": "영업점,모집인",
-    "loan_inci_expn": "- 인지세 : 해당세액의 50%(대출금액 5천만원 이하시 없음)\n- 국민주택채권 매입 : 대출금액 × 120% × 1% × 채권할인율",
-    "erly_rpay_fee": "- 고정금리 : 중도상환대출금×0.71%×잔존기간÷대출기간\n- 변동금리 : 중도상환대출금×0.95%×잔존기간÷대출기간",
-    "dly_rate": "- 적용금리+ 3%\n(가계대출 최고연체이자율 : 12%)",
-    "loan_lmt": "LTV 70%",
-    "dcls_strt_day": "20261020",
-    "dcls_end_day": "20271019",
-    "fin_co_subm_day": "202610161437"
-   }
-  ],
-  "opt": [
-   {
-    "dcls_month": "202610",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "1054",
-    "mrtg_type": "A",
-    "mrtg_type_nm": "아파트",
-    "rpay_type": "D",
-    "rpay_type_nm": "분할상환방식",
-    "lend_rate_type": "F",
-    "lend_rate_type_nm": "고정금리",
-    "lend_rate_min": 5.39,
-    "lend_rate_max": 6.59,
-    "lend_rate_avg": 6.03
-   },
-   {
-    "dcls_month": "202610",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "1054",
-    "mrtg_type": "A",
-    "mrtg_type_nm": "아파트",
-    "rpay_type": "D",
-    "rpay_type_nm": "분할상환방식",
-    "lend_rate_type": "C",
-    "lend_rate_type_nm": "변동금리",
-    "lend_rate_min": 4.42,
-    "lend_rate_max": 5.62,
-    "lend_rate_avg": 4.75
-   }
-  ]
- },
- "fssPages_rentHouseLoanProductsSearch020000": {
-  "pages": 1,
-  "max": 1,
-  "base": 41,
-  "opt": 80
- },
- "fssRentSample": {
-  "base": [
-   {
-    "dcls_month": "202610",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "10561",
-    "kor_co_nm": "우리은행",
-    "fin_prdt_nm": "우리전세론(주택금융보증)",
-    "join_way": "영업점,모집인",
-    "loan_inci_expn": "- 인지세 : 해당세액의 50%(대출금액 5천만원 이하시 없음)\n- 보증료",
-    "erly_rpay_fee": "- 고정금리 : 중도상환대출금×0.76%×잔존기간÷대출기간\n- 변동금리 : 중도상환대출금×0.35%×잔존기간÷대출기간",
-    "dly_rate": "- 적용금리+ 3%\n(가계대출 최고연체이자율 : 12%)",
-    "loan_lmt": "최대4.44억원",
-    "dcls_strt_day": "20261020",
-    "dcls_end_day": "20271019",
-    "fin_co_subm_day": "202610161437"
-   }
-  ],
-  "opt": [
-   {
-    "dcls_month": "202610",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "10561",
-    "rpay_type": "D",
-    "rpay_type_nm": "분할상환방식",
-    "lend_rate_type": "C",
-    "lend_rate_type_nm": "변동금리",
-    "lend_rate_min": 4.04,
-    "lend_rate_max": 4.74,
-    "lend_rate_avg": null
-   },
-   {
-    "dcls_month": "202610",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "10561",
-    "rpay_type": "S",
-    "rpay_type_nm": "만기일시상환방식",
-    "lend_rate_type": "C",
-    "lend_rate_type_nm": "변동금리",
-    "lend_rate_min": 4.04,
-    "lend_rate_max": 4.74,
-    "lend_rate_avg": 4.29
-   }
-  ]
- },
- "fssPages_depositProductsSearch020000": {
-  "pages": 1,
-  "max": 1,
-  "base": 40,
-  "opt": 164
- },
- "fssPages_depositProductsSearch030300": {
-  "pages": 4,
-  "max": 4,
-  "base": 394,
-  "opt": 2642
- },
- "fssDepositSample": {
-  "base": [
-   {
-    "dcls_month": "202610",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "WR0001B",
-    "kor_co_nm": "우리은행",
-    "fin_prdt_nm": "WON플러스예금",
-    "join_way": "인터넷,스마트폰,전화(텔레뱅킹)",
-    "mtrt_int": "만기 후\n- 1개월이내 : 만기시점약정이율×50%\n- 1개월초과 6개월이내: 만기시점약정이율×30%\n- 6개월초과 : 만기시점약정이율×20%\n\n※ 만기시점 약정이율 : 일반정기예금 금리",
-    "spcl_cnd": "해당사항 없음",
-    "join_deny": "1",
-    "join_member": "실명의 개인",
-    "etc_note": "- 가입기간: 1~36개월\n- 최소가입금액: 1만원 이상\n- 만기일을 일,월 단위로 자유롭게 선택 가능\n- 만기해지 시 신규일 당시 영업점과 인터넷 홈페이지에 고시된 계약기간별 금리 적용",
-    "max_limit": null,
-    "dcls_strt_day": "20261020",
-    "dcls_end_day": null,
-    "fin_co_subm_day": "202610201420"
-   }
-  ],
-  "opt": [
-   {
-    "dcls_month": "202610",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "WR0001B",
-    "intr_rate_type": "S",
-    "intr_rate_type_nm": "단리",
-    "save_trm": "1",
-    "intr_rate": 2.7,
-    "intr_rate2": 2.7
-   },
-   {
-    "dcls_month": "202610",
-    "fin_co_no": "0010001",
-    "fin_prdt_cd": "WR0001B",
-    "intr_rate_type": "S",
-    "intr_rate_type_nm": "단리",
-    "save_trm": "3",
-    "intr_rate": 3.1,
-    "intr_rate2": 3.1
-   }
-  ]
- },
- "fssPages_savingProductsSearch020000": {
-  "pages": 1,
-  "max": 1,
-  "base": 60,
-  "opt": 181
- },
- "fssPages_savingProductsSearch030300": {
-  "pages": 3,
-  "max": 3,
-  "base": 278,
-  "opt": 1358
- },
  "errors": []
 }

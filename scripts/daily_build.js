@@ -27,7 +27,7 @@ var DEF = {
   /* v9.45.4 10.19 4차 실행에서 확인한 진짜 표: 전국주택가격동향(기준월 2026.06) 유형별 매매가격지수 C012 · 유형별 전세가격지수 C013 (C004 는 '준전세'라 틀림). 유형 칸(종합/아파트/…)에서 아파트 행만 쓴다 */
   idxSale: { orgId: "408", tblId: "DT_30404_C012", nm: "유형별 매매가격지수" },
   idxRent: { orgId: "408", tblId: "DT_30404_C013", nm: "유형별 전세가격지수" },
-  roneWeekly: { sale: "A_2024_00901", nm: "주간아파트 매매가격지수" },
+  roneWeekly: { sale: "T244183132827305", nm: "(주) 매매가격지수" },
   /* v9.44 공급 파이프라인 — 국토부 주택건설실적(인허가·착공·준공). 표 번호는 바뀔 수 있어 이름 검색으로 다시 찾는다 */
   permits: { orgId: "116", tblId: "DT_MLTM_5403", nm: "주택건설인허가실적" },
   starts: { orgId: "116", tblId: "DT_MLTM_5407", nm: "주택착공실적" },
@@ -274,19 +274,48 @@ async function weeklyKosis() {
   } catch (e) { log("KOSIS 주간 실패: " + e.message); }
   return null;
 }
-/* R-ONE 주간 지수 (선택) */
+/* R-ONE 주간 지수 (선택) — v11.2 확인된 표: T244183132827305 "(주) 매매가격지수" (주기 WK). 시점 식별자 WRTTIME_IDTFR_ID 는 YYYYWW(연도+ISO 주차), WRTTIME_DESC 가 그 주 월요일(YYYY-MM-DD).
+   DTA_VAL 은 지수(2026.7.6=100) — KOSIS 주간 표와 같은 값. 전국·수도권·서울·경기 + 서울 25개 구(CLS_FULLNM 이 '서울'로 시작)까지 받는다. 연도별로 나눠 받고(pSize 1000, pIndex 증가) 최근 104주만 남긴다. */
+var SEOUL_GUS = ["강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"];
+async function roneRows(params) {
+  var all = [], p = 1, total = null;
+  while (p <= 40) {
+    var j = await getJson(RONE_BASE + "SttsApiTblData.do?KEY=" + encodeURIComponent(RONE) + "&Type=json&pIndex=" + p + "&pSize=1000&" + params);
+    var blk = j.SttsApiTblData; if (!blk) { var msg = (j.RESULT && (j.RESULT.CODE + " " + j.RESULT.MESSAGE)) || JSON.stringify(j).slice(0, 160); if (/INFO-200/.test(msg)) return all; throw new Error("R-ONE " + msg); }
+    blk.forEach(function (part) { if (part.head) part.head.forEach(function (h) { if (h && h.list_total_count != null) total = Number(h.list_total_count); }); if (part.row) all = all.concat(part.row); });
+    if (!blk.some(function (x) { return x.row && x.row.length; }) || (total != null && all.length >= total)) break; p++;
+  }
+  return all;
+}
 async function weekly() {
   if (!RONE) return null;
   var c = CODES.roneWeekly || DEF.roneWeekly;
   try {
-    var j = await getJson(RONE_BASE + "SttsApiTblData.do?KEY=" + encodeURIComponent(RONE) + "&Type=json&pIndex=1&pSize=1000&STATBL_ID=" + c.sale + "&DTACYCLE_CD=WK");
-    var rows = (j.SttsApiTblData && j.SttsApiTblData[1] && j.SttsApiTblData[1].row) || [];
-    if (!rows.length) { log("R-ONE 주간: " + JSON.stringify(j).slice(0, 160)); DBG.rone = j; return null; }
+    var today = kst(), y = Math.floor(today / 10000), rows = [];
+    for (var yy = y - 2; yy <= y; yy++) rows = rows.concat(await roneRows("STATBL_ID=" + c.sale + "&DTACYCLE_CD=WK&START_WRTTIME=" + yy + "01&END_WRTTIME=" + yy + "53"));
+    if (!rows.length) { log("R-ONE 주간: 행 0 (표 " + c.sale + ")"); return null; }
     DBG.roneSample = rows.slice(0, 3);
-    var out = { src: "한국부동산원 R-ONE " + c.nm }, pick = function (re) { var m = {}; rows.filter(function (r) { return re.test(r.CLS_NM || "") && /매매|지수|변동/.test((r.ITM_NM || "") + "지수"); }).forEach(function (r) { var t = Number(String(r.WRTTIME_IDTFR_ID || "").slice(0, 8)), v = num(r.DTA_VAL); if (t && v != null) m[t] = v; }); var a = Object.keys(m).map(Number).sort().map(function (t) { return [t, m[t]]; }); return a.length ? a.slice(-30) : null; };
-    out.all = pick(/^전국$/); out.cap = pick(/^수도권$/); out.seoul = pick(/^서울$/); out.gg = pick(/^경기$/);
+    var items = {}; rows.forEach(function (r) { items[String(r.ITM_NM || "")] = 1; }); var itm = Object.keys(items).filter(function (k) { return !/변동|증감/.test(k); })[0] || Object.keys(items)[0];
+    var ser = {}; rows.forEach(function (r) { if (String(r.ITM_NM || "") !== itm) return; var m = String(r.WRTTIME_DESC || "").match(/(\d{4})-(\d\d)-(\d\d)/); if (!m) return; var t = Number(m[1] + m[2] + m[3]), v = num(r.DTA_VAL); if (v == null) return; var nm = String(r.CLS_NM || "").trim(), full = String(r.CLS_FULLNM || nm); var key = /^서울$|^서울특별시$/.test(nm) ? "seoul" : /^전국$/.test(nm) ? "all" : /^수도권$/.test(nm) ? "cap" : /^경기$|^경기도$/.test(nm) ? "gg" : (SEOUL_GUS.indexOf(nm) >= 0 && /^서울/.test(full)) ? "gu:" + nm : null; if (!key) return; (ser[key] = ser[key] || {})[t] = v; });
+    var arr = function (m) { if (!m) return null; var a = Object.keys(m).map(Number).sort().map(function (t) { return [t, m[t]]; }); return a.length ? a.slice(-104) : null; };
+    var out = { src: "한국부동산원 주간아파트가격동향 (R-ONE " + c.sale + ") · 기준 2026.7.6=100.0", tbl: c.sale, all: arr(ser.all), cap: arr(ser.cap), seoul: arr(ser.seoul), gg: arr(ser.gg), gu: {} };
+    SEOUL_GUS.forEach(function (g) { var a = arr(ser["gu:" + g]); if (a) out.gu[g] = a; });
+    if (!out.seoul || out.seoul.length < 60 || !out.all) { log("R-ONE 주간: 서울 " + (out.seoul ? out.seoul.length : 0) + "주 — 부족해 KOSIS 로"); return null; }
+    log("R-ONE 주간 " + itm + " 서울 " + out.seoul.length + "주 ~" + out.seoul[out.seoul.length - 1][0] + " · 자치구 " + Object.keys(out.gu).length + "개");
     return out;
   } catch (e) { log("R-ONE 실패: " + e.message); return null; }
+}
+/* v11.2 R-ONE 과 KOSIS 를 겹치는 주로 맞춰 본다 — 서울 지수가 겹치는 마지막 3주에서 0.02 넘게 다르면 R-ONE 을 버리고 KOSIS(검증된 쪽)를 쓴다. 틀린 숫자를 내느니 1~2주 늦는 쪽. */
+async function weeklyBest() {
+  var r = await weekly(); if (!r) return await weeklyKosis();
+  var k = null; try { k = await weeklyKosis(); } catch (e) {}
+  if (k && k.seoul) {
+    var km = {}; k.seoul.forEach(function (x) { km[x[0]] = x[1]; }); var common = r.seoul.filter(function (x) { return km[x[0]] != null; }).slice(-3);
+    var bad = common.filter(function (x) { return Math.abs(x[1] - km[x[0]]) > 0.02; });
+    if (!common.length || bad.length) { log("R-ONE·KOSIS 불일치(" + bad.map(function (x) { return x[0] + ":" + x[1] + "/" + km[x[0]]; }).join(",") + ") → KOSIS 사용"); return k; }
+    log("R-ONE·KOSIS 일치(" + common.length + "주) · R-ONE 사용, KOSIS 마지막 " + k.seoul[k.seoul.length - 1][0]);
+  }
+  return r;
 }
 /* 청약홈 (선택) — APT 분양 + 무순위·잔여세대 + 주택형별 분양가 + 경쟁률. 일정은 '미리' 알아야 하므로 공고일 기준 과거 45일 ~ 앞으로의 것을 모두 담는다 */
 function dn(v) { var n = num(String(v || "").replace(/-/g, "").slice(0, 8)); return n && n > 19000000 ? n : null; }
@@ -554,7 +583,7 @@ if (require.main === module) (async function () {
   await step("unsold", unsold);
   await step("index", priceIndex);
   await step("supply", supply);
-  await step("weekly", async function () { var w = await weekly(); return w || await weeklyKosis(); });
+  await step("weekly", weeklyBest);
   await step("subs", subs);
   await step("rates", rates);
   if (ONLY) { out.calls = (prevOut && prevOut.calls || 0) + CALLS; out.subsAt = new Date().toISOString(); } else out.calls = CALLS;

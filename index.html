@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=11.1">
+<link rel="stylesheet" href="style.css?v=11.2">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v11.1</span>
+    <span class="ver">v11.2</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=11.1"></script>
+<script src="cards.js?v=11.2"></script>
 <script>
 "use strict";
 
@@ -11390,6 +11390,18 @@ function rmTipHtml(it) {
   if (typeof tprRebuild !== "function") return; var o = tprRebuild;
   tprRebuild = function () { var r = o.apply(this, arguments); try { var old = document.getElementById("rm-tip"); if (old) old.remove(); var box = document.getElementById("tp-cards"); var it = TP.r === "aptNotice" && typeof sbCardItem === "function" ? sbCardItem() : null; if (box && it && it.kind === "rem") { var h = rmTipHtml(it); if (h) { var d = document.createElement("div"); d.id = "rm-tip"; d.innerHTML = h; box.parentNode.insertBefore(d, box); } } } catch (e) {} return r; };
 })();
+/* ── v11.2 서울 25개 구 주간 지수(R-ONE 키가 있을 때 들어오는 weekly.gu) — 이번 주 · 4주 · 연속 상승 ── */
+function wkGuRows() {
+  var W = (typeof DY !== "undefined" && DY.data && DY.data.weekly) || null; if (!W || !W.gu) return [];
+  return Object.keys(W.gu).map(function (g) { var A = W.gu[g].filter(function (p) { return p[1] != null; }); if (A.length < 5) return null; var L = A[A.length - 1], w1 = (L[1] / A[A.length - 2][1] - 1) * 100, w4 = (L[1] / A[A.length - 5][1] - 1) * 100, k = 0; for (var i = A.length - 1; i > 0 && A[i][1] > A[i - 1][1]; i--) k++; var dn = 0; for (var j = A.length - 1; j > 0 && A[j][1] < A[j - 1][1]; j--) dn++; return { g: g, t: L[0], v: L[1], w1: w1, w4: w4, up: k, dn: dn }; }).filter(Boolean).sort(function (a, b) { return b.w1 - a.w1; });
+}
+TPR.wkGu = { nm: "서울 자치구 주간 변동", grp: "통계", opts: [], tpls: ["denseTable", "barRank", "rankGrid"], per: 13, noX: true,
+  hint: "부동산원 주간 매매가격지수를 서울 25개 구별로 — 이번 주·4주 변동과 연속 상승 주. R-ONE 키(RONE_KEY)로 받는 자료라 키를 넣은 뒤 첫 수집(목 15:40·매일 03:00)부터 나옵니다",
+  build: function (o, tid) { var R = wkGuRows(); if (!R.length) return []; var W = DY.data.weekly, pc = function (v) { return (v >= 0.005 ? "+" : v <= -0.005 ? "−" : "") + Math.abs(v).toFixed(2) + "%"; }, t = R[0].t, up = R.filter(function (r) { return r.w1 > 0.005; }).length, dn = R.filter(function (r) { return r.w1 < -0.005; }).length;
+    var base = { noLead: true, _cat: "market", src: String(W.src || "한국부동산원 주간아파트가격동향") + " · " + chMD(t) + " 주", title: "서울 25개 구, 이번 주 누가 올랐나", sub: chMD(t) + " 주 · 오른 구 " + up + " · 내린 구 " + dn + " · 보합 " + (R.length - up - dn), badge: "주간", foot: "전주 대비 = 지수 변화율 · 주간 지수는 표본 조사라 실거래보다 먼저 움직이고 폭은 작음 · 투자 권유 아님" };
+    if (tid === "barRank" || tid === "rankGrid") return tprItems(base, R.map(function (r) { return [r.g, pc(r.w1), "4주 " + pc(r.w4) + (r.up >= 100 ? " · 100주 넘게 연속↑" : r.up >= 2 ? " · " + r.up + "주 연속↑" : r.dn >= 2 ? " · " + r.dn + "주 연속↓" : "")]; }), 12);
+    return tprPaged(Object.assign(base, { cols: "구 | 이번 주 | 4주 | 연속" }), R.map(function (r) { return [r.g, pc(r.w1), pc(r.w4), r.up >= 100 ? "100주+↑" : r.up >= 2 ? r.up + "주↑" : r.dn >= 2 ? r.dn + "주↓" : "–"]; }), 13); } };
+if (typeof TPR_ORDER !== "undefined" && TPR_ORDER.indexOf("wkGu") < 0) { var _wi = TPR_ORDER.indexOf("idxWeekGrid"); TPR_ORDER.splice(_wi >= 0 ? _wi + 1 : TPR_ORDER.length, 0, "wkGu"); }
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=11.2">
+<link rel="stylesheet" href="style.css?v=11.3">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v11.2</span>
+    <span class="ver">v11.3</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=11.2"></script>
+<script src="cards.js?v=11.3"></script>
 <script>
 "use strict";
 
@@ -11402,6 +11402,35 @@ TPR.wkGu = { nm: "서울 자치구 주간 변동", grp: "통계", opts: [], tpls
     if (tid === "barRank" || tid === "rankGrid") return tprItems(base, R.map(function (r) { return [r.g, pc(r.w1), "4주 " + pc(r.w4) + (r.up >= 100 ? " · 100주 넘게 연속↑" : r.up >= 2 ? " · " + r.up + "주 연속↑" : r.dn >= 2 ? " · " + r.dn + "주 연속↓" : "")]; }), 12);
     return tprPaged(Object.assign(base, { cols: "구 | 이번 주 | 4주 | 연속" }), R.map(function (r) { return [r.g, pc(r.w1), pc(r.w4), r.up >= 100 ? "100주+↑" : r.up >= 2 ? r.up + "주↑" : r.dn >= 2 ? r.dn + "주↓" : "–"]; }), 13); } };
 if (typeof TPR_ORDER !== "undefined" && TPR_ORDER.indexOf("wkGu") < 0) { var _wi = TPR_ORDER.indexOf("idxWeekGrid"); TPR_ORDER.splice(_wi >= 0 ? _wi + 1 : TPR_ORDER.length, 0, "wkGu"); }
+/* ══ v11.3 R-ONE 주간 자료 더 쓰기 — ① 주간 변동 지도(서울 25구 · 수도권) ② 서울 매매·전세 주간 흐름 ══
+   수도권 지도는 data/weekly_reg.json(지역별 52주, 수집기가 R-ONE 지역 이름 그대로 저장)을 지도를 그릴 때만 읽는다.
+   지역 이름 → 지도 코드는 '시도 + 시군구' 가 정확히 같은 것만 연결한다(짐작 없음). 연결 안 되는 곳은 회색(자료 없음). */
+var WKR = { loaded: false, data: null, idx: null };
+function wkRegLoad(cb) { if (WKR.loaded) { cb && cb(); return; } fetch("data/weekly_reg.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; })["catch"](function () { return null; }).then(function (j) { WKR.data = j && j.reg ? j : null; WKR.loaded = true; cb && cb(); }); }
+function wkNormTok(s) { return String(s || "").replace(/서울특별시/, "서울").replace(/경기도/, "경기").replace(/인천광역시/, "인천").replace(/부산광역시/, "부산").replace(/대구광역시/, "대구").replace(/광주광역시/, "광주").replace(/대전광역시/, "대전").replace(/울산광역시/, "울산").replace(/세종특별자치시/, "세종").trim().split(/\s+/).map(function (t) { return t.length > 1 ? t.replace(/(시|구|군)$/, "") : t; }).join(""); }
+function wkGeoIdx() { if (WKR.idx) return WKR.idx; var ix = {}, dup = {}; if (typeof GEO2 !== "undefined" && GEO2.names) Object.keys(GEO2.names).forEach(function (c) { var n = GEO2.names[c], k = wkNormTok(n[0] + " " + n[1]); if (ix[k] && ix[k] !== c) dup[k] = 1; ix[k] = c; }); Object.keys(dup).forEach(function (k) { delete ix[k]; }); return (WKR.idx = ix); }
+function wkRegCode(full) { var ix = wkGeoIdx(), T = String(full || "").trim().split(/\s+/); if (T.length < 2) return null; var sido = wkNormTok(T[0]), tries = [wkNormTok(full), sido + wkNormTok(T.slice(-2).join(" ")), sido + wkNormTok(T[T.length - 1])]; for (var i = 0; i < tries.length; i++) if (ix[tries[i]]) return ix[tries[i]]; return null; }
+function wkRegSeries() { var D = WKR.data; if (!D) return {}; var out = {}; Object.keys(D.reg).forEach(function (f) { var c = wkRegCode(f); if (!c || out[c]) return; var a = []; D.weeks.forEach(function (t, i) { if (D.reg[f][i] != null) a.push([t, D.reg[f][i]]); }); if (a.length >= 5) out[c] = a; }); return out; }
+function wkChg(A, back) { A = (A || []).filter(function (p) { return p[1] != null; }); if (A.length <= back) return null; var L = A[A.length - 1], P = A[A.length - 1 - back]; return { t: L[0], v: (L[1] / P[1] - 1) * 100 }; }
+TPR.mapWeek = { nm: "주간 변동 지도", grp: "지도·노선", opts: ["scope"], tpls: ["geoMap"], noX: true,
+  hint: "부동산원 주간 매매가격지수의 전주 대비(한 장) · 4주 변동(여러 장 2쪽)으로 색칠 — 서울은 25개 구, 수도권은 R-ONE 지역 이름이 지도와 정확히 맞는 곳만(나머지 회색). RONE_KEY 수집 뒤부터",
+  build: function (o) {
+    var W = stD() && stD().weekly; if (!W) return []; var codes = tprCodes(o.scope), seoulOnly = codes.length && codes.every(function (k) { return /^11/.test(k); });
+    var S = {};
+    if (seoulOnly) { if (!W.gu) return []; Object.keys(W.gu).forEach(function (g) { var c = typeof geoCode === "function" ? geoCode("서울 " + g) : null; if (c) S[c] = W.gu[g]; }); }
+    else { if (!WKR.loaded) { if (!CD_WAIT["주간지역"]) { CD_WAIT["주간지역"] = 1; wkRegLoad(function () { CD_WAIT["주간지역"] = 0; if (TP.r === "mapWeek") tprRebuild(); }); } return []; } S = wkRegSeries(); if (W.gu) Object.keys(W.gu).forEach(function (g) { var c = geoCode("서울 " + g); if (c && !S[c]) S[c] = W.gu[g]; }); }
+    var want = {}; codes.forEach(function (k) { want[k] = 1; }); var ks = Object.keys(S).filter(function (k) { return want[k]; }); if (ks.length < 3) return [];
+    var pc = function (v) { return (v >= 0.005 ? "+" : v <= -0.005 ? "−" : "") + Math.abs(v).toFixed(2) + "%"; };
+    var page = function (back, lb) { var L = ks.map(function (k) { var c = wkChg(S[k], back); return c ? { k: k, v: c.v, t: c.t } : null; }).filter(Boolean).sort(function (a, b) { return b.v - a.v; }); if (L.length < 3) return null; var up = L.filter(function (x) { return x.v > 0.005; }).length, dn = L.filter(function (x) { return x.v < -0.005; }).length, miss = codes.length - L.length;
+      return { _tpl: "geoMap", _cat: "market", noLead: true, kind: seoulOnly ? "seoul" : "metro", rail: "0", src: String(W.src || "한국부동산원 주간아파트가격동향") + " · " + chMD(L[0].t) + " 주", badge: "주간", title: tprScopeNm(o.scope) + " 이번 주 집값 지도" + (back > 1 ? " — " + lb : ""), sub: lb + " · 오른 곳 " + up + " · 내린 곳 " + dn + " · 보합 " + (L.length - up - dn) + (miss > 0 ? " · 자료 없는 곳 " + miss + "(회색)" : ""), lead: "가장 많이 오른 곳 " + tprGu(L[0].k) + " " + pc(L[0].v) + (dn ? " · 가장 많이 내린 곳 " + tprGu(L[L.length - 1].k) + " " + pc(L[L.length - 1].v) : ""), scale: "div", unit: lb, hiLb: "많이 오른 곳", loLb: dn ? "내린 곳" : "덜 오른 곳", rows: L.map(function (x) { return [tprNm(x.k), pc(x.v)]; }), foot: "주간 지수는 표본 조사라 실거래보다 먼저 움직이고 폭은 작음 · 회색 = 부동산원 주간 표에 없는 지역 · 투자 권유 아님" }; };
+    var P = [page(1, "전주 대비")]; if (!tprOne()) P.push(page(4, "4주 변동")); return P.filter(Boolean); } };
+TPR.wkRent = { nm: "서울 매매·전세 주간 흐름", grp: "통계", opts: [], tpls: ["trendChart", "denseTable"], per: 12, noX: true,
+  hint: "부동산원 주간 매매가격지수와 전세가격지수를 한 장에 — 전세가 먼저 움직이면 매매가 따라오는지 본다. R-ONE 주간 전세 표가 잡힌 뒤부터(수집 로그 'R-ONE 주간 전세 표 선택')",
+  build: function (o, tid) { var W = stD() && stD().weekly; if (!W || !W.seoul || !W.rent || !W.rent.seoul) return []; var A = W.seoul.filter(function (p) { return p[1] != null; }), B = W.rent.seoul, n = tid === "trendChart" ? 26 : 12, S = A.slice(-n), s4 = wkChg(A, 4), r4 = wkChg(B, 4), s1 = wkChg(A, 1), r1 = wkChg(B, 1);
+    var pc = function (v) { return v == null ? "–" : (v >= 0.005 ? "+" : v <= -0.005 ? "−" : "") + Math.abs(v).toFixed(2) + "%"; }, base = { noLead: true, _cat: "market", src: String(W.src || "") + " · 전세 " + String(W.rent.src || "").replace(/.*\(/, "(") , badge: "주간", title: "서울 매매·전세, 같이 가나", sub: chMD(S[S.length - 1][0]) + " 주 · 매매 " + pc(s1 && s1.v) + " · 전세 " + pc(r1 && r1.v) + " (전주 대비)", foot: "지수는 각각 2026.7.6=100 · 전세가 오르면 갭이 줄어 매매를 받치고, 전세가 꺾이면 매매도 힘을 잃는 경우가 많음 · 투자 권유 아님" };
+    if (tid === "trendChart") return [Object.assign(base, { cols: "주 | 매매 | 전세", rows: (function () { var b0 = S[0][1], r0 = stAt(B, S[0][0]); return S.map(function (p) { var r = stAt(B, p[0]); return [stYm(p[0]), (p[1] / b0 * 100).toFixed(2), r != null && r0 ? (r / r0 * 100).toFixed(2) : ""]; }); })(), foot: n + "주 전 = 100으로 맞춘 값(방향 비교용) · " + base.foot, kpis: [["매매 4주", pc(s4 && s4.v)], ["전세 4주", pc(r4 && r4.v)], ["매매 연속", (function () { var k = stStreak(A); return k.n >= 2 ? k.n + "주 " + (k.dir > 0 ? "상승" : "하락") : "–"; })()], ["전세 연속", (function () { var k = stStreak(B); return k.n >= 2 ? k.n + "주 " + (k.dir > 0 ? "상승" : "하락") : "–"; })()]] })];
+    return tprPaged(Object.assign(base, { cols: "주 | 매매 | 전주비 | 전세 | 전주비" }), S.slice().reverse().map(function (p) { var ai = A.map(function (q) { return q[0]; }).indexOf(p[0]), pv = ai > 0 ? A[ai - 1][1] : null, r = stAt(B, p[0]), bi = B.map(function (q) { return q[0]; }).indexOf(p[0]), rp = bi > 0 ? B[bi - 1][1] : null; return [stYm(p[0]), p[1].toFixed(2), pv ? pc((p[1] / pv - 1) * 100) : "–", r != null ? r.toFixed(2) : "–", r != null && rp ? pc((r / rp - 1) * 100) : "–"]; }), 12); } };
+if (typeof TPR_ORDER !== "undefined") { ["wkRent", "mapWeek"].forEach(function (id) { if (TPR_ORDER.indexOf(id) < 0) { var i = TPR_ORDER.indexOf(id === "wkRent" ? "wkGu" : "mapLLP"); TPR_ORDER.splice(i >= 0 ? i + 1 : TPR_ORDER.length, 0, id); } }); }
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

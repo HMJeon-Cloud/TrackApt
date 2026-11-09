@@ -277,6 +277,8 @@ async function weeklyKosis() {
 /* R-ONE 주간 지수 (선택) — v11.2 확인된 표: T244183132827305 "(주) 매매가격지수" (주기 WK). 시점 식별자 WRTTIME_IDTFR_ID 는 YYYYWW(연도+ISO 주차), WRTTIME_DESC 가 그 주 월요일(YYYY-MM-DD).
    DTA_VAL 은 지수(2026.7.6=100) — KOSIS 주간 표와 같은 값. 전국·수도권·서울·경기 + 서울 25개 구(CLS_FULLNM 이 '서울'로 시작)까지 받는다. 연도별로 나눠 받고(pSize 1000, pIndex 증가) 최근 104주만 남긴다. */
 var SEOUL_GUS = ["강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"];
+var WK_REG = null, WKREG_P = path.join(ROOT, "data", "weekly_reg.json");
+async function roneTables() { var all = [], p = 1, total = null; while (p <= 10) { var j = await getJson(RONE_BASE + "SttsApiTbl.do?KEY=" + encodeURIComponent(RONE) + "&Type=json&pIndex=" + p + "&pSize=1000"); var blk = j.SttsApiTbl; if (!blk) throw new Error("R-ONE 표 목록 " + JSON.stringify(j).slice(0, 120)); blk.forEach(function (part) { if (part.head) part.head.forEach(function (h) { if (h && h.list_total_count != null) total = Number(h.list_total_count); }); if (part.row) all = all.concat(part.row); }); if (!blk.some(function (x) { return x.row && x.row.length; }) || (total != null && all.length >= total)) break; p++; } return all; }
 async function roneRows(params) {
   var all = [], p = 1, total = null;
   while (p <= 40) {
@@ -302,6 +304,14 @@ async function weekly() {
     SEOUL_GUS.forEach(function (g) { var a = arr(ser["gu:" + g]); if (a) out.gu[g] = a; });
     if (!out.seoul || out.seoul.length < 60 || !out.all) { log("R-ONE 주간: 서울 " + (out.seoul ? out.seoul.length : 0) + "주 — 부족해 KOSIS 로"); return null; }
     log("R-ONE 주간 " + itm + " 서울 " + out.seoul.length + "주 ~" + out.seoul[out.seoul.length - 1][0] + " · 자치구 " + Object.keys(out.gu).length + "개");
+    /* v11.3 모든 지역(CLS_FULLNM 그대로)의 최근 52주를 별도 파일 data/weekly_reg.json 에 — 앱은 지도를 그릴 때만 읽는다. 이름→지도 코드 연결은 앱에서 정확히 맞는 것만(짐작 없음) */
+    try { var full = {}; rows.forEach(function (r) { if (String(r.ITM_NM || "") !== itm) return; var m = String(r.WRTTIME_DESC || "").match(/(\d{4})-(\d\d)-(\d\d)/), v = num(r.DTA_VAL); if (!m || v == null) return; var f = String(r.CLS_FULLNM || r.CLS_NM || "").replace(/\s+/g, " ").trim(); if (!f) return; (full[f] = full[f] || {})[Number(m[1] + m[2] + m[3])] = v; });
+      var weeks = out.seoul.slice(-52).map(function (p) { return p[0]; }), reg = {}; Object.keys(full).forEach(function (f) { reg[f] = weeks.map(function (t) { return full[f][t] != null ? Math.round(full[f][t] * 1000) / 1000 : null; }); });
+      WK_REG = { asOf: kst(), src: out.src, weeks: weeks, reg: reg }; DBG.roneRegions = Object.keys(reg).slice(0, 300); log("R-ONE 주간 지역 " + Object.keys(reg).length + "개(앞 60): " + Object.keys(reg).slice(0, 60).join(" | ")); } catch (e) { log("R-ONE 지역 저장 실패: " + e.message); }
+    /* v11.3 주간 전세가격지수 — 표 ID 를 짐작하지 않고 R-ONE 표 목록(SttsApiTbl)에서 이름으로 찾아 daily_codes.json 에 적어 둔다 */
+    try { var rc = CODES.roneWeeklyRent; if (!rc) { var tl = await roneTables(); DBG.roneWkTables = tl.filter(function (t) { return /WK/i.test(t.DTACYCLE_CD || ""); }).map(function (t) { return t.STATBL_ID + " " + t.STATBL_NM; }); log("R-ONE 주간 표 " + DBG.roneWkTables.length + "개: " + DBG.roneWkTables.slice(0, 30).join(" | ")); var cand = tl.filter(function (t) { return /WK/i.test(t.DTACYCLE_CD || "") && /전세가격지수/.test(t.STATBL_NM || "") && !/규모|연령|월세|수급/.test(t.STATBL_NM || ""); }).sort(function (a, b) { return String(a.STATBL_NM).length - String(b.STATBL_NM).length; }); if (cand.length) { rc = CODES.roneWeeklyRent = { sale: cand[0].STATBL_ID, nm: cand[0].STATBL_NM }; log("R-ONE 주간 전세 표 선택: " + rc.sale + " " + rc.nm); } else log("R-ONE 주간 전세 표 못 찾음"); }
+      if (rc) { var rr = []; for (var y2 = y - 2; y2 <= y; y2++) rr = rr.concat(await roneRows("STATBL_ID=" + rc.sale + "&DTACYCLE_CD=WK&START_WRTTIME=" + y2 + "01&END_WRTTIME=" + y2 + "53")); var it2 = {}; rr.forEach(function (r) { it2[String(r.ITM_NM || "")] = 1; }); var itm2 = Object.keys(it2).filter(function (k) { return !/변동|증감/.test(k); })[0] || Object.keys(it2)[0]; var s2 = {}; rr.forEach(function (r) { if (String(r.ITM_NM || "") !== itm2) return; var m = String(r.WRTTIME_DESC || "").match(/(\d{4})-(\d\d)-(\d\d)/), v = num(r.DTA_VAL); if (!m || v == null) return; var nm = String(r.CLS_NM || "").trim(), key = /^서울$|^서울특별시$/.test(nm) ? "seoul" : /^전국$/.test(nm) ? "all" : /^수도권$/.test(nm) ? "cap" : /^경기$|^경기도$/.test(nm) ? "gg" : null; if (key) (s2[key] = s2[key] || {})[Number(m[1] + m[2] + m[3])] = v; });
+        var rent = { src: "한국부동산원 주간아파트가격동향 전세 (R-ONE " + rc.sale + ")", all: arr(s2.all), cap: arr(s2.cap), seoul: arr(s2.seoul), gg: arr(s2.gg) }; if (rent.seoul && rent.seoul.length >= 60) { out.rent = rent; log("R-ONE 주간 전세 서울 " + rent.seoul.length + "주 ~" + rent.seoul[rent.seoul.length - 1][0]); } else log("R-ONE 주간 전세: 서울 " + (rent.seoul ? rent.seoul.length : 0) + "주 — 쓰지 않음"); } } catch (e) { log("R-ONE 전세 실패: " + e.message); }
     return out;
   } catch (e) { log("R-ONE 실패: " + e.message); return null; }
 }
@@ -591,6 +601,7 @@ if (require.main === module) (async function () {
   fs.writeFileSync(OUT_P, JSON.stringify(out));
   fs.mkdirSync(path.join(ROOT, "data"), { recursive: true });
   fs.writeFileSync(CODES_P, JSON.stringify(CODES, null, 1));
+  if (WK_REG && out.weekly && /R-ONE/.test(String(out.weekly.src || ""))) fs.writeFileSync(WKREG_P, JSON.stringify(WK_REG));
   DBG.errors = out.errors; fs.writeFileSync(DEBUG_P, JSON.stringify(DBG, null, 1));
   log("완료 — 호출 " + CALLS + "회 · 오류 " + out.errors.length + "건");
 })().catch(function (e) { console.error(e); process.exit(1); });

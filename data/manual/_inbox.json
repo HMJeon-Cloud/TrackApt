@@ -1,18 +1,18 @@
 {
  "v": 1,
- "builtAt": "2026-11-10T07:56:59.479Z",
- "asOf": 20261110,
+ "builtAt": "2026-11-10T22:53:01.253Z",
+ "asOf": 20261111,
  "items": [
   {
    "kind": "loan",
    "date": "2026-11-10",
-   "title": "\"보금자리론 금리 또 올랐다\"…겨울 이사 앞둔 세입자 '멘붕' 피하려면?",
-   "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTE95ZmR3Tk1zRzFDRUpLZ2cyUUxRUGVSNnVSS0hsdjhjekQ4U1hJVERPQW9MWHNNRmFWQ19YOE9tNHdNS3RYSHNFVld1TXdQTjNxbFFua2l6QTNvMEdFaWRIMHhYTk5mQ1lzaFRNVFpEcw?oc=5",
-   "src": "케이트렌디뉴스",
+   "title": "케이뱅크, 신혼부부 보금자리론 소득 기준 완화 맞춰 실행 고객에 지원금 지급",
+   "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9ncWtYQm9TQ0NZdVVHelZRSG9XVHBGVVFMbHpvRFE3VGkycFNwSXBrMXBtRV92bjBubXEtck1CQmg0dHNjUUR5VWpuRU1LbFZ5bTNmY3FVNFppdGpVOWhULVF1NHdJVkFhRjNXdDJR?oc=5",
+   "src": "투어코리아",
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-10",
-   "isNew": false
+   "firstSeen": "2026-11-11",
+   "isNew": true
   }
  ]
 }

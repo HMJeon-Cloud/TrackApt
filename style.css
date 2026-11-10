@@ -3115,3 +3115,6 @@ body.adm .vx-intro{display:none!important}
 .nx-pick{cursor:pointer;display:inline-flex;align-items:center}
 .nx-rv{margin:8px 0 2px;border:1px solid #d8c58a;background:#fff;border-radius:10px;padding:10px 12px}
 .nx-t{width:100%;border-collapse:collapse;margin:6px 0 8px;font-size:13px}.nx-t th{text-align:left;white-space:nowrap;color:#667085;font-weight:700;padding:4px 10px 4px 0;vertical-align:top;width:96px}.nx-t td{padding:4px 0;border-bottom:1px solid #f2f4f7;line-height:1.5}.nx-t td small{display:block;color:#98a2b3;font-size:11.5px;overflow-wrap:anywhere}
+.tp-card .tp-ap-2.rm{grid-template-columns:1.5fr 1fr}
+.tp-card .tp-ap-2.rm .tp-pins li,.tp-card .tp-ap-2 .tp-pins li{word-break:keep-all;overflow-wrap:normal}
+.tp-card .tp-ap-kv b{transform:none!important}

@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=12.2">
+<link rel="stylesheet" href="style.css?v=12.3">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v12.2</span>
+    <span class="ver">v12.3</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=12.2"></script>
+<script src="cards.js?v=12.3"></script>
 <script>
 "use strict";
 
@@ -11973,14 +11973,22 @@ function rmTyRows(it) {
   T.auto = function () {
     var d = oa.apply(this, arguments); if (!d || !d.rem) return d;
     try { var it = sbCardItem(), N = sbNote(it) || {}, c = it.cmp;
-      /* 'nullm²' — 비교 면적대가 없을 때 글자 그대로 찍히던 것 */
-      d.bullets = (d.bullets || []).map(function (b) { return String(b).replace(/주변 (null|undefined)(㎡|m²) 실거래/, c && c.basis === "p3" ? "주변 실거래(구 전체 ㎡당 중위를 같은 면적으로 환산)" : "주변 같은 면적대 실거래").replace(/(\d)m²/g, "$1㎡"); });
-      if (c && (c.band == null || c.band === "")) d.src = String(d.src || "").replace(/ (null|undefined)㎡ 중위/, " 같은 면적대 중위");
-      if (c && c.basis === "p3") d.foot = String(d.foot || "").replace("주변 실거래는 같은 시군구 같은 면적대 중위", "주변 실거래는 같은 구 전체 ㎡당 중위(3개월)를 같은 전용면적으로 환산");
-      if (N.resale && /\(/.test(N.resale)) { d.side = (d.side || []).map(function (r) { return r[0] === "전매제한" ? ["전매제한", N.resale.replace(/\(.*\)/, "")] : r; }); d.bullets = d.bullets.map(function (b) { return /^(무순위|잔여세대|계약취소주택) 공급 /.test(b) ? "전매 제한 " + N.resale + (N.etc && /잔여 [\d,]+세대/.test(N.etc) ? " · " + (N.etc.match(/총 [\d,]+세대/) || [""])[0] + " 중 " + N.etc.match(/잔여 [\d,]+세대/)[0] : "") : b; }); }
+      /* v12.3 아래 목록은 짧게 — 한 줄에 한 가지, 설명(어떻게 계산했나)은 맨 아래 메모로. 문장이 중간에 끊기지 않게 낱말 단위로만 줄바꿈 */
+      var B = [], X = c && typeof sbCmpLine === "function" ? sbCmpLine(it) : null, cut = function (t) { return String(t || "").replace(/\(.*?\)/g, "").trim(); };
+      if (X && X.sale && X.near) B.push("분양가 " + eok(X.sale) + " · 주변 " + eok(X.near) + " → " + Math.abs(X.diff).toFixed(1) + "% " + (X.diff > 0 ? "높음" : "낮음"));
+      if (N.first) B.push(N.first.replace("이번이 ", ""));
+      B.push("자격: " + (N.res || N.firstRank || "공고 확인"));
+      B.push("청약통장 " + (N.account ? cut(N.account) : "공고 확인"));
+      if (N.resale && /\(/.test(N.resale)) B.push("전매 제한 " + N.resale);
+      if (N.down || N.mid) B.push("계약금 " + cut(N.down || "–") + " · 중도금 " + cut(N.mid || "–") + (N.balance ? " · 잔금 " + cut(N.balance) : ""));
+      var sc = N.etc && /잔여 [\d,]+세대/.test(N.etc) ? ((N.etc.match(/총 [\d,]+세대/) || [""])[0] + " 중 " + N.etc.match(/잔여 [\d,]+세대/)[0]).trim() : ""; if (sc && B.length < 6) B.push(sc);
+      d.bullets = B.slice(0, 6);
+      if (N.resale) d.side = (d.side || []).map(function (r) { return r[0] === "전매제한" ? ["전매제한", cut(N.resale)] : r; });
+      if (c) d.foot = "분양가는 주택형 최고가(공고) · 주변 실거래는 " + (c.basis === "p3" ? "같은 구 전체 ㎡당 중위(3개월)를 같은 전용면적으로 환산한 값" : "같은 시군구 같은 면적대 중위(최근 30일)") + " · 조건은 입주자모집공고문 기준 · 투자 권유 아님";
       if (N.zone) d.side = (d.side || []).map(function (r) { return r[0] === "규제지역" ? ["규제지역", /비규제/.test(N.zone) ? "비규제 기준" : N.zone] : r; });
-      if (N.balance && (N.down || N.mid)) d.bullets = d.bullets.map(function (b) { return /^계약금 /.test(b) ? "계약금 " + N.down.replace(/\(.*\)/, "") + " · 중도금 " + (N.mid || "–") + " · 잔금 " + N.balance.replace(/\(.*\)/, "") : b; });
-      if (N.etc && d.bullets.length < 6 && !d.bullets.some(function (b) { return b === N.etc; })) d.bullets.push(N.etc.split(" · ").slice(0, 3).join(" · "));
+      /* 날짜 네 칸은 같은 글자 크기로 — 기간은 요일을 빼 짧게(11.16~11.17) */
+      var rng = function (a, b2) { return a ? (b2 && b2 !== a ? chMD(a) + "~" + chMD(b2) : chMD(a) + "(" + chWd(a) + ")") : ""; };
+      d.kv = (d.kv || []).map(function (r) { return r[0] === "접수" ? ["접수", rng(it.b, it.e), r[2]] : r[0] === "계약" ? ["계약", rng(it.cB, it.cE), r[2]] : r; });
       if (N.src && /PDF/.test(N.src)) d.src = String(d.src || "") + " · 조건은 입주자모집공고문";
     } catch (e) {}
     return d;
@@ -11988,6 +11996,10 @@ function rmTyRows(it) {
 })();
 /* 줍줍 안내 상자에 PDF 버튼 */
 (function () { if (typeof rmTipHtml !== "function") return; var o = rmTipHtml; rmTipHtml = function (it) { var h = o.apply(this, arguments); if (!h) { var N = sbNote(it) || {}; return '<div class="rm-tip nx-host"><b>줍줍 카드</b><p class="hint">조건이 채워져 있습니다' + (N.src ? " — " + escHtml(N.src) : "") + ". 공고가 정정되면 다시 올리세요.</p>" + nxPickHtml(it.no, "공고문 PDF 다시 읽기") + "</div>"; } return h.replace(/<\/div>$/, '<p><b>가장 빠른 방법</b> — 청약홈 공고 상세에서 [모집공고문 보기]로 PDF를 내려받아 아래 버튼으로 올리면 자격·통장·재당첨·전매·거주의무·분양가상한제·입주·계약금 비율·공급면적·분양가를 그대로 읽어 옵니다(AI 호출 없음).</p>' + nxPickHtml(it.no) + "</div>"); }; })();
+
+/* 날짜 칸 글자 크기 맞추기 — 카드를 그린 뒤 한 줄(접수·발표·계약·입주) 안에서 가장 작은 크기로 통일(자동 맞춤이 칸마다 따로 줄이던 것) */
+function kvEqualize(root) { (root || document).querySelectorAll(".tp-card .tp-ap-kv").forEach(function (g) { var B = g.querySelectorAll("b"); if (B.length < 2) return; var mn = Infinity; B.forEach(function (b) { b.style.fontSize = ""; }); B.forEach(function (b) { var cell = b.parentNode, fs = parseFloat(getComputedStyle(b).fontSize), w = cell.clientWidth - 6; if (b.scrollWidth > w && w > 0) fs = Math.max(7, fs * w / b.scrollWidth); if (fs < mn) mn = fs; }); B.forEach(function (b) { b.style.fontSize = mn.toFixed(2) + "px"; b.style.transform = "none"; }); }); }
+(function () { ["tpPaintCard", "tpPaint"].forEach(function (fn) { if (typeof window[fn] !== "function") return; var o = window[fn]; window[fn] = function () { var r = o.apply(this, arguments); try { kvEqualize(); setTimeout(kvEqualize, 60); setTimeout(kvEqualize, 400); } catch (e) {} return r; }; }); })();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

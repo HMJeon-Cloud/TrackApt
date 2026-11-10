@@ -1,6 +1,18 @@
 {
  "v": 1,
- "builtAt": "2026-11-09T07:17:33.577Z",
- "asOf": 20261109,
- "items": []
+ "builtAt": "2026-11-10T01:13:25.317Z",
+ "asOf": 20261110,
+ "items": [
+  {
+   "kind": "policy",
+   "date": "2026-11-10",
+   "title": "‘3.7만 공급’ 김포아라, 교통대책 짜는 데만 2년…입주 때 길 열릴까 [부동산360]",
+   "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE1LUktuVkJFY3pEZHU5MWZNS0k0dTJScGR5b1lkR2VyR1JCbC1USlYtcFZfdDYzSUpEUXNZRUhfbUFzeHdwbjFLUmh0Zm9CZHZIa3M0cUhn?oc=5",
+   "src": "헤럴드경제",
+   "official": false,
+   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
+   "firstSeen": "2026-11-10",
+   "isNew": true
+  }
+ ]
 }

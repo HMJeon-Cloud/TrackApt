@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=12.1">
+<link rel="stylesheet" href="style.css?v=12.2">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v12.1</span>
+    <span class="ver">v12.2</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=12.1"></script>
+<script src="cards.js?v=12.2"></script>
 <script>
 "use strict";
 
@@ -10403,7 +10403,7 @@ function hubNewOther() {
   try { var D = (typeof MACRO !== "undefined" && MACRO.data) || {}, pm = (D.policy && D.policy.manual && D.policy.manual.items) || [];
     pm.forEach(function (x) { var d1 = ymdN(x.date), d2 = ymdN(x.effective), hit = (d1 >= from && d1 <= tk) || (d2 >= from && d2 <= tk); if (!hit) return; var id = "pol:" + (x.date || "") + ":" + E(x.title).slice(0, 20); out.push({ kind: "new", id: id, r: "policy", nm: E(x.title), tag: d2 >= from && d2 <= tk && d2 !== d1 ? "대책 시행" : "새 대책", why: (d1 ? "발표 " + chMD(d1) : "") + (d2 && d2 !== d1 ? " · 시행 " + chMD(d2) : "") + (x.table && x.table.rows ? " · 변경 전후 표 " + x.table.rows.length + "줄" : ""), isNew: !seen[id] }); }); } catch (e) {}
   /* 청약 결과 — 당첨자 발표가 최근 3일(경쟁률 카드) */
-  try { if (typeof tprSubs === "function" && typeof sbResults === "function") { var X = tprSubs(); if (X) { var R = sbResults(X).filter(function (r) { return r.win && r.win >= from && r.win <= tk && r.nm; }).sort(function (a, b) { return (b.rate || 0) - (a.rate || 0); }); if (R.length) { var id2 = "win:" + R.map(function (r) { return r.no; }).slice(0, 5).join(","); out.push({ kind: "new", id: id2, r: "subsRate", nm: "청약 당첨자 발표 " + R.length + "곳", tag: "청약 결과", why: R.slice(0, 2).map(function (r) { return E(r.nm).replace(/\(.*?\)/g, "").trim().slice(0, 14) + (r.rate != null && typeof sbRate === "function" ? " " + sbRate(r.rate) : ""); }).join(" · ") + (R.length > 2 ? " 외 " + (R.length - 2) : ""), isNew: !seen[id2] }); } } } } catch (e) {}
+  try { if (typeof tprSubs === "function" && typeof sbResults === "function") { var X = tprSubs(); if (X) { var R = sbResults(X).filter(function (r) { return r.win && r.win >= from && r.win <= tk && r.nm; }).sort(function (a, b) { return (b.rate || 0) - (a.rate || 0); }); if (R.length) { var id2 = "win:" + R.map(function (r) { return r.no; }).slice(0, 5).join(","); out.push({ kind: "new", id: id2, r: "subsWin", nm: "청약 당첨자 발표 " + R.length + "곳", tag: "청약 결과", why: R.slice(0, 2).map(function (r) { return E(r.nm).replace(/\(.*?\)/g, "").trim().slice(0, 14) + (r.rate != null && typeof sbRate === "function" ? " " + sbRate(r.rate) : ""); }).join(" · ") + (R.length > 2 ? " 외 " + (R.length - 2) : ""), isNew: !seen[id2] }); } } } } catch (e) {}
   /* 정책대출 기준(loans.json asOf) · 금리 공시(rates asOf) 가 최근 3일에 바뀜 */
   try { var la = ymdN(D.loans && D.loans.manual && D.loans.manual.asOf); if (la >= from && la <= tk) { var id3 = "loan:" + la; out.push({ kind: "new", id: id3, r: "loans", nm: "정책대출 기준 갱신", tag: "대출 기준", why: "디딤돌·보금자리 등 기준일 " + chMD(la), isNew: !seen[id3] }); } } catch (e) {}
   try { var RT = typeof rtData === "function" ? rtData() : null; if (RT && RT.asOf && RT.prevAt) { var ra = ymdN(RT.asOf); if (ra >= from && ra <= tk && RT.asOf !== RT.prevAt) { var ch = 0; ["mortgage", "jeonse", "deposit", "saving"].forEach(function (k) { (RT[k] || []).forEach(function (x) { if (x.dLo || x.dHi) ch++; }); }); if (ch) { var id4 = "rate:" + ra; out.push({ kind: "new", id: id4, r: "rateChange", nm: "금리 공시 갱신 — 바뀐 곳 " + ch, tag: "금리 변동", why: chMD(ra) + " 수집 · 지난주(" + chMD(ymdN(RT.prevAt)) + ") 대비", isNew: !seen[id4] }); } } } } catch (e) {}
@@ -11857,6 +11857,137 @@ function v12ReportAttach() {
     var anchor = null; cards.forEach(function (c) { var t = (c.querySelector("h3,h2,.in-q") || {}).textContent || ""; if (!anchor && /전망/.test(t)) anchor = c; }); (anchor || cards[cards.length - 1]).parentNode.insertBefore(d, anchor || null); if (typeof uxFoldApply === "function") uxFoldApply("report");
   } catch (e) { if (typeof appErr === "function") appErr("v12 브리핑", e); }
 }
+
+/* ══ v12.2 ① 오늘의 청약 결과(당첨 발표 단지만) ② 공고문 PDF 읽기 — 규칙으로 뽑는다(AI 호출 없음 · 0원) ③ 무순위 카드에 공고문 값 보충 ══
+   ②는 청약홈 표준 공고 양식의 정해진 자리(단지 주요정보 표 · 공급대상 · 공급금액 표 · 면적 표)에서 글자를 그대로 가져온다.
+   못 찾은 칸은 비워 두고, 분양가는 '대지비 + 건축비 = 계'가 맞는 줄만 쓴다. 가져온 값은 근거 줄과 함께 보여 주고 저장 전에 고칠 수 있다. */
+
+/* ───────── ① 오늘의 청약 결과 ───────── */
+function swKind(it, r) { var s = String((it && it.nm) || r.nm || ""), m = s.match(/\((공공분양|민간분양|본청약|사전청약|신혼희망타운|지분적립형|이익공유형|토지임대부)[^)]*\)/); if (m) return m[1]; if (it && it.kind === "rem") return "줍줍"; var d = it && it.dtl; return d === "국민" ? "국민주택" : d === "민영" ? "민영" : (d || "분양"); }
+function swTy(ty) { return typeof sbTy === "function" ? sbTy(ty) : String(ty || "").trim(); }
+function swPick() {
+  var X = typeof tprSubs === "function" ? tprSubs() : null; if (!X || typeof sbResults !== "function") return null;
+  var t = sbToday(), R = sbResults(X).filter(function (r) { return r.win && r.nm && r.rate != null; }), days = {}; R.forEach(function (r) { if (r.win <= t) days[r.win] = 1; });
+  /* 오늘 작업의 추천('청약 당첨자 발표 n곳')과 같은 범위: 오늘 포함 최근 4일(오늘−3일~오늘). 그 안에 없으면 가장 최근 발표일 하루 */
+  var D = Object.keys(days).map(Number).sort(function (a, b) { return b - a; }), from = chDayKey(chShift(chKstNow(), -3)), W = D.filter(function (d) { return d >= from; }); if (!W.length) W = D.slice(0, 1); if (!W.length) return null; var want = W[0];
+  var by = {}; (X.items || []).forEach(function (it) { by[String(it.no)] = it; });
+  var L = R.filter(function (r) { return W.indexOf(r.win) >= 0; }).map(function (r) { var it = by[String(r.no)] || null, T = (it && it.types) || [], mt = String(r.maxTy || "").trim(), tt = T.filter(function (x) { return String(x.ty).trim() === mt; })[0] || null;
+    return { r: r, it: it, nm: String(r.nm).replace(/\((공공분양|민간분양|본청약|사전청약|후속사업|조합원 취소분)[^)]*\)/g, "").replace(/\s+/g, " ").trim(), kind: swKind(it, r), area: String(r.area || (it && it.area) || "").replace(/특별시|광역시|특별자치시|특별자치도/g, ""), gu: it && it.addr ? (String(it.addr).replace(/\[.*?\]/g, "").split(/\s+/)[1] || "") : "", ty: mt ? swTy(mt) : "", top: tt && tt.top ? tt.top : null, pMin: it && it.pMin, pMax: it && it.pMax }; }).sort(function (a, b) { return (b.r.win - a.r.win) || ((b.r.rate || 0) - (a.r.rate || 0)); });
+  return { day: want, days: W, L: L, asOf: X.asOf };
+}
+if (typeof TPL !== "undefined") TPL.winList = { nm: "청약 결과 줄", cat: "subs", fields: [["src", "출처·기준", "text", "청약홈 · 당첨자 발표 2026.11.10"], ["title", "제목", "text", "오늘의 청약 결과"], ["sub", "부제", "text", ""], ["rows", "줄(단지 | 구분 | 지역 | 타입·분양가 | 경쟁률 | 보조)", "rows", "광교 자연앤 센트레빌 | 공공분양 | 경기 수원 | 84㎡ · 9.5억 | 39.5 | 1순위 평균 · 공급 270세대"], ["foot", "맨 아래 메모", "text", ""]],
+  auto: function () { return null; },
+  render: function (d) { var R = tpRows(d.rows), n = R.length;
+    return tpFrame("subs", d, '<div class="tp-win n' + n + '" style="grid-template-rows:repeat(' + n + ',1fr)">' + R.map(function (r) { var rate = parseFloat(r[4]), hot = rate >= 10, low = rate < 1; return '<div class="tp-wi' + (hot ? " hot" : low ? " low" : "") + '"><div class="l"><div class="h"><i>' + tpE(r[1] || "") + "</i><small>" + tpE(r[2] || "") + "</small></div><b>" + tpE(r[0] || "") + "</b><span>" + tpE(r[3] || "") + '</span></div><div class="r"><b>' + tpE(isFinite(rate) ? (rate >= 100 ? Math.round(rate).toLocaleString() : rate.toFixed(rate >= 10 ? 1 : 2)) : (r[4] || "–")) + "<em> : 1</em></b>" + String(r[5] || "").split(" · ").filter(Boolean).slice(0, 3).map(function (t) { return "<small>" + tpE(t) + "</small>"; }).join("") + "</div></div>"; }).join("") + "</div>"); } };
+if (typeof TPR !== "undefined") {
+  TPR.subsWin = { nm: "오늘의 청약 결과(당첨 발표)", grp: "청약·일정", opts: [], tpls: ["winList", "denseTable"], per: 4, noX: true, hint: "당첨자 발표일이 오늘(없으면 가장 최근 발표일)인 단지만 — 가장 경쟁이 셌던 주택형과 그 분양가 · 1순위 평균 경쟁률 · 공급 세대. 무순위(줍줍) 결과는 청약홈 API에 경쟁률이 없어 빠진다",
+    build: function (o, tid) { var P = swPick(); if (!P || !P.L.length) return [];
+      var eokS = function (v) { return v ? eok(v) : ""; }, multi = P.days.length > 1, md = multi ? chMD(P.days[P.days.length - 1]) + "~" + chMD(P.days[0]) : chMD(P.day) + "(" + chWd(P.day) + ")", isToday = !multi && P.day === sbToday(), miss = P.L.filter(function (x) { return /미달/.test(x.r.status || ""); }).length;
+      var base = { noLead: true, _cat: "subs", src: "청약홈 · 당첨자 발표 " + (multi ? md : String(P.day).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3")) + " · 수집 " + chMD(P.asOf || sbToday()), title: (isToday ? "오늘의 청약 결과" : multi ? "이번 주 청약 결과" : md + " 청약 결과"), sub: md + " 당첨자 발표 " + P.L.length + "곳 · 1순위 마감 " + (P.L.length - miss) + " · 주택형 미달 " + miss, badge: "청약 결과", foot: "경쟁률 = 1순위 접수 ÷ 일반공급(청약홈) · 분양가는 그 주택형 최고가(발코니 확장 별도) · 투자 권유 아님" };
+      if (tid === "denseTable") return tprPaged(Object.assign(base, { cols: "단지 | 구분 | 최고 경쟁 타입 | 분양가 | 1순위 평균" }), P.L.map(function (x) { return [x.nm, x.kind, x.ty + (x.r.max != null ? " " + (x.r.max >= 100 ? Math.round(x.r.max) : x.r.max.toFixed(1)) + ":1" : ""), eokS(x.top || x.pMax), x.r.rate.toFixed(x.r.rate >= 10 ? 1 : 2) + ":1"]; }), 8);
+      var rows = P.L.map(function (x) { var price = x.top ? eokS(x.top) : (x.pMin && x.pMax ? (x.pMin === x.pMax ? eokS(x.pMin) : eokS(x.pMin) + "~" + eokS(x.pMax)) : ""); return [x.nm, x.kind, [x.area, x.gu].filter(Boolean).join(" ") + (multi ? " · " + chMD(x.r.win) + " 발표" : ""), [x.ty ? x.ty + " 타입" : "", price ? "분양가 " + price : "", x.r.max != null && x.ty && x.r.max > x.r.rate * 1.05 ? "이 타입 " + (x.r.max >= 100 ? Math.round(x.r.max).toLocaleString() : x.r.max.toFixed(1)) + ":1" : ""].filter(Boolean).join(" · "), String(x.r.rate), "1순위 평균 · 공급 " + fmt(x.r.sup || 0) + "세대" + (/미달/.test(x.r.status || "") ? " · " + x.r.status : "")]; });
+      var n = rows.length, per = tprOne() ? Math.min(n, 5) : (n <= 4 ? n : Math.ceil(n / Math.ceil(n / 4))), out = [];
+      for (var i = 0; i < (tprOne() ? 1 : Math.ceil(n / per)); i++) { var d = {}; for (var k in base) d[k] = base[k]; d._tpl = "winList"; d.rows = rows.slice(i * per, (i + 1) * per); if (!tprOne() && n > per) d.badge = "청약 결과 " + (i + 1) + "/" + Math.ceil(n / per); if (tprOne() && n > per) d.foot = "경쟁률 높은 순 상위 " + per + "/" + n + "곳 — 전체는 여러 장 · " + base.foot; out.push(d); }
+      return out; } };
+  if (typeof TPR_ORDER !== "undefined" && TPR_ORDER.indexOf("subsWin") < 0) { var _si = TPR_ORDER.indexOf("subsRate"); TPR_ORDER.splice(_si >= 0 ? _si : TPR_ORDER.length, 0, "subsWin"); }
+}
+
+/* ───────── ② 공고문 PDF 읽기(규칙) ───────── */
+var NX = { lib: null, last: null };
+var NX_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+function nxLib() { if (NX.lib) return NX.lib; NX.lib = new Promise(function (res, rej) { if (window.pdfjsLib) return res(window.pdfjsLib); var s = document.createElement("script"); s.src = NX_CDN + "pdf.min.js"; s.onload = function () { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = NX_CDN + "pdf.worker.min.js"; res(window.pdfjsLib); } catch (e) { rej(e); } }; s.onerror = function () { NX.lib = null; rej(new Error("PDF 읽기 도구를 불러오지 못했습니다(네트워크)")); }; document.head.appendChild(s); }); return NX.lib; }
+/* 쪽마다 글자 조각을 y(줄) → x(칸) 순으로 다시 세워, 칸 사이가 넓으면 공백 두 칸으로 띄운다(표의 칸을 구분하려고) */
+function nxPdfText(file) {
+  return nxLib().then(function (lib) { return file.arrayBuffer().then(function (buf) { return lib.getDocument({ data: buf }).promise; }); }).then(function (pdf) {
+    var jobs = []; for (var p = 1; p <= Math.min(pdf.numPages, 30); p++) jobs.push(pdf.getPage(p).then(function (pg) { return pg.getTextContent(); }));
+    return Promise.all(jobs).then(function (pages) { return pages.map(function (tc) { var rows = {}; tc.items.forEach(function (it) { if (!it.str || !it.str.trim()) return; var y = Math.round(it.transform[5] / 3) * 3, x = it.transform[4]; (rows[y] = rows[y] || []).push({ x: x, w: it.width || 0, s: it.str, h: Math.abs(it.transform[3]) || 9 }); });
+      return Object.keys(rows).map(Number).sort(function (a, b) { return b - a; }).map(function (y) { var L = rows[y].sort(function (a, b) { return a.x - b.x; }), out = ""; L.forEach(function (c, i) { if (i) { var gap = c.x - (L[i - 1].x + L[i - 1].w); out += gap > c.h * 0.9 ? "  " : gap > c.h * 0.18 ? " " : ""; } out += c.s; }); return out; }).join("\n"); }).join("\n"); }); });
+}
+function nxNum(s) { var n = Number(String(s).replace(/,/g, "")); return isFinite(n) ? n : null; }
+function nxParse(text) {
+  var T = String(text || "").replace(/\r/g, ""), L = T.split("\n").map(function (x) { return x.replace(/ /g, " ").replace(/[ \t]+$/, ""); }), flat = T.replace(/[ \t]+/g, " "), F = {}, EV = {}, types = [];
+  var set = function (k, v, ev) { v = String(v || "").replace(/\s+/g, " ").trim(); if (v && !F[k]) { F[k] = v; EV[k] = String(ev || "").replace(/\s+/g, " ").trim().slice(0, 140); } };
+  var cells = function (s) { return String(s || "").trim().split(/\s{2,}/).map(function (x) { return x.trim(); }).filter(Boolean); };
+  /* 단지 주요정보: '재당첨제한 전매제한 거주의무기간 분양가상한제' 머리 줄 바로 아래 값 줄(네 칸일 때만) */
+  for (var i = 0; i < Math.min(L.length, 60); i++) { if (/재당첨제한/.test(L[i]) && /전매제한/.test(L[i]) && /분양가상한제/.test(L[i])) { for (var j = i + 1; j <= i + 3 && j < L.length; j++) { var c = cells(L[j]); if (c.length === 4 && /^(적용|미적용)/.test(c[3])) { set("rewin", c[0], L[j]); set("resale", c[1], L[j]); set("live", c[2], L[j]); set("cap", c[3], L[j]); break; } } break; } }
+  var m;
+  if ((m = flat.match(/(민영|국민)\s+(비규제지역|투기과열지구|조정대상지역|청약과열지역|위축지역)/))) { set("htype", m[1], m[0]); set("zone", m[2], m[0]); }
+  if ((m = flat.match(/본 주택은 ([^\n]{0,40}?입주자모집공고일 현재 )([^\n]{4,60}?)(?:를|을) 대상으로 공급/))) set("res", m[2].replace(/인 성년자$/, " 성년자").replace(/에 거주하는 /, " 거주 "), m[0]);
+  if ((m = flat.match(/청약통장 가입\s?여부와 무관하게 신청\s?가능/))) set("account", "불필요(가입 여부와 무관)", m[0]); else if ((m = flat.match(/청약통장[^\n]{0,30}(가입|사용)[^\n]{0,20}(필요|하여야|있어야)/))) set("account", "필요 — 공고문 확인", m[0]);
+  if ((m = flat.match(/외국인[^\n]{0,12}청약\s?불가/))) set("etc1", "외국인 청약 불가", m[0]);
+  if ((m = flat.match(/최초 입주자모집공고일은 (\d{4})\.(\d{2})\.(\d{2})/))) { F.firstYmd = m[1] + "." + m[2] + "." + m[3]; EV.first = m[0]; }
+  if ((m = flat.match(/무순위\(?(?:사후|사전)?\)?\s*\((\d+)차\)/))) F.round = m[1];
+  if ((m = flat.match(/입주시기\s*:\s*(\d{4})년\s*(\d{1,2})월/))) set("move", m[1] + "." + ("0" + m[2]).slice(-2) + " 예정", m[0]);
+  if ((m = flat.match(/공급위치\s*:\s*([^\n]+)/))) set("addr", m[1], m[0]);
+  if ((m = flat.match(/공급규모\s*:\s*([^\n]+)/))) { var g = m[1], tot = g.match(/총\s*([\d,]+)\s*세대/), gen = g.match(/일반분양\s*([\d,]+)\s*세대/), rem = g.match(/잔여\s*([\d,]+)\s*세대/), fl = g.match(/지하\s*\d+층,?\s*지상\s*\d+층\s*\d+개동/); F.scale = [tot ? "총 " + tot[1] + "세대" : "", gen ? "일반분양 " + gen[1] + "세대" : "", rem ? "잔여 " + rem[1] + "세대" : "", fl ? fl[0] : ""].filter(Boolean).join(" · "); EV.scale = m[0]; if (rem) F.remN = nxNum(rem[1]); }
+  if ((m = flat.match(/전매제한은 ([^\s)]+) 기준 적용/))) set("resaleNote", m[1] + " 기준 적용", m[0]);
+  if ((m = flat.match(/최초당첨자발표일\((\d{4}\.\d{2}\.\d{2})\.?\)로부터 (\d+)년/))) F.resaleUntil = (function (d, y) { var p = d.split("."); return (Number(p[0]) + Number(y)) + "." + p[1] + "." + p[2]; })(m[1], m[2]);
+  /* 공급대상: 모델 · 전용면적(000.0000) · 타입 · 세대수 */
+  var a0 = T.indexOf("공급대상"), a1 = T.indexOf("공급금액 표"), seg = a0 >= 0 ? T.slice(a0, a1 > a0 ? a1 : a0 + 3000) : "", re = /(?:^|\s)(\d{2})\s+(\d{3}\.\d{4})([A-Za-z]?)\s+(\S+)\s+(\d{1,4})(?=\s)/g, x;
+  while ((x = re.exec(seg))) { var ex = parseFloat(x[2]); if (ex > 10 && ex < 400) types.push({ ty: x[2] + (x[3] || ""), lb: x[4], ex: ex, n: nxNum(x[5]) }); }
+  /* 공급금액 표: 한 줄에 '대지비 건축비 계 …' — 대지비 + 건축비 = 계 가 맞는 줄만 분양가로 인정 */
+  var b1 = a1 >= 0 ? T.slice(a1, a1 + 6000) : "", cut = b1.search(/별도계약|선택품목|발코니\s?확장\s?(공사)?비/); if (cut > 200) b1 = b1.slice(0, cut);
+  var pct = function (nm) { var q = b1.match(new RegExp(nm + "\\s*\\((\\d{1,2})%\\)")); return q ? q[1] : null; }, pd = pct("계약금"), pm = pct("중도금"), pb = pct("잔금"), prices = [], downAt = null;
+  b1.split("\n").forEach(function (ln) { var N = (ln.match(/\d{1,3}(?:,\d{3}){2,}/g) || []).map(nxNum); for (var k = 0; k + 2 < N.length; k++) { if (N[k] + N[k + 1] === N[k + 2] && N[k + 2] > 30000000) { var fl = ln.slice(0, ln.indexOf(String(N[k]).replace(/\B(?=(\d{3})+(?!\d))/g, ","))).trim(); prices.push({ tot: N[k + 2], floor: (fl.match(/[\d층,\s]+층/) || [""])[0].replace(/\s+/g, ""), d1: N[k + 3], d2: N[k + 4] }); break; } } });
+  if (prices.length) { var lo = Math.min.apply(null, prices.map(function (p) { return p.tot; })), hi = Math.max.apply(null, prices.map(function (p) { return p.tot; })); F.pLo = Math.round(lo / 10000); F.pHi = Math.round(hi / 10000); EV.price = prices.map(function (p) { return (p.floor ? p.floor + " " : "") + p.tot.toLocaleString() + "원"; }).join(" / ");
+    var p0 = prices[0]; if (pd && p0.d1 && p0.d2 && Math.abs(p0.d1 + p0.d2 - p0.tot * Number(pd) / 100) < 2) downAt = p0.d1; }
+  if (pd) set("down", pd + "%" + (downAt ? "(계약 때 " + (downAt / 10000).toLocaleString() + "만원 · 나머지는 30일 안)" : ""), "계약금(" + pd + "%)");
+  if (pm) { var cnt = (b1.match(/(\d)회\(\d+%\)/g) || []).length; set("mid", pm + "%" + (cnt ? "(" + cnt + "회)" : ""), "중도금(" + pm + "%)"); }
+  if (pb) set("balance", pb + "%(입주 지정일)", "잔금(" + pb + "%)");
+  /* 면적 표에서 공급면적: '타입  전용  공급 …' 줄의 전용이 공급대상의 전용과 같을 때만 */
+  types.forEach(function (t) { var r2 = new RegExp("(?:^|\\s)" + String(t.lb).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s+(" + t.ex.toFixed(3).replace(".", "\\.") + "\\d?)\\s+(\\d{2,3}\\.\\d{2,4})", "m"), q = T.match(r2); if (q) { var sup = parseFloat(q[2]); if (sup > t.ex && sup < t.ex * 2.2) t.area = sup; } if (types.length === 1 && F.pLo) { t.lo = F.pLo; t.top = F.pHi; } });
+  if (F.firstYmd) F.first = F.firstYmd.slice(0, 7) + " 최초 공고" + (F.round ? " · 이번이 " + F.round + "차 무순위" : "");
+  if (F.resale && F.resaleUntil) F.resale = F.resale.replace(/최초당첨자발표일\(([\d.]+?)\.?\)로부터 (\d+)년/, "$2년(" + F.resaleUntil + "까지)");
+  var hook = [F.res ? F.res.replace(/ ?거주 /, " ").replace(/무주택세대구성원/, "무주택").replace(/ 성년자$/, "") : "", F.account && /불필요/.test(F.account) ? "통장 불필요" : "", F.remN ? "잔여 " + F.remN + "세대" : ""].filter(Boolean); if (hook.length >= 2) F.hook = hook.join(" · ");
+  return { F: F, EV: EV, types: types, prices: prices };
+}
+var NX_SHOW = [["res", "신청 자격"], ["account", "청약통장"], ["rewin", "재당첨 제한"], ["resale", "전매 제한"], ["live", "거주 의무"], ["cap", "분양가상한제"], ["first", "최초 공고"], ["move", "입주"], ["down", "계약금"], ["mid", "중도금"], ["balance", "잔금"], ["scale", "공급 규모"], ["hook", "한 줄 포인트"]];
+function nxToNote(P, fileNm) { var F = P.F, N = {}; ["res", "account", "rewin", "resale", "live", "cap", "first", "move", "down", "mid", "balance", "hook"].forEach(function (k) { if (F[k]) N[k] = F[k]; }); var etc = [F.scale, F.resaleNote ? "전매제한은 " + F.resaleNote : "", F.etc1].filter(Boolean).join(" · "); if (etc) N.etc = etc; if (F.zone) N.zone = F.zone; if (P.types.length) N.types = P.types.map(function (t) { return { ty: t.ty, lb: t.lb, ex: t.ex, area: t.area || null, n: t.n, lo: t.lo || null, top: t.top || null }; }); N.src = "공고문 PDF" + (fileNm ? "(" + String(fileNm).slice(0, 40) + ")" : "") + " · 규칙으로 읽음"; N.asOf = chKstDate().key; return N; }
+function nxReviewHtml(P, no) { var F = P.F, EV = P.EV, got = NX_SHOW.filter(function (f) { return F[f[0]]; }), miss = NX_SHOW.filter(function (f) { return !F[f[0]]; });
+  return '<div class="nx-rv"><b>공고문에서 읽은 것 ' + got.length + "개" + (miss.length ? " · 못 찾은 것 " + miss.length + "개(" + miss.map(function (f) { return f[1]; }).join("·") + ")" : "") + "</b>" + '<table class="nx-t">' + got.map(function (f) { return "<tr><th>" + f[1] + "</th><td>" + escHtml(F[f[0]]) + (EV[f[0]] ? "<small>근거: " + escHtml(EV[f[0]]) + "</small>" : "") + "</td></tr>"; }).join("") +
+    (P.types.length ? "<tr><th>주택형</th><td>" + P.types.map(function (t) { return escHtml(t.lb + "타입 · 전용 " + t.ex + "㎡" + (t.area ? " · 공급 " + t.area + "㎡(" + Math.round(t.area / 3.3058) + "평)" : "") + " · " + t.n + "세대" + (t.top ? " · 분양가 " + (t.lo !== t.top ? eok(t.lo) + "~" : "") + eok(t.top) : "")); }).join("<br>") + (EV.price ? "<small>근거: " + escHtml(EV.price) + " (대지비+건축비=계 확인)</small>" : "") + "</td></tr>" : "") + "</table>" +
+    '<div class="mk-row"><button type="button" class="btn sm" data-nxsave="' + escHtml(no) + '">이대로 저장하고 카드에 반영</button><button type="button" class="btn sm ghost" data-nxedit="' + escHtml(no) + '">조건 적기에서 고치기</button><span class="hint">글자는 공고문 그대로 · AI 호출 없음(0원) · 저장은 이 기기 → "JSON 복사"로 subs_notes.json 에 올리면 모든 기기</span></div></div>'; }
+function nxPickHtml(no, label) { return '<label class="btn sm nx-pick">' + (label || "공고문 PDF 올려서 채우기") + '<input type="file" accept="application/pdf,.pdf" data-nxfile="' + escHtml(String(no)) + '" hidden></label>'; }
+function nxSaveNote(no, N) { var L = sbLocalNotes(), old = L[no] || ((typeof DY !== "undefined" && DY.notes) || {})[no] || {}, o = {}; Object.keys(old).forEach(function (k) { o[k] = old[k]; }); Object.keys(N).forEach(function (k) { o[k] = N[k]; }); L[no] = o; try { localStorage.setItem(SB_NOTE_LS, JSON.stringify(L)); } catch (e) {} }
+document.addEventListener("change", function (ev) { var inp = ev.target; if (!inp || !inp.dataset || !inp.dataset.nxfile || !inp.files || !inp.files[0]) return; var no = inp.dataset.nxfile, f = inp.files[0], host = inp.closest(".rm-tip, .sb-ned, .nx-host") || inp.parentNode.parentNode, out = host.querySelector(".nx-out"); if (!out) { out = document.createElement("div"); out.className = "nx-out"; host.appendChild(out); }
+  out.innerHTML = '<p class="hint">공고문을 읽는 중…</p>';
+  nxPdfText(f).then(function (txt) { var P = nxParse(txt); NX.last = { no: no, P: P, file: f.name }; var n = NX_SHOW.filter(function (x) { return P.F[x[0]]; }).length; out.innerHTML = n || P.types.length ? nxReviewHtml(P, no) : '<p class="hint">이 PDF에서는 표준 양식의 항목을 찾지 못했습니다(스캔 이미지이거나 양식이 다름). 조건 적기의 [공고문에서 읽기(AI)]에 글을 붙여 넣어 주세요.</p>'; }, function (e) { out.innerHTML = '<p class="hint">PDF를 읽지 못했습니다: ' + escHtml(e.message || String(e)) + "</p>"; });
+  inp.value = ""; });
+document.addEventListener("click", function (ev) { var b = ev.target && ev.target.closest && ev.target.closest("[data-nxsave],[data-nxedit]"); if (!b || !NX.last) return; var no = b.dataset.nxsave || b.dataset.nxedit, N = nxToNote(NX.last.P, NX.last.file); nxSaveNote(no, N);
+  if (b.dataset.nxedit) { SB.edit = String(no); if (typeof showTab === "function") showTab("subs"); if (typeof sbPaint === "function") sbPaint(); var ed = document.getElementById("sb-ned-" + no); if (ed) ed.scrollIntoView({ block: "center" }); return; }
+  if (typeof TP !== "undefined" && TP.r === "aptNotice" && typeof tprRebuild === "function") tprRebuild(); else if (typeof sbPaint === "function") { SB.edit = null; sbPaint(); } });
+/* 조건 적기 편집기에도 PDF 버튼 */
+(function () { if (typeof sbNoteEditor !== "function") return; var o = sbNoteEditor; sbNoteEditor = function (it) { var h = o.apply(this, arguments); return h.replace('<div class="mk-row"><button type="button" class="btn sm" data-sbnai=', '<div class="mk-row nx-host">' + nxPickHtml(it.no, "공고문 PDF 올리기(자동 · 0원)") + '<span class="hint">청약홈 공고문 PDF를 고르면 표준 항목을 그대로 읽어 옵니다</span></div><div class="mk-row"><button type="button" class="btn sm" data-sbnai='); }; })();
+
+/* ───────── ③ 무순위 카드: 공고문 값 보충 ───────── */
+/* 주택형 줄 — API 값 우선, 없는 칸(공급면적·분양가)은 공고문에서 읽은 값으로. 분양가는 범위가 있으면 '7.28~7.38억' */
+function rmTyRows(it) {
+  var N = typeof sbNote === "function" ? sbNote(it) : {}, NT = N.types || [], T = (it.types || []).filter(function (t) { return t.ty; }), c = it.cmp, X = c && typeof sbCmpLine === "function" ? sbCmpLine(it) : null;
+  if (!T.length && NT.length) T = NT.map(function (t) { return { ty: t.ty, n: t.n, top: t.top, area: t.area }; });
+  return T.map(function (t) { var ex = parseFloat(t.ty) || 0, nt = NT.filter(function (q) { return Math.abs((q.ex || parseFloat(q.ty) || 0) - ex) < 0.05; })[0] || {}, area = t.area || nt.area || null, top = t.top || nt.top || null, lo = nt.lo && top && nt.lo < top ? nt.lo : null;
+    var near = X && c.ty === t.ty ? eok(X.near) : (c && c.lead && Math.abs(ex - (c.lead.ar || 0)) <= 6 ? eok(c.lead.price) : "");
+    return [typeof sbTy === "function" ? sbTy(t.ty) : String(t.ty), area ? Math.round(area / 3.3058) + "평" : (ex ? "전용 " + Math.round(ex / 3.3058) + "평" : ""), top ? (lo ? eok(lo).replace(/억$/, "") + "~" + eok(top) : eok(top)) : "공고 확인", near || "–", (t.n != null ? t.n : nt.n) != null ? fmt(t.n != null ? t.n : nt.n) + "세대" : ""]; });
+}
+(function () {
+  if (typeof TPL === "undefined" || !TPL.aptNotice) return; var T = TPL.aptNotice, oa = T.auto;
+  T.auto = function () {
+    var d = oa.apply(this, arguments); if (!d || !d.rem) return d;
+    try { var it = sbCardItem(), N = sbNote(it) || {}, c = it.cmp;
+      /* 'nullm²' — 비교 면적대가 없을 때 글자 그대로 찍히던 것 */
+      d.bullets = (d.bullets || []).map(function (b) { return String(b).replace(/주변 (null|undefined)(㎡|m²) 실거래/, c && c.basis === "p3" ? "주변 실거래(구 전체 ㎡당 중위를 같은 면적으로 환산)" : "주변 같은 면적대 실거래").replace(/(\d)m²/g, "$1㎡"); });
+      if (c && (c.band == null || c.band === "")) d.src = String(d.src || "").replace(/ (null|undefined)㎡ 중위/, " 같은 면적대 중위");
+      if (c && c.basis === "p3") d.foot = String(d.foot || "").replace("주변 실거래는 같은 시군구 같은 면적대 중위", "주변 실거래는 같은 구 전체 ㎡당 중위(3개월)를 같은 전용면적으로 환산");
+      if (N.resale && /\(/.test(N.resale)) { d.side = (d.side || []).map(function (r) { return r[0] === "전매제한" ? ["전매제한", N.resale.replace(/\(.*\)/, "")] : r; }); d.bullets = d.bullets.map(function (b) { return /^(무순위|잔여세대|계약취소주택) 공급 /.test(b) ? "전매 제한 " + N.resale + (N.etc && /잔여 [\d,]+세대/.test(N.etc) ? " · " + (N.etc.match(/총 [\d,]+세대/) || [""])[0] + " 중 " + N.etc.match(/잔여 [\d,]+세대/)[0] : "") : b; }); }
+      if (N.zone) d.side = (d.side || []).map(function (r) { return r[0] === "규제지역" ? ["규제지역", /비규제/.test(N.zone) ? "비규제 기준" : N.zone] : r; });
+      if (N.balance && (N.down || N.mid)) d.bullets = d.bullets.map(function (b) { return /^계약금 /.test(b) ? "계약금 " + N.down.replace(/\(.*\)/, "") + " · 중도금 " + (N.mid || "–") + " · 잔금 " + N.balance.replace(/\(.*\)/, "") : b; });
+      if (N.etc && d.bullets.length < 6 && !d.bullets.some(function (b) { return b === N.etc; })) d.bullets.push(N.etc.split(" · ").slice(0, 3).join(" · "));
+      if (N.src && /PDF/.test(N.src)) d.src = String(d.src || "") + " · 조건은 입주자모집공고문";
+    } catch (e) {}
+    return d;
+  };
+})();
+/* 줍줍 안내 상자에 PDF 버튼 */
+(function () { if (typeof rmTipHtml !== "function") return; var o = rmTipHtml; rmTipHtml = function (it) { var h = o.apply(this, arguments); if (!h) { var N = sbNote(it) || {}; return '<div class="rm-tip nx-host"><b>줍줍 카드</b><p class="hint">조건이 채워져 있습니다' + (N.src ? " — " + escHtml(N.src) : "") + ". 공고가 정정되면 다시 올리세요.</p>" + nxPickHtml(it.no, "공고문 PDF 다시 읽기") + "</div>"; } return h.replace(/<\/div>$/, '<p><b>가장 빠른 방법</b> — 청약홈 공고 상세에서 [모집공고문 보기]로 PDF를 내려받아 아래 버튼으로 올리면 자격·통장·재당첨·전매·거주의무·분양가상한제·입주·계약금 비율·공급면적·분양가를 그대로 읽어 옵니다(AI 호출 없음).</p>' + nxPickHtml(it.no) + "</div>"); }; })();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

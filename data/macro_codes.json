@@ -36,9 +36,10 @@
  },
  "kosisWage": {
   "orgId": "118",
-  "tblId": "DT_118N_MON051",
+  "tblId": "DT_118N_MON054",
   "nm": "산업/규모별 임금 및 근로시간",
   "nLev": 2,
-  "last": 202512
- }
+  "last": 202608
+ },
+ "kosisWageOld": "DT_118N_MON051"
 }

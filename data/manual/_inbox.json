@@ -1,6 +1,6 @@
 {
  "v": 1,
- "builtAt": "2026-11-10T07:22:05.508Z",
+ "builtAt": "2026-11-10T07:56:59.479Z",
  "asOf": 20261110,
  "items": [
   {
@@ -12,7 +12,7 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-11-10",
-   "isNew": true
+   "isNew": false
   }
  ]
 }

@@ -21,9 +21,10 @@ function num(v) { var n = Number(String(v == null ? "" : v).replace(/,/g, "")); 
 function kst() { var d = new Date(Date.now() + 9 * 3600000); return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate(); }
 function ymd(n) { return String(n).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3"); }
 var CODES = readJson(CODES_P, {});
+if (CODES.unsoldDone && CODES.unsoldDone.tblId === "DT_MLTM_2082") delete CODES.unsoldDone;   /* v12.0 잘못 기억된 표 */
 var DEF = {
   unsold: { orgId: "116", tblId: "DT_MLTM_2080", nm: "미분양주택현황보고" },
-  unsoldDone: { orgId: "116", tblId: "DT_MLTM_2082", nm: "공사완료후 미분양현황" },
+  unsoldDone: { orgId: "116", tblId: "DT_MLTM_5328", nm: "공사완료후 미분양현황" },   /* v12.0 2082 는 시군구별 전체 미분양(준공 후 아님) */
   /* v9.45.4 10.19 4차 실행에서 확인한 진짜 표: 전국주택가격동향(기준월 2026.06) 유형별 매매가격지수 C012 · 유형별 전세가격지수 C013 (C004 는 '준전세'라 틀림). 유형 칸(종합/아파트/…)에서 아파트 행만 쓴다 */
   idxSale: { orgId: "408", tblId: "DT_30404_C012", nm: "유형별 매매가격지수" },
   idxRent: { orgId: "408", tblId: "DT_30404_C013", nm: "유형별 전세가격지수" },
@@ -51,9 +52,28 @@ function kosisUrl(svc, q) { var s = KOSIS_BASE + svc + "?method=" + q.method + "
 function kArr(j) { return Array.isArray(j) ? j : (j && Array.isArray(j.list) ? j.list : null); }
 function kErr(j) { return j ? (j.errMsg || j.err || (j._raw ? j._raw.slice(0, 120) : JSON.stringify(j).slice(0, 120))) : "빈 응답"; }
 function kNames(r) { return [r.C1_NM, r.C2_NM, r.C3_NM, r.C4_NM].filter(Boolean).join(" "); }
+/* v12.0 40,000셀을 넘는 큰 표(예: 116/DT_MLTM_5328 공사완료후 미분양현황 = 시도 × 시군구 × 부문 × 규모) — 통계표 설명(getMeta)으로 분류 코드를 읽어
+   '시도' 단만 전부, 나머지 단은 합계(계·소계·총합) 코드만 청한다. 이름을 못 알아보는 단은 맨 앞 코드 하나. 행 고르기(kRowIs·isTotalRow)가 이름을 다시 확인하므로 틀린 값이 들어가진 않는다. */
+async function kosisMetaNarrow(c) {
+  var j = await getJson(KOSIS_BASE + "statisticsData.do?method=getMeta&type=ITM&apiKey=" + encodeURIComponent(KOSIS) + "&format=json&jsonVD=Y&orgId=" + encodeURIComponent(c.orgId) + "&tblId=" + encodeURIComponent(c.tblId)), a = kArr(j);
+  if (!a || !a.length) { log("KOSIS " + c.tblId + " 표 설명 실패: " + kErr(j)); return null; }
+  var objs = {}, ord = []; a.forEach(function (r) { var id = String(r.OBJ_ID || ""); if (!id || /^ITEM$/i.test(id)) return; if (!objs[id]) { objs[id] = { sn: Number(r.OBJ_ID_SN || ord.length + 1), nm: r.OBJ_NM, items: [] }; ord.push(id); } objs[id].items.push([String(r.ITM_ID), String(r.ITM_NM || "").trim()]); });
+  ord.sort(function (x, y) { return objs[x].sn - objs[y].sn; });
+  var over = {}, desc = [];
+  ord.forEach(function (id, i) { var o = objs[id], k = "objL" + (i + 1), isSido = o.items.filter(function (it) { return K_SIDO.indexOf(sidoNm(it[1])) >= 0 || /^전남광주$/.test(it[1]); }).length >= 10 && o.items.length <= 40;
+    if (isSido) { over[k] = "ALL"; desc.push(o.nm + "=전부(" + o.items.length + ")"); return; }
+    var tot = o.items.filter(function (it) { return kTot(it[1]) || /^(전국|전\s*국)$/.test(it[1]); }); if (!tot.length) tot = o.items.slice(0, 1);
+    over[k] = tot.slice(0, 20).map(function (it) { return it[0]; }).join("+"); desc.push(o.nm + "=" + tot.slice(0, 3).map(function (it) { return it[1]; }).join("/")); });
+  DBG["meta_" + c.tblId] = desc; log("KOSIS " + c.tblId + " 큰 표 — 분류 좁힘: " + desc.join(" · "));
+  return { n: ord.length, over: over };
+}
 async function kosisProbe(c, months) {
   function q(n, over) { var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: "ALL", prdSe: c.prdSe || "M", newEstPrdCnt: String(months || 1) }; for (var k = 1; k <= n; k++) o["objL" + k] = "ALL"; Object.keys(over || {}).forEach(function (k) { o[k] = over[k]; }); return o; }
-  for (var n = 1; n <= 5; n++) { var j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n))); var a = kArr(j); if (a && a.length) return { rows: a, nLev: n, q: q }; if (!/objL/.test(kErr(j))) log("KOSIS " + c.nm + " 탐색 " + n + "단계: " + kErr(j)); }   /* objL 누락은 분류 단수를 더듬는 정상 과정 */
+  /* v12.0 분류 단수를 기억해 두고(daily_codes.json 의 nLev) 그 단수부터 청한다 — 매일 1→n 을 더듬던 호출을 없앰 */
+  if (c.nLev) { var j0 = await getJson(kosisUrl("Param/statisticsParameterData.do", q(c.nLev))), a0 = kArr(j0); if (a0 && a0.length) return { rows: a0, nLev: c.nLev, q: q }; if (!/40,000|셀을 초과/.test(kErr(j0))) delete c.nLev; }
+  for (var n = (c.nLev || 1); n <= 5; n++) { var j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n))); var a = kArr(j); if (a && a.length) { c.nLev = n; return { rows: a, nLev: n, q: q }; }
+    if (/40,000|셀을 초과/.test(kErr(j))) { try { var mn = await kosisMetaNarrow(c); if (mn) { var q2 = function (n2, over) { var o = q(mn.n, mn.over); Object.keys(over || {}).forEach(function (k) { if (k === "newEstPrdCnt" || mn.over[k] === "ALL" || mn.over[k] == null) o[k] = over[k]; }); return o; }; var j2 = await getJson(kosisUrl("Param/statisticsParameterData.do", q2(mn.n))), a2 = kArr(j2); if (a2 && a2.length) return { rows: a2, nLev: mn.n, q: q2, big: true }; log("KOSIS " + c.nm + " 좁혀도 실패: " + kErr(j2)); } } catch (e) { log("KOSIS 표 설명 읽기 실패: " + e.message); } return null; }
+    if (!/objL/.test(kErr(j))) log("KOSIS " + c.nm + " 탐색 " + n + "단계: " + kErr(j)); }   /* objL 누락은 분류 단수를 더듬는 정상 과정 */
   return null;
 }
 /* 표 찾기: 기억한 코드 → 기본 코드 → 이름 검색 후보 순으로 1개월치를 받아 보고, validate 를 통과하는 첫 표를 쓴다 */
@@ -188,6 +208,7 @@ async function unsold() {
     if (ds.length) out.done = ds;
     var sd = seriesOf(done.rows, function (r) { return /^서울/.test(c1(r)) && (isTotalRow(r) || sidoTot(r)); }); if (sd.length) out.doneSeoul = sd;
     /* 안전장치: 준공 후가 전체 미분양과 같은 달이 있으면 표를 잘못 고른 것 — 버린다 */
+    if (out.done && out.all) { var lastD = out.done[out.done.length - 1], lastA = out.all.filter(function (x) { return x[0] === lastD[0]; })[0]; if (lastA && lastD[1] > lastA[1]) { log("준공 후 미분양(" + lastD[1] + ")이 전체 미분양(" + lastA[1] + ")보다 큼 — 합산이 틀림, 버림"); delete out.done; delete out.doneSeoul; } }
     if (out.done && out.all) { var same = out.done.filter(function (p) { var q = out.all.filter(function (x) { return x[0] === p[0]; })[0]; return q && Math.abs(q[1] - p[1]) / Math.max(1, q[1]) < 0.02; }).length; if (same) { log("KOSIS 준공 후 미분양이 전체 미분양과 같은 달 " + same + "개 — 표가 틀림, 준공 후 값 버림"); delete out.done; delete out.doneSeoul; } }
   }
   return Object.keys(out).length ? out : null;
@@ -266,7 +287,6 @@ async function weeklyKosis() {
       var latest = kLatest(p.rows); if (String(latest).length !== 8 || latest < lim) { log("KOSIS 주간 " + c.tblId + " 최신 " + latest + " — 오래됨"); continue; }
       if (!kHasRegion(p.rows, "서울")) continue;
       var j = await getJson(kosisUrl("Param/statisticsParameterData.do", p.q(p.nLev, { newEstPrdCnt: "104" }))), rows = kArr(j); if (!rows) { log("KOSIS 주간 2차 실패: " + kErr(j)); continue; }   /* v9.59 100주 색칸 카드용으로 104주 */
-      try { var rn = {}; rows.forEach(function (r) { var k = [r.C1_NM, r.C2_NM, r.C3_NM].filter(Boolean).join(">"); rn[k] = 1; }); DBG.weeklyRegions = Object.keys(rn).slice(0, 300); log("KOSIS 주간 지역 이름(" + Object.keys(rn).length + "개, 앞 40): " + Object.keys(rn).slice(0, 40).join(" | ")); } catch (e) {}   /* v9.59 시군구 주간 표가 있는지 다음 실행 로그로 확인(토허제 주간 지도용) — 이름 짐작으로 붙이지 않음 */
       var R = rows.filter(function (r) { return !/변동률|증감/.test(r.ITM_NM || ""); }), g = function (nm) { return kSer(R, nm, null); };
       var out = { all: g("전국"), cap: g("수도권"), seoul: g("서울"), gg: g("경기"), src: "한국부동산원 주간아파트가격동향 (KOSIS " + c.tblId + ")" + (R[0] && R[0].UNIT_NM ? " · 기준 " + String(R[0].UNIT_NM).replace(/＝/g, "=") : ""), tbl: c.tblId };
       if (out.seoul) { CODES.weeklyKosis = c; log("KOSIS 주간 표 선택: " + c.tblId + " ~" + latest); return out; }
@@ -277,7 +297,6 @@ async function weeklyKosis() {
 /* R-ONE 주간 지수 (선택) — v11.2 확인된 표: T244183132827305 "(주) 매매가격지수" (주기 WK). 시점 식별자 WRTTIME_IDTFR_ID 는 YYYYWW(연도+ISO 주차), WRTTIME_DESC 가 그 주 월요일(YYYY-MM-DD).
    DTA_VAL 은 지수(2026.7.6=100) — KOSIS 주간 표와 같은 값. 전국·수도권·서울·경기 + 서울 25개 구(CLS_FULLNM 이 '서울'로 시작)까지 받는다. 연도별로 나눠 받고(pSize 1000, pIndex 증가) 최근 104주만 남긴다. */
 var SEOUL_GUS = ["강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"];
-var WK_REG = null, WKREG_P = path.join(ROOT, "data", "weekly_reg.json");
 async function roneTables() { var all = [], p = 1, total = null; while (p <= 10) { var j = await getJson(RONE_BASE + "SttsApiTbl.do?KEY=" + encodeURIComponent(RONE) + "&Type=json&pIndex=" + p + "&pSize=1000"); var blk = j.SttsApiTbl; if (!blk) throw new Error("R-ONE 표 목록 " + JSON.stringify(j).slice(0, 120)); blk.forEach(function (part) { if (part.head) part.head.forEach(function (h) { if (h && h.list_total_count != null) total = Number(h.list_total_count); }); if (part.row) all = all.concat(part.row); }); if (!blk.some(function (x) { return x.row && x.row.length; }) || (total != null && all.length >= total)) break; p++; } return all; }
 async function roneRows(params) {
   var all = [], p = 1, total = null;
@@ -289,44 +308,51 @@ async function roneRows(params) {
   }
   return all;
 }
-async function weekly() {
+/* v12.0 이어 받기 — 지난 수집분(daily_data.json 의 weekly, 같은 표·100주 이상)이 있으면 최근 8주만 새로 받아 날짜로 겹쳐 쓴다(호출 약 76회 → 4~6회).
+   월요일 전체 수집과 '이어 붙인 자리에서 값이 튀는 경우(기준 개편 등)'에는 3년치를 통째로 다시 받는다. 시점 식별자는 YYYYWW(ISO 주차). */
+function isoWk(d) { var t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())), dn = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dn); var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return [t.getUTCFullYear(), Math.ceil(((t - y0) / 86400000 + 1) / 7)]; }
+async function roneWk(tbl, full) {
+  var now = new Date(Date.now() + 9 * 3600000), y = now.getUTCFullYear(), rows = [];
+  if (full) { for (var yy = y - 2; yy <= y; yy++) rows = rows.concat(await roneRows("STATBL_ID=" + tbl + "&DTACYCLE_CD=WK&START_WRTTIME=" + yy + "01&END_WRTTIME=" + yy + "53")); return rows; }
+  var w0 = isoWk(new Date(now.getTime() - 56 * 86400000));
+  for (var y1 = w0[0]; y1 <= y; y1++) rows = rows.concat(await roneRows("STATBL_ID=" + tbl + "&DTACYCLE_CD=WK&START_WRTTIME=" + y1 + (y1 === w0[0] ? ("0" + w0[1]).slice(-2) : "01") + "&END_WRTTIME=" + y1 + "53"));
+  return rows;
+}
+function seedMap(a) { var m = {}; (a || []).forEach(function (p) { if (p && p[1] != null) m[p[0]] = p[1]; }); return m; }
+async function weekly(forceFull) {
   if (!RONE) return null;
   var c = CODES.roneWeekly || DEF.roneWeekly;
   try {
     var today = kst(), y = Math.floor(today / 10000), rows = [];
-    for (var yy = y - 2; yy <= y; yy++) rows = rows.concat(await roneRows("STATBL_ID=" + c.sale + "&DTACYCLE_CD=WK&START_WRTTIME=" + yy + "01&END_WRTTIME=" + yy + "53"));
+    var PW = (readJson(OUT_P, {}) || {}).weekly || null, prevOk = !!(PW && PW.tbl === c.sale && PW.seoul && PW.seoul.length >= 100 && PW.all && PW.gu && Object.keys(PW.gu).length >= 25);
+    var full = forceFull || !prevOk || (!process.env.ONLY && new Date(Date.now() + 9 * 3600000).getUTCDay() === 1);
+    rows = await roneWk(c.sale, full); log("R-ONE 주간 " + (full ? "전체(3년)" : "이어 받기(최근 8주)") + " · " + rows.length + "행");
     if (!rows.length) { log("R-ONE 주간: 행 0 (표 " + c.sale + ")"); return null; }
     DBG.roneSample = rows.slice(0, 3);
     var items = {}; rows.forEach(function (r) { items[String(r.ITM_NM || "")] = 1; }); var itm = Object.keys(items).filter(function (k) { return !/변동|증감/.test(k); })[0] || Object.keys(items)[0];
-    var ser = {}; rows.forEach(function (r) { if (String(r.ITM_NM || "") !== itm) return; var m = String(r.WRTTIME_DESC || "").match(/(\d{4})-(\d\d)-(\d\d)/); if (!m) return; var t = Number(m[1] + m[2] + m[3]), v = num(r.DTA_VAL); if (v == null) return; var nm = String(r.CLS_NM || "").trim(), full = String(r.CLS_FULLNM || nm); var key = /^서울$|^서울특별시$/.test(nm) ? "seoul" : /^전국$/.test(nm) ? "all" : /^수도권$/.test(nm) ? "cap" : /^경기$|^경기도$/.test(nm) ? "gg" : (SEOUL_GUS.indexOf(nm) >= 0 && /^서울/.test(full)) ? "gu:" + nm : null; if (!key) return; (ser[key] = ser[key] || {})[t] = v; });
+    var ser = {}; if (!full) { ["all", "cap", "seoul", "gg"].forEach(function (k) { if (PW[k]) ser[k] = seedMap(PW[k]); }); Object.keys(PW.gu).forEach(function (g) { ser["gu:" + g] = seedMap(PW.gu[g]); }); }
+    rows.forEach(function (r) { if (String(r.ITM_NM || "") !== itm) return; var m = String(r.WRTTIME_DESC || "").match(/(\d{4})-(\d\d)-(\d\d)/); if (!m) return; var t = Number(m[1] + m[2] + m[3]), v = num(r.DTA_VAL); if (v == null) return; var nm = String(r.CLS_NM || "").trim(), full = String(r.CLS_FULLNM || nm); var key = /^서울$|^서울특별시$/.test(nm) ? "seoul" : /^전국$/.test(nm) ? "all" : /^수도권$/.test(nm) ? "cap" : /^경기$|^경기도$/.test(nm) ? "gg" : (SEOUL_GUS.indexOf(nm) >= 0 && /^서울/.test(full)) ? "gu:" + nm : null; if (!key) return; (ser[key] = ser[key] || {})[t] = v; });
     var arr = function (m) { if (!m) return null; var a = Object.keys(m).map(Number).sort().map(function (t) { return [t, m[t]]; }); return a.length ? a.slice(-104) : null; };
     var out = { src: "한국부동산원 주간아파트가격동향 (R-ONE " + c.sale + ") · 기준 2026.7.6=100.0", tbl: c.sale, all: arr(ser.all), cap: arr(ser.cap), seoul: arr(ser.seoul), gg: arr(ser.gg), gu: {} };
     SEOUL_GUS.forEach(function (g) { var a = arr(ser["gu:" + g]); if (a) out.gu[g] = a; });
     if (!out.seoul || out.seoul.length < 60 || !out.all) { log("R-ONE 주간: 서울 " + (out.seoul ? out.seoul.length : 0) + "주 — 부족해 KOSIS 로"); return null; }
     log("R-ONE 주간 " + itm + " 서울 " + out.seoul.length + "주 ~" + out.seoul[out.seoul.length - 1][0] + " · 자치구 " + Object.keys(out.gu).length + "개");
-    /* v11.3 모든 지역(CLS_FULLNM 그대로)의 최근 52주를 별도 파일 data/weekly_reg.json 에 — 앱은 지도를 그릴 때만 읽는다. 이름→지도 코드 연결은 앱에서 정확히 맞는 것만(짐작 없음) */
+    /* v12.0 모든 지역(CLS_FULLNM 그대로)의 최근 5주만 weekly.reg 에 같이 담는다(전주 대비·4주 변동 지도용, 약 15KB) — 별도 파일(weekly_reg.json)·추가 요청 없음 */
     try { var full = {}; rows.forEach(function (r) { if (String(r.ITM_NM || "") !== itm) return; var m = String(r.WRTTIME_DESC || "").match(/(\d{4})-(\d\d)-(\d\d)/), v = num(r.DTA_VAL); if (!m || v == null) return; var f = String(r.CLS_FULLNM || r.CLS_NM || "").replace(/\s+/g, " ").trim(); if (!f) return; (full[f] = full[f] || {})[Number(m[1] + m[2] + m[3])] = v; });
-      var weeks = out.seoul.slice(-52).map(function (p) { return p[0]; }), reg = {}; Object.keys(full).forEach(function (f) { reg[f] = weeks.map(function (t) { return full[f][t] != null ? Math.round(full[f][t] * 1000) / 1000 : null; }); });
-      WK_REG = { asOf: kst(), src: out.src, weeks: weeks, reg: reg }; DBG.roneRegions = Object.keys(reg).slice(0, 300); log("R-ONE 주간 지역 " + Object.keys(reg).length + "개(앞 60): " + Object.keys(reg).slice(0, 60).join(" | ")); } catch (e) { log("R-ONE 지역 저장 실패: " + e.message); }
+      var weeks = out.seoul.slice(-5).map(function (p) { return p[0]; }), reg = {}; Object.keys(full).forEach(function (f) { var a5 = weeks.map(function (t) { return full[f][t] != null ? Math.round(full[f][t] * 1000) / 1000 : null; }); if (a5[a5.length - 1] != null) reg[f] = a5; });
+      out.reg = { weeks: weeks, r: reg }; log("R-ONE 주간 지역 " + Object.keys(reg).length + "개 · 최근 5주"); } catch (e) { log("R-ONE 지역 저장 실패: " + e.message); }
+    /* v12.0 자체 점검 — 주간 지수는 한 주에 1% 넘게 움직인 적이 없다. 서울·전국에서 그런 주가 보이면 받은 값이 틀린 것이므로 버리고 KOSIS 로 */
+    var jump = [out.seoul, out.all].some(function (A) { for (var i = 1; i < A.length; i++) if (Math.abs(A[i][1] / A[i - 1][1] - 1) > 0.015 || A[i][1] < 40 || A[i][1] > 250) return true; return false; }); if (jump) { if (!full) { log("R-ONE 주간: 이어 붙인 값이 튐 — 3년치를 통째로 다시 받는다"); return await weekly(true); } log("R-ONE 주간: 한 주 1.5% 넘는 변동 또는 범위 밖 값 — 버리고 KOSIS 로"); return null; }
     /* v11.3 주간 전세가격지수 — 표 ID 를 짐작하지 않고 R-ONE 표 목록(SttsApiTbl)에서 이름으로 찾아 daily_codes.json 에 적어 둔다 */
     try { var rc = CODES.roneWeeklyRent; if (!rc) { var tl = await roneTables(); DBG.roneWkTables = tl.filter(function (t) { return /WK/i.test(t.DTACYCLE_CD || ""); }).map(function (t) { return t.STATBL_ID + " " + t.STATBL_NM; }); log("R-ONE 주간 표 " + DBG.roneWkTables.length + "개: " + DBG.roneWkTables.slice(0, 30).join(" | ")); var cand = tl.filter(function (t) { return /WK/i.test(t.DTACYCLE_CD || "") && /전세가격지수/.test(t.STATBL_NM || "") && !/규모|연령|월세|수급/.test(t.STATBL_NM || ""); }).sort(function (a, b) { return String(a.STATBL_NM).length - String(b.STATBL_NM).length; }); if (cand.length) { rc = CODES.roneWeeklyRent = { sale: cand[0].STATBL_ID, nm: cand[0].STATBL_NM }; log("R-ONE 주간 전세 표 선택: " + rc.sale + " " + rc.nm); } else log("R-ONE 주간 전세 표 못 찾음"); }
-      if (rc) { var rr = []; for (var y2 = y - 2; y2 <= y; y2++) rr = rr.concat(await roneRows("STATBL_ID=" + rc.sale + "&DTACYCLE_CD=WK&START_WRTTIME=" + y2 + "01&END_WRTTIME=" + y2 + "53")); var it2 = {}; rr.forEach(function (r) { it2[String(r.ITM_NM || "")] = 1; }); var itm2 = Object.keys(it2).filter(function (k) { return !/변동|증감/.test(k); })[0] || Object.keys(it2)[0]; var s2 = {}; rr.forEach(function (r) { if (String(r.ITM_NM || "") !== itm2) return; var m = String(r.WRTTIME_DESC || "").match(/(\d{4})-(\d\d)-(\d\d)/), v = num(r.DTA_VAL); if (!m || v == null) return; var nm = String(r.CLS_NM || "").trim(), key = /^서울$|^서울특별시$/.test(nm) ? "seoul" : /^전국$/.test(nm) ? "all" : /^수도권$/.test(nm) ? "cap" : /^경기$|^경기도$/.test(nm) ? "gg" : null; if (key) (s2[key] = s2[key] || {})[Number(m[1] + m[2] + m[3])] = v; });
-        var rent = { src: "한국부동산원 주간아파트가격동향 전세 (R-ONE " + rc.sale + ")", all: arr(s2.all), cap: arr(s2.cap), seoul: arr(s2.seoul), gg: arr(s2.gg) }; if (rent.seoul && rent.seoul.length >= 60) { out.rent = rent; log("R-ONE 주간 전세 서울 " + rent.seoul.length + "주 ~" + rent.seoul[rent.seoul.length - 1][0]); } else log("R-ONE 주간 전세: 서울 " + (rent.seoul ? rent.seoul.length : 0) + "주 — 쓰지 않음"); } } catch (e) { log("R-ONE 전세 실패: " + e.message); }
+      if (rc) { var PR = PW && PW.rent, rFull = full || !(PR && String(PR.src || "").indexOf(rc.sale) >= 0 && PR.seoul && PR.seoul.length >= 100), rr = await roneWk(rc.sale, rFull); var it2 = {}; rr.forEach(function (r) { it2[String(r.ITM_NM || "")] = 1; }); var itm2 = Object.keys(it2).filter(function (k) { return !/변동|증감/.test(k); })[0] || Object.keys(it2)[0]; var s2 = {}; if (!rFull) ["all", "cap", "seoul", "gg"].forEach(function (k) { if (PR[k]) s2[k] = seedMap(PR[k]); }); rr.forEach(function (r) { if (String(r.ITM_NM || "") !== itm2) return; var m = String(r.WRTTIME_DESC || "").match(/(\d{4})-(\d\d)-(\d\d)/), v = num(r.DTA_VAL); if (!m || v == null) return; var nm = String(r.CLS_NM || "").trim(), key = /^서울$|^서울특별시$/.test(nm) ? "seoul" : /^전국$/.test(nm) ? "all" : /^수도권$/.test(nm) ? "cap" : /^경기$|^경기도$/.test(nm) ? "gg" : null; if (key) (s2[key] = s2[key] || {})[Number(m[1] + m[2] + m[3])] = v; });
+        var rent = { src: "한국부동산원 주간아파트가격동향 전세 (R-ONE " + rc.sale + ")", all: arr(s2.all), cap: arr(s2.cap), seoul: arr(s2.seoul), gg: arr(s2.gg) }; var rj = false; if (rent.seoul) for (var ri = 1; ri < rent.seoul.length; ri++) if (Math.abs(rent.seoul[ri][1] / rent.seoul[ri - 1][1] - 1) > 0.015) rj = true; if (rj) log("R-ONE 주간 전세: 값이 튐 — 이번엔 쓰지 않음(월요일 전체 수집 때 다시 받음)"); else if (rent.seoul && rent.seoul.length >= 60) { out.rent = rent; log("R-ONE 주간 전세 서울 " + rent.seoul.length + "주 ~" + rent.seoul[rent.seoul.length - 1][0]); } else log("R-ONE 주간 전세: 서울 " + (rent.seoul ? rent.seoul.length : 0) + "주 — 쓰지 않음"); } } catch (e) { log("R-ONE 전세 실패: " + e.message); }
     return out;
   } catch (e) { log("R-ONE 실패: " + e.message); return null; }
 }
-/* v11.2 R-ONE 과 KOSIS 를 겹치는 주로 맞춰 본다 — 서울 지수가 겹치는 마지막 3주에서 0.02 넘게 다르면 R-ONE 을 버리고 KOSIS(검증된 쪽)를 쓴다. 틀린 숫자를 내느니 1~2주 늦는 쪽. */
-async function weeklyBest() {
-  var r = await weekly(); if (!r) return await weeklyKosis();
-  var k = null; try { k = await weeklyKosis(); } catch (e) {}
-  if (k && k.seoul) {
-    var km = {}; k.seoul.forEach(function (x) { km[x[0]] = x[1]; }); var common = r.seoul.filter(function (x) { return km[x[0]] != null; }).slice(-3);
-    var bad = common.filter(function (x) { return Math.abs(x[1] - km[x[0]]) > 0.02; });
-    if (!common.length || bad.length) { log("R-ONE·KOSIS 불일치(" + bad.map(function (x) { return x[0] + ":" + x[1] + "/" + km[x[0]]; }).join(",") + ") → KOSIS 사용"); return k; }
-    log("R-ONE·KOSIS 일치(" + common.length + "주) · R-ONE 사용, KOSIS 마지막 " + k.seoul[k.seoul.length - 1][0]);
-  }
-  return r;
-}
+/* v12.0 주간 지수는 R-ONE 하나만 받는다(발표 당일 반영 · 11.9~11.10 실행에서 KOSIS 와 3주 일치 확인). KOSIS 주간 표는 1~2주 늦고 같은 값이라
+   R-ONE 이 실패했을 때만 대신 받는다 — 매일 두 곳에서 같은 자료를 받던 호출(약 10회)을 없앰. R-ONE 값은 위 자체 점검(주간 변동 범위)으로 거른다. */
+async function weeklyBest() { var r = await weekly(); if (r) return r; log("R-ONE 주간 실패 → KOSIS 주간으로"); return await weeklyKosis(); }
 /* 청약홈 (선택) — APT 분양 + 무순위·잔여세대 + 주택형별 분양가 + 경쟁률. 일정은 '미리' 알아야 하므로 공고일 기준 과거 45일 ~ 앞으로의 것을 모두 담는다 */
 function dn(v) { var n = num(String(v || "").replace(/-/g, "").slice(0, 8)); return n && n > 19000000 ? n : null; }
 function dateIn(s) { var m = String(s || "").match(/(\d{4})-?(\d{2})-?(\d{2})/); return m ? Number(m[1] + m[2] + m[3]) : null; }
@@ -587,9 +613,11 @@ if (require.main !== module) module.exports = { subsCompare: subsCompare, subsCo
 
 if (require.main === module) (async function () {
   /* v9.37 ONLY=subs — 오후 추가 실행: 청약만 새로 받고 나머지(미분양·지수·금리)는 새벽 수집분을 그대로 둔다(호출 최소) */
-  var ONLY = String(process.env.ONLY || "").trim(), prevOut = ONLY ? readJson(OUT_P, null) : null;
+  var ONLY = String(process.env.ONLY || "").trim(); if (ONLY === "subs" && new Date(Date.now() + 9 * 3600000).getUTCDay() === 4) { ONLY = "subs,weekly"; log("목요일 오후 실행 — 부동산원 주간 발표(14시) 뒤라 주간 지수도 같이 받는다"); }   /* v12.0 워크플로를 바꾸지 않고 발표 당일 반영 */
+  var prevOut = ONLY ? readJson(OUT_P, null) : null;
   var out = ONLY && prevOut ? Object.assign({}, prevOut, { builtAt: new Date().toISOString(), errors: [] }) : { v: 1, builtAt: new Date().toISOString(), asOf: kst(), errors: [] };
-  async function step(nm, fn) { if (ONLY && ONLY.split(",").indexOf(nm) < 0) { log(nm + " 건너뜀(ONLY=" + ONLY + ")"); return; } try { var r = await fn(); if (r) out[nm] = r; log(nm + (r ? " OK" : " 없음")); } catch (e) { out.errors.push(nm + ": " + e.message); log(nm + " 실패: " + e.message); } }
+  async function step(nm, fn) { if (ONLY && ONLY.split(",").indexOf(nm) < 0) { log(nm + " 건너뜀(ONLY=" + ONLY + ")"); return; } out.at = out.at || {}; out.fail = out.fail || {};   /* v12.0 단계별 마지막 성공 시각·마지막 실패(데이터 운영 화면의 '카테고리별 최신화'가 읽는다) */
+    try { var r = await fn(); if (r) { out[nm] = r; out.at[nm] = new Date().toISOString(); delete out.fail[nm]; } else out.fail[nm] = { t: new Date().toISOString(), msg: "자료 없음(키 없음 또는 응답 비어 있음)" }; log(nm + (r ? " OK" : " 없음")); } catch (e) { out.errors.push(nm + ": " + e.message); out.fail[nm] = { t: new Date().toISOString(), msg: String(e.message).slice(0, 160) }; log(nm + " 실패: " + e.message); } }
   await step("unsold", unsold);
   await step("index", priceIndex);
   await step("supply", supply);
@@ -601,7 +629,6 @@ if (require.main === module) (async function () {
   fs.writeFileSync(OUT_P, JSON.stringify(out));
   fs.mkdirSync(path.join(ROOT, "data"), { recursive: true });
   fs.writeFileSync(CODES_P, JSON.stringify(CODES, null, 1));
-  if (WK_REG && out.weekly && /R-ONE/.test(String(out.weekly.src || ""))) fs.writeFileSync(WKREG_P, JSON.stringify(WK_REG));
   DBG.errors = out.errors; fs.writeFileSync(DEBUG_P, JSON.stringify(DBG, null, 1));
   log("완료 — 호출 " + CALLS + "회 · 오류 " + out.errors.length + "건");
 })().catch(function (e) { console.error(e); process.exit(1); });

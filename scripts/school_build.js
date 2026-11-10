@@ -164,6 +164,12 @@ async function main() {
   var others = fs.existsSync(DIR) ? fs.readdirSync(DIR).filter(function (f) { return !/\.(csv|xlsx|xls)$/i.test(f) && f !== "_converted"; }) : [];
   var xlsN = fs.existsSync(DIR) ? fs.readdirSync(DIR).filter(function (f) { return /\.xls$/i.test(f); }).length : 0;
   if (!files.length && !API_KEY) { console.log("data/school 에 CSV/XLSX 가 없고 SCHOOLINFO_API_KEY 도 없습니다 — 건너뜁니다."); process.exit(0); }
+  /* v12.0 학교알리미 공시는 1년에 몇 번(4·5·9월)만 바뀐다 — 매일 170여 회 받던 것을 주 1회로. 지난 수집이 7일 안이고 그 뒤로 data/school 파일이 바뀌지 않았으면 건너뛴다.
+     바로 다시 받으려면 school_data.json 을 지우거나 FORCE_SCHOOL=1 */
+  try { if (!process.env.FORCE_SCHOOL && fs.existsSync(OUT)) { var prevS = JSON.parse(fs.readFileSync(OUT, "utf8")), age = (Date.now() - new Date(String(prevS.built) + "T00:00:00+09:00").getTime()) / 86400000;
+      var newest = 0; [DIR, CONV].forEach(function (d) { if (fs.existsSync(d)) fs.readdirSync(d).forEach(function (f) { try { var st = fs.statSync(path.join(d, f)); if (st.isFile()) newest = Math.max(newest, st.mtimeMs); } catch (e) {} }); });
+      var srcN = (String(prevS.src || "").match(/\.csv|\.xlsx/g) || []).length;
+      if (age >= 0 && age < 7 && prevS.schools && prevS.schools.length > 1000 && srcN === files.length) { console.log("학군: 이번 주 수집분 유지(" + prevS.built + " · " + prevS.schools.length + "곳) — 주 1회만 새로 받음"); return; } } } catch (e) {}
   var S = {}, log = [], years = {};
   var API = await apiSchools(log, years), byName = {}, HINT = "", unmatched = [], ambiguous = [];
   Object.keys(API).forEach(function (c) { var a = API[c]; (byName[a.n] = byName[a.n] || []).push(c); });

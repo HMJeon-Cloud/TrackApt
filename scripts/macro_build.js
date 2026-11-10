@@ -164,12 +164,17 @@ function kosisErr(j) {
 async function kosisWages() {
   if (!KOSIS) return null;
   var c = CODES.kosisWage;
+  /* v12.0 기억한 표가 끊겼으면(마지막 달이 5개월 넘게 지남 — 2026.11 점검: 202512 에서 멈춘 표를 계속 쓰고 있었다) 표를 다시 찾는다 */
+  if (c && c.last && ymOf(kst()) > ymShift(c.last, 5)) { log("KOSIS 임금 표 " + c.tblId + " 가 " + c.last + " 에서 멈춤 → 다시 찾기"); CODES.kosisWageOld = c.tblId; c = null; }
   if (!c) {
     var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: "산업/규모별 임금 및 근로시간" }));
     var list = kosisArr(found) || [];
     DBG.kosisSearch = list.slice(0, 10);
-    var pick = list.filter(function (r) { return r.TBL_ID === "DT_118N_MON051"; })[0] ||
-      list.filter(function (r) { return /임금/.test(r.TBL_NM || "") && !/누계|계절/.test(r.TBL_NM || "") && String(r.ORG_ID) === "118"; })[0] || list[0];
+    /* 수록 기간 끝(END_PRD_DE)이 가장 최근인 고용노동부(118) 임금 표를 고른다 — 멈춘 표(끝이 6개월 넘게 지남)와 방금 버린 표는 뺀다 */
+    var endOf = function (r) { return Number(String(r.END_PRD_DE || "").replace(/\D/g, "").slice(0, 6)) || 0; }, fresh = function (r) { return !endOf(r) || endOf(r) >= ymShift(ymOf(kst()), -6); };
+    var cands = list.filter(function (r) { return /임금/.test(r.TBL_NM || "") && !/누계|계절|직종|학력|연령|성별/.test(r.TBL_NM || "") && String(r.ORG_ID) === "118" && r.TBL_ID !== CODES.kosisWageOld && fresh(r); }).sort(function (a, b) { return endOf(b) - endOf(a); });
+    log("KOSIS 임금 표 후보 " + cands.length + "개: " + cands.slice(0, 6).map(function (r) { return r.TBL_ID + " " + r.TBL_NM + " ~" + (r.END_PRD_DE || "?"); }).join(" | "));
+    var pick = cands[0] || list.filter(function (r) { return r.TBL_ID === "DT_118N_MON051"; })[0] || list[0];
     if (!pick) { log("KOSIS 검색 결과 없음: " + kosisErr(found)); return null; }
     c = { orgId: pick.ORG_ID, tblId: pick.TBL_ID, nm: pick.TBL_NM };
     log("KOSIS 표 선택: " + c.orgId + "/" + c.tblId + " " + c.nm);
@@ -182,7 +187,7 @@ async function kosisWages() {
     return o;
   }
   var probe = null, nLev = 0, j = null;
-  for (var n = 1; n <= 4 && !probe; n++) {
+  for (var n = (c.nLev || 1); n <= 4 && !probe; n++) {   /* v12.0 분류 단수를 기억해 그 단수부터 */
     j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n)));
     var arr = kosisArr(j);
     if (arr && arr.length) { probe = arr; nLev = n; }
@@ -222,7 +227,8 @@ async function kosisWages() {
   var best = keys.filter(function (k) { return /상용/.test(k); })[0] || keys[0], arr = g[best];
   var hist = arr.map(function (r) { return [Number(r.PRD_DE), num(r.DT)]; }).filter(function (x) { return x[1] != null && x[0] > 190000; }).sort(function (a, b) { return a[0] - b[0]; });
   if (!hist.length) return null;
-  CODES.kosisWage = c;
+  c.nLev = nLev; c.last = hist[hist.length - 1][0]; CODES.kosisWage = c;
+  if (ymOf(kst()) > ymShift(c.last, 5) && !kosisWages._retry) { kosisWages._retry = 1; log("KOSIS 임금 표 " + c.tblId + " 마지막 달 " + c.last + " — 5개월 넘게 멈춤 → 더 최근 표를 찾아본다"); CODES.kosisWageOld = c.tblId; delete CODES.kosisWage; var again = null; try { again = await kosisWages(); } catch (e) { log("KOSIS 임금 다시 찾기 실패: " + e.message); } if (again && again.t > c.last) return again; CODES.kosisWage = c; delete CODES.kosisWageOld; log("더 최근 임금 표를 못 찾음 — " + c.last + " 값을 그대로 둔다(화면에 기준 달 표시)"); }
   var unit = arr[0].UNIT_NM || "원", scale = /천원/.test(unit) ? 1000 : /만원/.test(unit) ? 10000 : 1;
   hist = hist.map(function (x) { return [x[0], x[1] * scale]; });
   return { v: hist[hist.length - 1][1], t: hist[hist.length - 1][0], unit: "원", name: "KOSIS " + c.nm + " · " + best.replace(/\|/g, " ").replace(/\s+/g, " "), how: "KOSIS", hist: hist };
@@ -306,7 +312,7 @@ async function rss(feeds, days, max, mustRe) {
   /* 기준금리 — 월별이 기본(일별 통계는 중간에 끊겨 있음). 변경일은 월별 값이 바뀐 달로 잡고, 일별 자료가 그 달까지 있으면 정확한 날짜로 바꾼다 */
   if (out.rates.base) {
     var B = out.rates.base, ch = [], prev = null;
-    B.hist.forEach(function (p) { if (prev == null || Math.abs(p[1] - prev) > 1e-9) ch.push([p[0] * 100 + 1, p[1]]); prev = p[1]; });
+    B.hist.forEach(function (p) { if (prev == null || Math.abs(p[1] - prev) > 1e-9) ch.push([p[0] * 100 + 1, p[1], 1]); prev = p[1]; });   /* v12.0 셋째 칸 1 = 달만 아는 변경(날짜는 그 달 1일로 적어 둔 자리표시) — 앱은 '26.8 처럼 달까지만 보여 준다 */
     B.changes = ch.slice(-8); B.t = B.hist[B.hist.length - 1][0]; B.v = B.hist[B.hist.length - 1][1];
     try {
       var dRows = await ecosSearch("722Y001", "D", String(ymShift(ymOf(kst()), -60)) + "01", String(kst()), "0101000");
@@ -320,9 +326,7 @@ async function rss(feeds, days, max, mustRe) {
     } catch (e) { log("기준금리 일별 보정 생략: " + e.message); }
   }
   /* ② 임금 — ECOS → KOSIS → 수동 */
-  try {
-    if (ECOS) out.wages = await ecosSeries("wage", null, { table: [["임금"], ["사업체노동력", "상용", "임금총액", "월평균"], ["물가", "실질"]], item: [["임금"], ["전산업", "전체", "총액", "계"], ["실질", "임시", "일용"]] }, 36);
-  } catch (e) { log("ECOS 임금 실패: " + e.message); }
+  /* v12.0 ECOS 에는 임금 통계표가 없다(매일 통계표 617개 목록을 읽고 0개 찾던 호출 제거) — KOSIS 사업체노동력조사만 쓴다 */
   if (!out.wages) { try { out.wages = await kosisWages(); } catch (e) { out.errors.push("KOSIS: " + e.message); log("KOSIS 실패: " + e.message); } }
   var manualW = readJson(path.join(ROOT, "data", "manual", "wages.json"), null);
   if (!out.wages && manualW && manualW.monthly) { out.wages = { v: manualW.monthly, t: manualW.asOf, unit: "원", name: manualW.source || "직접 입력", how: "수동 파일", hist: [] }; log("임금: 수동 파일 사용"); }
@@ -337,7 +341,7 @@ async function rss(feeds, days, max, mustRe) {
   } else out.errors.push("임금 자료를 받지 못했습니다 (ECOS·KOSIS·수동 모두 없음)");
   /* ③④⑤ 수동 파일 + RSS */
   /* 보도자료(국토부·금융위)는 한 번만 받아 세 갈래로 나눠 쓴다 — 60일치 */
-  var press = await rss([koreakr("molit"), koreakr("fsc")], 60, 200, null);
+  var press = [];   /* v12.0 정책브리핑(korea.kr) RSS 는 2026.7.1 제공 중단(공지) — 매일 0건을 받던 호출 2회 제거. 새 대책은 구글 뉴스 제목 + data/manual/policy.json 로만 */
   function pressPick(re, days, max) { var lim = Date.now() - days * 86400000; return press.filter(function (x) { return re.test(x.t) && (!isFinite(new Date(x.d)) || new Date(x.d) >= lim); }).slice(0, max); }
   function merge(a, b, max) { var seen = {}, o = []; a.concat(b).forEach(function (x) { var k = x.t.replace(/\s/g, ""); if (seen[k]) return; seen[k] = 1; o.push(x); }); return o.sort(function (x, y) { return new Date(y.d) - new Date(x.d); }).slice(0, max); }
   var P_RE = /대책|규제|허가|공급|정책|정비|재건축|세제|세금|가계부채|분양/, T_RE = /GTX|지하철|철도|노선|개통|착공|연장|경전철|신분당|월곶|신안산/, L_RE = /대출|DSR|LTV|한도|금리|보금자리|디딤돌|특례|버팀목/;
@@ -413,9 +417,11 @@ async function rss(feeds, days, max, mustRe) {
     var pg = progs[li]; if (!pg.src) continue;
     try {
       /* v9.47 "대출금리 연 2.85% ∼ 연 4.15%" · "대출금리 1.8% ~ 4.5%"(연 없음) 둘 다 — 10.19 실행에서 디딤돌·신생아를 못 읽던 원인. 엔티티(&nbsp;)도 공백으로 */
-      var html = (await getText(pg.src)).replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/g, " ").replace(/\s+/g, " "), rr = /(?:연\s*)?([0-9]\.[0-9]{1,2})\s*%?\s*[~∼～\-–]\s*(?:연\s*)?([0-9]\.[0-9]{1,2})\s*%/g, mm, lo = null, hi = null, cnt = 0;
+      var html = (await getText(pg.src)).replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/g, " ").replace(/&sim;|&tilde;|&#126;|&#8764;|&#65374;|&ndash;|&#8211;/g, "~").replace(/\s+/g, " "), rr = /(?:연\s*)?([0-9]\.[0-9]{1,2})\s*%?\s*[~∼～\-–]\s*(?:연\s*)?([0-9]\.[0-9]{1,2})\s*%/g, mm, lo = null, hi = null, cnt = 0;
       var rateIdx = html.indexOf("대출금리"); if (rateIdx >= 0) html = html.slice(rateIdx, rateIdx + 4000) + " " + html;   /* '대출금리' 요약 줄을 먼저 보게 */
       while ((mm = rr.exec(html))) { var a = Number(mm[1]), b = Number(mm[2]); if (!(a >= 0.5 && b <= 9 && a < b)) continue; cnt++; lo = lo == null ? a : Math.min(lo, a); hi = hi == null ? b : Math.max(hi, b); }
+      /* v12.0 안내 페이지가 그 상품이 맞는지 먼저 확인(상품명 앞 낱말이 글에 있어야 한다) — 다른 상품 페이지의 금리를 이 상품 것으로 읽지 않는다 */
+      var kw = String(pg.name).replace(/대출|전용|구입자금/g, " ").trim().split(/\s+/)[0]; if (kw && html.indexOf(kw) < 0) { log("대출 금리 페이지가 다른 상품: " + pg.name + " — '" + kw + "' 없음 (loans.json 의 src 확인)"); out.loans.srcBad = (out.loans.srcBad || []).concat([pg.name]); continue; }
       if (!cnt) { DBG["loan_" + pg.name] = html.slice(0, 600); log("대출 금리 페이지에서 범위를 못 찾음: " + pg.name + " — 받은 글 앞부분: " + html.slice(0, 120)); continue; }
       var found = lo.toFixed(2) + "~" + hi.toFixed(2), man = String(pg.rate || "").replace(/\s/g, "");
       out.loans.auto[pg.name] = { rate: found, t: out.asOf, src: pg.src, n: cnt };

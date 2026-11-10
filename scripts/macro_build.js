@@ -171,8 +171,8 @@ async function kosisWages() {
     var list = kosisArr(found) || [];
     DBG.kosisSearch = list.slice(0, 10);
     /* 수록 기간 끝(END_PRD_DE)이 가장 최근인 고용노동부(118) 임금 표를 고른다 — 멈춘 표(끝이 6개월 넘게 지남)와 방금 버린 표는 뺀다 */
-    var endOf = function (r) { return Number(String(r.END_PRD_DE || "").replace(/\D/g, "").slice(0, 6)) || 0; }, fresh = function (r) { return !endOf(r) || endOf(r) >= ymShift(ymOf(kst()), -6); };
-    var cands = list.filter(function (r) { return /임금/.test(r.TBL_NM || "") && !/누계|계절|직종|학력|연령|성별/.test(r.TBL_NM || "") && String(r.ORG_ID) === "118" && r.TBL_ID !== CODES.kosisWageOld && fresh(r); }).sort(function (a, b) { return endOf(b) - endOf(a); });
+    var endOf = function (r) { var e = String(r.END_PRD_DE || "").replace(/\D/g, ""); return e.length === 4 ? Number(e) * 100 + 12 : Number(e.slice(0, 6)) || 0; }   /* v12.1 검색 결과의 수록 기간 끝은 연도만(2026) 온다 — 6자리로 읽어 최신 표(DT_118N_MON054, 2026~)를 걸러 버리던 것 수정 */, fresh = function (r) { return !endOf(r) || endOf(r) >= ymShift(ymOf(kst()), -6); };
+    var cands = list.filter(function (r) { return /임금/.test(r.TBL_NM || "") && !/누계|계절|직종|학력|연령|성별|행정구역|시도/.test(r.TBL_NM || "") && String(r.ORG_ID) === "118" && r.TBL_ID !== CODES.kosisWageOld && fresh(r); }).sort(function (a, b) { return endOf(b) - endOf(a); });
     log("KOSIS 임금 표 후보 " + cands.length + "개: " + cands.slice(0, 6).map(function (r) { return r.TBL_ID + " " + r.TBL_NM + " ~" + (r.END_PRD_DE || "?"); }).join(" | "));
     var pick = cands[0] || list.filter(function (r) { return r.TBL_ID === "DT_118N_MON051"; })[0] || list[0];
     if (!pick) { log("KOSIS 검색 결과 없음: " + kosisErr(found)); return null; }
@@ -231,6 +231,8 @@ async function kosisWages() {
   if (ymOf(kst()) > ymShift(c.last, 5) && !kosisWages._retry) { kosisWages._retry = 1; log("KOSIS 임금 표 " + c.tblId + " 마지막 달 " + c.last + " — 5개월 넘게 멈춤 → 더 최근 표를 찾아본다"); CODES.kosisWageOld = c.tblId; delete CODES.kosisWage; var again = null; try { again = await kosisWages(); } catch (e) { log("KOSIS 임금 다시 찾기 실패: " + e.message); } if (again && again.t > c.last) return again; CODES.kosisWage = c; delete CODES.kosisWageOld; log("더 최근 임금 표를 못 찾음 — " + c.last + " 값을 그대로 둔다(화면에 기준 달 표시)"); }
   var unit = arr[0].UNIT_NM || "원", scale = /천원/.test(unit) ? 1000 : /만원/.test(unit) ? 10000 : 1;
   hist = hist.map(function (x) { return [x[0], x[1] * scale]; });
+  /* v12.1 새 표는 2026년부터만 있다 — 1년 전 대비·12개월 평균을 내려면 그 앞 달이 필요해 지난 수집분(macro_data.json 의 임금 이력)을 이어 붙인다. 같은 달은 새 표 값 */
+  try { var PWg = (readJson(OUT_P, {}) || {}).wages, ph = (PWg && PWg.how === "KOSIS" && PWg.hist) || []; if (ph.length) { var mm = {}; ph.forEach(function (x) { mm[x[0]] = x[1]; }); hist.forEach(function (x) { mm[x[0]] = x[1]; }); var merged = Object.keys(mm).map(Number).sort().map(function (k) { return [k, mm[k]]; }).slice(-48); if (merged.length > hist.length) { log("임금 이력: 지난 수집분 " + ph.length + "달과 이어 붙임 → " + merged.length + "달(" + merged[0][0] + "~" + merged[merged.length - 1][0] + ")"); hist = merged; } } } catch (e) {}
   return { v: hist[hist.length - 1][1], t: hist[hist.length - 1][0], unit: "원", name: "KOSIS " + c.nm + " · " + best.replace(/\|/g, " ").replace(/\s+/g, " "), how: "KOSIS", hist: hist };
 }
 

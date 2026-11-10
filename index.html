@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=12.0">
+<link rel="stylesheet" href="style.css?v=12.1">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v12.0</span>
+    <span class="ver">v12.1</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=12.0"></script>
+<script src="cards.js?v=12.1"></script>
 <script>
 "use strict";
 
@@ -11740,9 +11740,10 @@ function opStatus() {
   add({ grp: "금리", nm: "임금(구매력 계산용)", key: "KOSIS_KEY", cyc: "매일 03:00 (통계는 두 달쯤 늦게 나옴)", last: W ? opD(W.t) + " · " + (W.how || "") : "없음", got: opT(MD.builtAt), next: "–", st: !W ? "bad" : wm > 5 ? "late" : "ok", msg: !W ? "임금을 받지 못함" : wm > 5 ? wm + "개월 전 값 — KOSIS 표가 멈췄거나 번호가 바뀜. v12.0 수집기가 더 최근 표를 다시 찾는다" : "", fix: "다음 새벽 수집 로그에서 'KOSIS 임금 표 후보'를 확인. 그래도 옛 값이면 data/macro_codes.json 의 kosisWage 줄을 지우고 다시 실행, 급하면 data/manual/wages.json 에 고용노동부 사업체노동력조사 최근 값을 적는다" });
   /* 3 KOSIS 보조 지표 */
   var kos = function (nm, step, ser, okM, cyc, extra, warn) { var l = opLast(ser), m = l ? opMon(l[0]) : null, f = stepFail(step); add({ grp: "통계", nm: nm, key: "KOSIS_KEY", cyc: cyc, last: l ? opD(l[0]) : "없음", got: opT(at[step] || D.builtAt), next: "매일 03:00 확인(새 달이 올라오면 반영)", st: !l || f ? "bad" : m > okM || warn ? "late" : "ok", msg: f || (!l ? "자료 없음" : m > okM ? m + "개월 전 값 — 발표 주기(" + okM + "개월)를 넘김" : (extra || "")), fix: "KOSIS 표 번호가 바뀌면 생긴다. data/daily_codes.json 에서 그 줄만 지우고 Actions → Run workflow → 일부만 " + step + " 로 다시 실행. 오류에 '인증키 기간만료(12)'가 보이면 kosis.kr 공유서비스 마이페이지에서 연장" }); };
-  var U = D.unsold || {}; kos("미분양(전국·시도)", "unsold", U.all, 3, "매월 말(전월분)", U.done ? "준공 후 미분양 " + fmt(opLast(U.done)[1]) + "호 포함" : "준공 후 미분양은 아직 못 받음 — v12.0 수집기가 KOSIS DT_MLTM_5328 표로 다시 시도(다음 수집 로그의 '큰 표 — 분류 좁힘' 줄 확인)", !U.done);
+  var U = D.unsold || {}; kos("미분양(전국·시도)", "unsold", U.all, 3, "매월 말(전월분)", U.done ? "준공 후 미분양 " + fmt(opLast(U.done)[1]) + "호 포함" + (U.doneKept ? "(이번 수집 실패 — 지난 수집분 유지)" : "") : "준공 후 미분양은 아직 못 받음 — v12.0 수집기가 KOSIS DT_MLTM_5328 표로 다시 시도(다음 수집 로그의 '큰 표 — 분류 좁힘' 줄 확인)", !U.done);
   var IXs = D.index && D.index.sale && D.index.sale.seoul; kos("부동산원 월간 매매·전세지수", "index", IXs, 3, "매월 15일쯤(전월분)", "");
-  var SPs = D.supply && D.supply.starts && (D.supply.starts.seoul || D.supply.starts.all); kos("인허가·착공·준공", "supply", SPs, 3, "매월 말(전월분)", "");
+  var SU = D.supply || {}, SPs = SU.starts && (SU.starts.seoul || SU.starts.all), miss = ["permits", "starts", "completes"].filter(function (k) { return !SU[k]; }), kept = ["permits", "starts", "completes"].filter(function (k) { return SU[k] && SU[k].kept; }), nmK = { permits: "인허가", starts: "착공", completes: "준공" };
+  kos("인허가·착공·준공", "supply", SPs || (SU.completes && (SU.completes.seoul || SU.completes.all)), 3, "매월 말(전월분)", miss.length ? miss.map(function (k) { return nmK[k]; }).join("·") + " 자료가 빠져 있음 — 수집 때 연결 실패. Run workflow → 일부만 supply 로 다시 받으면 채워진다" : kept.length ? kept.map(function (k) { return nmK[k]; }).join("·") + "은 이번 수집이 실패해 지난 수집분을 유지 중" : "", miss.length || kept.length);
   /* 4 주간 */
   var WK = D.weekly, wl = WK && opLast(WK.seoul), wd = wl ? opDays(wl[0]) : null, viaR = WK && /R-ONE/.test(String(WK.src || "")), wf = stepFail("weekly");
   add({ grp: "통계", nm: "주간 매매·전세지수 · 서울 25개 구 · 지역별", key: viaR ? "RONE_KEY" : "KOSIS_KEY(대신 받음)", cyc: "부동산원 목요일 14시 발표 → 목 15:00 · 매일 03:00", last: wl ? opD(wl[0]) + " 주" + (WK.rent ? " · 전세 있음" : "") + (WK.gu ? " · 구 " + Object.keys(WK.gu).length : "") : "없음", got: opT(at.weekly || D.builtAt), next: (function () { var k = chKstNow(), w = k.getUTCDay(), add = (4 - w + 7) % 7; if (add === 0 && k.getUTCHours() >= 15) add = 7; var d = chShift(k, add); return (d.getUTCMonth() + 1) + "." + d.getUTCDate() + "(목) 15:00"; })(), st: !wl || wf ? "bad" : wd > 13 ? "late" : !viaR ? "late" : "ok", msg: wf || (!wl ? "자료 없음" : wd > 13 ? wd + "일 전 주 — 발표(목요일)를 두 번 넘김" : !viaR ? "R-ONE 이 실패해 KOSIS(1~2주 늦음)로 받는 중" : "발표 당일 반영 · 명절 주는 발표가 없어 한 주 건너뜀"), fix: "로그에 'R-ONE 실패'가 보이면 reb.or.kr/r-one 마이페이지에서 인증키 상태·이용기간 확인 후 GitHub Secrets RONE_KEY 다시 저장. 바로 받으려면 Run workflow → 일부만 weekly" });

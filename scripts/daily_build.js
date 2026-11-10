@@ -39,11 +39,16 @@ function kLatest(rows) { var mx = 0; (rows || []).forEach(function (r) { var t =
 function kMonthsAgo(prd) { if (!prd || String(prd).length !== 6) return null; var k = kst(), y = Math.floor(k / 10000), m = Math.floor(k / 100) % 100; return (y * 12 + m) - (Math.floor(prd / 100) * 12 + prd % 100); }
 function kFresh(rows, maxAge) { var a = kMonthsAgo(kLatest(rows)); return a != null && a <= maxAge; }
 function sidoNm(s) { return String(s || "").trim().replace(/특별자치시|특별자치도|특별시|광역시|도$/g, "").replace(/^(충청북|충청남|전라북|전라남|경상북|경상남)$/, function (x) { return x[0] + x[2]; }); }
+/* v12.1 일시적인 연결 실패(fetch failed·시간 초과)는 두 번까지 다시 시도한다 — 11.10 실행에서 인허가·착공이 한 번의 연결 실패로 통째로 빠졌다 */
 async function getText(url) {
-  CALLS++;
-  var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, 25000);
-  try { var r = await fetch(url, { signal: ac.signal, headers: { "user-agent": "Mozilla/5.0 (TrackApt-daily-build)" } }); return await r.text(); }
-  finally { clearTimeout(t); }
+  CALLS++; var lastErr = null;
+  for (var k = 0; k < 3; k++) {
+    var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, 25000);
+    try { var r = await fetch(url, { signal: ac.signal, headers: { "user-agent": "Mozilla/5.0 (TrackApt-daily-build)" } }); return await r.text(); }
+    catch (e) { lastErr = e; if (k < 2) await new Promise(function (res) { setTimeout(res, 2000 * (k + 1)); }); }
+    finally { clearTimeout(t); }
+  }
+  throw lastErr;
 }
 async function getJson(url) { var t = await getText(url); try { return JSON.parse(t); } catch (e) { return { _raw: t.slice(0, 300) }; } }
 
@@ -211,6 +216,7 @@ async function unsold() {
     if (out.done && out.all) { var lastD = out.done[out.done.length - 1], lastA = out.all.filter(function (x) { return x[0] === lastD[0]; })[0]; if (lastA && lastD[1] > lastA[1]) { log("준공 후 미분양(" + lastD[1] + ")이 전체 미분양(" + lastA[1] + ")보다 큼 — 합산이 틀림, 버림"); delete out.done; delete out.doneSeoul; } }
     if (out.done && out.all) { var same = out.done.filter(function (p) { var q = out.all.filter(function (x) { return x[0] === p[0]; })[0]; return q && Math.abs(q[1] - p[1]) / Math.max(1, q[1]) < 0.02; }).length; if (same) { log("KOSIS 준공 후 미분양이 전체 미분양과 같은 달 " + same + "개 — 표가 틀림, 준공 후 값 버림"); delete out.done; delete out.doneSeoul; } }
   }
+  try { var PU = (readJson(OUT_P, {}) || {}).unsold || {}; if (out.all && !out.done && PU.done) { out.done = PU.done; if (PU.doneSeoul) out.doneSeoul = PU.doneSeoul; out.doneKept = kst(); log("준공 후 미분양: 이번 수집 실패 → 지난 수집분 유지"); } } catch (e) {}   /* v12.1 */
   return Object.keys(out).length ? out : null;
 }
 async function priceIndex() {
@@ -259,6 +265,8 @@ async function supply() {
       if (o.all || o.seoul) out[key] = o; else log("KOSIS " + key + " 행을 못 골라냄 — 표본: " + R.slice(0, 4).map(function (r) { return r.ITM_NM + "/" + kNames(r); }).join(", "));
     } catch (e) { log("KOSIS " + key + " 실패: " + e.message); }
   }
+  /* v12.1 이번에 못 받은 항목은 지난 수집분을 그대로 둔다(kept 에 그 날짜) — 한 번의 연결 실패로 인허가·착공이 화면에서 사라지지 않게 */
+  try { var PS = (readJson(OUT_P, {}) || {}).supply || {}; keys.forEach(function (k2) { if (!out[k2] && PS[k2]) { out[k2] = PS[k2]; out[k2].kept = out[k2].kept || kst(); log("supply " + k2 + ": 이번 수집 실패 → 지난 수집분 유지"); } else if (out[k2]) delete out[k2].kept; }); } catch (e) {}
   return Object.keys(out).length ? out : null;
 }
 /* v9.44 자료 경고 — 앱 '데이터 상태' 띠가 그대로 보여 준다. 틀린 자료를 조용히 쓰지 않도록 오래된 것·빠진 것을 적는다 */

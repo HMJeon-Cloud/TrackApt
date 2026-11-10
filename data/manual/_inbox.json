@@ -1,16 +1,16 @@
 {
  "v": 1,
- "builtAt": "2026-11-10T01:13:25.317Z",
+ "builtAt": "2026-11-10T07:22:05.508Z",
  "asOf": 20261110,
  "items": [
   {
-   "kind": "policy",
+   "kind": "loan",
    "date": "2026-11-10",
-   "title": "‘3.7만 공급’ 김포아라, 교통대책 짜는 데만 2년…입주 때 길 열릴까 [부동산360]",
-   "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE1LUktuVkJFY3pEZHU5MWZNS0k0dTJScGR5b1lkR2VyR1JCbC1USlYtcFZfdDYzSUpEUXNZRUhfbUFzeHdwbjFLUmh0Zm9CZHZIa3M0cUhn?oc=5",
-   "src": "헤럴드경제",
+   "title": "\"보금자리론 금리 또 올랐다\"…겨울 이사 앞둔 세입자 '멘붕' 피하려면?",
+   "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTE95ZmR3Tk1zRzFDRUpLZ2cyUUxRUGVSNnVSS0hsdjhjekQ4U1hJVERPQW9MWHNNRmFWQ19YOE9tNHdNS3RYSHNFVld1TXdQTjNxbFFua2l6QTNvMEdFaWRIMHhYTk5mQ1lzaFRNVFpEcw?oc=5",
+   "src": "케이트렌디뉴스",
    "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-11-10",
    "isNew": true
   }

@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=12.3">
+<link rel="stylesheet" href="style.css?v=12.4">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v12.3</span>
+    <span class="ver">v12.4</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=12.3"></script>
+<script src="cards.js?v=12.4"></script>
 <script>
 "use strict";
 
@@ -11878,7 +11878,8 @@ function swPick() {
 if (typeof TPL !== "undefined") TPL.winList = { nm: "청약 결과 줄", cat: "subs", fields: [["src", "출처·기준", "text", "청약홈 · 당첨자 발표 2026.11.10"], ["title", "제목", "text", "오늘의 청약 결과"], ["sub", "부제", "text", ""], ["rows", "줄(단지 | 구분 | 지역 | 타입·분양가 | 경쟁률 | 보조)", "rows", "광교 자연앤 센트레빌 | 공공분양 | 경기 수원 | 84㎡ · 9.5억 | 39.5 | 1순위 평균 · 공급 270세대"], ["foot", "맨 아래 메모", "text", ""]],
   auto: function () { return null; },
   render: function (d) { var R = tpRows(d.rows), n = R.length;
-    return tpFrame("subs", d, '<div class="tp-win n' + n + '" style="grid-template-rows:repeat(' + n + ',1fr)">' + R.map(function (r) { var rate = parseFloat(r[4]), hot = rate >= 10, low = rate < 1; return '<div class="tp-wi' + (hot ? " hot" : low ? " low" : "") + '"><div class="l"><div class="h"><i>' + tpE(r[1] || "") + "</i><small>" + tpE(r[2] || "") + "</small></div><b>" + tpE(r[0] || "") + "</b><span>" + tpE(r[3] || "") + '</span></div><div class="r"><b>' + tpE(isFinite(rate) ? (rate >= 100 ? Math.round(rate).toLocaleString() : rate.toFixed(rate >= 10 ? 1 : 2)) : (r[4] || "–")) + "<em> : 1</em></b>" + String(r[5] || "").split(" · ").filter(Boolean).slice(0, 3).map(function (t) { return "<small>" + tpE(t) + "</small>"; }).join("") + "</div></div>"; }).join("") + "</div>"); } };
+    /* v12.4 다섯 곳 이상이면 촘촘한 줄(이름 한 줄 + 설명 한 줄, 오른쪽은 경쟁률과 한 줄) — 한 장에 8곳까지. 이때 '함께 보면' 메모는 넣지 않는다(줄이 잘리지 않게) */
+    return tpFrame("subs", n >= 4 ? Object.assign({}, d, { note: "", noteSrc: "" }) : d, '<div class="tp-win n' + n + (n >= 5 ? " cmp" : "") + '" style="grid-template-rows:repeat(' + n + ',1fr)">'  + R.map(function (r) { var rate = parseFloat(r[4]), hot = rate >= 10, low = rate < 1; return '<div class="tp-wi' + (hot ? " hot" : low ? " low" : "") + '"><div class="l"><div class="h"><i>' + tpE(r[1] || "") + "</i><small>" + tpE(r[2] || "") + "</small></div><b data-k=\"" + tpE(r[1] || "") + "\">" + tpE(r[0] || "") + "</b><span>" + tpE((n >= 5 && r[2] ? r[2] + " · " : "") + (r[3] || "")) + '</span></div><div class="r"><b>' + tpE(isFinite(rate) ? (rate >= 100 ? Math.round(rate).toLocaleString() : rate.toFixed(rate >= 10 ? 1 : 2)) : (r[4] || "–")) + "<em> : 1</em></b>" + String(r[5] || "").split(" · ").filter(Boolean).slice(0, 3).map(function (t) { return "<small>" + tpE(t) + "</small>"; }).join("") + (function () { var q = String(r[5] || "").split(" · "), sup = q.filter(function (t) { return /^공급/.test(t); })[0] || "", ms = q.filter(function (t) { return /미달/.test(t); })[0] || ""; return '<small class="s2">' + tpE(sup) + (ms ? "<br>" + tpE(ms.replace(" 주택형", "타입")) : "") + "</small>"; })() + "</div></div>"; }).join("") + "</div>"); } };
 if (typeof TPR !== "undefined") {
   TPR.subsWin = { nm: "오늘의 청약 결과(당첨 발표)", grp: "청약·일정", opts: [], tpls: ["winList", "denseTable"], per: 4, noX: true, hint: "당첨자 발표일이 오늘(없으면 가장 최근 발표일)인 단지만 — 가장 경쟁이 셌던 주택형과 그 분양가 · 1순위 평균 경쟁률 · 공급 세대. 무순위(줍줍) 결과는 청약홈 API에 경쟁률이 없어 빠진다",
     build: function (o, tid) { var P = swPick(); if (!P || !P.L.length) return [];
@@ -11886,7 +11887,7 @@ if (typeof TPR !== "undefined") {
       var base = { noLead: true, _cat: "subs", src: "청약홈 · 당첨자 발표 " + (multi ? md : String(P.day).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3")) + " · 수집 " + chMD(P.asOf || sbToday()), title: (isToday ? "오늘의 청약 결과" : multi ? "이번 주 청약 결과" : md + " 청약 결과"), sub: md + " 당첨자 발표 " + P.L.length + "곳 · 1순위 마감 " + (P.L.length - miss) + " · 주택형 미달 " + miss, badge: "청약 결과", foot: "경쟁률 = 1순위 접수 ÷ 일반공급(청약홈) · 분양가는 그 주택형 최고가(발코니 확장 별도) · 투자 권유 아님" };
       if (tid === "denseTable") return tprPaged(Object.assign(base, { cols: "단지 | 구분 | 최고 경쟁 타입 | 분양가 | 1순위 평균" }), P.L.map(function (x) { return [x.nm, x.kind, x.ty + (x.r.max != null ? " " + (x.r.max >= 100 ? Math.round(x.r.max) : x.r.max.toFixed(1)) + ":1" : ""), eokS(x.top || x.pMax), x.r.rate.toFixed(x.r.rate >= 10 ? 1 : 2) + ":1"]; }), 8);
       var rows = P.L.map(function (x) { var price = x.top ? eokS(x.top) : (x.pMin && x.pMax ? (x.pMin === x.pMax ? eokS(x.pMin) : eokS(x.pMin) + "~" + eokS(x.pMax)) : ""); return [x.nm, x.kind, [x.area, x.gu].filter(Boolean).join(" ") + (multi ? " · " + chMD(x.r.win) + " 발표" : ""), [x.ty ? x.ty + " 타입" : "", price ? "분양가 " + price : "", x.r.max != null && x.ty && x.r.max > x.r.rate * 1.05 ? "이 타입 " + (x.r.max >= 100 ? Math.round(x.r.max).toLocaleString() : x.r.max.toFixed(1)) + ":1" : ""].filter(Boolean).join(" · "), String(x.r.rate), "1순위 평균 · 공급 " + fmt(x.r.sup || 0) + "세대" + (/미달/.test(x.r.status || "") ? " · " + x.r.status : "")]; });
-      var n = rows.length, per = tprOne() ? Math.min(n, 5) : (n <= 4 ? n : Math.ceil(n / Math.ceil(n / 4))), out = [];
+      var n = rows.length, per = tprOne() ? Math.min(n, 8) : (n <= 4 ? n : Math.ceil(n / Math.ceil(n / 4))), out = [];
       for (var i = 0; i < (tprOne() ? 1 : Math.ceil(n / per)); i++) { var d = {}; for (var k in base) d[k] = base[k]; d._tpl = "winList"; d.rows = rows.slice(i * per, (i + 1) * per); if (!tprOne() && n > per) d.badge = "청약 결과 " + (i + 1) + "/" + Math.ceil(n / per); if (tprOne() && n > per) d.foot = "경쟁률 높은 순 상위 " + per + "/" + n + "곳 — 전체는 여러 장 · " + base.foot; out.push(d); }
       return out; } };
   if (typeof TPR_ORDER !== "undefined" && TPR_ORDER.indexOf("subsWin") < 0) { var _si = TPR_ORDER.indexOf("subsRate"); TPR_ORDER.splice(_si >= 0 ? _si : TPR_ORDER.length, 0, "subsWin"); }
@@ -11975,7 +11976,7 @@ function rmTyRows(it) {
     try { var it = sbCardItem(), N = sbNote(it) || {}, c = it.cmp;
       /* v12.3 아래 목록은 짧게 — 한 줄에 한 가지, 설명(어떻게 계산했나)은 맨 아래 메모로. 문장이 중간에 끊기지 않게 낱말 단위로만 줄바꿈 */
       var B = [], X = c && typeof sbCmpLine === "function" ? sbCmpLine(it) : null, cut = function (t) { return String(t || "").replace(/\(.*?\)/g, "").trim(); };
-      if (X && X.sale && X.near) B.push("분양가 " + eok(X.sale) + " · 주변 " + eok(X.near) + " → " + Math.abs(X.diff).toFixed(1) + "% " + (X.diff > 0 ? "높음" : "낮음"));
+      if (X && X.sale && X.near) B.push("분양가 " + eok(X.sale) + " · 주변보다 " + Math.abs(X.diff).toFixed(1) + "% " + (X.diff > 0 ? "높음" : "낮음"));   /* 주변 실거래 금액은 위 표에 이미 있다 */
       if (N.first) B.push(N.first.replace("이번이 ", ""));
       B.push("자격: " + (N.res || N.firstRank || "공고 확인"));
       B.push("청약통장 " + (N.account ? cut(N.account) : "공고 확인"));
@@ -11999,7 +12000,29 @@ function rmTyRows(it) {
 
 /* 날짜 칸 글자 크기 맞추기 — 카드를 그린 뒤 한 줄(접수·발표·계약·입주) 안에서 가장 작은 크기로 통일(자동 맞춤이 칸마다 따로 줄이던 것) */
 function kvEqualize(root) { (root || document).querySelectorAll(".tp-card .tp-ap-kv").forEach(function (g) { var B = g.querySelectorAll("b"); if (B.length < 2) return; var mn = Infinity; B.forEach(function (b) { b.style.fontSize = ""; }); B.forEach(function (b) { var cell = b.parentNode, fs = parseFloat(getComputedStyle(b).fontSize), w = cell.clientWidth - 6; if (b.scrollWidth > w && w > 0) fs = Math.max(7, fs * w / b.scrollWidth); if (fs < mn) mn = fs; }); B.forEach(function (b) { b.style.fontSize = mn.toFixed(2) + "px"; b.style.transform = "none"; }); }); }
-(function () { ["tpPaintCard", "tpPaint"].forEach(function (fn) { if (typeof window[fn] !== "function") return; var o = window[fn]; window[fn] = function () { var r = o.apply(this, arguments); try { kvEqualize(); setTimeout(kvEqualize, 60); setTimeout(kvEqualize, 400); } catch (e) {} return r; }; }); })();
+(function () { ["tpPaintCard", "tpPaint"].forEach(function (fn) { if (typeof window[fn] !== "function") return; var o = window[fn]; window[fn] = function () { var r = o.apply(this, arguments); try { kvEqualize(); setTimeout(kvEqualize, 60); setTimeout(kvEqualize, 400); } catch (e) {} return r; }; }); })(); 
+/* ── v12.4 무순위 카드: 주택형 수에 따라 밀도를 바꿔 항상 한 장을 채운다 ──
+   1~2개 = 넉넉하게(표·날짜·목록 글자를 키우고 줄 간격을 넓힘) · 3~4개 = 기본 · 5~6개 = 촘촘하게(목록 4줄) · 7개 이상 = 세대수 많은 순 6개 + '외 n개 타입' */
+(function () {
+  if (typeof TPL === "undefined" || !TPL.aptNotice) return; var T = TPL.aptNotice, orr = T.render;
+  T.render = function (d) {
+    if (!d.rem) return orr(d);
+    var cols = tpRows(d.cols)[0] || [], R = tpRows(d.rows), KV = tpRows(d.kv || []), P = String(d.pills || "").split(/\s*\|\s*/).filter(Boolean), S = tpRows(d.side || []), big = cols.length >= 4, more = 0;
+    if (big && R.length > 6) { var num = function (r) { return parseInt(String(r[4] || "").replace(/[^\d]/g, ""), 10) || 0; }; more = R.length - 6; R = R.slice().sort(function (a, b) { return num(b) - num(a); }).slice(0, 6); }
+    var dens = !big ? "roomy" : R.length <= 2 ? "roomy" : R.length <= 4 ? "mid" : "tight", B = tpLines(d.bullets).slice(0, dens === "tight" ? 4 : 6);
+    return tpFrame("subs", Object.assign({}, d, { note: "", noteSrc: "" }), '<div class="rm-wrap ' + dens + '">' + (P.length ? '<div class="tp-ap-pills rm">' + P.map(function (p, i) { return '<span class="' + (i === 0 ? "k" : "") + '">' + tpE(p) + "</span>"; }).join("") + "</div>" : "") +
+      (big ? '<table class="tp-tbl rm-big tp-nogrow tp-nofold"><tr>' + cols.map(function (c, i) { return "<th" + (i === 4 ? ' class="s"' : "") + ">" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr>" + cols.map(function (_, i) { return "<td" + (i === 4 ? ' class="s"' : i === 2 ? ' class="p' + (/~/.test(r[i] || "") ? " rg" : "") + '"' : i === 3 ? ' class="n"' : "") + ">" + tpE(r[i] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + (more ? '<tr class="more"><td colspan="' + cols.length + '">세대수 많은 순 6개 · 외 ' + more + "개 타입은 공고문</td></tr>" : "") + "</table>"
+        : '<table class="tp-tbl cmp tp-ap-tbl tp-nogrow tp-nofold"><tr>' + cols.map(function (c) { return "<th>" + tpE(c) + "</th>"; }).join("") + "</tr>" + R.map(function (r) { return "<tr>" + cols.map(function (_, i) { return "<td>" + tpE(r[i] || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>") +
+      (KV.length ? '<div class="tp-ap-kv rm n' + KV.length + '">' + KV.map(function (r) { return "<div><small>" + tpE(r[0]) + "</small><b>" + tpE(r[1] || "") + "</b>" + (r[2] ? "<em>" + tpE(r[2]) + "</em>" : "") + "</div>"; }).join("") + "</div>" : "") +
+      '<div class="tp-ap-2 rm tp-nofold"><ul class="tp-pins tp-nofold">' + B.map(function (b) { return "<li>" + tpE(b) + "</li>"; }).join("") + '</ul><table class="rm-side tp-nofold">' + S.map(function (r) { var v = String(r[1] || ""), ask = /공고 확인/.test(v); return "<tr><th>" + tpE(r[0]) + '</th><td class="' + (ask ? "ask" : /적용|투기|조정|있음|년/.test(v) && !/미적용/.test(v) ? "on" : "") + '">' + tpE(ask ? "확인" : v) + "</td></tr>"; }).join("") + "</table></div>" +
+      (d.hook ? '<div class="rm-hook tp-nofold"><b>' + tpE(d.hook) + "</b></div>" : "") + "</div>");
+  };
+})();
+
+/* 무순위 카드 채우기 — 글자·여백을 한 비율(--k)로 키우거나 줄여, 넘치지 않는 가장 큰 비율을 고른다(주택형 1개면 크게, 6개면 작게). 날짜 칸 크기 맞춤보다 먼저 돈다 */
+function rmFit(root) { (root || document).querySelectorAll(".tp-card .rm-wrap").forEach(function (w) { var card = w.closest(".tp-card"), ks = [1.5, 1.42, 1.34, 1.26, 1.18, 1.1, 1.04, 1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7]; w.querySelectorAll("[style*='display: none'],[hidden]").forEach(function (e) { e.style.display = ""; e.hidden = false; }); w.querySelectorAll(".tp-ap-kv b").forEach(function (b) { b.style.fontSize = ""; });
+  for (var i = 0; i < ks.length; i++) { w.style.setProperty("--k", ks[i]); if (w.scrollHeight <= w.clientHeight + 1 && (!card || card.scrollHeight <= card.clientHeight + 1)) break; } }); }
+(function () { ["tpPaintCard", "tpPaint"].forEach(function (fn) { if (typeof window[fn] !== "function") return; var o = window[fn]; window[fn] = function () { var r = o.apply(this, arguments), go = function () { try { rmFit(); kvEqualize(); } catch (e) {} }; go(); setTimeout(go, 80); setTimeout(go, 450); return r; }; }); })();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

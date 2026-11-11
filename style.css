@@ -3109,12 +3109,44 @@ body.adm .vx-intro{display:none!important}
 .tp-card .tp-wi .r b{font-size:25px;font-weight:900;letter-spacing:-.04em;line-height:1;color:#17254a;white-space:nowrap}
 .tp-card .tp-wi.hot .r b{color:#b3261e}.tp-card .tp-wi.low .r b{color:#6b7280}
 .tp-card .tp-wi .r b em{font-style:normal;font-size:13px;font-weight:800}
+.tp-card .tp-wi .r small.s2{display:none}
 .tp-card .tp-wi .r small{font-size:8.2px;color:#6b6252;font-weight:700;line-height:1.25;text-align:right;white-space:nowrap}
 .tp-card .tp-win.n5 .tp-wi .l>b,.tp-card .tp-win.n6 .tp-wi .l>b{font-size:12.5px}.tp-card .tp-win.n5 .tp-wi .r b,.tp-card .tp-win.n6 .tp-wi .r b{font-size:21px}
 .tp-card.tp-big .tp-wi .l>b{font-size:17px}.tp-card.tp-big .tp-wi .r b{font-size:32px}.tp-card.tp-big .tp-wi .l>span{font-size:12.5px}.tp-card.tp-big .tp-wi .r small{font-size:9.5px}
 .nx-pick{cursor:pointer;display:inline-flex;align-items:center}
 .nx-rv{margin:8px 0 2px;border:1px solid #d8c58a;background:#fff;border-radius:10px;padding:10px 12px}
 .nx-t{width:100%;border-collapse:collapse;margin:6px 0 8px;font-size:13px}.nx-t th{text-align:left;white-space:nowrap;color:#667085;font-weight:700;padding:4px 10px 4px 0;vertical-align:top;width:96px}.nx-t td{padding:4px 0;border-bottom:1px solid #f2f4f7;line-height:1.5}.nx-t td small{display:block;color:#98a2b3;font-size:11.5px;overflow-wrap:anywhere}
-.tp-card .tp-ap-2.rm{grid-template-columns:1.5fr 1fr}
+.tp-card .tp-ap-2.rm{grid-template-columns:1.85fr 1fr}
 .tp-card .tp-ap-2.rm .tp-pins li,.tp-card .tp-ap-2 .tp-pins li{word-break:keep-all;overflow-wrap:normal}
 .tp-card .tp-ap-kv b{transform:none!important}
+/* v12.4 청약 결과 촘촘한 줄 */
+.tp-card .tp-win.cmp{gap:4px}
+.tp-card .tp-win.cmp .tp-wi{padding:3px 10px 3px 12px;border-radius:7px;gap:8px}
+.tp-card .tp-win.cmp .tp-wi .l{gap:1px;justify-content:center}
+.tp-card .tp-win.cmp .tp-wi .h{display:none}
+.tp-card .tp-win.cmp .tp-wi .l>b{font-size:11.5px;-webkit-line-clamp:1;white-space:nowrap;display:block;line-height:1.25}
+.tp-card .tp-win.cmp .tp-wi .l>b:before{content:attr(data-k);font-size:7.5px;font-weight:900;color:#fff;background:#17254a;border-radius:3px;padding:1px 5px;margin-right:5px;vertical-align:1.5px}
+.tp-card .tp-win.cmp .tp-wi.hot .l>b:before{background:#b3261e}
+.tp-card .tp-win.cmp .tp-wi .l>span{font-size:8.3px;font-weight:700;color:#4a4a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+.tp-card .tp-win.cmp .tp-wi .r{flex-direction:row;align-items:baseline;gap:6px;max-width:none}
+.tp-card .tp-win.cmp .tp-wi .r b{font-size:17px}.tp-card .tp-win.cmp .tp-wi .r b em{font-size:10px}
+.tp-card .tp-win.cmp .tp-wi .r small{display:none}.tp-card .tp-win.cmp .tp-wi .r small.s2{display:block;font-size:7.5px;min-width:52px;text-align:right}
+.tp-card .tp-win.n7 .tp-wi .l>b,.tp-card .tp-win.n8 .tp-wi .l>b{font-size:10.5px}.tp-card .tp-win.n7 .tp-wi .r b,.tp-card .tp-win.n8 .tp-wi .r b{font-size:15px}
+/* v12.4 무순위 카드 — 한 비율(--k)로 전체 크기를 조절(rmFit 이 넘치지 않는 가장 큰 값을 고름) */
+.tp-card .rm-wrap{--k:1;display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden}
+.tp-card .rm-wrap .tp-ap-pills.rm{margin:0 0 calc(4px*var(--k))}.tp-card .rm-wrap .tp-ap-pills.rm span{font-size:calc(8.5px*var(--k));padding:calc(1.5px*var(--k)) calc(6px*var(--k))}
+.tp-card .rm-wrap .tp-tbl.rm-big{margin:calc(3px*var(--k)) 0 calc(2px*var(--k))}
+.tp-card .rm-wrap .tp-tbl.rm-big th{font-size:calc(8.5px*var(--k));padding:calc(3px*var(--k)) 4px}
+.tp-card .rm-wrap .tp-tbl.rm-big td{font-size:calc(12px*var(--k));padding:calc(4.5px*var(--k)) 4px;white-space:nowrap;word-break:keep-all}
+.tp-card .rm-wrap .tp-tbl.rm-big td.p{font-size:calc(14px*var(--k))}.tp-card .rm-wrap .tp-tbl.rm-big td.p.rg{font-size:calc(11.5px*var(--k))}
+.tp-card .rm-wrap .tp-tbl.rm-big td.s,.tp-card .rm-wrap .tp-tbl.rm-big th.s{font-size:calc(9.5px*var(--k))}
+.tp-card .rm-wrap .tp-ap-kv.rm{gap:calc(4px*var(--k));margin:calc(6px*var(--k)) 0 calc(2px*var(--k))}
+.tp-card .rm-wrap .tp-ap-kv.rm div{padding:calc(5px*var(--k)) 3px}
+.tp-card .rm-wrap .tp-ap-kv.rm small{font-size:calc(8px*var(--k))}.tp-card .rm-wrap .tp-ap-kv.rm b{font-size:calc(12px*var(--k))}.tp-card .rm-wrap .tp-ap-kv.rm em{font-size:calc(8px*var(--k))}
+.tp-card .rm-wrap>*{flex:0 0 auto}
+.tp-card .rm-wrap .tp-ap-2.rm{flex:1 0 auto;align-content:center;align-items:center;margin-top:calc(5px*var(--k));gap:4px calc(10px*var(--k))}
+.tp-card .rm-wrap .tp-ap-2.rm .tp-pins li{font-size:calc(8.7px*var(--k));letter-spacing:-.02em;padding:calc(2.6px*var(--k)) 0 calc(2.6px*var(--k)) calc(11px*var(--k));line-height:1.32}
+.tp-card .rm-wrap .rm-side th{font-size:calc(8.5px*var(--k));padding:calc(3.6px*var(--k)) calc(6px*var(--k))}
+.tp-card .rm-wrap .rm-side td{font-size:calc(9.5px*var(--k));padding:calc(3.6px*var(--k)) calc(6px*var(--k))}
+.tp-card .rm-wrap .rm-hook{margin-top:calc(5px*var(--k));font-size:calc(11px*var(--k));padding:calc(6px*var(--k)) 10px;flex:0 0 auto}
+.tp-card .tp-tbl.rm-big tr.more td{font-size:calc(8px*var(--k));color:#6b6252;font-weight:700;text-align:right;padding:2px 4px;border-bottom:0}

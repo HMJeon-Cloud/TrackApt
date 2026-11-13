@@ -348,7 +348,8 @@ async function updateHi(lawd, sealTo, lTarget) {
    '대장 기준 지수'를 연 중위가가 아니라 거래 한 건 한 건으로 만들기 위한 장부. 대장(59·84㎡, 면적대마다 후보 5곳)의 직거래 아닌 매매를 모두 적어 둔다.
      · 매일: 이미 받은 최근 4개월 거래에서 대장 단지 것만 골라 그 달들을 통째로 갈아 끼운다(뒤늦은 신고·해제 반영, 추가 호출 없음).
      · 과거: 매일 밤 지역마다 LEAD_BACKFILL_MONTHS(기본 12)개월씩 LEAD_START(기본 2015.01)까지 거슬러 올라간다 — 253곳 × 12 ≈ 3,000회/일, 약 11일이면 끝나고 그 뒤 추가 호출 0.
-     · 처음 보는 단지가 대장 후보에 들어오면 그 지역만 과거를 다시 훑는다(이미 적힌 달은 갈아 끼우므로 겹치지 않는다).
+     · 처음 보는 단지가 '대장 3곳'에 오르면 그 지역만 과거를 다시 훑는다(이미 적힌 달은 갈아 끼우므로 겹치지 않는다). 후보 4~5번째만 바뀐 것으로는 다시 받지 않는다(v13.2).
+     · LEAD_ONLY=1 이면 이 장부만 채우고 끝낸다(v13.2 · Actions 일부만 "lead").
    모양: { v:1, from:YYYYMM(여기까지 훑음), want:["동|단지"…최대 12], t:{ "동|단지": [[YYYYMMDD, 금액(만원), 전용㎡, 층], …] } } */
 var LEAD_DIR = path.join(HI_DIR, "lead"), LEAD_START = Number(process.env.LEAD_START || 201501), LEAD_BACKFILL = Number(process.env.LEAD_BACKFILL_MONTHS == null ? 12 : process.env.LEAD_BACKFILL_MONTHS), LEAD_CALLS = 0, LEAD_STAT = { done: 0, n: 0, minFrom: 0, trades: 0 };
 function loadLead(lawd) { try { var g = JSON.parse(fs.readFileSync(path.join(LEAD_DIR, lawd + ".json"), "utf8")); return g && g.v === 1 ? g : null; } catch (e) { return null; } }
@@ -356,15 +357,19 @@ function foldLeadMonth(g, list, W, ym) {
   Object.keys(g.t).forEach(function (ak) { g.t[ak] = g.t[ak].filter(function (r) { return Math.floor(r[0] / 100) !== ym; }); });
   list.forEach(function (t) { if (!priced(t)) return; var ak = t.dong + "|" + t.apt; if (!W[ak]) return; var bk = lbOf(t.area); if (bk !== "59" && bk !== "84") return; var d = dnum(t); if (Math.floor(d / 100) !== ym) return; (g.t[ak] || (g.t[ak] = [])).push([d, t.amount, Math.round(t.area * 10) / 10, Number(t.floor) || 0]); });
 }
-async function updateLead(lawd, pool, sale, months) {
+async function updateLead(lawd, pool, sale, months, must) {
   if (!pool || !pool.length) return;
   var g = loadLead(lawd) || { v: 1, from: null, want: [], t: {} };
-  var isNew = pool.some(function (ak) { return g.want.indexOf(ak) < 0; });
+  /* 과거를 다시 훑는 것은 '지금의 대장 3곳(must)'에 처음 보는 단지가 들어왔을 때만 — 후보(4~5번째)가 바뀐 것만으로는 다시 받지 않는다 */
+  var part = g.part || [];   /* part = 과거를 훑던 도중에 후보로 들어와 옛 거래가 비어 있을 수 있는 단지 — 이런 단지가 대장 3곳에 오르면 그때 다시 훑는다 */
+  var isNew = g.from != null && (must || []).some(function (ak) { return g.want.indexOf(ak) < 0 || part.indexOf(ak) >= 0; });
+  if (g.from != null && !isNew) pool.forEach(function (ak) { if (g.want.indexOf(ak) < 0 && part.indexOf(ak) < 0) part.push(ak); });
+  if (g.from == null || isNew) part = [];
   var want = pool.concat(g.want.filter(function (ak) { return pool.indexOf(ak) < 0; })).filter(function (ak, i, a) { return a.indexOf(ak) === i; }).slice(0, 12), W = {}; want.forEach(function (ak) { W[ak] = 1; });
-  Object.keys(g.t).forEach(function (ak) { if (!W[ak]) delete g.t[ak]; }); g.want = want;
+  Object.keys(g.t).forEach(function (ak) { if (!W[ak]) delete g.t[ak]; }); g.want = want; part = part.filter(function (ak) { return W[ak]; }); if (part.length) g.part = part; else delete g.part;
   var byM = {}; months.forEach(function (m) { byM[m] = []; }); sale.forEach(function (t) { var m = Math.floor(dnum(t) / 100); if (byM[m]) byM[m].push(t); });
   months.forEach(function (m) { foldLeadMonth(g, byM[m], W, m); });
-  var oldest = Math.min.apply(null, months);
+  var oldest = months.length ? Math.min.apply(null, months) : ymNext(ymOf(new Date(Date.now() + 9 * 3600000)));   /* 대장만 받는 실행(LEAD_ONLY)은 이번 달부터 거꾸로 */
   if (g.from == null || isNew || g.from > oldest) g.from = oldest;
   try { for (var i = 0; i < LEAD_BACKFILL && g.from > LEAD_START; i++) { var pm = ymPrev(g.from); foldLeadMonth(g, await trades(lawd, "sale", pm), W, pm); LEAD_CALLS++; g.from = pm; } } catch (e) { /* 실패한 달은 다음 밤에 거기서 다시 */ }
   var n = 0; Object.keys(g.t).forEach(function (ak) { g.t[ak].sort(function (a, b) { return a[0] - b[0]; }); n += g.t[ak].length; if (!g.t[ak].length) delete g.t[ak]; });
@@ -459,7 +464,8 @@ async function summarize(lawd, today) {
     return g;
   });
   var LDR = leadersOf(lawd, hi, sale, cur, today), LPOOL = (leadersOf.pool || []).slice();   /* 같은 틱에서 바로 읽는다(지역 여러 곳이 번갈아 돌아도 섞이지 않게) */
-  try { await updateLead(lawd, LPOOL, sale, months); } catch (e) { console.warn(lawd, "대장 실거래 장부 실패:", e.message); }
+  var LMUST = []; ["59", "84"].forEach(function (bk) { ((LDR && LDR[bk]) || []).forEach(function (x) { LMUST.push(x.dong + "|" + x.apt); }); });
+  try { await updateLead(lawd, LPOOL, sale, months, LMUST); } catch (e) { console.warn(lawd, "대장 실거래 장부 실패:", e.message); }
   var curP = cur.filter(priced), prvP = prv.filter(priced);
   var thisYear = Math.floor(ym / 100);
   var oddS = dropOdd(lawd, groups.slice().sort(function (a, b) { return b.n - a.n; }), cur, "매매", thisYear);
@@ -583,6 +589,24 @@ async function news() {
   today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   var codes = regionCodes(), t0 = Date.now();
   console.log("지역 " + codes.length + "곳 · 기준일 " + dayN(today) + " · " + SITE);
+  /* v13.2 LEAD_ONLY=1 — 대장 실거래 장부만 과거로 채우고 끝낸다(30일 요약·뉴스·brief_data.json 은 건드리지 않음). Actions → Run workflow → 일부만 "lead".
+     LEAD_CODES="11,41" 처럼 시군구 코드 앞자리를 주면 그 지역만(서울 11 · 경기 41 · 인천 28 …). 대장 후보는 이미 있는 장부의 명단, 없으면 최고가 장부(data/highs)의 최근 거래로 같은 규칙에 따라 고른다. */
+  if (process.env.LEAD_ONLY) {
+    var pre = String(process.env.LEAD_CODES || "").split(/[,\s]+/).filter(Boolean), LC = codes.filter(function (c) { return !pre.length || pre.some(function (p) { return c.indexOf(p) === 0; }); }), dn = 0, skip = 0;
+    var PREVL = {}; try { var pb = JSON.parse(fs.readFileSync(path.join(ROOT, "brief_data.json"), "utf8")).regions || {}; Object.keys(pb).forEach(function (c) { if (pb[c] && pb[c].leaders) PREVL[c] = pb[c].leaders; }); } catch (e) {}
+    console.log("대장 실거래 장부만 채우기 — 지역 " + LC.length + "곳" + (pre.length ? "(" + pre.join(",") + ")" : "") + " · 지역마다 " + LEAD_BACKFILL + "개월 · " + LEAD_START + "까지");
+    await Promise.all(LC.map(async function (c) {
+      try { var g0 = loadLead(c), pool = [], add = function (ak) { if (ak && pool.indexOf(ak) < 0) pool.push(ak); };
+        /* 후보 순서: ① 어젯밤 요약(brief_data.json)에 적힌 대장 3곳 — 밤 실행과 같은 단지여야 다시 훑는 일이 없다 ② 이미 있는 장부의 명단 ③ 최고가 장부로 같은 규칙에 따라 고른 후보 */
+        var pl = PREVL[c] || {}; ["59", "84"].forEach(function (bk) { (pl[bk] || []).forEach(function (x) { add(x.dong + "|" + x.apt); }); });
+        ((g0 && g0.want) || []).forEach(add);
+        if (pool.length < 10) { var hi0 = loadHi(c); if (hi0 && hi0.l) { leadersOf(c, hi0, [], [], today); (leadersOf.pool || []).forEach(add); } }
+        if (!pool.length) { skip++; return; } await updateLead(c, pool, [], [], []); } catch (e) { console.warn(c, "실패:", e.message); }
+      dn++; if (dn % 25 === 0) console.log(dn + "/" + LC.length + " · 호출 " + CALLS + " · " + Math.round((Date.now() - t0) / 1000) + "초");
+    }));
+    console.log("대장 실거래 장부 — " + LEAD_STAT.n + "곳 · 거래 " + LEAD_STAT.trades + "건 · " + LEAD_START + "까지 채운 지역 " + LEAD_STAT.done + "/" + LEAD_STAT.n + " · 가장 덜 채운 곳 " + LEAD_STAT.minFrom + "부터 · 대장 후보를 못 고른 지역 " + skip + " · 호출 " + CALLS + " · 실패호출 " + FAILS + " · " + Math.round((Date.now() - t0) / 1000) + "초");
+    return;
+  }
   var out = { v: 1, asOf: dayN(today), builtAt: new Date().toISOString(), window: [dayN(shiftDay(today, -30)), dayN(today)],
               regions: {}, failed: [], news: null };
   var done = 0;

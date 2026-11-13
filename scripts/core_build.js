@@ -155,3 +155,61 @@ var out = { v: 1, built: new Date().toISOString().slice(0, 10), src: (base.src |
 fs.writeFileSync(OUT_P, JSON.stringify(out));
 fs.writeFileSync(GRP_P, JSON.stringify(groupsLedger));
 console.log("market_core.json — " + base.m0 + " ~ " + idxYm(lastI) + " (" + M + "개월, 저장본 " + lastYm + " + 자동 " + added + "개월, 잠정 " + prov.join("·") + ") · " + Math.round(fs.statSync(OUT_P).size / 1024) + "KB");
+
+
+/* ══ v13.0 대장 단지 vs 전체 단지 — 연도별 84㎡·59㎡ 중위가를 같은 저장본(trades/{시군구}.json)에서 뽑아 data/monthly/_lead.json 에 쓴다 ══
+   대장 = brief_build 의 대장아파트(면적대마다 3곳: 500세대 이상·준공 20년 안을 먼저, 그 안에서 최근 거래 ㎡당가 높은 순). 지금의 대장 명단을 과거 연도에도 그대로 적용한다
+   (새 단지는 준공 뒤 해부터 값이 생김 — 해마다 값이 있는 대장 수를 ln 에 적는다).
+   전체 = 그 시군구 모든 단지의 그 면적대 연 중위가를 거래 건수로 가중한 중위. 대장·전체가 같은 자료·같은 규칙이라 그대로 견줄 수 있다.
+   실거래 호출 없음(파일만 읽음). 실패해도 본 작업(market_core.json)에는 영향이 없다. */
+(function leadBuild() {
+  try {
+    var B = readJson(path.join(ROOT, "brief_data.json")), TR = path.join(ROOT, "trades"); if (!B || !B.regions || !fs.existsSync(TR)) { console.log("대장 비교: brief_data.json 또는 trades/ 없음 — 건너뜀"); return; }
+    var norm = function (x) { return String(x || "").replace(/\s+/g, "").replace(/아파트$/, ""); };
+    var wmed = function (vals) { vals = vals.filter(function (v) { return v[0] != null && v[1] > 0; }).sort(function (a, b) { return a[0] - b[0]; }); var tot = vals.reduce(function (a, v) { return a + v[1]; }, 0); if (!tot) return null; var acc = 0; for (var i = 0; i < vals.length; i++) { acc += vals[i][1]; if (acc >= tot / 2) return vals[i][0]; } return vals[vals.length - 1][0]; };
+    var at = function (ser, i) { if (!ser) return [null, 0]; var j = i - (ser.o || 0); return j >= 0 && j < ser.p.length ? [ser.p[j], (ser.c && ser.c[j]) || 0] : [null, 0]; };
+    var out = { v: 1, built: new Date().toISOString().slice(0, 10), rule: "연 중위가(만원) · 전체 = 모든 단지의 연 중위를 건수로 가중한 중위 · 대장 = 대장 3곳의 연 중위 평균(값이 있는 곳만) · 대장 명단은 그날의 brief_data", y0: null, years: null, r: {} }, nReg = 0, nMatch = 0, nLead = 0;
+    Object.keys(B.regions).forEach(function (code) {
+      var L = B.regions[code].leaders; if (!L) return; var T = readJson(path.join(TR, code + ".json")); if (!T || !T.cx) return;
+      if (out.y0 == null) { out.y0 = T.y0; out.years = T.years; } var Y = T.years, idx = {}; T.cx.forEach(function (c) { idx[norm(c.d) + "|" + norm(c.n)] = c; });
+      var o = {}, any = false;
+      ["84", "59"].forEach(function (bk) {
+        var LL = (L[bk] || []).slice(0, 3); if (!LL.length) return; var bands = (T.bands || []).map(Number);
+        var M = LL.map(function (x) { nLead++; var c = idx[norm(x.dong) + "|" + norm(x.apt)]; if (!c) { var nd = norm(x.dong), na = norm(String(x.apt).replace(/\(.*?\)/g, "")), C = T.cx.filter(function (q) { if (norm(q.d) !== nd) return false; var nq = norm(String(q.n).replace(/\(.*?\)/g, "")); return nq && na && (nq === na || (na.length >= 4 && nq.indexOf(na) === 0) || (nq.length >= 4 && na.indexOf(nq) === 0)); }); if (C.length === 1) c = C[0]; }   /* 괄호(동 번호 등)만 다른 이름은 같은 동 안에서 하나로 정해질 때만 */ if (!c) return null; var ks = bands.slice().sort(function (a, b) { return Math.abs(a - x.ar) - Math.abs(b - x.ar); }), key = null; for (var k = 0; k < ks.length && k < 2; k++) if (c.s && c.s[String(ks[k])]) { key = String(ks[k]); break; } if (!key) return null; nMatch++; return { x: x, s: c.s[key], r: c.r && c.r[key] }; });
+        var a = [], l = [], ln = [], ra = [], rl = [], an = [];
+        for (var i = 0; i < Y; i++) {
+          var sv = [], rv = []; T.cx.forEach(function (c) { if (c.s && c.s[bk]) sv.push(at(c.s[bk], i)); if (c.r && c.r[bk]) rv.push(at(c.r[bk], i)); });
+          a.push(wmed(sv)); ra.push(wmed(rv)); an.push(sv.reduce(function (q, v) { return q + (v[0] != null ? v[1] : 0); }, 0));
+          var lv = M.filter(Boolean).map(function (m) { return at(m.s, i)[0]; }).filter(function (v) { return v != null; }), lr = M.filter(Boolean).map(function (m) { return at(m.r, i)[0]; }).filter(function (v) { return v != null; });
+          l.push(lv.length ? Math.round(lv.reduce(function (q, v) { return q + v; }, 0) / lv.length) : null); ln.push(lv.length); rl.push(lr.length ? Math.round(lr.reduce(function (q, v) { return q + v; }, 0) / lr.length) : null);
+        }
+        if (l.some(function (v) { return v != null; })) { o[bk] = { a: a, l: l, ln: ln, an: an, ra: ra, rl: rl, nm: LL.map(function (x, k) { return x.apt + (M[k] ? "" : "*"); }) }; any = true; }
+      });
+      if (any) { out.r[code] = o; nReg++; }
+    });
+    /* ── v13.1 대장 실거래 지수(월) — data/highs/lead/{시군구}.json 의 거래 한 건 한 건으로 만든다 ──
+       단지마다 그 달 거래의 ㎡당가 중위 → 거래 없는 달은 직전 값 유지 → 지수는 '두 달 모두 값이 있는 단지'들의 전월 대비 평균을 이어 붙인다(단지가 바뀌어도 수준이 튀지 않게).
+       lv = 지금 대장 3곳의 최근 값 평균 × 면적(84 또는 59) · ix = 이어 붙인 지수(마지막 달 = 100) · n = 그 달 실제 거래 수 · k = 값이 있는 대장 수 · rc = 최근 거래 8건 */
+    try {
+      var LDIR = path.join(ROOT, "data", "highs", "lead"), nowYm = kstYm(), mN = 0, mTrades = 0, lb = function (a) { return a < 55 ? "S" : a < 70 ? "59" : a < 95 ? "84" : "L"; }, med = function (A) { A = A.slice().sort(function (x, y) { return x - y; }); var h = A.length >> 1; return A.length % 2 ? A[h] : (A[h - 1] + A[h]) / 2; };
+      if (fs.existsSync(LDIR)) Object.keys(B.regions).forEach(function (code) {
+        var G = readJson(path.join(LDIR, code + ".json")), L = B.regions[code].leaders; if (!G || !G.t || !L) return; var from = G.from || nowYm, i0 = ymIdx(from), N = ymIdx(nowYm) - i0 + 1; if (N < 3) return;
+        var M = {};
+        ["84", "59"].forEach(function (bk) {
+          var LL = (L[bk] || []).slice(0, 3).map(function (x) { return x.dong + "|" + x.apt; }); if (!LL.length) return;
+          var per = LL.map(function (ak) { var by = {}; (G.t[ak] || []).forEach(function (r) { if (lb(r[2]) !== bk) return; var i = ymIdx(Math.floor(r[0] / 100)) - i0; if (i < 0 || i >= N) return; (by[i] = by[i] || []).push(r[1] / r[2]); }); var raw = [], ff = [], last = null; for (var i = 0; i < N; i++) { raw.push(by[i] ? med(by[i]) : null); if (by[i]) last = raw[i]; ff.push(last); } return { raw: raw, ff: ff, n: by }; });
+          var ix = [], n = [], k = [], cur = 100; for (var i = 0; i < N; i++) { var cnt = 0, kk = 0; per.forEach(function (p) { if (p.n[i]) cnt += p.n[i].length; if (p.ff[i] != null) kk++; }); n.push(cnt); k.push(kk);
+            if (i > 0) { var R = per.filter(function (p) { return p.ff[i] != null && p.ff[i - 1] != null; }).map(function (p) { return p.ff[i] / p.ff[i - 1]; }); if (R.length) cur *= R.reduce(function (a, v) { return a + v; }, 0) / R.length; } ix.push(kk ? cur : null); }
+          var lastV = per.map(function (p) { return p.ff[N - 1]; }).filter(function (v) { return v != null; }); if (!lastV.length) return; var base = ix[N - 1];
+          var rc = []; LL.forEach(function (ak) { (G.t[ak] || []).forEach(function (r) { if (lb(r[2]) === bk) rc.push([r[0], ak.split("|")[1], r[2], r[3], r[1]]); }); }); rc.sort(function (a, b) { return b[0] - a[0]; });
+          M[bk] = { lv: Math.round(lastV.reduce(function (a, v) { return a + v; }, 0) / lastV.length * Number(bk)), ix: ix.map(function (v) { return v == null ? null : Math.round(v / base * 10000) / 100; }), n: n, k: k, rc: rc.slice(0, 8), tot: n.reduce(function (a, v) { return a + v; }, 0) }; mTrades += M[bk].tot;
+        });
+        if (Object.keys(M).length) { (out.r[code] = out.r[code] || {}).m = { from: from, b: M }; mN++; }
+      });
+      out.v = 2; out.mrule = "월 지수 = 대장 3곳의 실거래(직거래 제외) ㎡당가 월 중위를 단지별로 잇고, 두 달 모두 값이 있는 단지의 전월 대비 평균을 이어 붙임 · 거래 없는 달은 직전 값";
+      console.log("대장 실거래 지수(월) — 지역 " + mN + "곳 · 거래 " + mTrades + "건" + (fs.existsSync(LDIR) ? "" : " · 장부(data/highs/lead) 아직 없음"));
+    } catch (e) { console.log("대장 실거래 지수 만들기 실패: " + e.message); }
+    fs.mkdirSync(MO_DIR, { recursive: true }); fs.writeFileSync(path.join(MO_DIR, "_lead.json"), JSON.stringify(out));
+    console.log("대장 비교(_lead.json) — 지역 " + nReg + "곳 · 대장 " + nMatch + "/" + nLead + "곳을 저장본과 이름으로 맞춤 · " + Math.round(fs.statSync(path.join(MO_DIR, "_lead.json")).size / 1024) + "KB");
+  } catch (e) { console.log("대장 비교 만들기 실패(본 작업과 무관): " + e.message); }
+})();

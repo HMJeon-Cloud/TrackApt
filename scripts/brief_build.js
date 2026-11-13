@@ -212,6 +212,7 @@ function dropOdd(lawd, list, all, kindName, thisYear) {
      같은 단계 안에서는 최근 12개월 안 가장 최근 거래의 ㎡당 가격이 높은 순.
    세대수는 kapt/{코드}.json(이름·지번 짝짓기), 준공연도·거래는 실거래. 세대수 자료가 아예 없는 지역은 준공 20년 이내만으로 고른다.
    값은 '같은 면적의 가장 최근 거래'(직거래 제외), 전고점은 2020년 이후 같은 면적 최고가. */
+var LEAD_RULE = String(process.env.LEAD_RULE || "price");   /* v13.4 "price" = 실거래 금액순(기본) · "tier" = 예전 규칙(대단지·신축 먼저) */
 function lbOf(area) { return area < 55 ? "S" : area < 70 ? "59" : area < 95 ? "84" : "L"; }
 function leadersOf(lawd, hi, sale, cur, today) {
   leadersOf.pool = [];
@@ -246,14 +247,26 @@ function leadersOf(lawd, hi, sale, cur, today) {
       if (!best) return;
       var h = hh[i], by = YR[ak] || null, young = by && by >= Y - 20;
       var tier = anyHH ? (h >= 500 && young ? 1 : h >= 300 ? 2 : h >= 150 ? 3 : 9) : (young ? 1 : 9);
-      if (tier > 3) return;
+      if (LEAD_RULE !== "price" && tier > 3) return;
       cand.push({ apt: groups[i].apt, dong: groups[i].dong, hh: h || null, by: by, ar: best.ar, p: best.p, mx: [best.mx[0], best.mx[1]],
         n30: N30[ak + "|" + bk] || 0, tier: tier, ppm: best.p[0] / best.ar });
     });
-    cand.sort(function (a, b) { return a.tier - b.tier || b.ppm - a.ppm; });
-    if (cand.length) { if (bk === "59" || bk === "84") cand.slice(0, 5).forEach(function (c) { leadersOf.pool.push(c.dong + "|" + c.apt); });   /* v13.1 대장 실거래 장부용 후보(면적대마다 5곳) */
+    if (LEAD_RULE === "price") cand.sort(function (a, b) { return b.p[0] - a.p[0] || b.p[1] - a.p[1]; });   /* v13.4 실거래가 그대로 — 그 면적대에서 가장 비싸게 팔린 순(세대수·준공연도는 보지 않음, 참고로만 적는다) */
+    else cand.sort(function (a, b) { return a.tier - b.tier || b.ppm - a.ppm; });
+    if (cand.length) { cand.slice(0, bk === "59" || bk === "84" ? 5 : 3).forEach(function (c) { leadersOf.pool.push(c.dong + "|" + c.apt); });   /* 대장 실거래 장부용 후보(59·84는 5곳, 소형·대형은 3곳) */
       out[bk] = cand.slice(0, 3).map(function (c) { delete c.ppm; return c; }); }
   });
+  /* v13.5 평단가 대장 "P" — 평형을 가리지 않고 ㎡당 실거래가가 가장 높은 3곳. 단지마다 최근 1년 안 면적별 가장 최근 거래 중 ㎡당가가 제일 높은 것을 그 단지의 값으로 본다 */
+  var pc = [];
+  aks.forEach(function (ak, i) {
+    var best = null;
+    Object.keys(L[ak]).forEach(function (ar) { var r = L[ak][ar], a = Number(ar); if (!(a > 0) || r[1] <= cut) return; var pp = r[0] / a; if (!best || pp > best.ppm) best = { ar: a, p: r, mx: (M[ak] && M[ak][ar]) || r, ppm: pp }; });
+    if (!best) return;
+    pc.push({ apt: groups[i].apt, dong: groups[i].dong, hh: hh[i] || null, by: YR[ak] || null, ar: best.ar, p: best.p, mx: [best.mx[0], best.mx[1]], n30: ["S", "59", "84", "L"].reduce(function (q, b) { return q + (N30[ak + "|" + b] || 0); }, 0), pm: Math.round(best.ppm), ppm: best.ppm });
+  });
+  pc.sort(function (a, b) { return b.ppm - a.ppm || b.p[1] - a.p[1]; });
+  if (pc.length) { pc.slice(0, 5).forEach(function (c) { leadersOf.pool.push(c.dong + "|" + c.apt); }); out.P = pc.slice(0, 3).map(function (c) { delete c.ppm; return c; }); }
+  leadersOf.pool = leadersOf.pool.filter(function (ak, i, a) { return a.indexOf(ak) === i; });
   return out;
 }
 
@@ -345,27 +358,27 @@ async function updateHi(lawd, sealTo, lTarget) {
   return h;
 }
 /* ── 대장 실거래 장부 data/highs/lead/{lawd}.json (v13.1) ──────────────────
-   '대장 기준 지수'를 연 중위가가 아니라 거래 한 건 한 건으로 만들기 위한 장부. 대장(59·84㎡, 면적대마다 후보 5곳)의 직거래 아닌 매매를 모두 적어 둔다.
+   '대장 기준 지수'를 연 중위가가 아니라 거래 한 건 한 건으로 만들기 위한 장부. 대장(소형·59·84·대형·평단가)과 그 후보 단지의 직거래 아닌 매매를 면적 가리지 않고 모두 적어 둔다(v13.5 장부 v2).
      · 매일: 이미 받은 최근 4개월 거래에서 대장 단지 것만 골라 그 달들을 통째로 갈아 끼운다(뒤늦은 신고·해제 반영, 추가 호출 없음).
      · 과거: 매일 밤 지역마다 LEAD_BACKFILL_MONTHS(기본 12)개월씩 LEAD_START(기본 2015.01)까지 거슬러 올라간다 — 253곳 × 12 ≈ 3,000회/일, 약 11일이면 끝나고 그 뒤 추가 호출 0.
      · 처음 보는 단지가 '대장 3곳'에 오르면 그 지역만 과거를 다시 훑는다(이미 적힌 달은 갈아 끼우므로 겹치지 않는다). 후보 4~5번째만 바뀐 것으로는 다시 받지 않는다(v13.2).
      · LEAD_ONLY=1 이면 이 장부만 채우고 끝낸다(v13.2 · Actions 일부만 "lead").
-   모양: { v:1, from:YYYYMM(여기까지 훑음), want:["동|단지"…최대 12], t:{ "동|단지": [[YYYYMMDD, 금액(만원), 전용㎡, 층], …] } } */
+   모양: { v:2, from:YYYYMM(여기까지 훑음), want:["동|단지"…최대 30], t:{ "동|단지": [[YYYYMMDD, 금액(만원), 전용㎡, 층], …] } } */
 var LEAD_DIR = path.join(HI_DIR, "lead"), LEAD_START = Number(process.env.LEAD_START || 201501), LEAD_BACKFILL = Number(process.env.LEAD_BACKFILL_MONTHS == null ? 12 : process.env.LEAD_BACKFILL_MONTHS), LEAD_CALLS = 0, LEAD_STAT = { done: 0, n: 0, minFrom: 0, trades: 0 };
-function loadLead(lawd) { try { var g = JSON.parse(fs.readFileSync(path.join(LEAD_DIR, lawd + ".json"), "utf8")); return g && g.v === 1 ? g : null; } catch (e) { return null; } }
+function loadLead(lawd) { try { var g = JSON.parse(fs.readFileSync(path.join(LEAD_DIR, lawd + ".json"), "utf8")); return g && g.v === 2 ? g : null; }   /* v13.5 장부 v2 — 모든 면적을 적는다(v1 은 59·84만 있어 처음부터 다시 받는다) */ catch (e) { return null; } }
 function foldLeadMonth(g, list, W, ym) {
   Object.keys(g.t).forEach(function (ak) { g.t[ak] = g.t[ak].filter(function (r) { return Math.floor(r[0] / 100) !== ym; }); });
-  list.forEach(function (t) { if (!priced(t)) return; var ak = t.dong + "|" + t.apt; if (!W[ak]) return; var bk = lbOf(t.area); if (bk !== "59" && bk !== "84") return; var d = dnum(t); if (Math.floor(d / 100) !== ym) return; (g.t[ak] || (g.t[ak] = [])).push([d, t.amount, Math.round(t.area * 10) / 10, Number(t.floor) || 0]); });
+  list.forEach(function (t) { if (!priced(t)) return; var ak = t.dong + "|" + t.apt; if (!W[ak]) return; var d = dnum(t); if (Math.floor(d / 100) !== ym) return; (g.t[ak] || (g.t[ak] = [])).push([d, t.amount, Math.round(t.area * 10) / 10, Number(t.floor) || 0]); });
 }
 async function updateLead(lawd, pool, sale, months, must) {
   if (!pool || !pool.length) return;
-  var g = loadLead(lawd) || { v: 1, from: null, want: [], t: {} };
+  var g = loadLead(lawd) || { v: 2, from: null, want: [], t: {} };
   /* 과거를 다시 훑는 것은 '지금의 대장 3곳(must)'에 처음 보는 단지가 들어왔을 때만 — 후보(4~5번째)가 바뀐 것만으로는 다시 받지 않는다 */
   var part = g.part || [];   /* part = 과거를 훑던 도중에 후보로 들어와 옛 거래가 비어 있을 수 있는 단지 — 이런 단지가 대장 3곳에 오르면 그때 다시 훑는다 */
   var isNew = g.from != null && (must || []).some(function (ak) { return g.want.indexOf(ak) < 0 || part.indexOf(ak) >= 0; });
   if (g.from != null && !isNew) pool.forEach(function (ak) { if (g.want.indexOf(ak) < 0 && part.indexOf(ak) < 0) part.push(ak); });
   if (g.from == null || isNew) part = [];
-  var want = pool.concat(g.want.filter(function (ak) { return pool.indexOf(ak) < 0; })).filter(function (ak, i, a) { return a.indexOf(ak) === i; }).slice(0, 12), W = {}; want.forEach(function (ak) { W[ak] = 1; });
+  var want = pool.concat(g.want.filter(function (ak) { return pool.indexOf(ak) < 0; })).filter(function (ak, i, a) { return a.indexOf(ak) === i; }).slice(0, 30), W = {}; want.forEach(function (ak) { W[ak] = 1; });
   Object.keys(g.t).forEach(function (ak) { if (!W[ak]) delete g.t[ak]; }); g.want = want; part = part.filter(function (ak) { return W[ak]; }); if (part.length) g.part = part; else delete g.part;
   var byM = {}; months.forEach(function (m) { byM[m] = []; }); sale.forEach(function (t) { var m = Math.floor(dnum(t) / 100); if (byM[m]) byM[m].push(t); });
   months.forEach(function (m) { foldLeadMonth(g, byM[m], W, m); });
@@ -464,7 +477,7 @@ async function summarize(lawd, today) {
     return g;
   });
   var LDR = leadersOf(lawd, hi, sale, cur, today), LPOOL = (leadersOf.pool || []).slice();   /* 같은 틱에서 바로 읽는다(지역 여러 곳이 번갈아 돌아도 섞이지 않게) */
-  var LMUST = []; ["59", "84"].forEach(function (bk) { ((LDR && LDR[bk]) || []).forEach(function (x) { LMUST.push(x.dong + "|" + x.apt); }); });
+  var LMUST = []; ["59", "84", "P"].forEach(function (bk) { ((LDR && LDR[bk]) || []).forEach(function (x) { LMUST.push(x.dong + "|" + x.apt); }); });
   try { await updateLead(lawd, LPOOL, sale, months, LMUST); } catch (e) { console.warn(lawd, "대장 실거래 장부 실패:", e.message); }
   var curP = cur.filter(priced), prvP = prv.filter(priced);
   var thisYear = Math.floor(ym / 100);
@@ -598,9 +611,9 @@ async function news() {
     await Promise.all(LC.map(async function (c) {
       try { var g0 = loadLead(c), pool = [], add = function (ak) { if (ak && pool.indexOf(ak) < 0) pool.push(ak); };
         /* 후보 순서: ① 어젯밤 요약(brief_data.json)에 적힌 대장 3곳 — 밤 실행과 같은 단지여야 다시 훑는 일이 없다 ② 이미 있는 장부의 명단 ③ 최고가 장부로 같은 규칙에 따라 고른 후보 */
-        var pl = PREVL[c] || {}; ["59", "84"].forEach(function (bk) { (pl[bk] || []).forEach(function (x) { add(x.dong + "|" + x.apt); }); });
+        var pl = PREVL[c] || {}; ["59", "84", "P", "S", "L"].forEach(function (bk) { (pl[bk] || []).forEach(function (x) { add(x.dong + "|" + x.apt); }); });
         ((g0 && g0.want) || []).forEach(add);
-        if (pool.length < 10) { var hi0 = loadHi(c); if (hi0 && hi0.l) { leadersOf(c, hi0, [], [], today); (leadersOf.pool || []).forEach(add); } }
+        if (pool.length < 16) { var hi0 = loadHi(c); if (hi0 && hi0.l) { leadersOf(c, hi0, [], [], today); (leadersOf.pool || []).forEach(add); } }
         if (!pool.length) { skip++; return; } await updateLead(c, pool, [], [], []); } catch (e) { console.warn(c, "실패:", e.message); }
       dn++; if (dn % 25 === 0) console.log(dn + "/" + LC.length + " · 호출 " + CALLS + " · " + Math.round((Date.now() - t0) / 1000) + "초");
     }));

@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=13.1">
+<link rel="stylesheet" href="style.css?v=13.5">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v13.1</span>
+    <span class="ver">v13.5</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=13.1"></script>
+<script src="cards.js?v=13.5"></script>
 <script>
 "use strict";
 
@@ -701,8 +701,8 @@ function buildBrief(root) {
         '<button type="button" data-b="59">59㎡대</button><button type="button" data-b="84">84㎡대</button><button type="button" data-b="L">대형</button></div>' +
       '<div id="bf-top" style="margin-top:12px"></div></div>' +
     '<div class="card"><h2>대장아파트</h2>' +
-      '<p class="desc">사람들이 그 동네 시세로 떠올리는 <b>신축·대단지 대장아파트</b>를 지역·평형마다 3곳씩 보여 줍니다. ' +
-        '고르는 법: ① 500세대 이상이면서 준공 20년 이내 단지 중 최근 1년 거래의 ㎡당 가격이 높은 순, 3곳이 안 차면 ② 300세대 이상 → ③ 150세대 이상에서 채웁니다. ' +
+      '<p class="desc">사람들이 그 동네 시세로 떠올리는 <b>가장 비싸게 거래되는 대장아파트</b>를 지역·평형마다 3곳씩 보여 줍니다. ' +
+        '고르는 법: 실거래가 그대로 — 단지마다 최근 1년 안 가장 최근 거래(직거래 제외)를 보고, 그 면적대에서 비싸게 팔린 순으로 3곳. 세대수·연식은 보지 않습니다(참고로만 표시). ' +
         '값은 같은 면적의 가장 최근 실거래(직거래 제외), 최고가는 2020년 이후 같은 면적 최고 실거래입니다. 세대수는 K-apt 단지 정보입니다. 매수 권유가 아니라 시세 참고용입니다. 지역 줄을 누르면 3곳이 펼쳐집니다.</p>' +
       '<div class="seg" id="bf-lband"><button type="button" data-lb="84" class="on">84㎡</button><button type="button" data-lb="59">59㎡</button>' +
         '<button type="button" data-lb="S">소형</button><button type="button" data-lb="L">대형</button></div>' +
@@ -1263,7 +1263,7 @@ function bfLiveCardList(per) {
   if (on("lead") && typeof chLeadOn === "function" && chLeadOn()) { var lb = BRIEF.lband || "84", lr = chLeadRows(L.codes, lb).sort(function (a, b) { return b.avg - a.avg; });
     if (lr.length) paged("lead", "대장", { tag: "대장 " + (CH_LBN[lb] || "84㎡"), q: sc + " 대장아파트 " + (CH_LBN[lb] || "84㎡") + ",<br>3곳 시세",
       a: "1위 <b>" + escHtml(chName(lr[0].k)) + "</b> 대장 평균 <b>" + eok(lr[0].avg) + "</b>" + (lr[0].med ? " · 가운데값의 " + lr[0].x.toFixed(1) + "배" : "") + " · " + lr.length + "개 지역",
-      how: "대장 = 500세대↑·20년 이내 중 ㎡당가 상위 3곳(없으면 300→150세대) · 값 = 같은 면적 최근 실거래 · 괄호 = 2020년 이후 최고가 대비" },
+      how: "대장 = 최근 1년 실거래가 상위 3곳(단지별 최근 거래 · 직거래 제외) · 값 = 같은 면적 최근 실거래 · 괄호 = 2020년 이후 최고가 대비" },
       lr.map(function (r, i) {
         return { html: '<div class="chc-row chc-grp"><div class="chc-gh"><b>' + (i + 1) + ". " + escHtml(chName(r.k)) + (r.med ? "<small>가운데값의 " + r.x.toFixed(1) + "배</small>" : "") + "</b><em><small>평균</small>" + eok(r.avg) + "</em></div>" +
           r.L.map(function (t) { var dv = (t.p[0] / t.mx[0] - 1) * 100, top = dv >= -0.05;
@@ -1460,7 +1460,7 @@ var CH_HELP_TEXT =
     '<li><b>월세 비중</b>: 전월세 계약 중 월세(반전세 포함)의 비율입니다. 오르면 전세보다 월세를 택하는 사람이 늘었다는 뜻입니다.</li>' +
     '<li><b>오늘 기사</b>: 구글 뉴스에서 “아파트 실거래”, “부동산 규제·대출·분양”으로 찾은 최신 기사 제목입니다.</li></ul></div>' +
   '<div class="note"><b>대장아파트 — 숫자 읽는 법</b><ul>' +
-    '<li><b>대장아파트</b>: 사람들이 그 동네 시세로 떠올리는 신축·대단지. 지역·평형마다 3곳을 고릅니다 — ① 500세대 이상이면서 준공 20년 이내 단지 중 최근 1년 거래의 ㎡당 가격이 높은 순, 3곳이 안 차면 ② 300세대 이상 → ③ 150세대 이상에서 채웁니다.</li>' +
+    '<li><b>대장아파트</b>: 사람들이 그 동네 시세로 떠올리는 가장 비싼 단지. 지역·평형마다 3곳을 고릅니다 — 단지마다 최근 1년 안 가장 최근 실거래(직거래 제외)를 보고 비싸게 팔린 순. 세대수·연식은 보지 않습니다.</li>' +
     '<li><b>값</b>: 그 단지 같은 면적의 <b>가장 최근 실거래</b>(직거래 제외). 날짜(’26.9 등)를 함께 적습니다.</li>' +
     '<li><b>대장 vs 가운데값</b>: 대장 3곳 평균이 그 지역 같은 평형 실거래 가운데값의 몇 배인지. 가운데값은 오래된·작은 단지까지 섞여 “생각보다 싸게” 보이는 착시가 있어 나란히 보여 줍니다.</li>' +
     '<li><b>최고가 대비</b>: 2020년 이후 같은 단지·같은 면적 최고 실거래와 가장 최근 거래의 차이.</li>' +
@@ -2078,11 +2078,11 @@ var CH_MORE = [
   [/^서울 구별/, "같은 서울이라도 회복 속도는 크게 다릅니다. 상급지가 먼저 오르고 외곽이 뒤따르는 '키 맞추기'가 반복돼 왔습니다."],
   [/^하락/, "과거 하락기의 낙폭과 회복 기간은 지금 위치를 가늠하는 기준점입니다. 다만 금리·공급·정책이 달라 같은 패턴이 반복된다는 보장은 없습니다."],
   [/^1년 상승률/, "1년 상승률은 최근 흐름의 강도를 보여 줍니다. 많이 오른 곳은 다음 해 상승 폭이 줄기도 하니, 고점 대비 위치(MDD)와 함께 보세요."],
-  [/시세$|시세 ·/, "시세 지도의 값은 그 지역 같은 면적 거래의 가운데값입니다. 신축·대단지 대장아파트는 이보다 비싼 경우가 많습니다(대장아파트 카드 참고)."],
+  [/시세$|시세 ·/, "시세 지도의 값은 그 지역 같은 면적 거래의 가운데값입니다. 대장아파트는 이보다 비싼 경우가 많습니다(대장아파트 카드 참고)."],
   [/^예산별/, "필요 현금은 대출 한도(LTV·총액 한도)만 반영했습니다. 실제로는 소득(DSR)에 따라 대출이 더 줄 수 있으니 은행 상담으로 확인하세요."],
   [/^갈아타기/, "갈아타기는 두 동네의 가격 차이가 좁을 때 유리합니다. 차이는 더 좁아질 수도 다시 벌어질 수도 있으니, 내 집 매도 시점과 함께 계획하세요."],
   [/^내 집 마련/, "필요 현금 = 집값 − 대출 + 취득세·중개보수·등기·이사비. 생애최초·신생아 특례 등 정책 대출을 쓰면 더 줄어들 수 있습니다."],
-  [/^대장 시세/, "대장아파트는 그 동네 시세의 '천장'입니다. 가운데값과 차이가 클수록 신축·대단지 선호가 강한 동네입니다."],
+  [/^대장 시세/, "대장아파트는 그 동네 시세의 '천장'입니다. 가운데값과 차이가 클수록 대장 단지 선호가 강한 동네입니다."],
   [/^대장 vs/, "가운데값에는 오래된 소규모 단지까지 섞여 있어 '생각보다 싸네'로 보이기 쉽습니다. 사람들이 체감하는 시세는 대장 쪽에 가깝습니다."],
   [/^대장 TOP/, "대장은 세대수·준공연도 기준으로 고른 '시세 기준점'입니다. 매수 추천이 아니며, 같은 단지라도 동·층·향에 따라 값 차이가 큽니다."],
   [/^기준금리/, "기준금리가 내려가도 대출금리는 몇 달 늦게 따라 내려옵니다. 은행 금리는 국고채·은행채 금리를 먼저 보세요."],
@@ -2702,7 +2702,7 @@ function chScopeCards(codes, band, scopeNm) {
 }
 
 /* ══ 대장아파트 (v7.1) ═══════════════════════════════════════════════
-   brief_data 의 regions[].leaders[평형] — 지역마다 신축·대단지 대장 3곳(선정 기준은 scripts/brief_build.js leadersOf).
+   brief_data 의 regions[].leaders[평형] — 지역마다 실거래가 상위 대장 3곳(선정 기준은 scripts/brief_build.js leadersOf).
    가운데값만 보면 '생각보다 싸네'가 되기 쉬워, 대장 3곳 평균과 지역 가운데값을 나란히 보여 준다. */
 var CH_LBN = { S: "소형", 59: "59㎡", 84: "84㎡", L: "대형" };
 function chLbk(band) { return band === "59" || band === "S" || band === "L" ? band : "84"; }
@@ -2725,7 +2725,7 @@ function chLeadCards(codes, band, scopeNm) {
   if (!chLeadOn()) return [];
   var bk = chLbk(band), bn = CH_LBN[bk], rows = chLeadRows(codes, bk), C = [], sc = escHtml(scopeNm || "이 범위");
   if (!rows.length) return C;
-  var how0 = "대장 = 500세대↑·20년 이내 중 ㎡당가 상위 3곳 · 값 = 같은 면적 최근 실거래";
+  var how0 = "대장 = 최근 1년 실거래가 상위 3곳 · 값 = 같은 면적 최근 실거래";
   var multi = rows.length > 1, byAvg = rows.slice().sort(function (a, b) { return b.avg - a.avg; });
   /* 1 대장 시세 지도 */
   if (multi && rows.length <= 25) {
@@ -2774,7 +2774,7 @@ function chLeadText(codes, scopeNm) {
   if (!chLeadOn()) return "대장아파트 자료는 다음 새벽 수집(v7.1 스크립트)부터 들어옵니다.";
   var rows = chLeadRows(codes, "84").sort(function (a, b) { return b.avg - a.avg; }), L = [];
   L.push("[대장아파트 시세] " + scopeNm + " 84㎡ | " + chToday());
-  L.push("가운데값만 보면 '생각보다 싸네' 싶지만, 다들 보는 건 신축·대단지 대장의 값입니다.");
+  L.push("가운데값만 보면 '생각보다 싸네' 싶지만, 다들 보는 건 가장 비싼 대장의 값입니다.");
   L.push("");
   L.push("■ 지역별 대장 3곳 평균 (84㎡, 높은 순)");
   rows.slice(0, 10).forEach(function (r, i) {
@@ -2783,7 +2783,7 @@ function chLeadText(codes, scopeNm) {
   var vs = rows.filter(function (r) { return r.x; });
   if (vs.length) { L.push(""); L.push("■ " + scopeNm + " 대장 평균은 가운데값의 " + (vs.reduce(function (a, r) { return a + r.x; }, 0) / vs.length).toFixed(1) + "배"); }
   L.push("");
-  L.push("대장 = 지역마다 500세대 이상·준공 20년 이내(모자라면 300·150세대 이상) 단지 중 최근 1년 ㎡당 거래가가 높은 3곳. 값은 같은 면적의 가장 최근 실거래(직거래 제외).");
+  L.push("대장 = 지역마다 최근 1년 실거래가가 가장 높은 3곳(단지별 가장 최근 거래 기준). 값은 같은 면적의 가장 최근 실거래(직거래 제외).");
   L.push(CH_FOOT + " 특정 단지 매수 권유가 아닙니다.");
   L.push("@uphill.lab");
   L.push("#대장아파트 #아파트시세 #부동산");
@@ -3172,7 +3172,7 @@ var CH_TERMS = [
   ["갭", "매매가 − 전세 보증금", ["전세를 끼고 살 때 실제로 드는 돈", "규제지역은 실거주 의무로 전세 끼고 매수 불가", "갭이 작다고 좋은 집은 아님 — 전세가 높은 이유를 봐야"]],
   ["LTV · DSR", "집값 대비 한도 · 소득 대비 한도", ["LTV: 규제지역 40%, 그 외 70% (생애최초 우대 있음)", "DSR: 연소득 대비 연간 갚을 돈 40% 안 — 소득이 낮으면 LTV보다 먼저 걸림", "스트레스 금리: 한도 계산에 금리를 더 얹어 한도가 줄어듦"]],
   ["MDD(최대낙폭)", "고점에서 바닥까지 얼마나 빠졌나", ["'-19%' = 고점 100이 81까지 갔다는 뜻", "회복 개월 = 바닥에서 다시 고점을 넘기까지 걸린 시간", "과거 패턴이 반복된다는 보장은 없음"]],
-  ["대장아파트", "그 동네 시세의 기준이 되는 신축·대단지", ["500세대 이상 + 20년 이내 중 ㎡당가 상위 (없으면 300 → 150세대)", "대장이 최고가 근처면 그 지역 상승세가 살아 있다는 신호", "매수 추천이 아니라 '기준점'"]],
+  ["대장아파트", "그 동네에서 가장 비싸게 거래되는 단지", ["최근 1년 실거래가 상위 3곳 (단지별 최근 거래 · 직거래 제외)", "대장이 최고가 근처면 그 지역 상승세가 살아 있다는 신호", "매수 추천이 아니라 '기준점'"]],
   ["입주장 · 일괄거래", "숫자를 왜곡하는 두 가지", ["입주장: 새 아파트 입주 때 전월세 계약이 한 번에 몰림 → 순위에서 제외", "일괄거래: 한 단지를 통째로 사고판 것 → 거래 건수에서 제외", "'거래 급증'을 볼 때 이 둘을 빼야 진짜 손바뀜이 보임"]]
 ];
 function chTermsCards() {
@@ -3636,7 +3636,7 @@ function chTexts(tab, cards, scopeNm) {
   var C = chUniqCards(cards), k = chKstDate(), name = chTabName(tab), date = k.m + "월 " + k.d + "일";
   if (!C.length) return { insta: "", threads: "", reels: "" };
   var head = C[0], q0 = chClean(head.q), a0 = chClean(head.a), basis = head.date && !/\(/.test(head.date) ? head.date : "";
-  var tags = chHashtags(tab), src = "출처: 국토교통부 실거래가 공개시스템" + (tab === "macro" ? " · 한국은행 ECOS · 통계청 KOSIS" : tab === "school" ? " · 학교알리미" : tab === "ripple2" ? " · 대장 = 500세대↑·20년 이내 ㎡당가 상위 3곳" : tab === "ripple" ? " · KB부동산 · 한국부동산원 주간 동향(보도) · 관련 논문" : "");
+  var tags = chHashtags(tab), src = "출처: 국토교통부 실거래가 공개시스템" + (tab === "macro" ? " · 한국은행 ECOS · 통계청 KOSIS" : tab === "school" ? " · 학교알리미" : tab === "ripple2" ? " · 대장 = 최근 1년 실거래가 상위 3곳" : tab === "ripple" ? " · KB부동산 · 한국부동산원 주간 동향(보도) · 관련 논문" : "");
   var tips = (CH_TIPS[tab] || []).slice(0, 2);
   var moreSeen = {}, insights = [];
   C.forEach(function (o) { var m = typeof chMoreOf === "function" ? chMoreOf(String(o.tag).replace(/\s\d+\/\d+$/, "")) : ""; if (m && !moreSeen[m] && insights.length < 2) { moreSeen[m] = 1; insights.push(m); } });
@@ -4174,7 +4174,7 @@ function rpCards() {
   return C;
 }
 /* ══ 대장 Top3 버전 (탭 'ripple2') — 지역별 대장 3곳이 2021~22 고점을 넘었나 ══
-   대장 = 500세대↑·20년 이내 중 ㎡당가 상위 3곳(84㎡). 신고가 = 2023년 이후 거래가 2020~22년 최고가를 넘은 것(최고가 장부 기준).
+   대장 = 최근 1년 실거래가 상위 3곳(84㎡). 신고가 = 2023년 이후 거래가 2020~22년 최고가를 넘은 것(최고가 장부 기준).
    2021년 이후 준공은 2021년 거래가 없어 비교 불가 → 회색, 비율에서 뺌 */
 function rpLeadOf(nm) {
   var k = rpCode(nm), R = typeof CH !== "undefined" && CH.data && CH.data.regions;
@@ -4194,7 +4194,7 @@ function rpLeadData() {
 }
 function rpLeadCards() {
   var D = rpLeadData(); if (!D) return [];
-  var C = [], basis = "대장 실거래 ~" + kstTxt(CH.data.builtAt).split(" ")[0], src = "국토부 실거래 · 대장 = 500세대↑·20년 이내 ㎡당가 상위 3곳(84㎡) · 투자 권유 아님";
+  var C = [], basis = "대장 실거래 ~" + kstTxt(CH.data.builtAt).split(" ")[0], src = "국토부 실거래 · 대장 = 최근 1년 실거래가 상위 3곳(84㎡) · 투자 권유 아님";
   function base(o) { o.dense = true; o.compact = true; o.date = o.date || basis; o.src = o.src || src; if (o.key) { var hd = rpKey(o.key) + (o.colHead || ""); o.body = hd + (o.body || ""); o.bodyHead = hd; } return o; }
   var s4 = D.seoul[3], g3 = D.gg[2];
   /* 1 중위가 vs 대장 */
@@ -4231,7 +4231,7 @@ function rpLeadCards() {
   /* 5 읽는 법 */
   C.push(base({ tag: "읽는 법 · 대장", q: "대장 숫자는 이렇게 읽으세요", key: "<b>대장 = 그 동네 시세의 천장</b>, 중위가 = 그 동네 보통 집 — 둘이 다르면 '양극화' 신호",
     body: chList([
-      ["대장이 먼저, 보통 집이 나중", "신축·대단지에 수요가 먼저 몰리고 오래된 단지가 따라옴", '<em class="rp-w">순서</em>'],
+      ["대장이 먼저, 보통 집이 나중", "가장 비싼 단지에 수요가 먼저 몰리고 나머지가 따라옴", '<em class="rp-w">순서</em>'],
       ["대장 신고가 ≠ 동네 전체 회복", "노도강은 대장 일부만 신고가, 중위가는 아직 고점 아래", '<em class="rp-w">양극화</em>'],
       ["신축은 비교에서 뺐어요", "2021년 이후 입주 단지는 2021년 거래가 없어 신고가 판단 불가", '<em class="rp-w">회색</em>'],
       ["최근 거래 1건이 기준", "대장 값은 같은 면적 최근 실거래 — 한 건으로 흔들릴 수 있음", '<em class="rp-w">주의</em>']
@@ -4244,7 +4244,7 @@ function rpLeadText() {
   var L = ["대장 Top3로 보면 — 중위가로는 아직이라도 대장은 이미 신고가", ""];
   ["seoul", "gg"].forEach(function (w) { L.push(w === "seoul" ? "■ 서울" : "■ 경기"); D[w].forEach(function (a) { L.push(a.no + ". " + a.nm + " — 대장 " + a.lt + "곳 중 " + a.lr + "곳 신고가 · 중위가 고점 대비 " + rpPct(a.vs)); }); L.push(""); });
   L.push("대장은 새 아파트·대단지라 먼저 오르고, 중위가는 오래된 단지까지 섞여 늦게 따라옵니다.");
-  L.push("출처: 국토부 실거래 · 대장 = 500세대 이상·20년 이내 ㎡당가 상위 3곳(84㎡) · 투자 권유 아님 · @uphill.lab");
+  L.push("출처: 국토부 실거래 · 대장 = 최근 1년 실거래가 상위 3곳(84㎡) · 투자 권유 아님 · @uphill.lab");
   return L.join("\n");
 }
 function rpText() {
@@ -4433,7 +4433,7 @@ function ifRippleDeck() {
 /* ── 확산·대장 덱 ── */
 function ifLeadDeck() {
   var D = rpLeadData(); if (!D) return [];
-  var basis = "국토부 실거래 · 대장 = 500세대↑·20년 이내 ㎡당가 상위 3곳(84㎡) · 투자 권유 아님", C = [], s4 = D.seoul[3], g3 = D.gg[2];
+  var basis = "국토부 실거래 · 대장 = 최근 1년 실거래가 상위 3곳(84㎡) · 투자 권유 아님", C = [], s4 = D.seoul[3], g3 = D.gg[2];
   C.push(ifCoverCard("중위가로는 아직,", "대장은 이미 신고가", "", "중위가는 노도강 " + ifPct(s4.vs) + ", 수원권 " + ifPct(g3.vs) + "이지만<br>대장은 " + Math.round(s4.lp) + "%, " + Math.round(g3.lp) + "%가 신고가", null, basis));
   function tiles(list, col) { return '<div class="if-tiles">' + list.map(function (a, i) { return '<div style="--c:' + col[i] + '"><span>' + ifEsc(a.nm) + "</span><b>" + a.lr + "<small>/" + a.lt + "</small></b><em>" + (a.lp != null ? Math.round(a.lp) + "%" : "–") + "</em></div>"; }).join("") + "</div>"; }
   function shareOf(nm) { var L = rpLeadOf(nm); if (!L) return null; var c = L.filter(function (t) { return !t.nb; }); if (!c.length) return null; return c.filter(function (t) { return t.rec; }).length / c.length; }
@@ -11194,9 +11194,9 @@ function ldNm(x) { return String(x.apt || "").replace(/&amp;/g, "&").replace(/;/
   var R = TPR.leaders; if (!R) return;
   R.tpls = ["leaderGrid", "denseTable", "lineTable", "rankGrid", "barRank", "kpiTiles", "issue"]; R.noX = 1; R.per = 4;
   if (R.opts.indexOf("ldv") < 0) R.opts.push("ldv");
-  R.hint = "구·시마다 대장아파트 3곳(500세대↑·20년 이내 중 ㎡당가 상위) — 최근 거래가 · 거래일·층 · 최고가 대비 · 연식 · 세대 · 동. 양식 7종: TOP3 칸 · 표 · 단지 목록 · 거래가 TOP 격자 · 막대 · 숫자 타일 · 지역 한 장씩";
+  R.hint = "구·시마다 대장아파트 3곳(최근 1년 실거래가 상위) — 최근 거래가 · 거래일·층 · 최고가 대비 · 연식 · 세대 · 동. 양식 7종: TOP3 칸 · 표 · 단지 목록 · 거래가 TOP 격자 · 막대 · 숫자 타일 · 지역 한 장씩";
   R.build = function (o, tid) {
-    var D = ldOf(o), rows = D.rows, bn = tprBandNm(D.b), nm = tprScopeNm(o.scope), src = "국토부 실거래 · K-apt 단지 정보 · " + bn + " · 가격 = 그 단지 최근 거래가", foot = "대장 = 500세대↑·20년 이내 중 ㎡당가 상위(없으면 300→150세대) · 매수 추천 아님", all3 = (o.ldv || "1") === "3";
+    var D = ldOf(o), rows = D.rows, bn = tprBandNm(D.b), nm = tprScopeNm(o.scope), src = "국토부 실거래 · K-apt 단지 정보 · " + bn + " · 가격 = 그 단지 최근 거래가", foot = "대장 = 최근 1년 실거래가 상위 3곳 · 매수 추천 아님", all3 = (o.ldv || "1") === "3";
     if (!rows.length) return [];
     var base = { _cat: "deal", src: src, badge: "대장아파트", foot: foot };
     var B = function (x) { var d = tprClone(base); for (var k in x) d[k] = x[k]; return d; };
@@ -12025,7 +12025,7 @@ function rmFit(root) { (root || document).querySelectorAll(".tp-card .rm-wrap").
 (function () { ["tpPaintCard", "tpPaint"].forEach(function (fn) { if (typeof window[fn] !== "function") return; var o = window[fn]; window[fn] = function () { var r = o.apply(this, arguments), go = function () { try { rmFit(); kvEqualize(); } catch (e) {} }; go(); setTimeout(go, 80); setTimeout(go, 450); return r; }; }); })();
 
 /* ══ v13.0 ① 대장 vs 전체(같은 저장본에서 뽑은 연 중위가) ② 홈 '오늘 한눈에' ③ 화면 이름·시인성 정리 ══
-   대장 = 지역마다 84㎡(또는 59㎡) 대장아파트 3곳(500세대 이상·준공 20년 안을 먼저, 그 안에서 최근 거래 ㎡당가 높은 순 — 30일 실거래 화면의 대장과 같은 명단).
+   대장 = 지역마다 84㎡(또는 59㎡) 대장아파트 3곳(최근 1년 실거래가가 가장 높은 순 — 30일 실거래 화면의 대장과 같은 명단).
    전체 = 그 지역 모든 단지. 둘 다 trades/ 저장본의 '연 중위가'라 같은 자·같은 눈금이다(수집기 core_build.js 가 data/monthly/_lead.json 으로 정리).
    한계: 연 단위(올해는 지금까지의 거래) · 지금의 대장 명단을 과거에도 적용(새 단지는 준공 뒤부터) · 대장 3곳이라 표본이 작다 — 화면에 그대로 적는다. */
 var LD = { data: null, loading: null, band: "84", scope: "seoul", sort: "prem", sel: null, tried: false };
@@ -12091,15 +12091,15 @@ function ldPaint() {
   var box = document.getElementById("ld-body"); if (!box) return;
   if (!LD.data) { box.innerHTML = '<div class="card in-sec"><p class="hint"><b>대장 비교 자료(data/monthly/_lead.json)가 아직 없습니다.</b> v13.0 수집기(scripts/core_build.js)를 올린 뒤 새벽 수집이 한 번 돌면 만들어집니다 — 바로 보려면 Actions → Run workflow(비워서 전체).</p></div>'; return; }
   var scNm = tprScopeNm(LD.scope), S = ldSummary(LD.scope, LD.band);
-  var chips = '<div class="ld-ctl"><div class="rg-chips">' + RG_MAIN.map(function (x) { return '<button type="button" class="' + (LD.scope === x[0] ? "on" : "") + '" data-ldsc="' + x[0] + '">' + x[1] + "</button>"; }).join("") + '</div><div class="rg-chips">' + [["84", "84㎡"], ["59", "59㎡"]].map(function (x) { return '<button type="button" class="' + (LD.band === x[0] ? "on" : "") + '" data-ldbd="' + x[0] + '">' + x[1] + "</button>"; }).join("") + "</div></div>";
-  if (!S) { box.innerHTML = '<div class="card in-sec">' + chips + '<p class="hint">' + inE(scNm) + " " + LD.band + "㎡ — 비교할 지역이 3곳 미만입니다(단지별 저장본이 있는 지역만 계산합니다). 범위를 넓혀 보세요.</p></div>"; return; }
+  var chips = '<div class="ld-ctl"><div class="rg-chips">' + RG_MAIN.map(function (x) { return '<button type="button" class="' + (LD.scope === x[0] ? "on" : "") + '" data-ldsc="' + x[0] + '">' + x[1] + "</button>"; }).join("") + '</div><div class="rg-chips">' + LG_BANDS.map(function (x) { return '<button type="button" class="' + (LD.band === x[0] ? "on" : "") + '" data-ldbd="' + x[0] + '">' + x[1] + "</button>"; }).join("") + "</div></div>";
+  if (!S) { box.innerHTML = '<div class="card in-sec">' + chips + '<p class="hint">' + inE(scNm) + " " + lgBn(LD.band) + (LD.band === "84" || LD.band === "59" ? " — 비교할 지역이 3곳 미만입니다(단지별 저장본이 있는 지역만 계산합니다). 범위를 넓혀 보세요." : " — 해마다 보는 연 중위가 비교는 59·84㎡에만 있습니다. 이 기준은 위의 월 실거래 지수로 봅니다.") + "</p></div>"; return; }
   if (!LD.sel || !S.R.some(function (r) { return r.code === LD.sel; })) LD.sel = S.R.slice().sort(function (a, b) { return (b.prem || 0) - (a.prem || 0); })[0].code;
   var sel = S.R.filter(function (r) { return r.code === LD.sel; })[0];
   box.innerHTML = '<div class="card in-sec ld-sec">' + chips + '<p class="fx-head">' + ldHeadline(S, scNm, LD.band) + "</p>" + ldPairsHtml(S) + '<p class="hint">' + inE(scNm) + " " + S.n + "개 지역의 중위 · 전체 = 그 지역 모든 단지, 대장 = 대장 3곳(같은 저장본의 연 중위가). " + S.yr + "년은 지금까지 신고된 거래.</p></div>" +
     '<div class="card in-sec ld-sec"><div class="in-q"><i>표</i>지역별 전체 vs 대장 <small>줄을 누르면 아래 추세가 바뀜</small></div><div class="ld-sortbar"><span>정렬</span>' + LD_SORT.map(function (x) { return '<button type="button" class="' + (LD.sort === x[0] ? "on" : "") + '" data-ldsort="' + x[0] + '">' + x[1] + "</button>"; }).join("") + "</div>" + ldTableHtml(S) + "</div>" +
     '<div class="card in-sec ld-sec"><div class="in-q"><i>선</i>' + inE(sel.nm) + " " + LD.band + "㎡ — 대장과 전체, 해마다 <small>" + inE(sel.names.map(function (n) { return n.replace(/\*$/, ""); }).join(" · ")) + "</small></div>" + ldLineSvg(sel) + '<div class="ld-pairs">' + ldPair("가격(" + sel.yr + ")", sel.all.v, sel.lead.v, ldE, sel.prem ? sel.prem.toFixed(2) + "배" : "") + ldPair("1년", sel.all.y1, sel.lead.y1, ldP, "", 1) + ldPair("5년 연평균", sel.all.c5, sel.lead.c5, ldP, "", 1) + ldPair("10년 연평균", sel.all.c10, sel.lead.c10, ldP, "", 1) + ldPair("고점 뒤 낙폭", sel.all.dd, sel.lead.dd, ldP, "", 1) + ldPair("전세가율", sel.all.jr, sel.lead.jr, function (v) { return v == null ? "–" : v.toFixed(0) + "%"; }, "") + "</div>" +
     (sel.cur ? '<p class="hint">대장 최근 거래 평균 ' + ldE(sel.cur.p) + " · 자기 최고가(2020년 이후) 평균 " + ldE(sel.cur.mx) + " 대비 " + ldP(sel.curVsMx) + " · 최근 30일 거래 " + sel.cur.n30 + "건 · 마지막 거래 " + (sel.cur.last ? chMD(sel.cur.last) : "–") + "</p>" : "") + "</div>" +
-    '<div class="card in-sec ld-sec"><details class="in-det"><summary>읽는 법 · 계산 기준 · 한계</summary><ul class="in-ul"><li><b>대장</b> — 지역마다 그 면적대의 대장아파트 3곳. 500세대 이상이고 준공 20년 안인 단지를 먼저 보고, 그 안에서 최근 거래의 ㎡당 값이 높은 순(30일 실거래 화면의 대장과 같은 명단, 매일 다시 고름).</li><li><b>전체</b> — 그 지역 모든 단지의 그 면적대 연 중위가를 거래 건수로 가중한 중위. 다른 화면의 \'지역 평균\'은 대부분 이 전체 기준이다.</li><li><b>같은 자</b> — 대장·전체 모두 단지별 저장본(연 중위가)에서 뽑는다. 그래서 월 단위가 아니라 연 단위이고, 올해 값은 지금까지 신고된 거래다.</li><li><b>한계</b> — 지금의 대장 명단을 과거에도 적용한다(새 단지는 준공 뒤부터 값이 생김). 대장 3곳은 표본이 작아 한 해 거래가 한두 건이면 값이 출렁인다. 묶음 숫자는 지역별 값의 중위다.</li><li><b>왜 같이 보나</b> — 전체는 시장의 넓이(상승이 어디까지 번졌나), 대장은 사람들이 실제로 바라보는 값과 선행 신호. 대장이 먼저 오르고 전체가 따라오는 구간, 대장이 먼저 꺾이는 구간을 나눠 본다.</li></ul></details></div>';
+    '<div class="card in-sec ld-sec"><details class="in-det"><summary>읽는 법 · 계산 기준 · 한계</summary><ul class="in-ul"><li><b>대장</b> — 지역마다 그 면적대에서 실거래가가 가장 높은 3곳. 단지마다 최근 1년 안 가장 최근 거래(직거래 제외)를 보고 비싸게 팔린 순 — 한 건이라도 최고가에 팔리면 그 단지가 대장이 된다(30일 실거래 화면의 대장과 같은 명단, 매일 다시 고름).</li><li><b>전체</b> — 그 지역 모든 단지의 그 면적대 연 중위가를 거래 건수로 가중한 중위. 다른 화면의 \'지역 평균\'은 대부분 이 전체 기준이다.</li><li><b>같은 자</b> — 대장·전체 모두 단지별 저장본(연 중위가)에서 뽑는다. 그래서 월 단위가 아니라 연 단위이고, 올해 값은 지금까지 신고된 거래다.</li><li><b>한계</b> — 지금의 대장 명단을 과거에도 적용한다(새 단지는 준공 뒤부터 값이 생김). 대장 3곳은 표본이 작아 한 해 거래가 한두 건이면 값이 출렁인다. 묶음 숫자는 지역별 값의 중위다.</li><li><b>왜 같이 보나</b> — 전체는 시장의 넓이(상승이 어디까지 번졌나), 대장은 사람들이 실제로 바라보는 값과 선행 신호. 대장이 먼저 오르고 전체가 따라오는 구간, 대장이 먼저 꺾이는 구간을 나눠 본다.</li></ul></details></div>';
 }
 function buildLead(sec) { sec.innerHTML = '<div class="card in-hd"><div><h2>대장 vs 전체 <small>주인 전용 · 사람들이 보는 값과 시장 전체를 나란히</small></h2><p class="hint" id="ld-basis"></p></div><div class="in-hdbtn"><button type="button" class="btn sm ghost" data-ldrefresh="1">다시 읽기</button></div></div><div id="ld-body"><p class="hint">데이터를 불러오는 중…</p></div>';
   sec.addEventListener("click", function (ev) { var b = ev.target.closest("[data-ldsc],[data-ldbd],[data-ldsort],[data-ldsel],[data-ldrefresh]"); if (!b) return; if (b.dataset.ldsc) { LD.scope = b.dataset.ldsc; LD.sel = null; } if (b.dataset.ldbd) LD.band = b.dataset.ldbd; if (b.dataset.ldsort) LD.sort = b.dataset.ldsort; if (b.dataset.ldsel) LD.sel = b.dataset.ldsel; if (b.dataset.ldrefresh) { LD.data = null; LD.tried = false; LD.loading = null; renderLead(); return; } ldPaint(); }); }
@@ -12134,7 +12134,7 @@ if (typeof TPR !== "undefined") {
   TPR.leadVs = { nm: "대장 vs 전체(지역별)", grp: "대장", opts: ["scope"], tpls: ["denseTable", "barRank", "lineTable"], per: 13, noX: true, hint: "지역마다 84㎡ 대장 3곳과 전체 단지의 연 중위가 — 가격 배수 · 올해 변화 · 10년 연평균. 단지별 저장본(연 단위) 기준이라 올해 값은 지금까지의 거래",
     build: function (o, tid) { if (!LD.tried) { if (!CD_WAIT["대장 비교"]) { CD_WAIT["대장 비교"] = 1; ldLoad(function () { CD_WAIT["대장 비교"] = 0; if (TP.r === "leadVs") tprRebuild(); }); } return []; } if (!LD.data) return []; var S = ldSummary(o.scope || "seoul", "84"); if (!S) return [];
       var R = S.R.slice().sort(function (a, b) { return (b.prem || 0) - (a.prem || 0); }), sn = tprScopeNm(o.scope || "seoul");
-      var base = { noLead: true, _cat: "market", src: "국토부 실거래 · 단지별 연 중위가 " + S.yr + "년(진행 중) · 대장 = 500세대↑·준공 20년 안 우선, ㎡당 최근 거래가 상위 3곳", title: sn + " 대장은 동네 평균의 몇 배일까", sub: "84㎡ · 대장 3곳 ÷ 전체 단지 · 지역 중위 " + (S.prem ? S.prem.toFixed(2) : "–") + "배", badge: "대장", foot: "전체 = 그 지역 모든 단지의 84㎡ 연 중위(건수 가중) · 대장 3곳은 표본이 작아 출렁일 수 있음 · 투자 권유 아님" };
+      var base = { noLead: true, _cat: "market", src: "국토부 실거래 · 단지별 연 중위가 " + S.yr + "년(진행 중) · 대장 = 최근 1년 실거래가 상위 3곳", title: sn + " 대장은 동네 평균의 몇 배일까", sub: "84㎡ · 대장 3곳 ÷ 전체 단지 · 지역 중위 " + (S.prem ? S.prem.toFixed(2) : "–") + "배", badge: "대장", foot: "전체 = 그 지역 모든 단지의 84㎡ 연 중위(건수 가중) · 대장 3곳은 표본이 작아 출렁일 수 있음 · 투자 권유 아님" };
       if (tid === "barRank") return tprItems(base, R.map(function (r) { return [r.gu, (r.prem ? r.prem.toFixed(2) : "–") + "배", "대장 " + ldE(r.lead.v) + " · 전체 " + ldE(r.all.v)]; }), 12);
       return tprPaged(Object.assign(base, { cols: "지역 | 전체 | 대장 | 배수 | 1년(전체·대장)" }), R.map(function (r) { return [r.gu, ldE(r.all.v), ldE(r.lead.v), (r.prem ? r.prem.toFixed(2) : "–") + "배", (r.thin ? "–" : ldP(r.all.y1)) + " · " + ldP(r.lead.y1)]; }), 13); } };   /* 전체 거래가 한 해 20건 미만인 지역의 전체 1년 변화는 카드에 적지 않는다 */
   if (typeof TPR_ORDER !== "undefined" && TPR_ORDER.indexOf("leadVs") < 0) { var _li = TPR_ORDER.indexOf("leaders"); TPR_ORDER.splice(_li >= 0 ? _li + 1 : TPR_ORDER.length, 0, "leadVs"); }
@@ -12174,7 +12174,7 @@ function hmPaint() { var host = document.getElementById("hm-glance"); if (!host)
    대장 = 지수(단지별 ㎡당가 월 중위를 이어 붙임), 전체 = 그 지역 84㎡ 월 중위가(3개월 중위로 다듬음, 확정 달까지). 둘 다 월 단위·실거래. */
 function lmGet(code, bk) { var D = LD.data, o = D && D.r[code] && D.r[code].m; if (!o || !o.b || !o.b[bk]) return null; var b = o.b[bk]; return { from: o.from, i0: maIdxOf(o.from), ix: b.ix, n: b.n, k: b.k, lv: b.lv, rc: b.rc || [], tot: b.tot || 0, N: b.ix.length }; }
 function lmChg(m, back) { var L = m.N - 1; if (L - back < 0 || m.ix[L] == null || m.ix[L - back] == null) return null; return (m.ix[L] / m.ix[L - back] - 1) * 100; }
-function lmAll(code, bk) { try { var a = inSer(bk === "59" ? "a59" : "a84", code); if (!a || a.length < 14) return null; var L = inLastIdx(a); if (L < 0) return null; var sm = []; for (var i = 0; i <= L; i++) sm.push(maSm(a, i)); return { sm: sm, L: L }; } catch (e) { return null; } }
+function lmAll(code, bk) { try { var a = inSer(bk === "59" ? "a59" : bk === "84" ? "a84" : bk === "P" ? "salePm" : "_none", code); if (!a || a.length < 14) return null; var L = inLastIdx(a); if (L < 0) return null; var sm = []; for (var i = 0; i <= L; i++) { var v = maSm(a, i); sm.push(v != null && bk === "P" ? v * 3.3058 : v); }   /* salePm 은 ㎡당 → 평당가로 */ return { sm: sm, L: L }; } catch (e) { return null; } }
 function lmAllChg(A, back) { if (!A || A.L - back < 0 || !A.sm[A.L] || !A.sm[A.L - back]) return null; return (A.sm[A.L] / A.sm[A.L - back] - 1) * 100; }
 function lmRegion(code, bk) {
   var m = lmGet(code, bk); if (!m || m.N < 6) return null; var A = lmAll(code, bk), L = m.N - 1, pk = null; for (var i = 0; i < L; i++) if (m.ix[i] != null && (pk == null || m.ix[i] > pk)) pk = m.ix[i];
@@ -12203,12 +12203,12 @@ function lmSectionHtml() {
   if (!has) return '<div class="card in-sec ld-sec"><div class="in-q"><i>월</i>실거래로 만든 대장 지수 <small>거래 한 건 한 건 · 월 단위</small></div><p class="hint"><b>대장 실거래 장부를 아직 채우지 못했습니다.</b> v13.1 수집기(scripts/brief_build.js · core_build.js)를 올리면 매일 새벽 지역마다 12개월씩 과거로 채워 2015년까지 약 11일이 걸립니다(그 사이에도 채워진 기간만큼은 바로 보입니다). 그 전에는 아래 연 중위가 비교를 쓰세요.</p></div>';
   var S = lmSummary(LD.scope, LD.band), scNm = tprScopeNm(LD.scope); if (S.n < 3) return '<div class="card in-sec ld-sec"><div class="in-q"><i>월</i>실거래로 만든 대장 지수</div><p class="hint">' + inE(scNm) + " — 장부가 채워진 지역이 3곳 미만입니다.</p></div>";
   var sel = S.R.filter(function (r) { return r.code === LD.sel; })[0] || S.R[0], filling = S.from > 201501;
-  var T = []; T.push(scNm + " " + LD.band + "㎡ 대장(실거래) 지금 <b>" + ldE(S.lv) + "</b> · 전체 월 중위 " + ldE(S.av) + "의 " + (S.prem ? S.prem.toFixed(2) : "–") + "배");
+  var T = []; T.push(scNm + " " + lgBn(LD.band) + " 대장(실거래) 지금 <b>" + ldE(S.lv) + (LD.band === "84" || LD.band === "59" ? "" : "/평") + "</b>" + (S.av ? " · 전체 월 중위 " + ldE(S.av) + "의 " + (S.prem ? S.prem.toFixed(2) : "–") + "배" : ""));
   if (S.l12 != null) T.push("1년 새 대장 <b>" + ldP(S.l12) + "</b>" + (S.a12 != null ? " · 전체 " + ldP(S.a12) : "")); if (S.l3 != null) T.push("최근 3개월 대장 " + ldP(S.l3) + (S.a3 != null ? " · 전체 " + ldP(S.a3) : "")); if (S.lpk != null) T.push("대장은 자기 최고점 대비 " + ldP(S.lpk));
   var rcRows = sel.m.rc.map(function (x) { return "<tr><td>" + String(x[0]).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3") + "</td><td class=\"nm\">" + inE(x[1]) + "</td><td>" + x[2] + "㎡</td><td>" + x[3] + "층</td><td><b>" + ldE(x[4]) + "</b></td></tr>"; }).join("");
   return '<div class="card in-sec ld-sec"><div class="in-q"><i>월</i>실거래로 만든 대장 지수 <small>거래 한 건 한 건 · 월 단위 · ' + lmYm(S.from) + "~</small></div><p class=\"fx-head\">" + T.join(". ") + ".</p>" +
-    '<div class="ld-pairs">' + ldPair("지금 가격(" + LD.band + "㎡ 환산)", S.av, S.lv, ldE, S.prem ? "대장이 전체의 " + S.prem.toFixed(2) + "배" : "") + ldPair("3개월", S.a3, S.l3, ldP, "", 1) + ldPair("1년", S.a12, S.l12, ldP, "", 1) + ldPair("3년", S.a36, S.l36, ldP, "", 1) + ldPair("5년", S.a60, S.l60, ldP, "", 1) + ldPair("최고점 대비", S.apk, S.lpk, ldP, "", 1) + "</div>" +
-    '<p class="hint">' + inE(scNm) + " " + S.n + "개 지역의 중위 · 대장 = 대장 3곳 실거래(직거래 제외)로 만든 지수 · 전체 = 그 지역 " + LD.band + "㎡ 월 중위가(3개월 중위, 확정 달까지) · 최근 12개월 대장 거래 " + fmt(S.n12) + "건" + (filling ? " · <b>장부를 채우는 중</b> — 지금 " + lmYm(S.from) + "부터 있고 매일 12개월씩 과거로(3년·5년 칸은 채워지면 나옴)" : "") + "</p>" +
+    '<div class="ld-pairs">' + ldPair(LD.band === "84" || LD.band === "59" ? "지금 가격(" + LD.band + "㎡ 환산)" : "지금 평당가", S.av, S.lv, ldE, S.prem ? "대장이 전체의 " + S.prem.toFixed(2) + "배" : "") + ldPair("3개월", S.a3, S.l3, ldP, "", 1) + ldPair("1년", S.a12, S.l12, ldP, "", 1) + ldPair("3년", S.a36, S.l36, ldP, "", 1) + ldPair("5년", S.a60, S.l60, ldP, "", 1) + ldPair("최고점 대비", S.apk, S.lpk, ldP, "", 1) + "</div>" +
+    '<p class="hint">' + inE(scNm) + " " + S.n + "개 지역의 중위 · 대장 = 대장 3곳 실거래(직거래 제외)로 만든 지수 · 전체 = " + (LD.band === "P" ? "그 지역 모든 거래의 평당가 월 중위(3개월 중위, 확정 달까지)" : LD.band === "84" || LD.band === "59" ? "그 지역 " + LD.band + "㎡ 월 중위가(3개월 중위, 확정 달까지)" : "이 면적대는 전체 값이 없어 대장만 표시") + " · 최근 12개월 대장 거래 " + fmt(S.n12) + "건" + (filling ? " · <b>장부를 채우는 중</b> — 지금 " + lmYm(S.from) + "부터 있고 매일 12개월씩 과거로(3년·5년 칸은 채워지면 나옴)" : "") + "</p>" +
     '<h4>' + inE(sel.nm) + " — 대장 실거래 지수와 전체 <small>아래 표에서 지역을 누르면 바뀜 · 막대 = 그 달 대장 거래 수</small></h4>" + lmChartSvg(sel) +
     (rcRows ? '<details class="in-det" open><summary>대장 최근 실거래 ' + sel.m.rc.length + "건 <small>이 거래들이 지수를 만든다</small></summary><div class=\"in-tblw\"><table class=\"in-tbl ld-tbl rc\"><tr><th>계약일</th><th>단지</th><th>전용</th><th>층</th><th>거래가</th></tr>" + rcRows + "</table></div></details>" : "") +
     '<p class="hint">단지마다 그 달 거래의 ㎡당가 중위를 구해 잇고, 두 달 모두 값이 있는 단지의 전월 대비를 평균해 지수를 이어 붙인다. 거래가 없는 달은 직전 값을 유지한다 — 대장 3곳이라 거래 한 건이 지수를 움직인다(막대가 낮은 달은 참고만).</p></div>';
@@ -12216,6 +12216,61 @@ function lmSectionHtml() {
 (function () { if (typeof ldPaint !== "function") return; var o = ldPaint; ldPaint = function () { o.apply(this, arguments); try { var box = document.getElementById("ld-body"); if (!box || !LD.data) return; var first = box.querySelector(".card.in-sec"); if (!first) return; var d = document.createElement("div"); d.innerHTML = lmSectionHtml(); var node = d.firstChild; var ctl = first.querySelector(".ld-ctl"); if (ctl) { var top = document.createElement("div"); top.className = "card in-sec ld-sec ld-top"; top.appendChild(ctl); box.insertBefore(top, first); } box.insertBefore(node, first); var q = first.querySelector(".fx-head"); if (q && !first.querySelector(".in-q")) { var h = document.createElement("div"); h.className = "in-q"; h.innerHTML = "<i>연</i>연 중위가로 길게 보기 <small>2010년부터 · 단지별 저장본</small>"; first.insertBefore(h, first.firstChild); } } catch (e) { if (typeof appErr === "function") appErr("대장 실거래 지수", e); } }; })();
 /* 한 줄 띠·홈 타일도 실거래 지수가 있으면 그 숫자로 */
 (function () { if (typeof ldStripHtml !== "function") return; var o = ldStripHtml; ldStripHtml = function () { try { var S = LD.data ? lmSummary("seoul", "84") : null; if (S && S.n >= 3 && S.l12 != null) return '<div class="ld-strip" data-ldgo="1"><b>서울 84㎡ · 전체 ↔ 대장(실거래)</b><span><small>가격</small>' + ldE(S.av) + " ↔ <em>" + ldE(S.lv) + "</em> (" + (S.prem ? S.prem.toFixed(2) : "–") + '배)</span><span><small>3개월</small>' + ldP(S.a3) + " ↔ <em>" + ldP(S.l3) + '</em></span><span><small>1년</small>' + ldP(S.a12) + " ↔ <em>" + ldP(S.l12) + '</em></span><span><small>최고점 대비</small>' + ldP(S.apk) + " ↔ <em>" + ldP(S.lpk) + "</em></span><u>자세히</u></div>"; } catch (e) {} return o.apply(this, arguments); }; })();
+
+/* ══ v13.4 격차로 읽는 것 — 대장(실거래가 상위 3곳)과 전체의 차이가 말해 주는 것 ══
+   대장 = 사람들이 '그 동네 값'으로 보는 곳. 전체와의 차이를 ① 쏠림(배수가 벌어지나) ② 누가 더 올랐나 ③ 비싼 곳이 더 오르나 ④ 지금 국면(최근 3개월) ⑤ 최고점 대비 ⑥ 대장 거래 로 읽는다.
+   숫자는 모두 이미 있는 자료(_lead.json 연 중위·월 실거래 지수, market_core 월 중위)에서만 — 새 호출 없음. 값이 없으면 그 줄은 내지 않는다. */
+var LG_BANDS = [["84", "84㎡"], ["59", "59㎡"], ["S", "소형"], ["L", "대형"], ["P", "평단가(전 평형)"]];
+function lgBn(bk) { return { "84": "84㎡대", "59": "59㎡대", S: "소형(55㎡ 미만)", L: "대형(95㎡ 이상)", P: "평단가(전 평형)" }[bk] || bk; }
+function lgRatioAt(r, back) { var o = r.ser, i = r.L - back; return i >= 0 && o.a[i] && o.l[i] ? o.l[i] / o.a[i] : null; }
+function lgCnt(R, f) { var n = 0, t = 0; R.forEach(function (r) { var v = f(r); if (v == null) return; t++; if (v) n++; }); return [n, t]; }
+function lgPhase(r) { if (r.l3 == null || r.a3 == null) return null; var u = 0.5, L = r.l3 > u ? 1 : r.l3 < -u ? -1 : 0, A = r.a3 > u ? 1 : r.a3 < -u ? -1 : 0; return L > 0 && A > 0 ? "both" : L > 0 ? "lead" : A > 0 && L <= 0 ? "rest" : L < 0 && A < 0 ? "down" : "flat"; }
+var LG_PH = { lead: ["대장만 오름", "수요가 가장 비싼 곳에만 붙는 쏠림 구간. 상승 초입이거나 양극화"], both: ["같이 오름", "대장에서 시작한 상승이 지역 전체로 번진 구간"], rest: ["전체만 오름", "대장은 쉬고 나머지가 뒤따라 메우는 구간. 상승 후반에 자주 보임"], down: ["같이 내림", "지역 전체가 약한 구간. 대장이 먼저 멈추는지 볼 것"], flat: ["제자리", "뚜렷한 방향 없음"] };
+function lgItem(k, title, verdict, cls, nums, mean) { return '<div class="lg-it"><i>' + k + '</i><div><small>' + title + '</small><b class="' + (cls || "") + '">' + verdict + "</b><p>" + nums + "</p>" + (mean ? "<em>" + mean + "</em>" : "") + "</div></div>"; }
+function lgSectionHtml() {
+  if (!LD.data) return ""; var scNm = tprScopeNm(LD.scope), bk = LD.band, Y = ldSummary(LD.scope, bk), M = lmSummary(LD.scope, bk), I = [], x2 = function (v) { return v == null ? "–" : v.toFixed(2) + "배"; };
+  var MR = M && M.n >= 3 ? M.R : null, YR = Y ? Y.R.filter(function (r) { return !r.thin; }) : null; if (YR && YR.length < 3) YR = Y.R;
+  /* ① 쏠림 — 대장/전체 배수가 벌어지나(연 중위, 지역 중위) */
+  if (YR && YR.length >= 3) { var g = function (b) { return ldMed(YR.map(function (r) { return lgRatioAt(r, b); })); }, r0 = g(0), r1 = g(1), r5 = g(5), r10 = g(10), wid = lgCnt(YR, function (r) { var a = lgRatioAt(r, 0), b = lgRatioAt(r, 1); return a == null || b == null ? null : a > b; });
+    if (r0 != null && r1 != null) { var d = r0 - r1, v = d > 0.03 ? "벌어지는 중" : d < -0.03 ? "좁혀지는 중" : "거의 그대로";
+      I.push(lgItem("쏠림", "대장이 전체의 몇 배인가", v, d > 0.03 ? "up" : d < -0.03 ? "dn" : "", "올해 <b>" + x2(r0) + "</b> · 작년 " + x2(r1) + (r5 != null ? " · 5년 전 " + x2(r5) : "") + (r10 != null ? " · 10년 전 " + x2(r10) : "") + " · 작년보다 벌어진 지역 " + wid[0] + "/" + wid[1] + "곳", d > 0.03 ? "돈이 가장 비싼 곳으로 몰린다. 같은 지역 안에서도 양극화가 커지는 중" : d < -0.03 ? "나머지 단지가 대장을 따라붙는다. 상승이 번지거나 대장이 먼저 쉬는 중" : "대장과 나머지가 같은 속도로 움직인다")); } }
+  /* ② 누가 더 올랐나 — 1년(월 실거래 지수가 있으면 그것, 없으면 연 중위) */
+  var l1 = null, a1 = null, src1 = "", more = null;
+  if (MR && M.l12 != null && M.a12 != null) { l1 = M.l12; a1 = M.a12; src1 = "최근 12개월 · 실거래 지수"; more = lgCnt(MR, function (r) { return r.l12 == null || r.a12 == null ? null : r.l12 > r.a12; }); }
+  else if (Y && Y.lead.y1 != null && Y.all.y1 != null) { l1 = Y.lead.y1; a1 = Y.all.y1; src1 = (Y.yr - 1) + "→" + Y.yr + " 연 중위"; more = lgCnt(Y.R, function (r) { return r.lead.y1 == null || r.all.y1 == null ? null : r.lead.y1 > r.all.y1; }); }
+  if (l1 != null) { var dd = l1 - a1; I.push(lgItem("속도", "1년 동안 누가 더 올랐나", Math.abs(dd) < 1 ? "비슷하다" : dd > 0 ? "대장이 " + dd.toFixed(1) + "%p 더" : "전체가 " + (-dd).toFixed(1) + "%p 더", Math.abs(dd) < 1 ? "" : dd > 0 ? "up" : "dn", "대장 <b>" + ldP(l1) + "</b> · 전체 " + ldP(a1) + " · 대장이 더 오른 지역 " + more[0] + "/" + more[1] + "곳 <small>(" + src1 + ")</small>", dd >= 1 ? "평균만 보면 실제 체감보다 덜 오른 것으로 보인다. 사람들이 보는 값은 대장 쪽" : dd <= -1 ? "평균이 대장보다 더 움직였다. 싼 단지 거래가 늘며 따라잡는 모양" : "")); }
+  /* ③ 비싼 곳이 더 오르나 — 대장 가격 상위 1/3 지역 vs 하위 1/3 지역의 대장 1년 변화 */
+  var PR = (MR || []).filter(function (r) { return r.lv && r.l12 != null; }), useM = PR.length >= 6; if (!useM) PR = (Y ? Y.R : []).filter(function (r) { return r.lead.v && r.lead.y1 != null; }).map(function (r) { return { lv: r.lead.v, l12: r.lead.y1, gu: r.gu }; });
+  if (PR.length >= 6) { PR.sort(function (a, b) { return b.lv - a.lv; }); var k = Math.max(2, Math.floor(PR.length / 3)), hi = PR.slice(0, k), lo = PR.slice(-k), hv = ldMed(hi.map(function (r) { return r.l12; })), lv = ldMed(lo.map(function (r) { return r.l12; })), d3 = hv - lv;
+    I.push(lgItem("서열", "비싼 지역의 대장이 더 올랐나", Math.abs(d3) < 1 ? "차이 없음" : d3 > 0 ? "비싼 곳이 더 올랐다" : "싼 곳이 더 올랐다", Math.abs(d3) < 1 ? "" : d3 > 0 ? "up" : "dn", "대장 가격 상위 " + k + "곳 <b>" + ldP(hv) + "</b> · 하위 " + k + "곳 " + ldP(lv) + " <small>(" + hi.slice(0, 3).map(function (r) { return inE(r.gu); }).join("·") + " ↔ " + lo.slice(-3).map(function (r) { return inE(r.gu); }).join("·") + ")</small>", d3 >= 1 ? "지역 사이에서도 위쪽으로 쏠린다. 갈아타기 비용(상급지와의 차이)이 커지는 중" : d3 <= -1 ? "상승이 아래쪽 지역으로 내려오는 중. 키 맞추기 구간" : "")); }
+  /* ④ 지금 국면 — 최근 3개월 대장·전체 방향으로 지역을 나눈다 */
+  if (MR) { var G = { lead: [], both: [], rest: [], down: [], flat: [] }, nP = 0; MR.forEach(function (r) { var p = lgPhase(r); if (p) { G[p].push(r); nP++; } });
+    if (nP >= 3) { var top = Object.keys(G).sort(function (a, b) { return G[b].length - G[a].length; })[0];
+      I.push(lgItem("국면", "최근 3개월 어디에 있나", LG_PH[top][0] + " " + G[top].length + "/" + nP + "곳", top === "lead" || top === "both" ? "up" : top === "down" ? "dn" : "", ["lead", "both", "rest", "down", "flat"].filter(function (p) { return G[p].length; }).map(function (p) { return LG_PH[p][0] + " " + G[p].length; }).join(" · ") + " <small>(±0.5% 안은 제자리)</small>", LG_PH[top][1]));
+      LD._ph = G; } else LD._ph = null; } else LD._ph = null;
+  /* ⑤ 최고점 대비 — 누가 먼저 회복했나 */
+  if (MR && M.lpk != null && M.apk != null) { var d5 = M.lpk - M.apk; I.push(lgItem("회복", "자기 최고점에서 얼마나 떨어져 있나", Math.abs(d5) < 1 ? "비슷하다" : d5 > 0 ? "대장이 최고점에 더 가깝다" : "전체가 최고점에 더 가깝다", "", "대장 <b>" + ldP(M.lpk) + "</b> · 전체 " + ldP(M.apk) + " <small>(장부가 있는 기간 안의 최고점)</small>", d5 >= 1 ? "회복은 대장부터 온다. 나머지 단지는 아직 전고점 아래" : d5 <= -1 ? "대장이 최근 고점에서 더 밀렸다. 먼저 오른 만큼 먼저 식는지 볼 것" : "")); }
+  /* ⑥ 대장 거래 — 값이 실제 거래로 받쳐지나 */
+  if (Y && Y.withCur) I.push(lgItem("거래", "대장이 실제로 팔리고 있나", "최근 30일 " + fmt(Y.n30) + "건", "", "대장 거래가 한 건도 없는 지역 " + Y.noTrade + "/" + Y.withCur + "곳" + (MR ? " · 최근 12개월 " + fmt(M.n12) + "건" : ""), Y.noTrade > Y.withCur / 2 ? "절반 넘는 지역에서 대장 거래가 없다. 대장 값은 호가가 아니라 '마지막 거래'라는 점에 주의" : ""));
+  if (!I.length) return "";
+  var ph = ""; if (LD._ph) ph = '<div class="lg-ph">' + ["lead", "both", "rest", "down"].filter(function (p) { return LD._ph[p].length; }).map(function (p) { var A = LD._ph[p].slice().sort(function (a, b) { return (b.l3 - b.a3) - (a.l3 - a.a3); }); return '<div class="' + p + '"><b>' + LG_PH[p][0] + " " + A.length + '</b><span>' + A.slice(0, 10).map(function (r) { return '<u data-ldsel="' + r.code + '">' + inE(r.gu) + " <small>" + ldP(r.l3, 1) + "·" + ldP(r.a3, 1) + "</small></u>"; }).join("") + (A.length > 10 ? "<small>외 " + (A.length - 10) + "</small>" : "") + "</span></div>"; }).join("") + '</div><p class="hint">지역 이름 옆 숫자 = 최근 3개월 대장 · 전체 변화. 누르면 아래 그래프가 그 지역으로 바뀜.</p>';
+  return '<div class="card in-sec ld-sec lg-sec"><div class="in-q"><i>읽기</i>' + inE(scNm) + " " + lgBn(bk) + " — 대장과 전체의 차이로 읽는 것 <small>대장 = " + (bk === "P" ? "평형 가리지 않고 평단가 상위 3곳" : "같은 평형대 실거래가 상위 3곳") + " · 사람들이 그 동네 값으로 보는 곳</small></div><div class=\"lg-grid\">" + I.join("") + "</div>" + ph +
+    '<p class="hint">지역별 값의 중위로 판정한다. 대장은 3곳뿐이라 거래 한 건에 움직이고, 대장 명단이 바뀌면 지수도 그 단지들 기준으로 다시 이어진다. 판단 자료일 뿐 투자 권유 아님.</p></div>';
+}
+(function () { if (typeof ldPaint !== "function") return; var o = ldPaint; ldPaint = function () { o.apply(this, arguments); try { var box = document.getElementById("ld-body"); if (!box || !LD.data) return; var h = lgSectionHtml(); if (!h) return; var d = document.createElement("div"); d.innerHTML = h; var top = box.querySelector(".ld-top"), ref = top ? top.nextSibling : box.firstChild; box.insertBefore(d.firstChild, ref); } catch (e) { if (window.console) console.warn("lg", e); } }; })();
+/* 국면 칸의 지역을 누르면 그 지역으로 */
+document.addEventListener("click", function (e) { var u = e.target && e.target.closest && e.target.closest(".lg-ph u[data-ldsel]"); if (!u) return; LD.sel = u.getAttribute("data-ldsel"); ldPaint(); });
+
+/* v13.5 지역별 월 실거래 지수 표 — 소형·대형·평단가 기준에는 연 단위 표가 없으므로 여기서 지역을 고른다 */
+function lgTableHtml() {
+  if (!LD.data) return ""; var bk = LD.band, M = lmSummary(LD.scope, bk); if (!M || !M.R || !M.R.length) return ""; var py = !(bk === "84" || bk === "59"), R = M.R.slice().sort(function (a, b) { return (b.lv || 0) - (a.lv || 0); });
+  var td = function (v, ld) { return '<td class="' + (ld ? "ld " : "") + ldCls(v) + '">' + ldP(v) + "</td>"; };
+  return '<div class="card in-sec ld-sec lg-tb"><div class="in-q"><i>표</i>' + inE(tprScopeNm(LD.scope)) + " " + lgBn(bk) + " — 지역별 대장(월 실거래 지수) <small>줄을 누르면 그래프가 그 지역으로 바뀜 · " + (py ? "값 = 평당가" : "값 = " + bk + "㎡ 환산") + '</small></div><div class="in-tblw"><table class="in-tbl ld-tbl"><tr><th>지역 · 대장 3곳</th><th class="ld">대장 지금</th><th>전체</th><th>배수</th><th class="ld">대장 3개월</th><th>전체 3개월</th><th class="ld">대장 1년</th><th>전체 1년</th><th class="ld">최고점 대비</th><th>12개월 거래</th></tr>' +
+    R.map(function (r) { var B = ldBrief(r.code, bk) || []; return '<tr data-ldsel="' + r.code + '"' + (r.code === LD.sel ? ' class="sel"' : "") + '><td class="nm"><b>' + inE(r.nm) + "</b><small>" + inE(B.map(function (x) { return x.apt + (bk === "P" && x.ar ? "(" + x.ar + "㎡)" : ""); }).join(" · ")) + '</small></td><td class="ld">' + ldE(r.lv) + "</td><td>" + ldE(r.av) + "</td><td>" + (r.prem ? r.prem.toFixed(2) : "–") + "</td>" + td(r.l3, 1) + td(r.a3) + td(r.l12, 1) + td(r.a12) + td(r.lpk, 1) + "<td>" + fmt(r.n12) + "</td></tr>"; }).join("") + "</table></div>" +
+    '<p class="hint">대장 명단은 그날 기준이고 지수는 그 단지들의 과거 거래로 잇는다. ' + (bk === "P" ? "평단가 대장은 평형을 가리지 않아 초소형·초대형 한 건이 순위를 바꿀 수 있다. " : "") + "값이 '–'인 칸은 그 기간의 장부가 아직 없거나 거래가 없는 것.</p></div>";
+}
+(function () { if (typeof ldPaint !== "function") return; var o = ldPaint; ldPaint = function () { var MS = LD.data ? lmSummary(LD.scope, LD.band) : null; if (MS && MS.R && MS.R.length && !MS.R.some(function (r) { return r.code === LD.sel; }) && !(LD.band === "84" || LD.band === "59")) LD.sel = MS.R.slice().sort(function (a, b) { return (b.lv || 0) - (a.lv || 0); })[0].code;
+  o.apply(this, arguments); try { var box = document.getElementById("ld-body"); if (!box || !LD.data) return; var h = lgTableHtml(); if (!h) return; var d = document.createElement("div"); d.innerHTML = h; var secs = box.querySelectorAll(".card.in-sec"), mon = null; for (var i = 0; i < secs.length; i++) if (/실거래로 만든 대장 지수/.test(secs[i].textContent.slice(0, 40))) { mon = secs[i]; break; } if (mon) box.insertBefore(d.firstChild, mon.nextSibling); else box.appendChild(d.firstChild); } catch (e) { if (window.console) console.warn("lgT", e); } }; })();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

@@ -3194,3 +3194,18 @@ body.adm .in-q{font-size:17px}body.adm .in-q small{font-size:12.5px}
 @media (max-width:700px){.ld-pairs{grid-template-columns:1fr 1fr}.ld-pair .row b{font-size:15px}.ld-pair .row.lead b{font-size:16px}.hm-grid{grid-template-columns:1fr 1fr}.hm-t b{font-size:1.15rem}.ld-strip u{margin-left:0}.in-tbl.ld-tbl td.nm{min-width:120px}}
 .in-tbl.ld-tbl.rc td,.in-tbl.ld-tbl.rc th{text-align:center}.in-tbl.ld-tbl.rc td.nm{text-align:left;min-width:0}.in-tbl.ld-tbl.rc td:last-child{text-align:right}
 .ld-top{padding-bottom:6px}.ld-top .ld-ctl{margin:0}
+/* v13.4 격차로 읽는 것 */
+.lg-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0 10px}
+.lg-it{display:flex;gap:10px;border:1px solid #e4e7ec;border-radius:12px;padding:12px 14px;background:#fff;min-width:0}
+.lg-it>i{font-style:normal;flex:0 0 auto;align-self:flex-start;font-size:12px;font-weight:800;background:#101828;color:#fff;border-radius:6px;padding:3px 8px;white-space:nowrap}
+.lg-it>div{min-width:0}.lg-it small{color:#667085;font-size:12px;font-weight:700}
+.lg-it b{display:block;font-size:17px;letter-spacing:-.02em;margin:2px 0 4px;color:#101828}.lg-it b.up{color:#b42318}.lg-it b.dn{color:#1d4ed8}
+.lg-it p{margin:0;font-size:13px;color:#344054;line-height:1.5}.lg-it p b{display:inline;font-size:inherit;margin:0}.lg-it p small{font-weight:500;font-size:11.5px}
+.lg-it em{display:block;font-style:normal;font-size:12.5px;color:#475467;border-top:1px dashed #e4e7ec;margin-top:6px;padding-top:6px;line-height:1.45}
+.lg-ph{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:4px 0}
+.lg-ph>div{border-radius:10px;padding:9px 11px;background:#f9fafb;border:1px solid #eaecf0;min-width:0}
+.lg-ph>div>b{display:block;font-size:13px;margin-bottom:5px}.lg-ph .lead>b,.lg-ph .both>b{color:#b42318}.lg-ph .down>b{color:#1d4ed8}
+.lg-ph span{display:flex;flex-wrap:wrap;gap:4px 6px}.lg-ph u{text-decoration:none;cursor:pointer;font-size:12.5px;background:#fff;border:1px solid #e4e7ec;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.lg-ph u:hover{border-color:#101828}.lg-ph u small,.lg-ph span>small{color:#667085;font-size:11px}
+@media (max-width:1100px){.lg-grid{grid-template-columns:1fr 1fr}.lg-ph{grid-template-columns:1fr 1fr}}
+@media (max-width:700px){.lg-grid,.lg-ph{grid-template-columns:1fr}}

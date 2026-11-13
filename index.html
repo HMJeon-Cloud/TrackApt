@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=13.5">
+<link rel="stylesheet" href="style.css?v=13.6">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v13.5</span>
+    <span class="ver">v13.6</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=13.5"></script>
+<script src="cards.js?v=13.6"></script>
 <script>
 "use strict";
 
@@ -12271,6 +12271,44 @@ function lgTableHtml() {
 }
 (function () { if (typeof ldPaint !== "function") return; var o = ldPaint; ldPaint = function () { var MS = LD.data ? lmSummary(LD.scope, LD.band) : null; if (MS && MS.R && MS.R.length && !MS.R.some(function (r) { return r.code === LD.sel; }) && !(LD.band === "84" || LD.band === "59")) LD.sel = MS.R.slice().sort(function (a, b) { return (b.lv || 0) - (a.lv || 0); })[0].code;
   o.apply(this, arguments); try { var box = document.getElementById("ld-body"); if (!box || !LD.data) return; var h = lgTableHtml(); if (!h) return; var d = document.createElement("div"); d.innerHTML = h; var secs = box.querySelectorAll(".card.in-sec"), mon = null; for (var i = 0; i < secs.length; i++) if (/실거래로 만든 대장 지수/.test(secs[i].textContent.slice(0, 40))) { mon = secs[i]; break; } if (mon) box.insertBefore(d.firstChild, mon.nextSibling); else box.appendChild(d.firstChild); } catch (e) { if (window.console) console.warn("lgT", e); } }; })();
+
+/* ══ v13.6 대장 vs 전체 — 모바일에서 읽히게 · 대장 명단을 맨 위에 ══
+   ① 대장 명단: 지역마다 고른 기준(84·59·소형·대형·평단가)의 대장 3곳을 이름·면적·최근 실거래가·평당가·거래일로 바로 보여 준다(brief_data 의 leaders 그대로 — 장부가 없어도 나온다).
+   ② 좁은 화면에서는 가로로 긴 표를 지역별 카드로 바꾼다(칸마다 이름표). ③ 구역 바로가기. */
+function lrDate(d) { d = String(d || ""); return d.length === 8 ? d.slice(2, 4) + "." + d.slice(4, 6) + "." + d.slice(6) : "–"; }
+function lrRows(scope, bk) {
+  var codes = typeof tprCodes === "function" ? tprCodes(scope) : [], R = [];
+  codes.forEach(function (c) { var L = ldBrief(c, bk); if (!L) return; var T = L.slice(0, 3).map(function (x) { var pr = x.p && x.p[0], py = pr && x.ar ? pr / x.ar * 3.3058 : null; return { apt: x.apt, dong: x.dong, ar: x.ar, pr: pr, py: py, d: x.p && x.p[1], fl: x.p && x.p[2], by: x.by, hh: x.hh, n30: x.n30 || 0 }; }).filter(function (t) { return t.pr; }); if (!T.length) return;
+    R.push({ code: c, gu: tprGu(c), nm: tprNm(c), T: T, key: bk === "P" ? T[0].py : T[0].pr }); });
+  return R.sort(function (a, b) { return b.key - a.key; });
+}
+function lrCard(r, bk) { return '<div class="lr-c' + (r.code === LD.sel ? " sel" : "") + '" data-ldsel="' + r.code + '"><b>' + inE(r.gu) + "</b><ol>" + r.T.map(function (t) { return "<li><span><strong>" + inE(t.apt) + "</strong><small>" + [t.ar ? t.ar + "㎡" : "", t.fl ? t.fl + "층" : "", lrDate(t.d), t.by ? t.by + "년" : "", t.hh ? fmt(t.hh) + "세대" : ""].filter(Boolean).join(" · ") + "</small></span><em>" + (bk === "P" ? "평당 " + ldE(t.py) + "<small>" + ldE(t.pr) + "</small>" : ldE(t.pr) + "<small>평당 " + ldE(t.py) + "</small>") + "</em></li>"; }).join("") + "</ol></div>"; }
+function lrSectionHtml() {
+  var bk = LD.band, R = lrRows(LD.scope, bk), scNm = tprScopeNm(LD.scope);
+  var rule = bk === "P" ? "평형을 가리지 않고 평단가(㎡당 실거래가)가 높은 순" : lgBn(bk) + " 안에서 실거래가가 높은 순";
+  if (!R.length) return '<div class="card in-sec ld-sec lr-sec" id="lg-ros"><div class="in-q"><i>명단</i>' + inE(scNm) + " " + lgBn(bk) + ' 대장 3곳</div><p class="hint"><b>이 기준의 대장 명단이 아직 없습니다.</b> ' + (bk === "P" ? "평단가 대장은 v13.5 수집기가 전체 실행(Actions → Run workflow, 일부만 칸 비움)을 한 번 돈 뒤부터 나옵니다." : "최근 1년 안에 이 면적대 거래가 있는 단지가 없거나 수집 전입니다.") + "</p></div>";
+  var first = 6, head = R.slice(0, first), rest = R.slice(first), selIn = rest.some(function (r) { return r.code === LD.sel; });
+  return '<div class="card in-sec ld-sec lr-sec" id="lg-ros"><div class="in-q"><i>명단</i>' + inE(scNm) + " " + lgBn(bk) + " 대장 3곳 <small>" + rule + " · 단지마다 최근 1년 안 가장 최근 거래(직거래 제외) · " + R.length + '개 지역</small></div><div class="lr-grid">' + head.map(function (r) { return lrCard(r, bk); }).join("") + "</div>" +
+    (rest.length ? '<details class="in-det lr-more"' + (selIn || LD.rosAll ? " open" : "") + "><summary>나머지 " + rest.length + '개 지역 펼치기</summary><div class="lr-grid">' + rest.map(function (r) { return lrCard(r, bk); }).join("") + "</div></details>" : "") +
+    '<p class="hint">' + (bk === "P" ? "큰 숫자 = 평당가, 작은 숫자 = 그 거래의 금액. " : "큰 숫자 = 최근 실거래가, 작은 숫자 = 평당가. ") + "지역 순서는 1위 대장 값이 높은 순. 지역을 누르면 아래 그래프·표가 그 지역으로 바뀝니다.</p></div>";
+}
+var LG_JUMP = [["ros", "대장 명단"], ["read", "차이 읽기"], ["mon", "월 지수"], ["tb", "지역 표"], ["yr", "연간"]];
+var LG_TBL_Y = [null, "전체 가격", "대장 가격", "배수", "전체 1년", "대장 1년", "전체 10년", "대장 10년", "전체 낙폭", "대장 낙폭", "최고가 대비", "30일 거래"], LG_TBL_M = [null, "대장 지금", "전체", "배수", "대장 3개월", "전체 3개월", "대장 1년", "전체 1년", "최고점 대비", "12개월 거래"];
+(function () { if (typeof ldPaint !== "function") return; var o = ldPaint; ldPaint = function () { o.apply(this, arguments); try { var box = document.getElementById("ld-body"); if (!box || !LD.data) return;
+    /* 구역에 이름표 */
+    var secs = box.querySelectorAll(".card.in-sec"); for (var i = 0; i < secs.length; i++) { var s = secs[i], t = (s.querySelector(".in-q") || s).textContent.slice(0, 40); if (s.classList.contains("lg-sec")) s.id = "lg-read"; else if (s.classList.contains("lg-tb")) s.id = "lg-tb"; else if (/실거래로 만든 대장 지수/.test(t)) s.id = "lg-mon"; else if (/연 중위가로 길게|해마다 보는 연 중위가/.test(s.textContent.slice(0, 80)) && !document.getElementById("lg-yr")) s.id = "lg-yr"; }
+    /* 대장 명단 + 바로가기 */
+    var top = box.querySelector(".ld-top"), d = document.createElement("div"); d.innerHTML = lrSectionHtml(); var ros = d.firstChild; box.insertBefore(ros, top ? top.nextSibling : box.firstChild);
+    if (top && !top.querySelector(".lg-jump")) { var nav = document.createElement("div"); nav.className = "lg-jump"; nav.innerHTML = "<span>바로가기</span>" + LG_JUMP.map(function (x) { return '<button type="button" data-lgjump="' + x[0] + '">' + x[1] + "</button>"; }).join(""); top.appendChild(nav); }
+    /* 표 칸마다 이름표 — 좁은 화면에서 카드로 바뀔 때 쓴다 */
+    var tbs = box.querySelectorAll("table.ld-tbl:not(.rc)"); for (var k = 0; k < tbs.length; k++) { var tb = tbs[k], LB = tb.closest(".lg-tb") ? LG_TBL_M : LG_TBL_Y; tb.classList.add("cardy"); var trs = tb.querySelectorAll("tr"); for (var a = 0; a < trs.length; a++) { var tds = trs[a].children; if (tds[0] && tds[0].tagName === "TH") { trs[a].classList.add("hd"); continue; } for (var c = 0; c < tds.length; c++) if (LB[c]) tds[c].setAttribute("data-l", LB[c]); }
+      /* 좁은 화면에서는 6곳만 먼저(고른 지역은 항상 보임) */
+      var body = tb.querySelectorAll("tr:not(.hd)"), nx = 0; for (var q = 0; q < body.length; q++) if (q >= 6 && !body[q].classList.contains("sel")) { body[q].classList.add("xtra"); nx++; }
+      if (nx && !(tb.parentNode.nextSibling && tb.parentNode.nextSibling.classList && tb.parentNode.nextSibling.classList.contains("lg-allbtn"))) { var key = tb.closest(".lg-tb") ? "m" : "y"; if (LD["all" + key]) tb.classList.add("all"); var bt = document.createElement("button"); bt.type = "button"; bt.className = "lg-allbtn"; bt.setAttribute("data-lgall", key); bt.textContent = LD["all" + key] ? "6곳만 보기" : "나머지 " + nx + "곳 펼치기"; bt.setAttribute("data-n", nx); tb.parentNode.parentNode.insertBefore(bt, tb.parentNode.nextSibling); } }
+  } catch (e) { if (window.console) console.warn("lr", e); } }; })();
+document.addEventListener("click", function (e) { var t = e.target && e.target.closest && e.target.closest("[data-lgjump]"); if (!t) return; var el = document.getElementById("lg-" + t.getAttribute("data-lgjump")); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" }); });
+document.addEventListener("toggle", function (e) { if (e.target && e.target.classList && e.target.classList.contains("lr-more")) LD.rosAll = e.target.open; }, true);
+document.addEventListener("click", function (e) { var t = e.target && e.target.closest && e.target.closest("[data-lgall]"); if (!t) return; var k = "all" + t.getAttribute("data-lgall"); LD[k] = !LD[k]; var tb = t.previousSibling && t.previousSibling.querySelector && t.previousSibling.querySelector("table.cardy"); if (tb) tb.classList.toggle("all", !!LD[k]); t.textContent = LD[k] ? "6곳만 보기" : "나머지 " + t.getAttribute("data-n") + "곳 펼치기"; });
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

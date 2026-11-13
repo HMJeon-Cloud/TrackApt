@@ -3209,3 +3209,40 @@ body.adm .in-q{font-size:17px}body.adm .in-q small{font-size:12.5px}
 .lg-ph u:hover{border-color:#101828}.lg-ph u small,.lg-ph span>small{color:#667085;font-size:11px}
 @media (max-width:1100px){.lg-grid{grid-template-columns:1fr 1fr}.lg-ph{grid-template-columns:1fr 1fr}}
 @media (max-width:700px){.lg-grid,.lg-ph{grid-template-columns:1fr}}
+/* v13.6 대장 명단 · 바로가기 · 모바일 카드 표 */
+.lg-jump{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed #e4e7ec;font-size:12.5px;color:#667085}
+.lg-jump button{border:1px solid #d0d5dd;background:#fff;border-radius:8px;padding:5px 10px;font:inherit;font-size:12.5px;font-weight:700;color:#344054;cursor:pointer}
+.ld-sec{scroll-margin-top:70px}
+.lg-allbtn{display:none}
+.lr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0}
+.lr-c{border:1px solid #e4e7ec;border-radius:12px;padding:11px 13px;background:#fff;cursor:pointer;min-width:0}.lr-c.sel{border-color:#101828;box-shadow:0 0 0 1px #101828 inset;background:#fffbeb}
+.lr-c>b{display:block;font-size:15px;margin-bottom:6px}
+.lr-c ol{list-style:none;margin:0;padding:0;counter-reset:lr}.lr-c li{counter-increment:lr;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid #f2f4f7}
+.lr-c li>span{min-width:0;display:block;padding-left:22px;position:relative}.lr-c li>span::before{content:counter(lr);position:absolute;left:0;top:1px;width:17px;height:17px;border-radius:5px;background:#101828;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.lr-c li:first-child>span::before{background:#b42318}
+.lr-c strong{display:block;font-size:14px;line-height:1.35;word-break:keep-all;overflow-wrap:anywhere}.lr-c li small{display:block;color:#667085;font-size:11.5px;font-weight:500;line-height:1.4}
+.lr-c em{font-style:normal;font-weight:800;font-size:15px;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}.lr-c li:first-child em{color:#b42318}
+.lr-more>summary{cursor:pointer;font-weight:700;font-size:13.5px;padding:6px 0}
+@media (max-width:1100px){.lr-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:700px){
+  .lr-grid{grid-template-columns:1fr}
+  /* 구역 제목: 딱지 + 제목 한 줄, 설명은 아래 줄 */
+  .in-q{display:block;line-height:1.4}.in-q i{display:inline-flex;margin-right:8px;vertical-align:2px;white-space:nowrap}.in-q small{display:block;margin-top:4px;line-height:1.45}
+  /* 가로로 긴 표 → 지역별 카드 */
+  #tab-lead .in-tblw{overflow:visible}
+  #tab-lead table.cardy,#tab-lead table.cardy tbody{display:block;width:100%}
+  #tab-lead table.cardy tr.hd{display:none}
+  #tab-lead table.cardy tr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 6px;border:1px solid #e4e7ec;border-radius:12px;padding:11px 12px;margin:0 0 8px;background:#fff}
+  #tab-lead table.cardy tr.sel{border-color:#101828;background:#fffbeb}
+  #tab-lead table.cardy td{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:5px 7px;border:0;border-radius:8px;background:#f9fafb!important;white-space:normal;font-size:14px;font-weight:700;min-width:0}
+  #tab-lead table.cardy td.ld{background:#fff4f2!important}
+  #tab-lead table.cardy td::before{content:attr(data-l);font-size:10.5px;font-weight:700;color:#667085;line-height:1.3;margin-bottom:1px}
+  #tab-lead table.cardy td.nm{grid-column:1/-1;background:transparent!important;padding:0;min-width:0}#tab-lead table.cardy td.nm::before{display:none}
+  #tab-lead table.cardy td.nm b{font-size:15px}#tab-lead table.cardy td.nm small{font-size:12px}
+  #tab-lead .ld-sortbar{overflow-x:auto;flex-wrap:nowrap;white-space:nowrap;padding-bottom:4px}#tab-lead .ld-sortbar button{flex:0 0 auto}
+  #tab-lead table.cardy:not(.all) tr.xtra{display:none}
+  .lg-allbtn{display:block;width:100%;border:1px solid #d0d5dd;background:#fff;border-radius:10px;padding:10px;font:inherit;font-weight:700;font-size:13.5px;color:#344054;margin:2px 0 8px;cursor:pointer}
+  #tab-lead table.cardy td.nm,#tab-lead table.cardy tr.sel td.nm{box-shadow:none!important;border:0!important}
+  .lg-it{padding:11px 12px}.lg-it b{font-size:16px}
+  .lg-ph u{white-space:normal}
+}

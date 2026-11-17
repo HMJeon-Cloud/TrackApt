@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=13.7">
+<link rel="stylesheet" href="style.css?v=13.8">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v13.7</span>
+    <span class="ver">v13.8</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=13.7"></script>
+<script src="cards.js?v=13.8"></script>
 <script>
 "use strict";
 
@@ -12186,6 +12186,8 @@ function lmRegion(code, bk) {
 }
 function lmSummary(scope, bk) { var R = tprCodes(scope).map(function (c) { return lmRegion(c, bk); }).filter(Boolean); if (R.length < 3) return { R: R, n: R.length }; var g = function (f) { return ldMed(R.map(f)); }, from = Math.max.apply(null, R.map(function (r) { return r.m.from; }));
   return { R: R, n: R.length, from: from, lv: g(function (r) { return r.lv; }), av: g(function (r) { return r.av; }), prem: g(function (r) { return r.prem; }), l3: g(function (r) { return r.l3; }), a3: g(function (r) { return r.a3; }), l12: g(function (r) { return r.l12; }), a12: g(function (r) { return r.a12; }), l36: g(function (r) { return r.l36; }), a36: g(function (r) { return r.a36; }), l60: g(function (r) { return r.l60; }), a60: g(function (r) { return r.a60; }), lpk: g(function (r) { return r.lpk; }), apk: g(function (r) { return r.apk; }), n12: R.reduce(function (a, r) { return a + r.n12; }, 0) }; }
+/* v13.8 장부가 어디까지 채워졌나 — 한두 지역이 하루 늦어도 전체 표기가 그 지역에 끌려가지 않게, 가장 많은 지역의 시작 달을 쓰고 늦은 곳은 따로 센다 */
+function lmFromTxt(S) { var C = {}, best = null; S.R.forEach(function (r) { C[r.m.from] = (C[r.m.from] || 0) + 1; }); Object.keys(C).forEach(function (k) { if (best == null || C[k] > C[best] || (C[k] === C[best] && Number(k) < Number(best))) best = k; }); var lag = S.R.filter(function (r) { return r.m.from > Number(best); }); return lmYm(Number(best)) + "~" + (lag.length ? " (하루 늦은 곳: " + lag.slice(0, 3).map(function (r) { return r.gu; }).join("·") + (lag.length > 3 ? " 외 " + (lag.length - 3) + "곳" : "") + " " + lmYm(Math.max.apply(null, lag.map(function (r) { return r.m.from; }))) + "~)" : ""); }
 function lmYm(ym) { return String(ym).slice(2, 4) + "." + Number(String(ym).slice(4)); }
 function lmYmAt(m, i) { var t = Math.floor(m.from / 100) * 12 + m.from % 100 - 1 + i; return Math.floor(t / 12) * 100 + t % 12 + 1; }
 function lmChartSvg(r) {
@@ -12206,9 +12208,9 @@ function lmSectionHtml() {
   var T = []; T.push(scNm + " " + lgBn(LD.band) + " 대장(실거래) 지금 <b>" + ldE(S.lv) + (LD.band === "84" || LD.band === "59" ? "" : "/평") + "</b>" + (S.av ? " · 전체 월 중위 " + ldE(S.av) + "의 " + (S.prem ? S.prem.toFixed(2) : "–") + "배" : ""));
   if (S.l12 != null) T.push("1년 새 대장 <b>" + ldP(S.l12) + "</b>" + (S.a12 != null ? " · 전체 " + ldP(S.a12) : "")); if (S.l3 != null) T.push("최근 3개월 대장 " + ldP(S.l3) + (S.a3 != null ? " · 전체 " + ldP(S.a3) : "")); if (S.lpk != null) T.push("대장은 자기 최고점 대비 " + ldP(S.lpk));
   var rcRows = sel.m.rc.map(function (x) { return "<tr><td>" + String(x[0]).replace(/(\d{4})(\d\d)(\d\d)/, "$1.$2.$3") + "</td><td class=\"nm\">" + inE(x[1]) + "</td><td>" + x[2] + "㎡</td><td>" + x[3] + "층</td><td><b>" + ldE(x[4]) + "</b></td></tr>"; }).join("");
-  return '<div class="card in-sec ld-sec"><div class="in-q"><i>월</i>실거래로 만든 대장 지수 <small>거래 한 건 한 건 · 월 단위 · ' + lmYm(S.from) + "~</small></div><p class=\"fx-head\">" + T.join(". ") + ".</p>" +
+  return '<div class="card in-sec ld-sec"><div class="in-q"><i>월</i>실거래로 만든 대장 지수 <small>거래 한 건 한 건 · 월 단위 · ' + lmFromTxt(S) + "</small></div><p class=\"fx-head\">" + T.join(". ") + ".</p>" +
     '<div class="ld-pairs">' + ldPair(LD.band === "84" || LD.band === "59" ? "지금 가격(" + LD.band + "㎡ 환산)" : "지금 평당가", S.av, S.lv, ldE, S.prem ? "대장이 전체의 " + S.prem.toFixed(2) + "배" : "") + ldPair("3개월", S.a3, S.l3, ldP, "", 1) + ldPair("1년", S.a12, S.l12, ldP, "", 1) + ldPair("3년", S.a36, S.l36, ldP, "", 1) + ldPair("5년", S.a60, S.l60, ldP, "", 1) + ldPair("최고점 대비", S.apk, S.lpk, ldP, "", 1) + "</div>" +
-    '<p class="hint">' + inE(scNm) + " " + S.n + "개 지역의 중위 · 대장 = 대장 3곳 실거래(직거래 제외)로 만든 지수 · 전체 = " + (LD.band === "P" ? "그 지역 모든 거래의 평당가 월 중위(3개월 중위, 확정 달까지)" : LD.band === "84" || LD.band === "59" ? "그 지역 " + LD.band + "㎡ 월 중위가(3개월 중위, 확정 달까지)" : "이 면적대는 전체 값이 없어 대장만 표시") + " · 최근 12개월 대장 거래 " + fmt(S.n12) + "건" + (filling ? " · <b>장부를 채우는 중</b> — 지금 " + lmYm(S.from) + "부터 있고 매일 12개월씩 과거로(3년·5년 칸은 채워지면 나옴)" : "") + "</p>" +
+    '<p class="hint">' + inE(scNm) + " " + S.n + "개 지역의 중위 · 대장 = 대장 3곳 실거래(직거래 제외)로 만든 지수 · 전체 = " + (LD.band === "P" ? "그 지역 모든 거래의 평당가 월 중위(3개월 중위, 확정 달까지)" : LD.band === "84" || LD.band === "59" ? "그 지역 " + LD.band + "㎡ 월 중위가(3개월 중위, 확정 달까지)" : "이 면적대는 전체 값이 없어 대장만 표시") + " · 최근 12개월 대장 거래 " + fmt(S.n12) + "건" + (filling ? " · <b>장부를 채우는 중</b> — 지금 " + lmFromTxt(S) + " 있고, 수집이 한 번 돌 때마다 12개월씩 과거로 넓어져 2015.1에서 멈춘다(3년·5년 칸은 채워지면 나옴)" : "") + "</p>" +
     '<h4>' + inE(sel.nm) + " — 대장 실거래 지수와 전체 <small>아래 표에서 지역을 누르면 바뀜 · 막대 = 그 달 대장 거래 수</small></h4>" + lmChartSvg(sel) +
     (rcRows ? '<details class="in-det" open><summary>대장 최근 실거래 ' + sel.m.rc.length + "건 <small>이 거래들이 지수를 만든다</small></summary><div class=\"in-tblw\"><table class=\"in-tbl ld-tbl rc\"><tr><th>계약일</th><th>단지</th><th>전용</th><th>층</th><th>거래가</th></tr>" + rcRows + "</table></div></details>" : "") +
     '<p class="hint">단지마다 그 달 거래의 ㎡당가 중위를 구해 잇고, 두 달 모두 값이 있는 단지의 전월 대비를 평균해 지수를 이어 붙인다. 거래가 없는 달은 직전 값을 유지한다 — 대장 3곳이라 거래 한 건이 지수를 움직인다(막대가 낮은 달은 참고만).</p></div>';

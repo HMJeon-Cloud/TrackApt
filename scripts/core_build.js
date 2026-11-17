@@ -200,11 +200,14 @@ console.log("market_core.json — " + base.m0 + " ~ " + idxYm(lastI) + " (" + M 
         var M = {};
         ["84", "59", "S", "L", "P"].forEach(function (bk) {   /* v13.5 소형·대형·평단가(P = 평형 가리지 않고 ㎡당가) 대장도 같은 방법으로 */
           var LL = (L[bk] || []).slice(0, 3).map(function (x) { return x.dong + "|" + x.apt; }); if (!LL.length) return;
-          var per = LL.map(function (ak) { var by = {}; (G.t[ak] || []).forEach(function (r) { if (bk !== "P" && lb(r[2]) !== bk) return; var i = ymIdx(Math.floor(r[0] / 100)) - i0; if (i < 0 || i >= N) return; (by[i] = by[i] || []).push(r[1] / r[2]); }); var raw = [], ff = [], last = null; for (var i = 0; i < N; i++) { raw.push(by[i] ? med(by[i]) : null); if (by[i]) last = raw[i]; ff.push(last); } return { raw: raw, ff: ff, n: by }; });
+          /* v13.7 평단가 대장은 '그 단지를 대장으로 만든 평형대'의 거래만 잇는다 — 한 단지 안에서 60㎡와 134㎡가 달마다 섞이면 ㎡당가가 구성 때문에 출렁인다 */
+          var PB = {}; if (bk === "P") (L[bk] || []).slice(0, 3).forEach(function (x) { PB[x.dong + "|" + x.apt] = lb(x.ar); });
+          var inB = function (ak, r) { return bk === "P" ? lb(r[2]) === PB[ak] : lb(r[2]) === bk; };
+          var per = LL.map(function (ak) { var by = {}; (G.t[ak] || []).forEach(function (r) { if (!inB(ak, r)) return; var i = ymIdx(Math.floor(r[0] / 100)) - i0; if (i < 0 || i >= N) return; (by[i] = by[i] || []).push(r[1] / r[2]); }); var raw = [], ff = [], last = null; for (var i = 0; i < N; i++) { raw.push(by[i] ? med(by[i]) : null); if (by[i]) last = raw[i]; ff.push(last); } return { raw: raw, ff: ff, n: by }; });
           var ix = [], n = [], k = [], cur = 100; for (var i = 0; i < N; i++) { var cnt = 0, kk = 0; per.forEach(function (p) { if (p.n[i]) cnt += p.n[i].length; if (p.ff[i] != null) kk++; }); n.push(cnt); k.push(kk);
             if (i > 0) { var R = per.filter(function (p) { return p.ff[i] != null && p.ff[i - 1] != null; }).map(function (p) { return p.ff[i] / p.ff[i - 1]; }); if (R.length) cur *= R.reduce(function (a, v) { return a + v; }, 0) / R.length; } ix.push(kk ? cur : null); }
           var lastV = per.map(function (p) { return p.ff[N - 1]; }).filter(function (v) { return v != null; }); if (!lastV.length) return; var base = ix[N - 1];
-          var rc = []; LL.forEach(function (ak) { (G.t[ak] || []).forEach(function (r) { if (bk === "P" || lb(r[2]) === bk) rc.push([r[0], ak.split("|")[1], r[2], r[3], r[1]]); }); }); rc.sort(function (a, b) { return b[0] - a[0]; });
+          var rc = []; LL.forEach(function (ak) { (G.t[ak] || []).forEach(function (r) { if (inB(ak, r)) rc.push([r[0], ak.split("|")[1], r[2], r[3], r[1]]); }); }); rc.sort(function (a, b) { return b[0] - a[0]; });
           M[bk] = { lv: Math.round(lastV.reduce(function (a, v) { return a + v; }, 0) / lastV.length * (bk === "84" || bk === "59" ? Number(bk) : 3.3058)), u: bk === "84" || bk === "59" ? "amt" : "py",   /* 59·84 = 그 면적 환산 금액 · 소형·대형·평단가 = 평당가(만원/평) */ ix: ix.map(function (v) { return v == null ? null : Math.round(v / base * 10000) / 100; }), n: n, k: k, rc: rc.slice(0, 8), tot: n.reduce(function (a, v) { return a + v; }, 0) }; mTrades += M[bk].tot;
         });
         if (Object.keys(M).length) { (out.r[code] = out.r[code] || {}).m = { from: from, b: M }; mN++; }

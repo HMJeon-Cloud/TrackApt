@@ -3246,3 +3246,24 @@ body.adm .in-q{font-size:17px}body.adm .in-q small{font-size:12.5px}
   .lg-it{padding:11px 12px}.lg-it b{font-size:16px}
   .lg-ph u{white-space:normal}
 }
+/* v13.7 */
+.l7-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 4px}.l7-bar button{border:1px solid #d0d5dd;background:#fff;border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;color:#344054;cursor:pointer}.l7-bar span{font-size:12.5px;color:#067647;font-weight:700}
+.lr-c u,.l7-thin{text-decoration:none}.l7-hi{color:#b42318;font-weight:800}.l7-old{color:#b54708;font-weight:700}
+.l7-thin{display:inline-block;font-size:11px;font-weight:700;color:#b54708;background:#fffaeb;border:1px solid #fedf89;border-radius:999px;padding:0 7px;margin-left:4px;vertical-align:1px}
+.hint.l7-no{background:#fffaeb;border:1px solid #fedf89;border-radius:10px;padding:8px 11px;color:#7a2e0e}
+.ux7-hide{display:none!important}
+.ux7-more{display:block;width:100%;border:1px solid #d0d5dd;background:#fff;border-radius:10px;padding:12px;font:inherit;font-weight:700;font-size:14px;color:#344054;margin:8px 0;cursor:pointer}
+.ops-card{min-width:0;overflow-wrap:anywhere}
+@media (max-width:700px){
+  .ux7-x{position:relative;border-right:3px solid #d4af6a;border-radius:4px}
+  .ux7-x::before{content:"옆으로 밀어서 더 보기 →";display:block;position:sticky;left:0;font-size:11.5px;font-weight:700;color:#93661b;padding:0 0 5px}
+  #tab-ops [class*="ops-grid"],#tab-ops .ops-cards{grid-template-columns:minmax(0,1fr)!important}
+  /* 누르는 곳은 손가락 크기로 */
+  .infoBtn{position:relative}.infoBtn::after{content:"";position:absolute;inset:-7px}
+  .adm-lnk{padding:9px 0!important;display:inline-block}
+  .shot-btn{padding:6px 10px!important;font-size:12px!important}
+  .infoIn{min-height:32px}
+  #tab-ops input,#tab-ops select{min-height:38px;font-size:15px}
+  #tab-danji .card button,#tab-danji .card select{min-height:36px}
+  .tagmini,.hub-new,.todo{font-size:11px!important}
+}

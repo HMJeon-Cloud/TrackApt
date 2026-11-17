@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=13.6">
+<link rel="stylesheet" href="style.css?v=13.7">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v13.6</span>
+    <span class="ver">v13.7</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=13.6"></script>
+<script src="cards.js?v=13.7"></script>
 <script>
 "use strict";
 
@@ -665,7 +665,7 @@ var BRIEF_MIN = 8;                 /* 지역 순위에 올리는 최소 30일 �
 function buildBrief(root) {
   root.innerHTML =
     '<div class="card"><h2>30일 실거래</h2>' +
-      '<p class="desc">국토부에 <b>최근 30일</b> 신고된 실거래로만 만든 화면입니다. 매일 새벽 3시에 전국 253곳을 새로 모읍니다. ' +
+      '<p class="desc">국토부에 <b>최근 30일</b> 신고된 실거래로만 만든 화면입니다. 매일 새벽에 전국 253곳을 새로 모읍니다. ' +
         '여기 나오는 지역·단지는 <b>참고 후보</b>이지 매수 권유가 아닙니다. 신고 기한이 계약 후 30일이라 최근 2주 숫자는 계속 늘어납니다. ' +
         '카드 이미지는 <b>정기 코너</b>에서 같은 범위·평형으로 만들 수 있습니다(v8.0부터 한곳에서만).</p>' +
       '<div class="seg" id="bf-scope"></div>' +
@@ -894,7 +894,7 @@ function renderBrief() {
   loadBriefNotes(); loadBriefNews();
   loadBriefLive();
 }
-/* brief_data.json 은 GitHub Actions 가 매일 03:00 KST 에 만들어 커밋한다 — 여기서는 읽기만 */
+/* brief_data.json 은 GitHub Actions 가 매일 새벽 KST 에 만들어 커밋한다 — 여기서는 읽기만 */
 function loadBriefLive() {
   var scope = BRIEF.scope, codes = briefCodes(scope);
   if (BRIEF.data) { renderBriefLive(scope, codes, 0); return; }
@@ -953,7 +953,7 @@ function renderBriefLive(scope, codes, remaining) {
     if (!isRegulated(c)) (j.gaps || []).forEach(function (t) { t.k = c; gaps.push(t); });
   });
   var prog = document.getElementById("bf-prog");
-  if (prog) prog.textContent = briefAsOf() + " · 매일 새벽 3시 자동 갱신" + (errs ? " · " + errs + "곳은 수집 실패로 빠졌습니다" : "");
+  if (prog) prog.textContent = briefAsOf() + " · 매일 새벽 자동 갱신" + (errs ? " · " + errs + "곳은 수집 실패로 빠졌습니다" : "");
   /* v9.5: '직전 30일'은 신고가 다 끝난 창이라 항상 줄어 보인다 → 한 달 전 같은 시점에 잰 30일 건수와 견준다(있으면) */
   var lagOk = snN > 0, chg = lagOk ? (snC / snN - 1) * 100 : null;
   var highN = highsAll.length || rows.reduce(function (a, r) { return a + r.high; }, 0);
@@ -1235,7 +1235,7 @@ function bfLiveCardList(per) {
     a: "30일 매매 <b>" + fmt(K.cnt) + "건</b>" + (K.chg != null ? " · 한 달 전 같은 시점 대비 " + chB(K.chg, null, 0) : "") + " · 신고가 <b>" + fmt(K.highN) + "곳</b>",
     body: '<div class="chc-kpis">' + [["30일 매매 신고", fmt(K.cnt) + "<em>건</em>", K.win ? dTxt(K.win[0]) + "~" + dTxt(K.win[1]) : ""], ["최근 7일 계약", fmt(K.week) + "<em>건</em>", "신고 진행 중"], ["값 오른 / 내린", K.pmUp + " / " + K.pmDn, "㎡당 중위 ±3%"]].map(function (p) { return '<div><small>' + p[0] + "</small><b>" + p[1] + "</b><span>" + p[2] + "</span></div>"; }).join("") + "</div>" +
       '<div class="chc-line">전세 신고 ' + fmt(K.rentN) + "건 · 신고가 " + fmt(K.highN) + "곳 · 최근 2주 숫자는 신고 기한(30일) 때문에 계속 늘어남</div>",
-    how: "최근 30일 신고된 아파트 실거래만 · 매일 새벽 3시 수집" });
+    how: "최근 30일 신고된 아파트 실거래만 · 매일 새벽 수집" });
   if (on("hot") && L.hotAll.length) paged("hot", "거래몰림", { tag: "거래 몰리는 곳", q: sc + ",<br>거래가 몰리는 곳은?",
     a: "<b>" + escHtml(chName(L.hotAll[0].k)) + "</b> 직전 30일의 <b>" + L.hotAll[0].vt.toFixed(2) + "배</b> (" + fmt(L.hotAll[0].n) + "건) · " + L.hotAll.length + "곳",
     how: "30일 건수 ÷ 직전 30일 건수 · " + BRIEF_MIN + "건 미만 제외 · 최근분은 신고 진행 중이라 배율이 실제보다 낮게 나옴" },
@@ -1413,7 +1413,7 @@ function ubFit(root) {
 
 /* ══ 정기 코너 (v6.5) ══════════════════════════════════
    SNS·메신저 채널에 그대로 올릴 글과 카드 이미지를 만든다. 부동산 자료만.
-     · 데일리    — brief_data.json (매일 03:00 KST 수집, 최근 30일 실거래)
+     · 데일리    — brief_data.json (매일 새벽 KST 수집, 최근 30일 실거래)
      · MDD·회복  — 월별 저장본 지수(DB.sale, 3개월 이동중위) + 최근 90일 실거래 보정(v6.51)
      · 내 집·갈아타기 — 월별 저장본 ㎡당가·84㎡ 중위(같은 보정) + 앱의 대출·세금 규칙(finance)
    글은 고쳐 쓸 수 있는 칸에 넣고 [복사]로 가져간다. 카드는 360×450 을 3배로 찍어 1080×1350. */
@@ -1436,7 +1436,7 @@ var CH_HELP_TOP =
     '<li><b>올린 뒤</b>: [올림 표시]를 누르면 달력에 기록됩니다. 같은 코너를 하루 두 번 올리지 않게 막아 줍니다.</li></ul></div>' +
   '<div class="note"><b>어디서 가져온 숫자인가요?</b><ul>' +
     '<li><b>국토부 아파트 실거래 신고</b>가 출발점입니다. 아파트를 사고팔거나 전월세 계약을 하면 30일 안에 나라에 신고하는데, 그 신고 내역입니다.</li>' +
-    '<li><b>매일 새벽 3시</b>에 전국 시·군·구의 최근 신고를 자동으로 받아 둡니다(30일 실거래 화면과 같은 자료). 그래서 이 화면은 하루에 한 번 바뀝니다.</li>' +
+    '<li><b>매일 새벽</b>에 전국 시·군·구의 최근 신고를 자동으로 받아 둡니다(30일 실거래 화면과 같은 자료). 그래서 이 화면은 하루에 한 번 바뀝니다.</li>' +
     '<li><b>월별 자료</b>(market_core.json)는 2010년부터 매달 시·군·구별로 정리해 둔 긴 기록입니다. 손으로 갈아 끼우는 파일이라 보통 한두 달 늦습니다.</li>' +
     '</ul></div>' +
   '<div class="note"><b>아파트만 남기는 방법 (허수 줄이기)</b><ul>' +
@@ -3131,7 +3131,7 @@ function chOpsBanner() {
 function chHashtags(tab) { return (CH_TAGS[tab] || []).concat(CH_TAGS_COMMON).join(" "); }
 function chCta(tab) {
   var next = [null, CH_TAB_SHORT[chPlanTheme() || "daily"]];
-  return "매일 새벽 3시, 국토부 실거래 신고로 새로 만듭니다. 저장해 두고 다음 달 같은 숫자와 비교해 보세요.\n" +
+  return "매일 새벽, 국토부 실거래 신고로 새로 만듭니다. 저장해 두고 다음 달 같은 숫자와 비교해 보세요.\n" +
     "궁금한 동네·단지는 댓글로 — 매일 '어제의 부동산', 일요일 한주 정리, 월요일 한주 예상\n" +
     "출처: 국토교통부 실거래가 공개시스템" + (tab === "macro" ? " · 한국은행 ECOS · 통계청 KOSIS" : "") + " · 참고 자료이며 투자 권유가 아닙니다 · @uphill.lab";
 }
@@ -3151,13 +3151,13 @@ function chCoverCard(tab, tags) {
   return { tag: plan, _cover: true, q: title,
     a: k.m + "." + k.d + "(" + days[k.w] + ") · 카드 " + (tags ? tags.length : 0) + "장 · 옆으로 넘겨 보세요 →",
     body: '<div class="chc-toc">' + uniq.slice(0, 9).map(function (t, i) { return '<div><span>' + (i + 1) + "</span>" + escHtml(t) + "</div>"; }).join("") + "</div>",
-    more: "국토부에 신고된 아파트 실거래만 씁니다. 호가·광고가 아니라 실제 계약된 값이고, 매일 새벽 3시에 새로 모읍니다.",
+    more: "국토부에 신고된 아파트 실거래만 씁니다. 호가·광고가 아니라 실제 계약된 값이고, 매일 새벽에 새로 모읍니다.",
     how: "숫자 기준일은 각 카드 머리의 날짜 · 신고 기한(계약 후 30일) 때문에 최근 2주 숫자는 계속 늘어납니다" };
 }
 function chOutroCard(tab) {
   var next = [null, "매일 전일 정리 · 일 한주 정리 · 월 한주 예상"];
   return { tag: "마무리", q: "도움이 됐다면<br>저장해 두세요",
-    a: "매일 새벽 3시, <b>국토부 실거래</b>로 새로 만듭니다",
+    a: "매일 새벽, <b>국토부 실거래</b>로 새로 만듭니다",
     body: chList([["저장·공유", "다음 달 같은 숫자와 비교하면 흐름이 보입니다", "저장"], ["댓글", "궁금한 동네·단지·용어를 남겨 주세요", "댓글"], ["다음 코너", next[1], "매일"], ["@uphill.lab", "우상향연구소 — 숫자로 보는 부동산", "팔로우"]], true),
     more: "모든 숫자는 국토교통부 실거래가 공개시스템" + (tab === "macro" ? "과 한국은행·통계청 공개 자료" : "") + "에서 가져오며, 특정 단지 매수를 권하지 않습니다.",
     how: "참고 자료이며 투자 권유가 아닙니다 · 대출·세금은 금융기관·세무사 확인" };
@@ -5483,7 +5483,7 @@ document.addEventListener("click", function (e) {
 });
 
 /* ══ v9.20 청약 — 일정 미리 보기 화면(#subs) + 오늘 한 장 '청약 한 장' + 릴스 대표 카드 재료 ══
-   자료: daily_data.json → subs.items (청약홈 APT 분양 공고 + 무순위·잔여세대, 주택형별 분양가, 경쟁률). 새벽 3시 갱신.
+   자료: daily_data.json → subs.items (청약홈 APT 분양 공고 + 무순위·잔여세대, 주택형별 분양가, 경쟁률). 새벽 갱신.
    일정 종류: 공고 → 특별공급 → 1순위 → 2순위 → 접수 마감 → 당첨자 발표 → 계약. 날짜는 청약홈 공고 그대로(변경될 수 있어 '공고 보기' 링크를 항상 붙인다). */
 var SB = { area: "all", kind: "all", rent: false, kinds: ["특별공급", "1순위", "2순위", "당첨자 발표", "무순위 접수"], picks: [], card: { mode: "week", off: 0, day: null, item: null } };
 function sbPicked() { var P = SB.picks; return sbItems().filter(function (it) { return P.indexOf(String(it.no)) >= 0; }); }
@@ -5584,7 +5584,7 @@ function sbPaint() {
   if (!X) { meta.innerHTML = "청약 자료가 아직 없습니다. GitHub Secrets 에 <code>DATA_GO_KEY</code>(공공데이터포털 청약홈 API)를 넣고 새벽 수집이 한 번 돌면 나옵니다."; return; }
   var all = sbItems(), L = sbFilter(all), t = sbToday();
   var at = (typeof DY !== "undefined" && DY.data && (DY.data.subsAt || DY.data.builtAt)) || "", hm = at ? new Date(new Date(at).getTime() + 9 * 3600e3).toISOString().slice(11, 16) : "";
-  meta.textContent = "청약홈 " + dyYm(X.asOf) + (hm ? " " + hm : "") + " 수집(새벽 3시·오후 3시) · 공고 " + all.length + "건 · 보이는 " + L.length + "건 · 모집공고일 기준이라 그날 공고는 다음 수집 때 들어옵니다";
+  meta.textContent = "청약홈 " + dyYm(X.asOf) + (hm ? " " + hm : "") + " 수집(새벽·오후) · 공고 " + all.length + "건 · 보이는 " + L.length + "건 · 모집공고일 기준이라 그날 공고는 다음 수집 때 들어옵니다";
   Array.prototype.forEach.call(document.querySelectorAll("#sb-area button"), function (b) { b.classList.toggle("on", b.dataset.sba === SB.area); });
   Array.prototype.forEach.call(document.querySelectorAll("#sb-kind button"), function (b) { b.classList.toggle("on", b.dataset.sbk === SB.kind); });
   Array.prototype.forEach.call(document.querySelectorAll("#sb-kinds [data-sbe]"), function (b) { if (b.dataset.sbe !== "*") b.classList.toggle("on", sbKindOn(b.dataset.sbe)); });
@@ -7611,7 +7611,7 @@ function inDataStatus() {
   var U = D && D.unsold; if (U && U.all) { var ul = inLast(U.all); add("미분양", inYmL(ul[0]), inFresh(U.all, 4) ? "ok" : U.done && !inDoneOk(U) ? "warn" : "stale", (inDoneOk(U) ? "준공 후 전국 있음" : U.done ? "준공 후 값이 전체 미분양과 같음 — 표가 틀려 제외(재수집 필요)" : "준공 후 전국 합계 없음") + (inFresh(U.all, 4) ? "" : " · 오래돼 신호에서 뺌")); } else add("미분양", "", "miss", "");
   var SP = D && D.supply; ["permits", "starts", "completes"].forEach(function (key, i) { var nm = ["인허가", "착공", "준공"][i], o = SP && SP[key], a = o && (o.seoul || o.all); if (a) { var sl = inLast(a); add(nm, inYmL(sl[0]), inFresh(a, 5) ? "ok" : "stale", inFresh(a, 5) ? (o.seoul ? "" : "전국만") : "오래돼 신호에서 뺌"); } else add(nm, "", "miss", "수집 안 됨 — 외부 조사로"); });
   var R = (typeof MACRO !== "undefined" && MACRO.data && MACRO.data.rates) || null; if (R && R.base) add("금리", (R.mortgage ? "주담대 " + inYmL(R.mortgage.t) : "") + (R.base ? " · 기준 " + inYmL(R.base.t) : ""), R.mortgage && inAgeM(R.mortgage.t) > 3 ? "stale" : "ok", "ECOS · 주담대는 전월 평균이라 한 달 늦다"); else add("금리", "", "miss", "macro_data 없음");
-  if (D && D.subs) add("청약", D.subsAt ? "수집 " + String(D.subsAt).slice(5, 16).replace("T", " ") : (D.subs.asOf ? inYmL(D.subs.asOf) : ""), "ok", "청약홈 · 새벽 3시·오후 3시"); else add("청약", "", "miss", "");
+  if (D && D.subs) add("청약", D.subsAt ? "수집 " + String(D.subsAt).slice(5, 16).replace("T", " ") : (D.subs.asOf ? inYmL(D.subs.asOf) : ""), "ok", "청약홈 · 새벽·오후"); else add("청약", "", "miss", "");
   var cx = IN.ctxFile; if (cx) { var ca2 = cx.asOf ? Math.round((Date.now() - Date.parse(cx.asOf)) / 86400000) : null; add("속사정 메모", cx.asOf || "", ca2 != null && ca2 > 21 ? "warn" : "ok", ca2 != null && ca2 > 21 ? ca2 + "일 전 정리 — 규칙이 바뀌었는지 확인" : ""); }
   var T = typeof CH !== "undefined" && CH.data && CH.data.news; if (T && T.topicsAt) add("정책·기사 제목", String(T.topicsAt).slice(0, 10), "ok", ""); 
   var V = typeof CH !== "undefined" && CH.val; if (V && V.checks) { var bad = V.checks.filter(function (c) { return c.level === "error" || c.level === "warn"; }); add("자료 점검(validate)", V.checks.length + "항목", bad.length ? "warn" : "ok", bad.length ? bad.map(function (c) { return c.title; }).slice(0, 4).join(" · ") : "모두 통과"); }
@@ -8480,7 +8480,7 @@ function rpClick(ev) {
 var OPS_REPO = "https://github.com/HMJeon-Cloud/TrackApt";
 var OPS = {
   run: [
-    ["매일 03:00 KST", "전체 수집(실거래 → 월별 잇기 → 금리·정책 → 보조 지표 → 학군 → 점검 → 커밋)", "GitHub Actions 「지금 시장 데이터 갱신」 · 약 10분 · 몇 분 늦게 돌 수 있음"],
+    ["매일 새벽 KST", "전체 수집(실거래 → 월별 잇기 → 금리·정책 → 보조 지표 → 학군 → 점검 → 커밋)", "GitHub Actions 「지금 시장 데이터 갱신」 · 약 10분 · 몇 분 늦게 돌 수 있음"],
     ["매일 15:00 KST", "청약만 다시(그날 올라온 모집공고)", "같은 워크플로, ONLY=subs"],
     ["목요일 15:40 KST", "주간 지수만 다시 — 부동산원이 목 14:00에 그 주(월요일 기준) 지수를 발표하므로 당일 반영(R-ONE 키 RONE_KEY 가 있을 때). 키가 없으면 KOSIS 경유라 1~2주 늦게 들어옴", "같은 워크플로, ONLY=weekly (v11.1)"],
     ["수동", "Actions → Run workflow. 「일부만」에 index,supply,weekly,subs,rates,unsold 중 골라 적으면 그 단계만(2~3분), 비우면 전체", OPS_REPO + "/actions"],
@@ -8488,24 +8488,24 @@ var OPS = {
   ],
   /* 1. 키로 연동 — [키 이름, 보관 위치, 발급·확인처, 가져오는 데이터, 주기, 결과 파일/쓰는 곳, 메모] */
   keyed: [
-    ["MOLIT_API_KEY", "Vercel 환경변수(절대 index.html 에 넣지 않음)", "공공데이터포털 data.go.kr → 「국토교통부 아파트 매매 실거래가 자료」·「전월세」 활용신청 → 마이페이지 인증키", "시군구 253곳 최근 30일 매매·전세·월세 실거래, 신고가, 대장아파트, 역대 최고가 장부, 월별 저장본 자동 잇기", "03:00 전체(약 1,800회/일)", "brief_data.json · market_core.json · data/highs", "앱의 /api/trades 가 키를 대신 들고 호출 — 브라우저엔 키가 안 감"],
-    ["KOSIS_KEY", "GitHub Secrets", "kosis.kr → 공유서비스 → OpenAPI → 인증키 발급(로그인)", "미분양(전국·시도·준공 후) · 부동산원 월간 아파트 매매·전세지수(유형별 표 DT_30404_C012/C013) · 주택건설 인허가·착공·준공 · 주간 아파트 지수(DT_304004_WEEK_002) · 임금(ECOS 실패 시)", "03:00 전체 · 표 번호는 data/daily_codes.json 에 기억(잘못 고르면 그 키만 지우고 재실행)", "daily_data.json(unsold·index·supply·weekly) · macro_data.json(wage)", "표 모양이 달라지면 로그 「분류 단:」 줄로 확인"],
-    ["ECOS_KEY", "GitHub Secrets", "ecos.bok.or.kr → Open API → 인증키 신청", "기준금리(100대 지표·변경일) · 국고채 3년 · 예금은행 주담대·대출평균 금리(신규취급액) · 임금", "03:00 전체", "macro_data.json(rates)", "주담대 평균은 전월 값이라 한 달 늦음"],
-    ["DATA_GO_KEY", "GitHub Secrets", "data.go.kr → 「한국부동산원 청약홈 분양정보 조회 서비스」 활용신청", "APT 분양·무순위·잔여세대 공고, 주택형별 분양가, 1·2순위 경쟁률, 당첨 가점", "03:00 + 15:00(청약만)", "daily_data.json(subs) · data/subs_hist.json", "공고일 기준 과거 45일~앞날 전부 · 같은 단지 중복 제거"],
-    ["FSS_KEY", "GitHub Secrets", "finlife.fss.or.kr 금융상품한눈에 → 오픈API → 인증키", "주담대·전세대출·정기예금·적금 금리(은행·저축은행, 공시월 단위)", "03:00(주 1회 비교 기준 유지) · 일 10,000건 한도", "daily_data.json(rates) · data/rates_hist.json", "금감원 10월 공시는 10월 20일 전후에 올라옴 — 그 전엔 9월 공시가 최신"],
-    ["RONE_KEY", "GitHub Secrets(선택)", "reb.or.kr/r-one → 오픈API 신청", "주간 아파트 매매가격지수 — 키가 있으면 발표 당일(목 15:40) 반영, 없으면 KOSIS 주간 표로 대체 수집(1~2주 지연)", "03:00 · 목 15:40", "daily_data.json(weekly)", "없어도 됨"],
-    ["SCHOOLINFO_API_KEY", "GitHub Secrets", "schoolinfo.go.kr 학교알리미 → 알리미 소식 → OpenAPI 신청", "초·중·고 5,700곳 기본정보·학생수·입학생·전출입 + data/school 의 학업성취 CSV", "03:00 전체", "school_data.json", "학업성취도는 공시 엑셀을 손으로 내려받아 data/school 에 넣음(아래 수동)"],
+    ["MOLIT_API_KEY", "Vercel 환경변수(절대 index.html 에 넣지 않음)", "공공데이터포털 data.go.kr → 「국토교통부 아파트 매매 실거래가 자료」·「전월세」 활용신청 → 마이페이지 인증키", "시군구 253곳 최근 30일 매매·전세·월세 실거래, 신고가, 대장아파트, 역대 최고가 장부, 월별 저장본 자동 잇기", "새벽 전체(약 1,800회/일)", "brief_data.json · market_core.json · data/highs", "앱의 /api/trades 가 키를 대신 들고 호출 — 브라우저엔 키가 안 감"],
+    ["KOSIS_KEY", "GitHub Secrets", "kosis.kr → 공유서비스 → OpenAPI → 인증키 발급(로그인)", "미분양(전국·시도·준공 후) · 부동산원 월간 아파트 매매·전세지수(유형별 표 DT_30404_C012/C013) · 주택건설 인허가·착공·준공 · 주간 아파트 지수(DT_304004_WEEK_002) · 임금(ECOS 실패 시)", "새벽 전체 · 표 번호는 data/daily_codes.json 에 기억(잘못 고르면 그 키만 지우고 재실행)", "daily_data.json(unsold·index·supply·weekly) · macro_data.json(wage)", "표 모양이 달라지면 로그 「분류 단:」 줄로 확인"],
+    ["ECOS_KEY", "GitHub Secrets", "ecos.bok.or.kr → Open API → 인증키 신청", "기준금리(100대 지표·변경일) · 국고채 3년 · 예금은행 주담대·대출평균 금리(신규취급액) · 임금", "새벽 전체", "macro_data.json(rates)", "주담대 평균은 전월 값이라 한 달 늦음"],
+    ["DATA_GO_KEY", "GitHub Secrets", "data.go.kr → 「한국부동산원 청약홈 분양정보 조회 서비스」 활용신청", "APT 분양·무순위·잔여세대 공고, 주택형별 분양가, 1·2순위 경쟁률, 당첨 가점", "새벽 + 오후(청약만)", "daily_data.json(subs) · data/subs_hist.json", "공고일 기준 과거 45일~앞날 전부 · 같은 단지 중복 제거"],
+    ["FSS_KEY", "GitHub Secrets", "finlife.fss.or.kr 금융상품한눈에 → 오픈API → 인증키", "주담대·전세대출·정기예금·적금 금리(은행·저축은행, 공시월 단위)", "새벽(주 1회 비교 기준 유지) · 일 10,000건 한도", "daily_data.json(rates) · data/rates_hist.json", "금감원 10월 공시는 10월 20일 전후에 올라옴 — 그 전엔 9월 공시가 최신"],
+    ["RONE_KEY", "GitHub Secrets(선택)", "reb.or.kr/r-one → 오픈API 신청", "주간 아파트 매매가격지수 — 키가 있으면 발표 당일(목 오후) 반영, 없으면 KOSIS 주간 표로 대체 수집(1~2주 지연)", "새벽 · 목 오후", "daily_data.json(weekly)", "없어도 됨"],
+    ["SCHOOLINFO_API_KEY", "GitHub Secrets", "schoolinfo.go.kr 학교알리미 → 알리미 소식 → OpenAPI 신청", "초·중·고 5,700곳 기본정보·학생수·입학생·전출입 + data/school 의 학업성취 CSV", "새벽 전체", "school_data.json", "학업성취도는 공시 엑셀을 손으로 내려받아 data/school 에 넣음(아래 수동)"],
     ["OWNER_KEY", "Vercel 환경변수", "직접 정한 비밀 문자열", "주인 인증(HMAC 토큰) — 인사이트·브리핑·카드 만들기·보관함 접근", "—", "api/owner.js", "바꾸면 모든 기기에서 다시 로그인"],
     ["OPENAI_API_KEY", "Vercel 환경변수", "platform.openai.com → API keys", "인사이트 「넌 어떻게 생각하는데?」 답 · 카드 AI 배경/전체 그림 · 릴스 설계", "버튼을 누를 때만 호출(자동 없음) · 과금 주의", "api/ai.js · api/img.js", "GEMINI_API_KEY 는 선택(그림 대체)"],
     ["KV_REST_API_URL / TOKEN (또는 UPSTASH_REDIS_REST_URL / TOKEN)", "Vercel 환경변수 — TrackStock 과 같은 방법: Vercel 프로젝트 → Storage → Connect Store → 기존 Upstash Redis(TrackStock 것) 연결하면 KV_REST_API_URL/TOKEN 이 자동 등록 → Redeploy", "TrackStock 과 같은 Upstash DB 를 써도 됨(TrackApt 키는 모두 ta:v: 로 시작, TrackStock 은 sm: 이라 안 겹침)", "보관함: 저장한 카드·양식·속사정 메모·예상 기록·외부 조사 결과 · 오늘 작업 결과(PC·휴대폰 공통)", "쓸 때마다", "api/_vault.js", "무료 한도 안(항목 300개 상한)"]
   ],
   /* 2. 키 없이 자동 */
   auto: [
-    ["구글 뉴스 RSS", "대책·교통·대출 기사 제목 + 상승론/하락론/정책/금리 주제 기사(제목·언론사·날짜·링크)", "03:00", "brief_data.json(news.topics) · macro_data.json(loans.news 등)", "제목만 가져옴 — 본문·숫자는 쓰지 않음(인사이트 「정책·기사 제목」 코너)"],
-    ["정책브리핑 korea.kr RSS", "국토부·금융위 보도자료 제목", "03:00", "data/manual/_inbox.json → 새 대책 후보면 GitHub 이슈로 알림", "요점을 policy.json 에 적으면 다음 날 _inbox 에서 사라짐"],
-    ["주택도시기금 안내 페이지", "디딤돌·신생아 특례 「대출금리 연 x~y%」 범위를 읽어 loans.json 의 수동값과 대조", "03:00", "macro_data.json(loans.auto) · 다르면 _inbox", "페이지 구조가 바뀌면 로그 「범위를 못 찾음」"],
-    ["학교알리미 엑셀 → CSV", "data/school/*.xls 를 CSV 로 변환해 학군 자료에 합침", "03:00(파일이 있을 때)", "data/school/_converted", "엑셀은 손으로 넣음(아래)"],
-    ["데이터 점검", "합계 일치·급변·범위·이상치·학교 연결 23항목 교차 검사", "03:00", "data/validate.json → 데이터 상태 띠 「자료 점검」", "주의가 떠도 수집은 막지 않음"],
+    ["구글 뉴스 RSS", "대책·교통·대출 기사 제목 + 상승론/하락론/정책/금리 주제 기사(제목·언론사·날짜·링크)", "새벽", "brief_data.json(news.topics) · macro_data.json(loans.news 등)", "제목만 가져옴 — 본문·숫자는 쓰지 않음(인사이트 「정책·기사 제목」 코너)"],
+    ["정책브리핑 korea.kr RSS", "국토부·금융위 보도자료 제목", "새벽", "data/manual/_inbox.json → 새 대책 후보면 GitHub 이슈로 알림", "요점을 policy.json 에 적으면 다음 날 _inbox 에서 사라짐"],
+    ["주택도시기금 안내 페이지", "디딤돌·신생아 특례 「대출금리 연 x~y%」 범위를 읽어 loans.json 의 수동값과 대조", "새벽", "macro_data.json(loans.auto) · 다르면 _inbox", "페이지 구조가 바뀌면 로그 「범위를 못 찾음」"],
+    ["학교알리미 엑셀 → CSV", "data/school/*.xls 를 CSV 로 변환해 학군 자료에 합침", "새벽(파일이 있을 때)", "data/school/_converted", "엑셀은 손으로 넣음(아래)"],
+    ["데이터 점검", "합계 일치·급변·범위·이상치·학교 연결 23항목 교차 검사", "새벽", "data/validate.json → 데이터 상태 띠 「자료 점검」", "주의가 떠도 수집은 막지 않음"],
     ["앱 쪽 자동", "GitHub raw 5분 캐시 · 오래된 자료 자동 제외(지수 4개월·미분양 5개월·착공 5개월·속사정 21일) · 공통 준비 20초 제한 · 신고가 비율 최근 10일 보정", "열 때마다", "데이터 상태 띠", "틀린(낡은) 숫자가 조용히 들어가지 않게 하는 장치"]
   ],
   /* 3. 손으로 — [파일/일, 무엇을, 언제, 확인처, 쓰이는 곳] */
@@ -9312,7 +9312,7 @@ function sbPvSoon() { var t = chDayKey(chKstNow()), lim = chDayKey(chShift(chKst
 var SB_PV_ACT = "https://github.com/HMJeon-Cloud/TrackApt/actions/workflows/brief.yml";
 function sbPvAlertHtml() {
   var due = sbPvDue(), soon = sbPvSoon(); if (!due.length && !soon.length) return "";
-  return '<div class="sb-pvalert">' + (due.length ? "<b>공고일이 지났는데 청약홈 자료에 아직 없음:</b> " + due.map(function (x) { return escHtml(x.nm); }).join(", ") + ' — 청약홈은 공고 당일 오후에 올라오는 경우가 많습니다. 수집은 새벽 3시·오후 3시(청약만) 자동이고, 더 빨리 받으려면 <a href="' + SB_PV_ACT + '" target="_blank" rel="noopener">Actions → Run workflow</a>에서 only 칸에 <code>subs</code> 를 넣고 실행(1분). 들어오면 미리 보기는 자동으로 공고로 바뀝니다.' : "") +
+  return '<div class="sb-pvalert">' + (due.length ? "<b>공고일이 지났는데 청약홈 자료에 아직 없음:</b> " + due.map(function (x) { return escHtml(x.nm); }).join(", ") + ' — 청약홈은 공고 당일 오후에 올라오는 경우가 많습니다. 수집은 새벽·오후(청약만) 자동이고, 더 빨리 받으려면 <a href="' + SB_PV_ACT + '" target="_blank" rel="noopener">Actions → Run workflow</a>에서 only 칸에 <code>subs</code> 를 넣고 실행(1분). 들어오면 미리 보기는 자동으로 공고로 바뀝니다.' : "") +
     (soon.length ? (due.length ? "<br>" : "") + "<b>2주 안 공고 예정:</b> " + soon.map(function (x) { return escHtml(x.nm) + " " + escHtml(String((x.sched || {}).notice || "").slice(5).replace("-", ".")); }).join(", ") + " — 공고일 오후 수집 뒤 바로 바뀝니다(급하면 위 방법)" : "") + "</div>";
 }
 (function () { var oP = sbPaint; sbPaint = function () { oP(); var meta = document.getElementById("sb-meta"); if (!meta) return; var ex = document.getElementById("sb-pvalert"); if (ex) ex.remove(); var h = sbPvAlertHtml(); if (h) { var d = document.createElement("div"); d.id = "sb-pvalert"; d.innerHTML = h; meta.parentNode.insertBefore(d, meta.nextSibling); } }; })();
@@ -11371,7 +11371,7 @@ function wkUpdateNote() {
   var last = W.seoul[W.seoul.length - 1][0], t = sbToday(), lag = Math.round((new Date(String(t).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3")) - new Date(String(last).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3"))) / 864e5);
   var viaKosis = /KOSIS/.test(String(W.src || "")), d = new Date(String(t).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3")), wd = d.getUTCDay();
   var nextThu = new Date(d.getTime() + ((4 - wd + 7) % 7 || 7) * 864e5), nt = chMD(Number(nextThu.toISOString().slice(0, 10).replace(/-/g, "")));
-  return "마지막 주 " + chMD(last) + "(" + lag + "일 전)" + (viaKosis ? " · KOSIS 경유라 발표보다 1~2주 늦음" : " · R-ONE 당일 반영") + " · 부동산원은 매주 목요일 14시에 그 주(월요일 기준) 지수를 발표 → 앱은 목 15:40(주간만)·금 03:00 반영 · 다음 발표 " + nt + "(목)";
+  return "마지막 주 " + chMD(last) + "(" + lag + "일 전)" + (viaKosis ? " · KOSIS 경유라 발표보다 1~2주 늦음" : " · R-ONE 당일 반영") + " · 부동산원은 매주 목요일 14시에 그 주(월요일 기준) 지수를 발표 → 앱은 목 오후(주간만)·금 새벽 반영 · 다음 발표 " + nt + "(목)";
 }
 (function () {
   ["idxWeekGrid", "idxWeekly"].forEach(function (id) { var R = TPR[id]; if (!R) return; ["build", "detail"].forEach(function (k) { if (typeof R[k] !== "function") return; var o = R[k]; R[k] = function () { var P = o.apply(this, arguments); try { var n = wkUpdateNote(); if (n && P) P.forEach(function (d) { if (d && d.src && String(d.src).indexOf("마지막 주") < 0) d.src = String(d.src).replace(/\s*·\s*전주 대비 = 지수 변화/, "") + " · " + n.split(" · ")[0] + (n.indexOf("늦음") > 0 ? "(KOSIS 1~2주 지연)" : ""); }); } catch (e) {} return P; }; }); });
@@ -11396,7 +11396,7 @@ function wkGuRows() {
   return Object.keys(W.gu).map(function (g) { var A = W.gu[g].filter(function (p) { return p[1] != null; }); if (A.length < 5) return null; var L = A[A.length - 1], w1 = (L[1] / A[A.length - 2][1] - 1) * 100, w4 = (L[1] / A[A.length - 5][1] - 1) * 100, k = 0; for (var i = A.length - 1; i > 0 && A[i][1] > A[i - 1][1]; i--) k++; var dn = 0; for (var j = A.length - 1; j > 0 && A[j][1] < A[j - 1][1]; j--) dn++; return { g: g, t: L[0], v: L[1], w1: w1, w4: w4, up: k, dn: dn }; }).filter(Boolean).sort(function (a, b) { return b.w1 - a.w1; });
 }
 TPR.wkGu = { nm: "서울 자치구 주간 변동", grp: "통계", opts: [], tpls: ["denseTable", "barRank", "rankGrid"], per: 13, noX: true,
-  hint: "부동산원 주간 매매가격지수를 서울 25개 구별로 — 이번 주·4주 변동과 연속 상승 주. R-ONE 키(RONE_KEY)로 받는 자료라 키를 넣은 뒤 첫 수집(목 15:40·매일 03:00)부터 나옵니다",
+  hint: "부동산원 주간 매매가격지수를 서울 25개 구별로 — 이번 주·4주 변동과 연속 상승 주. R-ONE 키(RONE_KEY)로 받는 자료라 키를 넣은 뒤 첫 수집(목 오후·매일 새벽)부터 나옵니다",
   build: function (o, tid) { var R = wkGuRows(); if (!R.length) return []; var W = DY.data.weekly, pc = function (v) { return (v >= 0.005 ? "+" : v <= -0.005 ? "−" : "") + Math.abs(v).toFixed(2) + "%"; }, t = R[0].t, up = R.filter(function (r) { return r.w1 > 0.005; }).length, dn = R.filter(function (r) { return r.w1 < -0.005; }).length;
     var base = { noLead: true, _cat: "market", src: String(W.src || "한국부동산원 주간아파트가격동향") + " · " + chMD(t) + " 주", title: "서울 25개 구, 이번 주 누가 올랐나", sub: chMD(t) + " 주 · 오른 구 " + up + " · 내린 구 " + dn + " · 보합 " + (R.length - up - dn), badge: "주간", foot: "전주 대비 = 지수 변화율 · 주간 지수는 표본 조사라 실거래보다 먼저 움직이고 폭은 작음 · 투자 권유 아님" };
     if (tid === "barRank" || tid === "rankGrid") return tprItems(base, R.map(function (r) { return [r.g, pc(r.w1), "4주 " + pc(r.w4) + (r.up >= 100 ? " · 100주 넘게 연속↑" : r.up >= 2 ? " · " + r.up + "주 연속↑" : r.dn >= 2 ? " · " + r.dn + "주 연속↓" : "")]; }), 12);
@@ -11730,40 +11730,40 @@ function opStatus() {
   var stepFail = function (k) { return fail[k] ? "마지막 수집 실패(" + opT(fail[k].t) + "): " + fail[k].msg : ""; };
   /* 1 실거래 */
   var ca = C ? opDays(opN(C.asOf)) : null;
-  add({ grp: "실거래", nm: "최근 30일 실거래 · 신고가 · 대장", key: "MOLIT_API_KEY", cyc: "매일 03:00", last: C ? opD(opN(C.asOf)) + " 수집" : "없음", got: C && C.builtAt ? opT(C.builtAt) : "–", next: "내일 03:00", st: !C ? "bad" : ca > 2 ? "bad" : ca > 1 ? "late" : "ok", msg: !C ? "brief_data.json 을 읽지 못함" : ca > 1 ? ca + "일 전 수집본 — 새벽 수집이 멈췄을 수 있음" : "계약일 기준 · 최근 2주는 신고 지연으로 적게 잡힘(정상)", fix: "Actions 탭에서 「지금 시장 데이터 갱신」 마지막 실행이 빨간색인지 확인 → Run workflow(비워서 전체). '등록되지 않은 서비스키'·'기한 만료'가 보이면 data.go.kr 마이페이지에서 활용기간 연장 후 Vercel 환경변수 MOLIT_API_KEY 확인" });
+  add({ grp: "실거래", nm: "최근 30일 실거래 · 신고가 · 대장", key: "MOLIT_API_KEY", cyc: "매일 새벽", last: C ? opD(opN(C.asOf)) + " 수집" : "없음", got: C && C.builtAt ? opT(C.builtAt) : "–", next: "내일 새벽", st: !C ? "bad" : ca > 2 ? "bad" : ca > 1 ? "late" : "ok", msg: !C ? "brief_data.json 을 읽지 못함" : ca > 1 ? ca + "일 전 수집본 — 새벽 수집이 멈췄을 수 있음" : "계약일 기준 · 최근 2주는 신고 지연으로 적게 잡힘(정상)", fix: "Actions 탭에서 「지금 시장 데이터 갱신」 마지막 실행이 빨간색인지 확인 → Run workflow(비워서 전체). '등록되지 않은 서비스키'·'기한 만료'가 보이면 data.go.kr 마이페이지에서 활용기간 연장 후 Vercel 환경변수 MOLIT_API_KEY 확인" });
   if (typeof MC !== "undefined" && MC) { var pv = MC.prov || [], lastF = null; try { lastF = inYmOf(inLastIdx(inSer("vol"))); } catch (e) {} var cb = opDays(opN(MC.built));
-    add({ grp: "실거래", nm: "월별 저장본(지수·거래량 2010~)", key: "MOLIT_API_KEY", cyc: "매일 03:00 이어 붙임 · 달은 말일+31일 뒤 확정", last: "확정 ~" + (lastF || "–") + (pv.length ? " · 잠정 " + pv.length + "달" : ""), got: opT(MC.built), next: typeof mcNextFinal === "function" && mcNextFinal() ? mcNextFinal() : "–", st: cb > 3 ? "late" : "ok", msg: cb > 3 ? cb + "일째 이어 붙이지 못함" : "잠정 달은 신고가 덜 들어온 달 — 정리 카드·신호에 쓰지 않음", fix: "실거래 수집이 돌면 같이 이어진다. market_core.json 이 며칠째 그대로면 Actions 로그의 「월별 저장본 자동 잇기」 단계를 확인" }); }
+    add({ grp: "실거래", nm: "월별 저장본(지수·거래량 2010~)", key: "MOLIT_API_KEY", cyc: "매일 새벽 이어 붙임 · 달은 말일+31일 뒤 확정", last: "확정 ~" + (lastF || "–") + (pv.length ? " · 잠정 " + pv.length + "달" : ""), got: opT(MC.built), next: typeof mcNextFinal === "function" && mcNextFinal() ? mcNextFinal() : "–", st: cb > 3 ? "late" : "ok", msg: cb > 3 ? cb + "일째 이어 붙이지 못함" : "잠정 달은 신고가 덜 들어온 달 — 정리 카드·신호에 쓰지 않음", fix: "실거래 수집이 돌면 같이 이어진다. market_core.json 이 며칠째 그대로면 Actions 로그의 「월별 저장본 자동 잇기」 단계를 확인" }); }
   /* 2 금리 */
   var R = MD.rates || {}, mm = R.mortgage ? opMon(R.mortgage.t) : null, kd = R.kb3y ? opDays(opN(R.kb3y.t)) : null, mb = opDays(opN(MD.builtAt));
-  add({ grp: "금리", nm: "기준금리 · 국고채 3년 · 주담대 평균", key: "ECOS_KEY", cyc: "매일 03:00 (주담대 평균은 한 달에 한 번, 전월분이 월말에 나옴)", last: (R.base ? "기준 " + R.base.v + "%" : "기준 없음") + (R.kb3y ? " · 국고채 " + opD(opN(R.kb3y.t)) : "") + (R.mortgage ? " · 주담대 " + opD(R.mortgage.t) : ""), got: opT(MD.builtAt), next: "내일 03:00", st: !R.base ? "bad" : mb > 2 || mm > 3 || kd > 7 ? "late" : "ok", msg: !R.base ? "기준금리를 받지 못함" + ((MD.errors || []).length ? " — " + MD.errors.join(" / ") : "") : mm > 3 ? "주담대 평균이 " + mm + "개월 전 값" : kd > 7 ? "국고채 3년이 " + kd + "일 전 값" : "기준금리는 100대 지표 현재값으로 한 번 더 맞춤", fix: "ECOS 인증키는 만료 규정이 확인되지 않았다(보통 계속 쓴다). 오류에 '인증키'가 보이면 ecos.bok.or.kr → Open API → 인증키 신청에서 상태 확인 후 GitHub Secrets ECOS_KEY 를 다시 저장" });
+  add({ grp: "금리", nm: "기준금리 · 국고채 3년 · 주담대 평균", key: "ECOS_KEY", cyc: "매일 새벽 (주담대 평균은 한 달에 한 번, 전월분이 월말에 나옴)", last: (R.base ? "기준 " + R.base.v + "%" : "기준 없음") + (R.kb3y ? " · 국고채 " + opD(opN(R.kb3y.t)) : "") + (R.mortgage ? " · 주담대 " + opD(R.mortgage.t) : ""), got: opT(MD.builtAt), next: "내일 새벽", st: !R.base ? "bad" : mb > 2 || mm > 3 || kd > 7 ? "late" : "ok", msg: !R.base ? "기준금리를 받지 못함" + ((MD.errors || []).length ? " — " + MD.errors.join(" / ") : "") : mm > 3 ? "주담대 평균이 " + mm + "개월 전 값" : kd > 7 ? "국고채 3년이 " + kd + "일 전 값" : "기준금리는 100대 지표 현재값으로 한 번 더 맞춤", fix: "ECOS 인증키는 만료 규정이 확인되지 않았다(보통 계속 쓴다). 오류에 '인증키'가 보이면 ecos.bok.or.kr → Open API → 인증키 신청에서 상태 확인 후 GitHub Secrets ECOS_KEY 를 다시 저장" });
   var W = MD.wages, wm = W ? opMon(W.t > 999999 ? Math.floor(W.t / 100) : W.t) : null;
-  add({ grp: "금리", nm: "임금(구매력 계산용)", key: "KOSIS_KEY", cyc: "매일 03:00 (통계는 두 달쯤 늦게 나옴)", last: W ? opD(W.t) + " · " + (W.how || "") : "없음", got: opT(MD.builtAt), next: "–", st: !W ? "bad" : wm > 5 ? "late" : "ok", msg: !W ? "임금을 받지 못함" : wm > 5 ? wm + "개월 전 값 — KOSIS 표가 멈췄거나 번호가 바뀜. v12.0 수집기가 더 최근 표를 다시 찾는다" : "", fix: "다음 새벽 수집 로그에서 'KOSIS 임금 표 후보'를 확인. 그래도 옛 값이면 data/macro_codes.json 의 kosisWage 줄을 지우고 다시 실행, 급하면 data/manual/wages.json 에 고용노동부 사업체노동력조사 최근 값을 적는다" });
+  add({ grp: "금리", nm: "임금(구매력 계산용)", key: "KOSIS_KEY", cyc: "매일 새벽 (통계는 두 달쯤 늦게 나옴)", last: W ? opD(W.t) + " · " + (W.how || "") : "없음", got: opT(MD.builtAt), next: "–", st: !W ? "bad" : wm > 5 ? "late" : "ok", msg: !W ? "임금을 받지 못함" : wm > 5 ? wm + "개월 전 값 — KOSIS 표가 멈췄거나 번호가 바뀜. v12.0 수집기가 더 최근 표를 다시 찾는다" : "", fix: "다음 새벽 수집 로그에서 'KOSIS 임금 표 후보'를 확인. 그래도 옛 값이면 data/macro_codes.json 의 kosisWage 줄을 지우고 다시 실행, 급하면 data/manual/wages.json 에 고용노동부 사업체노동력조사 최근 값을 적는다" });
   /* 3 KOSIS 보조 지표 */
-  var kos = function (nm, step, ser, okM, cyc, extra, warn) { var l = opLast(ser), m = l ? opMon(l[0]) : null, f = stepFail(step); add({ grp: "통계", nm: nm, key: "KOSIS_KEY", cyc: cyc, last: l ? opD(l[0]) : "없음", got: opT(at[step] || D.builtAt), next: "매일 03:00 확인(새 달이 올라오면 반영)", st: !l || f ? "bad" : m > okM || warn ? "late" : "ok", msg: f || (!l ? "자료 없음" : m > okM ? m + "개월 전 값 — 발표 주기(" + okM + "개월)를 넘김" : (extra || "")), fix: "KOSIS 표 번호가 바뀌면 생긴다. data/daily_codes.json 에서 그 줄만 지우고 Actions → Run workflow → 일부만 " + step + " 로 다시 실행. 오류에 '인증키 기간만료(12)'가 보이면 kosis.kr 공유서비스 마이페이지에서 연장" }); };
+  var kos = function (nm, step, ser, okM, cyc, extra, warn) { var l = opLast(ser), m = l ? opMon(l[0]) : null, f = stepFail(step); add({ grp: "통계", nm: nm, key: "KOSIS_KEY", cyc: cyc, last: l ? opD(l[0]) : "없음", got: opT(at[step] || D.builtAt), next: "매일 새벽 확인(새 달이 올라오면 반영)", st: !l || f ? "bad" : m > okM || warn ? "late" : "ok", msg: f || (!l ? "자료 없음" : m > okM ? m + "개월 전 값 — 발표 주기(" + okM + "개월)를 넘김" : (extra || "")), fix: "KOSIS 표 번호가 바뀌면 생긴다. data/daily_codes.json 에서 그 줄만 지우고 Actions → Run workflow → 일부만 " + step + " 로 다시 실행. 오류에 '인증키 기간만료(12)'가 보이면 kosis.kr 공유서비스 마이페이지에서 연장" }); };
   var U = D.unsold || {}; kos("미분양(전국·시도)", "unsold", U.all, 3, "매월 말(전월분)", U.done ? "준공 후 미분양 " + fmt(opLast(U.done)[1]) + "호 포함" + (U.doneKept ? "(이번 수집 실패 — 지난 수집분 유지)" : "") : "준공 후 미분양은 아직 못 받음 — v12.0 수집기가 KOSIS DT_MLTM_5328 표로 다시 시도(다음 수집 로그의 '큰 표 — 분류 좁힘' 줄 확인)", !U.done);
   var IXs = D.index && D.index.sale && D.index.sale.seoul; kos("부동산원 월간 매매·전세지수", "index", IXs, 3, "매월 15일쯤(전월분)", "");
   var SU = D.supply || {}, SPs = SU.starts && (SU.starts.seoul || SU.starts.all), miss = ["permits", "starts", "completes"].filter(function (k) { return !SU[k]; }), kept = ["permits", "starts", "completes"].filter(function (k) { return SU[k] && SU[k].kept; }), nmK = { permits: "인허가", starts: "착공", completes: "준공" };
   kos("인허가·착공·준공", "supply", SPs || (SU.completes && (SU.completes.seoul || SU.completes.all)), 3, "매월 말(전월분)", miss.length ? miss.map(function (k) { return nmK[k]; }).join("·") + " 자료가 빠져 있음 — 수집 때 연결 실패. Run workflow → 일부만 supply 로 다시 받으면 채워진다" : kept.length ? kept.map(function (k) { return nmK[k]; }).join("·") + "은 이번 수집이 실패해 지난 수집분을 유지 중" : "", miss.length || kept.length);
   /* 4 주간 */
   var WK = D.weekly, wl = WK && opLast(WK.seoul), wd = wl ? opDays(wl[0]) : null, viaR = WK && /R-ONE/.test(String(WK.src || "")), wf = stepFail("weekly");
-  add({ grp: "통계", nm: "주간 매매·전세지수 · 서울 25개 구 · 지역별", key: viaR ? "RONE_KEY" : "KOSIS_KEY(대신 받음)", cyc: "부동산원 목요일 14시 발표 → 목 15:00 · 매일 03:00", last: wl ? opD(wl[0]) + " 주" + (WK.rent ? " · 전세 있음" : "") + (WK.gu ? " · 구 " + Object.keys(WK.gu).length : "") : "없음", got: opT(at.weekly || D.builtAt), next: (function () { var k = chKstNow(), w = k.getUTCDay(), add = (4 - w + 7) % 7; if (add === 0 && k.getUTCHours() >= 15) add = 7; var d = chShift(k, add); return (d.getUTCMonth() + 1) + "." + d.getUTCDate() + "(목) 15:00"; })(), st: !wl || wf ? "bad" : wd > 13 ? "late" : !viaR ? "late" : "ok", msg: wf || (!wl ? "자료 없음" : wd > 13 ? wd + "일 전 주 — 발표(목요일)를 두 번 넘김" : !viaR ? "R-ONE 이 실패해 KOSIS(1~2주 늦음)로 받는 중" : "발표 당일 반영 · 명절 주는 발표가 없어 한 주 건너뜀"), fix: "로그에 'R-ONE 실패'가 보이면 reb.or.kr/r-one 마이페이지에서 인증키 상태·이용기간 확인 후 GitHub Secrets RONE_KEY 다시 저장. 바로 받으려면 Run workflow → 일부만 weekly" });
+  add({ grp: "통계", nm: "주간 매매·전세지수 · 서울 25개 구 · 지역별", key: viaR ? "RONE_KEY" : "KOSIS_KEY(대신 받음)", cyc: "부동산원 목요일 14시 발표 → 목 오후 · 매일 새벽", last: wl ? opD(wl[0]) + " 주" + (WK.rent ? " · 전세 있음" : "") + (WK.gu ? " · 구 " + Object.keys(WK.gu).length : "") : "없음", got: opT(at.weekly || D.builtAt), next: (function () { var k = chKstNow(), w = k.getUTCDay(), add = (4 - w + 7) % 7; if (add === 0 && k.getUTCHours() >= 15) add = 7; var d = chShift(k, add); return (d.getUTCMonth() + 1) + "." + d.getUTCDate() + "(목) 오후"; })(), st: !wl || wf ? "bad" : wd > 13 ? "late" : !viaR ? "late" : "ok", msg: wf || (!wl ? "자료 없음" : wd > 13 ? wd + "일 전 주 — 발표(목요일)를 두 번 넘김" : !viaR ? "R-ONE 이 실패해 KOSIS(1~2주 늦음)로 받는 중" : "발표 당일 반영 · 명절 주는 발표가 없어 한 주 건너뜀"), fix: "로그에 'R-ONE 실패'가 보이면 reb.or.kr/r-one 마이페이지에서 인증키 상태·이용기간 확인 후 GitHub Secrets RONE_KEY 다시 저장. 바로 받으려면 Run workflow → 일부만 weekly" });
   /* 5 청약 · 금리 비교 */
   var SB = D.subs, sa = D.subsAt || at.subs || D.builtAt, sh = sa ? (Date.now() - Date.parse(sa)) / 3600000 : null, sf = stepFail("subs");
-  add({ grp: "청약", nm: "청약 공고 · 경쟁률 · 가점 · 무순위", key: "DATA_GO_KEY", cyc: "매일 03:00 · 15:00", last: SB ? (SB.items || []).length + "건(접수 중 " + (Array.isArray(SB.open) ? SB.open.length : (SB.open || 0)) + ")" : "없음", got: opT(sa), next: "03:00 · 15:00", st: !SB || sf ? "bad" : sh > 30 ? "late" : "ok", msg: sf || (!SB ? "자료 없음" : sh > 30 ? Math.round(sh) + "시간 전 수집본" : "공고일 기준 과거 45일~앞날"), fix: "data.go.kr 「한국부동산원 청약홈 분양정보 조회 서비스」 활용기간을 마이페이지에서 확인(만료되면 'DEADLINE_HAS_EXPIRED' 오류) → 연장 후 GitHub Secrets DATA_GO_KEY. 바로 받으려면 Run workflow → 일부만 subs" });
+  add({ grp: "청약", nm: "청약 공고 · 경쟁률 · 가점 · 무순위", key: "DATA_GO_KEY", cyc: "매일 새벽 · 오후", last: SB ? (SB.items || []).length + "건(접수 중 " + (Array.isArray(SB.open) ? SB.open.length : (SB.open || 0)) + ")" : "없음", got: opT(sa), next: "새벽 · 오후", st: !SB || sf ? "bad" : sh > 30 ? "late" : "ok", msg: sf || (!SB ? "자료 없음" : sh > 30 ? Math.round(sh) + "시간 전 수집본" : "공고일 기준 과거 45일~앞날"), fix: "data.go.kr 「한국부동산원 청약홈 분양정보 조회 서비스」 활용기간을 마이페이지에서 확인(만료되면 'DEADLINE_HAS_EXPIRED' 오류) → 연장 후 GitHub Secrets DATA_GO_KEY. 바로 받으려면 Run workflow → 일부만 subs" });
   var RT = D.rates, ra = RT && RT.asOf ? opDays(opN(RT.asOf)) : null, rf = stepFail("rates");
-  add({ grp: "청약", nm: "은행별 금리 비교(주담대·전세·예적금)", key: "FSS_KEY", cyc: "주 1회(월요일 수집분 유지) · 공시는 매월 20일쯤", last: RT ? opD(opN(RT.asOf)) + " 수집" : "없음", got: opT(at.rates || D.builtAt), next: "다음 월요일 03:00", st: !RT || rf ? "bad" : ra > 10 ? "late" : "ok", msg: rf || (!RT ? "자료 없음" : ra > 10 ? ra + "일 전 수집본" : ""), fix: "finlife.fss.or.kr 오픈API 인증키 상태 확인 후 GitHub Secrets FSS_KEY. 바로 받으려면 Run workflow → 일부만 rates" });
+  add({ grp: "청약", nm: "은행별 금리 비교(주담대·전세·예적금)", key: "FSS_KEY", cyc: "주 1회(월요일 수집분 유지) · 공시는 매월 20일쯤", last: RT ? opD(opN(RT.asOf)) + " 수집" : "없음", got: opT(at.rates || D.builtAt), next: "다음 월요일 새벽", st: !RT || rf ? "bad" : ra > 10 ? "late" : "ok", msg: rf || (!RT ? "자료 없음" : ra > 10 ? ra + "일 전 수집본" : ""), fix: "finlife.fss.or.kr 오픈API 인증키 상태 확인 후 GitHub Secrets FSS_KEY. 바로 받으려면 Run workflow → 일부만 rates" });
   /* 6 학군 · 뉴스 */
   var sc = meta.school, sd = sc ? opDays(opN(sc.built)) : null;
   add({ grp: "기타", nm: "학군(학교 기본정보·학생수)", key: "SCHOOLINFO_API_KEY", cyc: "주 1회(공시는 4·5·9월에 바뀜)", last: sc ? fmt(sc.n) + "곳" : "점검 파일에 없음", got: sc ? opD(opN(sc.built)) : "–", next: "지난 수집 7일 뒤", st: !sc ? "late" : sd > 10 ? "late" : "ok", msg: !sc ? "v12.0 점검 파일이 아직 만들어지지 않음(다음 새벽 수집 뒤 표시)" : sd > 10 ? sd + "일 전 수집본" : "학업성취 CSV 는 손으로 올린 파일 그대로", fix: "학교알리미 OpenAPI 키는 최초 1회 신청(만료 규정 없음). 수집이 안 되면 Actions 로그의 「학군 자료 만들기」 단계 확인" });
   var nw = C && C.news && C.news.topicsAt, nd = nw ? opDays(opN(nw)) : null;
-  add({ grp: "기타", nm: "기사 제목(대책·교통·대출)", key: "키 없음(구글 뉴스)", cyc: "매일 03:00", last: nw ? opD(opN(nw)) : opT(MD.builtAt), got: opT(MD.builtAt), next: "내일 03:00", st: mb > 2 ? "late" : "ok", msg: "제목만 자동 · 숫자는 사람이 확인해 수동 파일에. 정책브리핑 RSS 는 2026.7.1 제공 중단으로 뺌", fix: "새 대책이 나오면 아래 '손으로 해야 하는 것'의 policy.json 을 고친다" });
+  add({ grp: "기타", nm: "기사 제목(대책·교통·대출)", key: "키 없음(구글 뉴스)", cyc: "매일 새벽", last: nw ? opD(opN(nw)) : opT(MD.builtAt), got: opT(MD.builtAt), next: "내일 새벽", st: mb > 2 ? "late" : "ok", msg: "제목만 자동 · 숫자는 사람이 확인해 수동 파일에. 정책브리핑 RSS 는 2026.7.1 제공 중단으로 뺌", fix: "새 대책이 나오면 아래 '손으로 해야 하는 것'의 policy.json 을 고친다" });
   /* 7 수동 파일 */
   var man = meta.manual || {}, MAN = [["policy.json", "부동산 대책 목록", 120, "새 대책이 나올 때"], ["loans.json", "정책대출 조건·금리", 100, "분기에 한 번 · 금리 바뀔 때"], ["context.json", "속사정 메모(규칙·논거)", 30, "2~3주에 한 번"], ["calendar.json", "일정", 120, "새 일정이 생길 때"], ["transit.json", "교통 노선", 365, "개통·착공 소식 때"], ["subs_notes.json", "청약 단지 조건", 9999, "단지마다"]];
   MAN.forEach(function (m) { var o = man[m[0]], n = o && (o.last || opN(o.asOf)), d = n ? opDays(n) : null; add({ grp: "손으로", nm: m[1], key: "data/manual/" + m[0], cyc: m[3], last: n ? opD(n) : (o ? "날짜 없음" : "–"), got: "–", next: "–", st: d != null && d > m[2] ? "late" : "ok", msg: !o ? "점검 파일에 아직 없음" : d != null && d > m[2] ? d + "일 동안 고치지 않음 — 바뀐 것이 없는지 확인" : "", fix: "GitHub → data/manual/" + m[0] + " → 연필 아이콘으로 고치면 5분 안에 반영" }); });
   if (meta.inbox && meta.inbox.n) add({ grp: "손으로", nm: "확인 필요함(_inbox)", key: "data/manual/_inbox.json", cyc: "수집기가 매일 채움", last: meta.inbox.n + "건", got: opD(meta.inbox.asOf), next: "–", st: "late", msg: meta.inbox.titles.join(" / "), fix: "기사를 확인해 맞으면 policy.json·transit.json·loans.json 에 적는다 — 적으면 다음 날 이 줄이 사라진다" });
   /* 수집기 경고·점검 */
   var vb = (V.checks || []).filter(function (c) { return c.level === "error" || c.level === "warn"; });
-  add({ grp: "점검", nm: "자료 점검(validate) " + ((V.checks || []).length) + "항목", key: "–", cyc: "매일 03:00 수집 끝에", last: V.built ? opT(V.built) : "–", got: V.built ? opT(V.built) : "–", next: "내일 03:00", st: !V.checks ? "late" : vb.some(function (c) { return c.level === "error"; }) ? "bad" : vb.length ? "late" : "ok", msg: vb.length ? vb.map(function (c) { return c.id + " " + c.title + " — " + String(c.detail).slice(0, 90); }).join(" / ") : "모두 통과", fix: "주의 항목은 대부분 '표본이 적은 지역'이나 '발표 지연'이다. 오류(빨강)가 뜨면 그 항목 이름을 알려 주면 된다" });
+  add({ grp: "점검", nm: "자료 점검(validate) " + ((V.checks || []).length) + "항목", key: "–", cyc: "매일 새벽 수집 끝에", last: V.built ? opT(V.built) : "–", got: V.built ? opT(V.built) : "–", next: "내일 새벽", st: !V.checks ? "late" : vb.some(function (c) { return c.level === "error"; }) ? "bad" : vb.length ? "late" : "ok", msg: vb.length ? vb.map(function (c) { return c.id + " " + c.title + " — " + String(c.detail).slice(0, 90); }).join(" / ") : "모두 통과", fix: "주의 항목은 대부분 '표본이 적은 지역'이나 '발표 지연'이다. 오류(빨강)가 뜨면 그 항목 이름을 알려 주면 된다" });
   /* 키 관련 오류 문구 찾기 */
   var txt = [].concat(D.errors || [], MD.errors || [], Object.keys(fail).map(function (k) { return fail[k].msg; }), (C && C.errors) || []).join(" | ");
   var keyBad = /만료|EXPIRED|인증키|SERVICE_KEY|등록되지 않은|NOT_REGISTERED|LIMITED_NUMBER/i.test(txt) ? txt.slice(0, 260) : "";
@@ -11811,10 +11811,10 @@ document.addEventListener("change", function (ev) { var e = ev.target; if (!e ||
 (function () {
   if (typeof OPS !== "undefined" && OPS.run) {
     OPS.run = OPS.run.filter(function (r) { return !/목요일 15:40/.test(r[0]); });
-    OPS.run.splice(2, 0, ["목요일 15:00 KST", "청약 + 주간 지수 — 부동산원이 목 14:00에 그 주(월요일 기준) 지수를 발표하므로 오후 실행 때 같이 받는다(R-ONE)", "같은 워크플로 · 수집기가 요일을 보고 자동으로(v12.0, 워크플로 수정 없음)"]);
+    OPS.run.splice(2, 0, ["목요일 오후", "청약 + 주간 지수 — 부동산원이 목 14:00에 그 주(월요일 기준) 지수를 발표하므로 오후 실행 때 같이 받는다(R-ONE)", "같은 워크플로 · 수집기가 요일을 보고 자동으로(v12.0, 워크플로 수정 없음)"]);
     OPS.run.splice(3, 0, ["주 1회", "은행별 금리 비교(FSS) · 학군(학교알리미) — 바뀌는 주기가 길어 매일 받지 않는다", "수집기가 지난 수집일을 보고 건너뜀"]);
   }
-  if (typeof OPS !== "undefined" && OPS.keyed) OPS.keyed.forEach(function (r) { if (r[0] === "KOSIS_KEY") { r[3] = "미분양(전국·시도·준공 후 DT_MLTM_5328) · 부동산원 월간 아파트 매매·전세지수 · 주택건설 인허가·착공·준공 · 임금(사업체노동력조사) · 주간 지수는 R-ONE 실패 때만 대신"; r[4] = "03:00 전체 · 표 번호와 분류 단수는 data/daily_codes.json 에 기억"; } if (r[0] === "ECOS_KEY") r[3] = "기준금리(100대 지표로 현재값 확인) · 국고채 3년 · 예금은행 주담대·대출평균 금리(신규취급액)"; if (r[0] === "RONE_KEY") { r[1] = "GitHub Secrets"; r[3] = "주간 아파트 매매·전세가격지수(전국·수도권·서울·경기·서울 25개 구·지역별 최근 5주)"; r[4] = "03:00(최근 8주만 이어 받기 · 월요일은 3년치 전체) · 목 15:00"; r[6] = "실패하면 KOSIS 주간 표로 자동 대체(1~2주 늦음)"; } if (r[0] === "SCHOOLINFO_API_KEY") r[4] = "주 1회(지난 수집 7일 뒤)"; });
+  if (typeof OPS !== "undefined" && OPS.keyed) OPS.keyed.forEach(function (r) { if (r[0] === "KOSIS_KEY") { r[3] = "미분양(전국·시도·준공 후 DT_MLTM_5328) · 부동산원 월간 아파트 매매·전세지수 · 주택건설 인허가·착공·준공 · 임금(사업체노동력조사) · 주간 지수는 R-ONE 실패 때만 대신"; r[4] = "새벽 전체 · 표 번호와 분류 단수는 data/daily_codes.json 에 기억"; } if (r[0] === "ECOS_KEY") r[3] = "기준금리(100대 지표로 현재값 확인) · 국고채 3년 · 예금은행 주담대·대출평균 금리(신규취급액)"; if (r[0] === "RONE_KEY") { r[1] = "GitHub Secrets"; r[3] = "주간 아파트 매매·전세가격지수(전국·수도권·서울·경기·서울 25개 구·지역별 최근 5주)"; r[4] = "새벽(최근 8주만 이어 받기 · 월요일은 3년치 전체) · 목 오후"; r[6] = "실패하면 KOSIS 주간 표로 자동 대체(1~2주 늦음)"; } if (r[0] === "SCHOOLINFO_API_KEY") r[4] = "주 1회(지난 수집 7일 뒤)"; });
   if (typeof renderOps !== "function") return; var o = renderOps;
   renderOps = function () { o.apply(this, arguments); var tries = 0, tm = setInterval(function () { var box = document.getElementById("ops-body"); tries++; if (tries > 40) clearInterval(tm); if (!box || !box.querySelector(".card.in-sec") || document.getElementById("op-sec")) { if (document.getElementById("op-sec")) clearInterval(tm); return; } clearInterval(tm); var d = document.createElement("div"); d.innerHTML = opStatusHtml() + opkHtml(); var first = box.querySelector(".card.in-sec"); [].slice.call(d.children).forEach(function (n) { box.insertBefore(n, first); }); opkPull(); }, 300); };
 })();
@@ -12167,7 +12167,7 @@ function hmPaint() { var host = document.getElementById("hm-glance"); if (!host)
 (function () { if (typeof renderBrief !== "function") return; var o = renderBrief; renderBrief = function () { var r = o.apply(this, arguments); setTimeout(function () { ldStripAttach("brief", "#tab-brief .card"); }, 1200); return r; }; })();
 
 /* 데이터 운영 상태판에 '대장 비교' 줄 */
-(function () { if (typeof opStatus !== "function") return; var o = opStatus; opStatus = function () { var S = o.apply(this, arguments); try { var D = LD.data, d = D ? opDays(opN(D.built)) : null; S.L.splice(2, 0, { grp: "실거래", nm: "대장 vs 전체(연 중위가)", key: "키 없음 · 단지별 저장본 + 대장 명단", cyc: "매일 03:00 (월별 저장본 잇기 단계에서 같이)", last: D ? Object.keys(D.r).length + "개 지역" : "없음", got: D ? opD(opN(D.built)) : "–", next: "내일 03:00", st: !D ? "late" : d > 3 ? "late" : "ok", msg: !D ? "data/monthly/_lead.json 이 아직 없음 — v13.0 수집기(core_build.js)가 한 번 돌면 생긴다" : d > 3 ? d + "일 전 정리본" : "실거래 호출 없이 파일만 읽어 계산", fix: "Actions 로그의 「월별 저장본 자동 잇기」 단계에 '대장 비교(_lead.json) — 지역 n곳' 줄이 있는지 확인" }); S.late = S.L.filter(function (x) { return x.st === "late"; }).length; } catch (e) {} return S; }; if (typeof renderOps === "function") { var r0 = renderOps; renderOps = function () { var a = arguments, self = this; ldLoad(function () { r0.apply(self, a); }); }; } })();
+(function () { if (typeof opStatus !== "function") return; var o = opStatus; opStatus = function () { var S = o.apply(this, arguments); try { var D = LD.data, d = D ? opDays(opN(D.built)) : null; S.L.splice(2, 0, { grp: "실거래", nm: "대장 vs 전체(연 중위가)", key: "키 없음 · 단지별 저장본 + 대장 명단", cyc: "매일 새벽 (월별 저장본 잇기 단계에서 같이)", last: D ? Object.keys(D.r).length + "개 지역" : "없음", got: D ? opD(opN(D.built)) : "–", next: "내일 새벽", st: !D ? "late" : d > 3 ? "late" : "ok", msg: !D ? "data/monthly/_lead.json 이 아직 없음 — v13.0 수집기(core_build.js)가 한 번 돌면 생긴다" : d > 3 ? d + "일 전 정리본" : "실거래 호출 없이 파일만 읽어 계산", fix: "Actions 로그의 「월별 저장본 자동 잇기」 단계에 '대장 비교(_lead.json) — 지역 n곳' 줄이 있는지 확인" }); S.late = S.L.filter(function (x) { return x.st === "late"; }).length; } catch (e) {} return S; }; if (typeof renderOps === "function") { var r0 = renderOps; renderOps = function () { var a = arguments, self = this; ldLoad(function () { r0.apply(self, a); }); }; } })();
 
 /* ══ v13.1 대장 실거래 지수(월) — 거래 한 건 한 건으로 만든 대장 지수 ══
    수집기가 대장 단지의 실거래(직거래 제외)를 장부(data/highs/lead)에 쌓고, core_build 가 월 지수로 정리한다(_lead.json 의 m).
@@ -12309,6 +12309,38 @@ var LG_TBL_Y = [null, "전체 가격", "대장 가격", "배수", "전체 1년",
 document.addEventListener("click", function (e) { var t = e.target && e.target.closest && e.target.closest("[data-lgjump]"); if (!t) return; var el = document.getElementById("lg-" + t.getAttribute("data-lgjump")); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" }); });
 document.addEventListener("toggle", function (e) { if (e.target && e.target.classList && e.target.classList.contains("lr-more")) LD.rosAll = e.target.open; }, true);
 document.addEventListener("click", function (e) { var t = e.target && e.target.closest && e.target.closest("[data-lgall]"); if (!t) return; var k = "all" + t.getAttribute("data-lgall"); LD[k] = !LD[k]; var tb = t.previousSibling && t.previousSibling.querySelector && t.previousSibling.querySelector("table.cardy"); if (tb) tb.classList.toggle("all", !!LD[k]); t.textContent = LD[k] ? "6곳만 보기" : "나머지 " + t.getAttribute("data-n") + "곳 펼치기"; });
+
+/* ══ v13.7 다섯 입장에서 본 보완 ══
+   [데이터] 대장 거래가 최근 3개월에 한 건도 없으면 '국면' 판정에서 빼고 따로 센다(지수가 직전 값으로 이어진 0%를 '제자리'로 읽지 않게) · 12개월 중 8달 이상 거래가 없는 지역은 '거래 드묾' 표시.
+   [부동산] 대장 명단에 '최고가 대비'와 '거래한 지 n개월'을 붙인다 — 지금 값인지 옛 값인지 한눈에.
+   [중개]   명단을 글로 복사(상담·메신저용, 기준일·출처 포함).
+   [사용자·디자인] 좁은 화면에서 긴 목록(전국 등급표 251줄 · 4분면 표)은 20줄씩 펼치고, 옆으로 넘치는 표에는 '옆으로 밀기' 안내를 단다. */
+function l7Mon(d) { d = String(d || ""); if (d.length !== 8) return null; var n = new Date(Date.now() + 9 * 3600000), y = n.getUTCFullYear(), m = n.getUTCMonth() + 1, dd = n.getUTCDate(); return (y - Number(d.slice(0, 4))) * 12 + (m - Number(d.slice(4, 6))) - (dd < Number(d.slice(6)) ? 1 : 0); }
+function l7Recent(r, k) { var n = r.m && r.m.n ? r.m.n.slice(-k) : []; return n.reduce(function (a, v) { return a + (v || 0); }, 0); }
+function l7Thin(r) { var n = r.m && r.m.n ? r.m.n.slice(-12) : []; return n.length >= 12 && n.filter(function (v) { return !v; }).length >= 8; }
+/* 국면: 최근 3개월(이번 달 포함 4칸) 대장 거래가 없으면 판정하지 않는다 */
+(function () { if (typeof lgPhase !== "function") return; var o = lgPhase; lgPhase = function (r) { if (r && r.m && l7Recent(r, 4) === 0) return null; return o.apply(this, arguments); }; })();
+(function () { if (typeof lgSectionHtml !== "function") return; var o = lgSectionHtml; lgSectionHtml = function () { var h = o.apply(this, arguments); if (!h) return h; try { var M = lmSummary(LD.scope, LD.band); if (M && M.R && M.R.length) { var no = M.R.filter(function (r) { return r.l3 != null && r.a3 != null && l7Recent(r, 4) === 0; }); if (no.length) h = h.replace('<p class="hint">지역별 값의 중위로 판정한다.', '<p class="hint l7-no"><b>국면 판정에서 뺀 지역 ' + no.length + "곳</b> — 최근 3개월에 대장 거래가 없어 지수가 직전 값 그대로다: " + no.slice(0, 12).map(function (r) { return inE(r.gu); }).join(" · ") + (no.length > 12 ? " 외 " + (no.length - 12) + "곳" : "") + '</p><p class="hint">지역별 값의 중위로 판정한다.'); } } catch (e) {} return h; }; })();
+/* 지역 표: 거래 드묾 표시 */
+(function () { if (typeof lgTableHtml !== "function") return; var o = lgTableHtml; lgTableHtml = function () { var h = o.apply(this, arguments); if (!h) return h; try { var M = lmSummary(LD.scope, LD.band), n = 0; M.R.forEach(function (r) { if (!l7Thin(r)) return; var a = '<tr data-ldsel="' + r.code + '"', i = h.indexOf(a); if (i < 0) return; var j = h.indexOf("</b>", i); if (j < 0) return; h = h.slice(0, j) + ' <u class="l7-thin">거래 드묾</u>' + h.slice(j); n++; }); if (n) h = h.replace("값이 '–'인 칸은", "<b>거래 드묾</b> = 최근 12개월 중 8달 이상 대장 거래가 없는 지역(" + n + "곳) — 변화율은 한두 건이 만든 값이니 참고만. 값이 '–'인 칸은"); } catch (e) {} return h; }; })();
+/* 대장 명단: 최고가 대비 · 거래한 지 n개월 · 글로 복사 */
+(function () { if (typeof lrRows !== "function") return; var o = lrRows; lrRows = function (scope, bk) { var R = o.apply(this, arguments); R.forEach(function (r) { var L = ldBrief(r.code, bk) || []; r.T.forEach(function (t) { var x = L.filter(function (q) { return q.apt === t.apt && q.dong === t.dong; })[0]; if (!x) return; t.vsMx = x.mx && x.mx[0] && t.pr ? (t.pr / x.mx[0] - 1) * 100 : null; t.mxD = x.mx && x.mx[1]; t.ago = l7Mon(t.d); }); }); return R; }; })();
+(function () { if (typeof lrCard !== "function") return; var o = lrCard; lrCard = function (r, bk) { var h = o.apply(this, arguments); try { var k = 0; h = h.replace(/<\/small><\/span><em>/g, function (m) { var t = r.T[k++]; if (!t) return m; var tag = []; if (t.vsMx != null) tag.push(t.vsMx >= -0.5 ? '<u class="l7-hi">최고가</u>' : "최고가 대비 " + ldP(t.vsMx, 0)); if (t.ago != null && t.ago >= 3) tag.push('<u class="l7-old">' + t.ago + "개월 전 거래</u>"); return (tag.length ? "<br>" + tag.join(" · ") : "") + m; }); } catch (e) {} return h; }; })();
+function l7RosterText() { var bk = LD.band, R = lrRows(LD.scope, bk), asOf = ""; try { asOf = kstTxt(CH.data.builtAt).split(" ")[0]; } catch (e) {} var L = [tprScopeNm(LD.scope) + " " + lgBn(bk) + " 대장 3곳 (" + (bk === "P" ? "평단가 순" : "실거래가 순") + ")"]; R.forEach(function (r) { L.push(""); L.push("[" + r.gu + "]"); r.T.forEach(function (t, i) { L.push((i + 1) + ". " + t.apt + " " + (t.ar ? t.ar + "㎡ " : "") + ldE(t.pr) + " (평당 " + ldE(t.py) + " · " + lrDate(t.d) + (t.fl ? " · " + t.fl + "층" : "") + ")"); }); }); L.push(""); L.push("기준: 국토부 실거래가 공개시스템 · 단지별 최근 1년 안 가장 최근 거래(직거래 제외)" + (asOf ? " · " + asOf + " 수집" : "")); L.push("참고 자료이며 투자 권유가 아닙니다."); return L.join("\n"); }
+(function () { if (typeof lrSectionHtml !== "function") return; var o = lrSectionHtml; lrSectionHtml = function () { var h = o.apply(this, arguments); if (h.indexOf("lr-grid") < 0) return h; return h.replace('<div class="lr-grid">', '<div class="l7-bar"><button type="button" data-l7copy="1">명단 글로 복사</button><span id="l7-copied"></span></div><div class="lr-grid">'); }; })();
+document.addEventListener("click", function (e) { var t = e.target && e.target.closest && e.target.closest("[data-l7copy]"); if (!t) return; var txt = l7RosterText(), done = function (ok) { var s = document.getElementById("l7-copied"); if (s) s.textContent = ok ? "복사했습니다 (" + txt.split("\n").length + "줄)" : "복사하지 못했습니다 — 길게 눌러 직접 복사해 주세요"; };
+  try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { done(true); }, function () { done(false); }); else { var ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); var ok = document.execCommand("copy"); ta.remove(); done(ok); } } catch (err) { done(false); } });
+/* ── 긴 목록 20줄씩(좁은 화면) ── */
+var UX7_STEP = 20, UX7_LIM = {};
+function ux7Narrow() { return window.matchMedia && window.matchMedia("(max-width:700px)").matches; }
+function ux7Clip(key, sel) { try { var tb = document.querySelector(sel); if (!tb) return; var rows = tb.children, wrap = tb.closest(".tblwrap") || tb.parentNode, old = wrap.parentNode.querySelector('.ux7-more[data-ux7="' + key + '"]'); if (old) old.remove(); var lim = UX7_LIM[key] || UX7_STEP; if (!ux7Narrow() || rows.length <= lim) { for (var i = 0; i < rows.length; i++) rows[i].classList.remove("ux7-hide"); return; }
+    for (i = 0; i < rows.length; i++) rows[i].classList.toggle("ux7-hide", i >= lim); var b = document.createElement("button"); b.type = "button"; b.className = "ux7-more"; b.setAttribute("data-ux7", key); b.setAttribute("data-sel", sel); b.textContent = "다음 " + Math.min(UX7_STEP, rows.length - lim) + "곳 더 보기 (" + lim + " / " + rows.length + ")"; wrap.parentNode.insertBefore(b, wrap.nextSibling); } catch (e) {} }
+document.addEventListener("click", function (e) { var t = e.target && e.target.closest && e.target.closest(".ux7-more"); if (!t) return; var k = t.getAttribute("data-ux7"); UX7_LIM[k] = (UX7_LIM[k] || UX7_STEP) + UX7_STEP; ux7Clip(k, t.getAttribute("data-sel")); });
+(function () { if (typeof renderTiers === "function") { var o = renderTiers; renderTiers = function () { var r = o.apply(this, arguments); setTimeout(function () { ux7Clip("tiers", "#tab-tiers table tbody"); }, 0); return r; }; }
+  if (typeof renderQuad === "function") { var q = renderQuad; renderQuad = function () { var r = q.apply(this, arguments); setTimeout(function () { ux7Clip("quad", "#qd-table tbody"); }, 0); return r; }; } })();
+/* ── 옆으로 넘치는 표 안내(좁은 화면) ── */
+function ux7Hints() { try { if (!ux7Narrow()) return; var W = document.querySelectorAll(".in-tblw,.tblwrap,.vx-atw"); for (var i = 0; i < W.length; i++) { var w = W[i]; if (!w.offsetParent) continue; var over = w.scrollWidth > w.clientWidth + 8; w.classList.toggle("ux7-x", over); } var T = document.querySelectorAll("table.vx-at,table.keeptbl"); for (i = 0; i < T.length; i++) { var p = T[i].parentNode; if (p && p.offsetParent && p.scrollWidth > p.clientWidth + 8) p.classList.add("ux7-x"); } } catch (e) {} }
+(function () { if (typeof showTab === "function") { var o = showTab; showTab = function () { var r = o.apply(this, arguments); setTimeout(ux7Hints, 900); setTimeout(ux7Hints, 3000); return r; }; } window.addEventListener("load", function () { setTimeout(ux7Hints, 2500); }); document.addEventListener("click", function () { setTimeout(ux7Hints, 700); }); })();
 
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {

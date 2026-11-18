@@ -1,6 +1,18 @@
 {
  "v": 1,
- "builtAt": "2026-11-17T01:48:06.817Z",
- "asOf": 20261117,
- "items": []
+ "builtAt": "2026-11-18T00:04:17.117Z",
+ "asOf": 20261118,
+ "items": [
+  {
+   "kind": "policy",
+   "date": "2026-11-16",
+   "title": "[기획] 교통대책 없는 수도권 공급 발표…‘선교통 후입주’ 약속은 어디로",
+   "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE5SV296VzVybS0yc3dJNFhDSE8tenZSS2NHVm0zRlN3NmZrSVN3MlR0MG9VMVNxWWZSWXQySG03WWdkZ0NzaVZZSEZTeU9hWS1YMW1uc05pR05WbkNZTGppMklud1o?oc=5",
+   "src": "매일일보",
+   "official": false,
+   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
+   "firstSeen": "2026-11-18",
+   "isNew": true
+  }
+ ]
 }

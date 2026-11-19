@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=13.9">
+<link rel="stylesheet" href="style.css?v=13.10">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v13.9</span>
+    <span class="ver">v13.10</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=13.9"></script>
+<script src="cards.js?v=13.10"></script>
 <script>
 "use strict";
 
@@ -12479,6 +12479,50 @@ function w9PartsHtml(t) {
     var mk = w9MarketHtml(); if (mk && !box.querySelector(".w9-mkt")) { var first = box.querySelector(".wcard"); var d2 = document.createElement("div"); d2.innerHTML = mk; if (first) box.insertBefore(d2.firstChild, first); }
   } catch (e) { if (window.console) console.warn("w9r", e); } return r; }; })();
 
+/* ══ v13.10 단지 가격 기준 하나로 ══
+   모든 사용자 화면의 '단지' 값: 최근 거래가(직거래 제외 · 날짜·층·면적) → 평당가도 그 거래 ÷ 전용면적 → 최고가 = 2020.1 이후 같은 평형대.
+   기간 중위는 참고로 작게. 전세가율·갭은 매매·전세를 같은 방식(기간 중위)끼리 나눠야 뜻이 있어 중위로 두고 칸 이름에 밝힌다.
+   '지역' 값(등급표·지도·흐름 등)은 단지가 아니라 동네 전체라 중위가 맞다 — 그 화면들은 '지역 중위'로 적는다. */
+function px9LastDeal(deals) {
+  var ok = (deals || []).filter(function (t) { return t && t.amount > 0 && !/직거래/.test(t.dealingGbn || ""); });
+  if (!ok.length) ok = (deals || []).filter(function (t) { return t && t.amount > 0; });   /* 직거래뿐이면 그거라도(표시는 같다) */
+  return ok.slice().sort(function (a, b) { return (Number(b.ym) * 100 + (Number(b.day) || 0)) - (Number(a.ym) * 100 + (Number(a.day) || 0)); })[0] || null;
+}
+function px9PyCell(py, area, pyMed, lbl) {
+  if (py == null) return "—";
+  return '<div class="px9"><b>' + pyFmt(py) + "</b>" + (area ? "<small>최근 거래 · 전용 " + Math.round(area) + "㎡</small>" : "") + (pyMed != null && Math.abs(pyMed / py - 1) > 0.005 ? '<span class="px9-m">' + (lbl ? lbl + " " : "") + "중위 " + pyFmt(pyMed) + "</span>" : "") + "</div>";
+}
+/* 아파트 비교 — 칸마다 최근 거래: 24개월 모드는 받은 실거래, 10년 모드는 최고가 장부의 마지막 기록(봉인된 달까지) */
+function cx10Last(sl, ent) {
+  if (!sl || !ent) return null;
+  if (CMP.range !== "y" && sl.data && sl.data.sale) {
+    var deals = []; sl.data.sale.forEach(function (m) { (m.deals || []).forEach(function (t) { if (t.apt === ent.apt && t.dong === ent.dong && inBand(t.area, sl.band)) deals.push(t); }); });
+    var L = px9LastDeal(deals); return L ? { last: L, deals: deals, src: "recent" } : null;
+  }
+  var h = hi9Get(sl.region);
+  if (h === undefined) { hi9Load(sl.region).then(function () { if (typeof renderCmpx === "function") renderCmpx(); }); return null; }
+  var row = h && h.l && h.l[ent.dong + "|" + ent.apt]; if (!row) return null; var best = null;
+  Object.keys(row).forEach(function (ar) { var a = Number(ar); if (!inBand(a, sl.band)) return; var v = row[ar]; if (!best || v[1] > best[1]) best = [v[0], v[1], v[2], a]; });
+  return best ? { last: { amount: best[0], ym: Math.floor(best[1] / 100), day: best[1] % 100, floor: best[2], area: best[3] }, deals: [], src: "ledger" } : null;
+}
+/* 전세 끼고 사기 — 단지 표 맨 위에 최근 거래가·최고가 */
+function gapAptPxRow(a) {
+  var h = hi9Get(a.code);
+  if (h === undefined) { hi9Load(a.code).then(function () { if (typeof renderGap === "function" && GAP.apt === a) renderGap(); }); return "<tr><th>최근 거래가</th><td>불러오는 중…</td></tr>"; }
+  var row = h && h.l && h.l[a.dong + "|" + a.apt], best = null;
+  if (row) Object.keys(row).forEach(function (ar) { var n = Number(ar); if (!inBand(n, a.band)) return; var v = row[ar]; if (!best || v[1] > best[1]) best = [v[0], v[1], v[2], n]; });
+  if (!best) return "<tr><th>최근 거래가</th><td>— <span style='color:var(--ink-soft);font-size:.74rem'>최고가 장부(2020.1~)에 이 평형대 기록이 없습니다</span></td></tr>";
+  var H = hi9Max(a.code, a.dong, a.apt, a.band);
+  return "<tr><th>최근 거래가</th><td>" + px9Cell({ last: { amt: best[0], d: best[1], fl: best[2], ar: best[3] } }) + "<span class=\"px9-m\">최고가 장부의 마지막 기록 — 최근 몇 달 거래는 '아파트 찾기'에서</span></td></tr>" +
+    "<tr><th>최고가 대비</th><td>" + px9VsCell(H, best[0]) + "</td></tr>";
+}
+/* 가격 기준 안내 — 단지 값을 보여 주는 사용자 화면에 같은 문장 */
+function px9Legend() { return '<div class="px9-leg"><b>가격 기준</b> 단지 값 = <b>최근 거래가</b>(직거래 제외) · 평당가 = 그 거래 ÷ 전용면적 · 최고가 = 2020.1 이후 같은 평형대 최고 · 중위는 참고. 전세가율·갭은 매매·전세 모두 기간 중위끼리 계산. 등급표·지도처럼 <b>지역</b> 값은 지역 중위입니다.</div>'; }
+(function () {
+  var put = function (id) { var t = document.getElementById(id); if (!t) return; var w = t.closest(".tblwrap") || t; if (w.previousElementSibling && w.previousElementSibling.classList && w.previousElementSibling.classList.contains("px9-leg")) return; var d = document.createElement("div"); d.innerHTML = px9Legend(); w.parentNode.insertBefore(d.firstChild, w); };
+  ["renderDanjiTable", "renderFlagTable", "renderCmpxNow", "renderCart"].forEach(function (fn) { if (typeof window[fn] !== "function") return; var o = window[fn]; window[fn] = function () { var r = o.apply(this, arguments); try { put("dj-table"); put("fg-table"); put("cx-table"); } catch (e) {} return r; }; });
+})();
+
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {
   root.innerHTML =
@@ -13277,8 +13321,9 @@ function gapAptHtml() {
   var rows =
     "<tr><th>단지</th><td><b>" + escHtml(a.apt) + "</b> <span style='color:var(--ink-soft);font-size:.74rem'>" +
       escHtml(disp(a.code)) + " " + escHtml(a.dong) + " · " + a.band + "㎡대</span></td></tr>" +
-    "<tr><th>매매</th><td><b>" + eok(a.price) + "</b>" +
-      (a.lastYear ? " <span style='color:var(--ink-soft);font-size:.74rem'>(" + a.lastYear + "년 중위)</span>" : "") + "</td></tr>" +
+    gapAptPxRow(a) +
+    "<tr><th>매매 중위</th><td><b>" + eok(a.price) + "</b>" +
+      (a.lastYear ? " <span style='color:var(--ink-soft);font-size:.74rem'>(" + a.lastYear + "년 중위 · 아래 전세가율·갭 계산용)</span>" : "") + "</td></tr>" +
     "<tr><th>전세</th><td>" + (a.je != null ? eok(a.je) +
       (a.jeYear ? " <span style='color:var(--ink-soft);font-size:.74rem'>(" + a.jeYear + "년 중위)</span>" : "")
       : "— <span style='color:var(--ink-soft);font-size:.74rem'>이 평형대 전세 실거래가 저장본에 없습니다</span>") + "</td></tr>" +
@@ -17264,9 +17309,12 @@ function renderDanjiTable() {
     r.pm = median(deals.map(function (t) { return t.amount / t.area; }));
     r.py = r.pm * 3.3058;
     r.amt = median(deals.map(function (t) { return t.amount; }));
-    r.last = deals.slice().sort(function (a, b) { return (b.ym * 100 + b.day) - (a.ym * 100 + a.day); })[0];
+    r.last = px9LastDeal(deals);
     /* v13.9 사용자가 보는 값은 '최근 거래가'와 '최고가' — 중위는 참고로 아래에 작게. 최고가 = 2020.1 이후 같은 평형대(최고가 장부) + 조회 기간 거래 중 큰 값 */
     r.lastAmt = r.last ? r.last.amount : null;
+    /* v13.10 평당가도 같은 거래로 — 화면의 값(최근 거래가)과 평당가 순서가 엇갈리지 않게. 기간 중위 평당가는 참고로 아래에 작게 */
+    r.pyMed = r.py;
+    if (r.last && r.last.area > 0) { r.pm = r.last.amount / r.last.area; r.py = r.pm * 3.3058; }
     r.hiRec = px9HiOf(DJ.lawd, g.dong, g.apt, band, deals);
     r.vsHi = r.hiRec && r.lastAmt ? (r.lastAmt / r.hiRec.amt - 1) * 100 : null;
     var stc = DJ.store ? storeFind(DJ.store, g.apt, g.dong) : null;
@@ -17347,7 +17395,7 @@ function renderDanjiTable() {
         " <span style='color:var(--ink-soft);font-size:.74rem'>" + r.dong + "</span></td>" +
       "<td>" + px9Cell({ last: r.last ? { amt: r.last.amount, d: Number(r.last.ym) * 100 + (Number(r.last.day) || 0), fl: r.last.floor, ar: r.last.area } : null, med: r.amt, n: r.cnt, lbl: DJ.periodLbl || "조회 기간" }) + "</td>" +
       "<td>" + px9VsCell(r.hiRec, r.lastAmt) + "</td>" +
-      "<td><b>" + pyFmt(r.py) + "</b></td>" +
+      "<td>" + px9PyCell(r.py, r.last ? r.last.area : null, r.pyMed, DJ.periodLbl) + "</td>" +
       "<td" + (r.hhShared ? ' style="opacity:.62" title="관리단지 전체 세대수 — 이 차수만의 값이 아닙니다"' : "") +
         ">" + (r.hh != null ? fmt(r.hh) + (r.hhShared ? "~" : "") : "—") + "</td>" +
       "<td>" + (r.year ? r.year + " (" + age + "년)" : "—") + "</td>" +
@@ -17398,7 +17446,7 @@ function addToCart(r, btn) {
   cart.push({
     id: id, lawd: DJ.lawd, regionKey: DJ.regionKey, regionName: lawdName(DJ.lawd),
     apt: r.apt, dong: r.dong, pmAvg: Math.round(r.pm), py: Math.round(r.py),
-    amt: Math.round(r.amt), cnt: r.cnt, buildYear: r.year,
+    amt: Math.round(r.lastAmt || r.amt), medAmt: Math.round(r.amt), cnt: r.cnt, buildYear: r.year,
     jeonse: r.je != null ? Math.round(r.je) : null,
     gap: r.gap != null ? Math.round(r.gap) : null,
     jr: r.jr != null ? Math.round(r.jr * 10) / 10 : null,
@@ -17486,6 +17534,10 @@ function codeOfRegionName(nm) {
   }
   return "";
 }
+/* v13.10 담은 단지의 가격 — 담을 때의 최근 거래가(없으면 예전 저장 방식의 중위) */
+function cartPrice(c, area) { return c.lastAmount || c.amt || (c.pmAvg ? c.pmAvg * (area || 84) : 0); }
+function cartPy(c) { var a = c.amt && c.pmAvg ? c.amt / c.pmAvg : null; if (c.lastAmount && a) return c.lastAmount / a * 3.3058; return c.py || (c.pmAvg ? c.pmAvg * 3.3058 : null); }
+function cartPriceLbl(c) { return c.lastAmount ? "최근 거래가" + (c.lastYm ? "(" + String(c.lastYm).slice(2, 4) + "." + Number(String(c.lastYm).slice(4)) + (c.lastFloor ? " · " + c.lastFloor + "층" : "") + ")" : "") : "매매 중위"; }
 function cartRegionKey(c) {
   if (c.regionKey && RANKED.indexOf(c.regionKey) >= 0) return c.regionKey;
   var lw = String(c.lawd || "").split(":")[0];
@@ -17626,7 +17678,7 @@ function renderCartReport() {
       var age = c.buildYear ? thisYear - c.buildYear : null;
       var parkRatio = (c.parkingTotal && c.households) ? (c.parkingTotal / c.households) : null;
       var rk = cartRegionKey(c);
-      var price = c.amt || c.pmAvg * cond.area;
+      var price = cartPrice(c, cond.area);
       var pmRegion = (rk && DB.salePm.series[rk]) ? lastVal("salePm", rk) : null;
       var vsRegion = (pmRegion && c.pmAvg) ? (c.pmAvg / pmRegion - 1) * 100 : null;
       var r10 = rk ? idxChange("sale", ik(rk), 120) : null;
@@ -17655,7 +17707,7 @@ function renderCartReport() {
       /* 검토 메모 — 줄글 목록 대신 [항목 | 내용] 표로 (v5.45) */
       var bl = [];
       bl.push(["시세", (c.regionName || disp(rk || "")) + " " + c.dong + " · 평당 " +
-        pyFmt(c.py || c.pmAvg * 3.3058) + " · 매매 중위 <b>" + eok(price) + "</b>" +
+        pyFmt(cartPy(c)) + " · " + cartPriceLbl(c) + " <b>" + eok(price) + "</b>" +
         (vsRegion != null ? " (지역 평균 대비 " + pct(vsRegion, 0) + ")" : "")]);
       if (nonAptType(c.apt)) bl.push(["유형 주의", "이름으로 보아 <b>" + nonAptType(c.apt) + "</b>입니다 — " +
         "아파트와 값이 다르게 움직이는 별개 시장이라 이 채점표의 공식(급지·대장성)이 잘 맞지 않습니다. " +
@@ -17692,7 +17744,7 @@ function renderCartReport() {
         /* 칩·레이더·환경·메모는 좁은 본문 칸이 아니라 카드 전체 폭을 쓴다 (v5.37) */
         '<div class="rcfull">' +
           '<div class="chips" style="margin:6px 0">' +
-            kv("평당", pyFmt(c.py || c.pmAvg * 3.3058)) +
+            kv("평당", pyFmt(cartPy(c))) +
             kv("매매", eok(price)) +
             kv("전세", c.jeonse != null ? eok(c.jeonse) : "") +
             kv("전세가율", c.jr != null ? c.jr + "%" : "") +
@@ -17819,19 +17871,19 @@ function renderCartCompare(scored, cond) {
     var fy = finance(cartRegionKey(y.item), y.item.amt || y.item.pmAvg * cond.area, cond);
     return fx.need - fy.need;
   })[0];
-  var cheapFin = finance(cartRegionKey(cheap.item), cheap.item.amt || cheap.item.pmAvg * cond.area, cond);
+  var cheapFin = finance(cartRegionKey(cheap.item), cartPrice(cheap.item, cond.area), cond);
   lines.push(["실행 가능성", "필요현금이 가장 적은 곳은 <b>" + escHtml(cheap.item.apt) + " " + eok(cheapFin.need) + "</b>" +
     (cond.cash > 0 ? (cheapFin.need <= cond.cash ? " — 지금 예산으로 <b>실행 가능</b>합니다." : " — 그래도 " + eok(cheapFin.need - cond.cash) + " 부족합니다.") : ".")]);
   /* 담은 단지를 한 줄씩 나란히 — 줄글보다 표가 비교하기 쉽다 (v5.45) */
   var cmpRows = list.map(function (s) {
     var c = s.item;
-    var f = finance(cartRegionKey(c), c.amt || c.pmAvg * cond.area, cond);
+    var f = finance(cartRegionKey(c), cartPrice(c, cond.area), cond);
     return "<tr" + (s === best ? ' class="hit"' : "") + "><td><b>" + escHtml(c.apt) + "</b>" +
       (nonAptType(c.apt) ? ' <span class="tagmini no">' + nonAptType(c.apt) + "</span>" : "") +
       " <span style='color:var(--ink-soft);font-size:.74rem'>" + escHtml(c.regionName || "") + "</span></td>" +
       "<td><b>" + s.total.toFixed(0) + "</b> " + s.grade + "</td>" +
-      "<td>" + pyFmt(c.py || c.pmAvg * 3.3058) + "</td>" +
-      "<td><b>" + eok(c.amt || c.pmAvg * cond.area) + "</b></td>" +
+      "<td>" + pyFmt(cartPy(c)) + "</td>" +
+      "<td><b>" + eok(cartPrice(c, cond.area)) + "</b></td>" +
       "<td>" + (c.jeonse != null ? eok(c.jeonse) : "—") + "</td>" +
       "<td>" + (c.jr != null ? c.jr + "%" : "—") + "</td>" +
       "<td>" + (c.gap != null ? eok(c.gap) : "—") + "</td>" +
@@ -17841,7 +17893,7 @@ function renderCartCompare(scored, cond) {
   }).join("");
   box.innerHTML = '<div class="note" style="margin-top:12px"><b>비교 표</b>' +
     '<div class="tblwrap" style="margin-top:6px"><table class="keeptbl">' +
-    "<thead><tr><th>단지</th><th>종합</th><th>평당</th><th>매매</th><th>전세</th><th>전세가율</th>" +
+    "<thead><tr><th>단지</th><th>종합</th><th>평당</th><th>최근 거래가</th><th>전세</th><th>전세가율</th>" +
     "<th>갭</th><th>세대수</th><th>준공</th><th>필요현금</th></tr></thead><tbody>" +
     cmpRows + "</tbody></table></div>" +
     '<div class="pxcap">굵은 줄이 종합 1위입니다. 갭은 전세를 끼고 들어갈 때 드는 돈, ' +
@@ -18419,8 +18471,9 @@ function buildFlag(root) {
       '<div class="tblwrap"><table id="fg-table" class="keeptbl"><thead><tr>' +
       '<th>지역</th><th>대장 단지</th><th>최근 거래가</th><th>최고가 대비</th><th>전세</th><th>전세가율</th><th>평당가</th><th>갭</th><th>거래</th><th></th>' +
       '</tr></thead><tbody></tbody></table></div>' +
-      '<div class="note"><b>대장 판정 기준</b> — 최근 6개월 해당 평형대 실거래 중 전용 평당가 중위값이 높은 순, ' +
-        '지역당 상위 3개. 전세는 같은 단지·같은 평형대 실거래 중위이며 없으면 빈칸입니다. ' +
+      '<div class="note"><b>대장 판정 기준</b> — 최근 6개월 해당 평형대에서 단지마다 <b>가장 최근 실거래</b>(직거래 제외)를 보고 ' +
+        '그 금액이 높은 순, 지역당 상위 3개(작업실 \'대장 vs 전체\'의 평형별 대장과 같은 규칙 — 한 건이라도 비싸게 팔리면 대장). ' +
+        '평당가는 그 거래 금액 ÷ 전용면적이고, 기간 중위는 참고로 작게 붙입니다. 전세는 같은 단지·같은 평형대 실거래 중위이며 없으면 빈칸입니다. ' +
         '지역 평균(급지표)보다 대장이 30~50% 비싼 게 보통입니다 — 예산 검증은 담기 후 채점 보고서에서 하세요.</div></div>';
 
   root.querySelector("#fg-band").addEventListener("change", function () { FG.band = Number(this.value); });
@@ -18501,13 +18554,15 @@ function loadFlag() {
         });
         var apts = Object.keys(byApt).map(function (id) {
           var g = byApt[id];
-          if (g.amounts.length < 2) return null;
+          if (g.amounts.length < 1) return null;
           g.med = median(g.amounts);
           g.max = Math.max.apply(null, g.amounts);
-          g.last = g.deals.slice().sort(function (a, b) { return (Number(b.ym) * 100 + (Number(b.day) || 0)) - (Number(a.ym) * 100 + (Number(a.day) || 0)); })[0];
+          g.last = px9LastDeal(g.deals);
           g.band = FG.band; g.code = rk;
           g.areaMed = median(g.areas);
-          g.py = g.med / g.areaMed * 3.3058;
+          g.pyMed = g.med / g.areaMed * 3.3058;
+          g.py = g.last && g.last.area > 0 ? g.last.amount / g.last.area * 3.3058 : g.pyMed;
+          g.lastAmt = g.last ? g.last.amount : g.med;
           var jv = [];
           data.rent.forEach(function (m) {
             m.deals.forEach(function (t) {
@@ -18519,7 +18574,7 @@ function loadFlag() {
           g.gap = g.jeonse != null ? g.med - g.jeonse : null;
           g.cnt = g.amounts.length;
           return g;
-        }).filter(Boolean).sort(function (a, b) { return b.py - a.py; }).slice(0, FG.top);
+        }).filter(Boolean).sort(function (a, b) { return b.lastAmt - a.lastAmt || b.py - a.py; }).slice(0, FG.top);
         results.push({ region: rk, regionName: reg.name, apts: apts });
       });
     });
@@ -18556,7 +18611,7 @@ function renderFlagTable() {
         "<td>" + px9VsCell(px9HiOf(r.region, g.dong, g.apt, FG.band, g.deals), g.last ? g.last.amount : null) + "</td>" +
         "<td>" + (g.jeonse != null ? eok(g.jeonse) : "—") + "</td>" +
         "<td>" + (g.jr != null ? g.jr.toFixed(1) + "%" : "—") + "</td>" +
-        "<td>" + pyFmt(g.py) + "</td>" +
+        "<td>" + px9PyCell(g.py, g.last ? g.last.area : null, g.pyMed, "6개월") + "</td>" +
         "<td>" + (g.gap != null ? eok(g.gap) : "—") + "</td>" +
         "<td>" + g.cnt + "건</td>" +
         '<td style="white-space:nowrap"><button class="btn sm ghost" data-fgloc="' +
@@ -18583,9 +18638,10 @@ function renderFlagTable() {
       if (cart2.some(function (c) { return c.id === cid; })) return;
       cart2.push({
         id: cid, lawd: rk, regionKey: kbKeyOfLawd(rk), regionName: lawdName(rk), apt: apt, dong: dong,
-        pmAvg: Math.round(g.med / g.areaMed), py: Math.round(g.med / g.areaMed * 3.3058),
-        amt: Math.round(g.med), jr: g.jr != null ? Math.round(g.jr * 10) / 10 : null,
-        cnt: g.cnt, buildYear: g.buildYear,
+        pmAvg: Math.round(g.py / 3.3058), py: Math.round(g.py),
+        amt: Math.round(g.lastAmt), jr: g.jr != null ? Math.round(g.jr * 10) / 10 : null,
+        cnt: g.cnt, buildYear: g.buildYear, medAmt: Math.round(g.med),
+        lastAmount: g.last ? g.last.amount : null, lastYm: g.last ? g.last.ym : null, lastFloor: g.last ? g.last.floor : null,
         jeonse: g.jeonse != null ? Math.round(g.jeonse) : null,
         gap: g.gap != null ? Math.round(g.gap) : null,
         households: null, parkingTotal: null, builder: null,
@@ -18663,7 +18719,7 @@ function buildCmpx(root) {
       '<div class="expbar"><button class="btn sm ghost" data-exp="img" data-name="단지비교">이미지 저장</button>' +
       '<button class="btn sm ghost" data-exp="xlsx" data-table="cx-table" data-name="단지비교">엑셀 저장</button></div>' +
       '<div class="tblwrap"><table id="cx-table"><thead><tr>' +
-      '<th>단지</th><th>평당가</th><th>매매 중위</th><th>전세</th><th>갭</th><th>기간 상승률</th><th>거래</th></tr></thead><tbody></tbody></table></div>' +
+      '<th>단지</th><th>최근 거래가</th><th>최고가 대비</th><th>평당가</th><th>전세(중위)</th><th>갭(중위)</th><th>기간 상승률</th><th>거래</th></tr></thead><tbody></tbody></table></div>' +
       '<div class="note" id="cx-read"></div></div>' +
     '<div class="card" id="cx-pricecard" style="display:none"><div class="eyebrow">Price</div><h2>매매가 추이</h2>' +
       '<p class="desc">중위 거래가 추이입니다(10년 모드에서는 연 중위가). ' +
@@ -18879,9 +18935,12 @@ function renderCmpxNow(picked) {
     var gap = (last3 != null && je != null) ? last3 - je : null;
     var py = (last3 != null && sr.ent.areaMed) ? last3 / sr.ent.areaMed * 3.3058 : null;
     if (rise != null) reads.push("<b>" + sr.name + "</b>은 기간 상승률 " + pct(rise, 1) + (gap != null ? ", 현재 갭 " + eok(gap) : "") + "입니다.");
+    var sl = active[i], X = cx10Last(sl, sr.ent), H = X ? px9HiOf(sl.region, sr.ent.dong, sr.ent.apt, sl.band, X.deals) : null;
+    if (X && X.last && X.last.area > 0) py = X.last.amount / X.last.area * 3.3058;
     return '<tr><td><span style="color:' + CMP_COLORS[i] + '">●</span> ' + sr.name + "</td>" +
-      "<td>" + (py != null ? pyFmt(py) + (sr.ent.est ? "*" : "") : "—") + "</td>" +
-      "<td><b>" + (last3 != null ? eok(last3) : "—") + "</b></td>" +
+      "<td>" + (X && X.last ? px9Cell({ last: { amt: X.last.amount, d: Number(X.last.ym) * 100 + (Number(X.last.day) || 0), fl: X.last.floor, ar: X.last.area }, med: last3, lbl: CMP.range === "y" ? "최근 연" : "최근 " + win + "개월", n: null }) + (X.src === "ledger" ? '<span class="px9-m">최고가 장부의 마지막 기록</span>' : "") : (last3 != null ? "<b>" + eok(last3) + "</b><span class=\"px9-m\">중위</span>" : "—")) + "</td>" +
+      "<td>" + px9VsCell(H, X && X.last ? X.last.amount : null) + "</td>" +
+      "<td>" + (py != null ? pyFmt(py) + (sr.ent.est && !(X && X.last) ? "*" : "") : "—") + "</td>" +
       "<td>" + (je != null ? eok(je) : "—") + "</td>" +
       "<td>" + (gap != null ? eok(gap) : "—") + "</td>" +
       '<td class="' + cls(rise) + '">' + (rise != null ? pct(rise, 1) : "—") + "</td>" +

@@ -3283,3 +3283,4 @@ body.adm .in-q{font-size:17px}body.adm .in-q small{font-size:12.5px}
 .w9-h{font-weight:800;font-size:.9rem;margin-bottom:4px}.w9-h small{display:block;font-weight:500;font-size:.74rem;color:var(--ink-soft,#667085)}
 .w9-r{display:flex;gap:8px;font-size:.8rem;line-height:1.5;padding:4px 0;border-top:1px dashed var(--line,#e4e7ec)}.w9-r i{font-style:normal;flex:0 0 34px;font-weight:800;color:var(--ink-soft,#667085)}
 @media (max-width:700px){.w9-parts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.px9-leg{font-size:.76rem;line-height:1.55;color:var(--ink-soft,#667085);background:var(--bg,#f9fafb);border:1px solid var(--line,#eaecf0);border-radius:9px;padding:7px 10px;margin:10px 0 6px}.px9-leg b{color:var(--ink,#344054)}

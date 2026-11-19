@@ -1,8 +1,19 @@
 {
  "v": 1,
- "builtAt": "2026-11-18T23:24:29.668Z",
- "asOf": 20261119,
+ "builtAt": "2026-11-19T23:29:26.142Z",
+ "asOf": 20261120,
  "items": [
+  {
+   "kind": "loan",
+   "date": "2026-11-19",
+   "title": "보금자리론 신청…자격 요건부터 한도와 금리 구조까지 한눈에 보기",
+   "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE1SUllXOGRlMXd5OTdFbEpUZnplTEMyZ1FXYXNsWi0tYURCWkxVVVNSQnY4bENVTWpuZFZ5WEF2VXlidzBteDhPZ1JmTVlDSmYwYy11MXVrOWRwQ3RoWng1MVBpMTlEMWpGUGNMbG56QmNfRHM?oc=5",
+   "src": "스페셜타임스",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-20",
+   "isNew": true
+  },
   {
    "kind": "policy",
    "date": "2026-11-16",

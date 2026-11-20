@@ -1,8 +1,32 @@
 {
  "v": 1,
- "builtAt": "2026-11-19T23:29:26.142Z",
- "asOf": 20261120,
+ "builtAt": "2026-11-20T22:55:26.259Z",
+ "asOf": 20261121,
  "items": [
+  {
+   "kind": "transit",
+   "line": "GTX-C 덕정~수원",
+   "what": "일정 변경",
+   "date": "2026-11-21",
+   "title": "동북선 준공 2028년 8월로 9개월 연기 — 6중 역세권선 왕십리 스케쥴 변화는? (GTX-C 9월 실착공, 신설 역 2km 안 62개 단지, 성동구 집값 2주 연속 하락)",
+   "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFA5T2VsS1oxMDJxd3c5MGRNMVhkOVAwWmJIaTRDMjdxNEcyUG5WV0duUEk4TGstMXd5TDRYSllDdVhjelNSeU4zYjUyb3RPTnZHMVdtc2FpOTU5bXZZaG1GWGJWMzhtYXdtYV9FQ08zbmFnUGx6OUxsZWF4TVE?oc=5",
+   "src": "네이버 프리미엄콘텐츠",
+   "official": false,
+   "todo": "data/manual/transit.json 에서 'GTX-C 덕정~수원' 의 status·open·note 를 확인해 주세요",
+   "firstSeen": "2026-11-21",
+   "isNew": true
+  },
+  {
+   "kind": "loan",
+   "date": "2026-11-20",
+   "title": "[국감AS] “소득 제자리, 대출은 늘어”…주금공 보금자리론 이달 금리 인상에 부담↑",
+   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBzc2djSmc3R3pLZnBtbm1HVmVFOUdTS190Mm12dTFXeUZ6X0JEeUF3NFhMOEh1ZFd3SUFfajNWZzNSdW14eDZwRVdFRWJ6dTNGdnFobHNsaFo2cEZqV3IwNEdHSm92VEI5dVNMWFFBbzDSAXRBVV95cUxPalZvaS1QVF9DSE9FRkRlX1dsZ0ZJTlhYWVFKMUV2TXZYTEdzbzdxZ0dCdHZRemxhWkYwUTBLRTNya2x3ZUp5aV93XzZRVHJSUDFjUEo4X1Qwb2ltbXBlRmY0YWhweER2R0Zlc1pXXzdwQXlzOA?oc=5",
+   "src": "주간한국",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-21",
+   "isNew": true
+  },
   {
    "kind": "loan",
    "date": "2026-11-19",
@@ -12,18 +36,18 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-11-20",
-   "isNew": true
+   "isNew": false
   },
   {
-   "kind": "policy",
+   "kind": "loan",
    "date": "2026-11-16",
-   "title": "[기획] 교통대책 없는 수도권 공급 발표…‘선교통 후입주’ 약속은 어디로",
-   "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE5SV296VzVybS0yc3dJNFhDSE8tenZSS2NHVm0zRlN3NmZrSVN3MlR0MG9VMVNxWWZSWXQySG03WWdkZ0NzaVZZSEZTeU9hWS1YMW1uc05pR05WbkNZTGppMklud1o?oc=5",
-   "src": "매일일보",
+   "title": "\"3억 빌리면 매달 161만원 갚아야\" 보금자리론 금리 5% 돌파…서민들 '발칵'",
+   "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9Ca2Y3bnh6NmlKYVZrSUFhX1E4bnRKUENDYzJvTW9TUVBVc09Bek5uWXpFYWo0NW52S3ZoaWJCMnRQMjBXaUsxU2I4cUtMNmlvLUZ3N3A3bWlkYlBFQlVRazVJVTQzalRQcnI5bw?oc=5",
+   "src": "나남뉴스",
    "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-11-18",
-   "isNew": false
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-21",
+   "isNew": true
   }
  ]
 }

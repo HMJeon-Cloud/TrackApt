@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=13.10">
+<link rel="stylesheet" href="style.css?v=14.0">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v13.10</span>
+    <span class="ver">v14.0</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=13.10"></script>
+<script src="cards.js?v=14.0"></script>
 <script>
 "use strict";
 
@@ -12523,6 +12523,260 @@ function px9Legend() { return '<div class="px9-leg"><b>가격 기준</b> 단지 
   ["renderDanjiTable", "renderFlagTable", "renderCmpxNow", "renderCart"].forEach(function (fn) { if (typeof window[fn] !== "function") return; var o = window[fn]; window[fn] = function () { var r = o.apply(this, arguments); try { put("dj-table"); put("fg-table"); put("cx-table"); } catch (e) {} return r; }; });
 })();
 
+/* ══ v14.0 새 틀 START ══
+   화면 틀을 하나로: 넓은 화면은 왼쪽 메뉴(모든 화면이 한 번에 보임) · 좁은 화면은 아래 5칸 + 전체 메뉴.
+   메뉴 순서는 집을 고르는 순서 그대로 — 시장(지금 오르나) → 지역(어디가 좋은가) → 아파트(어느 단지인가) → MY(내 조건·자금·후보).
+   화면 id·주소(#tiers 등)는 예전 그대로다. 옛 머리글·알약 줄·아래 메뉴는 화면에서만 감추고(DOM 은 남김) 기존 코드는 건드리지 않는다. */
+var NV = { cur: "home", last: {}, ready: false, q: "" };
+var NV_GROUPS = [
+  { id: "home", nm: "홈", ic: "home", tabs: ["home"] },
+  { id: "market", nm: "시장", ic: "trend", d: "지금 오르나 내리나", tabs: ["market", "vol", "quad", "rates", "supply"] },
+  { id: "region", nm: "지역", ic: "pin", d: "어디가 좋은가", tabs: ["tiers", "reco", "rank", "mapx", "school", "gap", "move", "rota"] },
+  { id: "apt", nm: "아파트", ic: "building", d: "어느 단지인가", tabs: ["danji", "flag", "cmpx", "subs"] },
+  { id: "my", nm: "MY", ic: "user", d: "내 조건 · 자금 · 후보", tabs: ["wiz", "start", "calc", "cart"] },
+  { id: "more", nm: "더보기", ic: "grid", d: "근거 · 도움말 · 설정", tabs: ["guide", "faq", "btest", "fun", "setting", "more"] },
+  { id: "studio", nm: "작업실", ic: "pen", d: "주인 전용", tabs: ["today", "brief", "insight", "report", "value", "lead", "tpl", "reel", "ops"] }
+];
+/* 화면마다: 아이콘 · (없을 때 쓰는) 한 줄 설명 · 검색어 */
+var NV_TAB = {
+  home: ["home", "오늘 시장 한눈에", ""], market: ["trend", "", "지수 상승률 시세 흐름"], vol: ["bars", "", "거래 손바뀜"], quad: ["quad", "", "4분면 전세"], rates: ["percent", "", "주담대 대출 예금 이자"], supply: ["build", "", "미분양 착공 공급"],
+  tiers: ["medal", "", "급지 분위 순위"], reco: ["score", "시·군·구 점수표 — 급지·흐름·자금", "점수 채점 추천 지역"], rank: ["steps", "", "현금 예산"], mapx: ["map", "", "지도"], school: ["school", "", "학교 학군지"], gap: ["key", "", "갭투자 전세가율"], move: ["swap", "", "상급지 배율"], rota: ["cycle", "", "순환 저평가"],
+  danji: ["find", "", "단지 실거래 최고가 검색"], flag: ["crown", "", "대장 1등"], cmpx: ["scale", "", "비교 추이"], subs: ["calendar", "청약 일정 · 경쟁률 · 분양가", "분양 무순위 당첨"],
+  wiz: ["spark", "네 가지만 답하면 조건에 맞는 단지 TOP 5", "추천 맞춤"], start: ["idcard", "현금 · 소득 · 보유 상태", "조건 현금 소득"], calc: ["calc", "대출 · 세금 · 필요현금", "대출 취득세 dsr ltv"], cart: ["star", "담은 단지 채점 · 비교", "후보 장바구니 담기"],
+  more: ["dots", "용어 도움 · 앱으로 설치", "설치 용어"], guide: ["route", "", "로드맵 순서"], faq: ["faq", "", "질문 검증"], btest: ["flask", "", "백테스트"], fun: ["dice", "", ""], setting: ["sliders", "", "가중치 ltv"],
+  today: ["check", "", ""], brief: ["news", "", "신고가 대장"], insight: ["compass", "", "판단 신호"], report: ["doc", "", "보고서"], value: ["layers", "", "본질 변수"], lead: ["trophy", "", "대장"], tpl: ["cards", "", "카드 코너"], reel: ["film", "", "릴스"], ops: ["db", "", "키 수집 상태"]
+};
+var NV_NAME = { cart: "내 후보", more: "도움말 · 설치", home: "홈" };
+var NV_IC = {
+  home: "M3.5 10.6 12 3.6l8.5 7V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z",
+  trend: "M3 17l5.5-5.5 4 4L21 7M15 7h6v6",
+  pin: "M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+  building: "M5 21V4.5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1V21M15 9h3a1 1 0 0 1 1 1v11M3 21h18M8.5 7.5h3M8.5 11h3M8.5 14.5h3",
+  user: "M12 11.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20.5a7.5 7.5 0 0 1 15 0",
+  grid: "M4.5 4.5h5.5v5.5H4.5zM14 4.5h5.5v5.5H14zM4.5 14h5.5v5.5H4.5zM14 14h5.5v5.5H14z",
+  pen: "M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17zM14.5 7.5l3 3",
+  search: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-3.8-3.8",
+  help: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2 1-1.2 1.9M12 16.9v.1",
+  chev: "M9 5.5l6.5 6.5L9 18.5", x: "M5.5 5.5l13 13M18.5 5.5l-13 13", menu: "M4 7h16M4 12h16M4 17h16", arrow: "M5 12h14M13 6l6 6-6 6",
+  bars: "M3 20.5h18M6 20V11M11 20V4.5M16 20v-7M20.5 20V8",
+  quad: "M4.5 4.5h15v15h-15zM12 4.5v15M4.5 12h15",
+  percent: "M19 5 5 19M7.5 9.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM16.5 18.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+  build: "M4 21V6a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v15M2.5 21H15M7.5 9h2M7.5 12.5h2M7.5 16h2M18.5 8v6M15.5 11h6",
+  medal: "M12 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM9 14.2 7.5 21l4.5-2.5 4.5 2.5-1.5-6.8",
+  score: "M9 4h6v3H9zM7.5 5.5H6a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6.5a1 1 0 0 0-1-1h-1.500M8.500 13.500l2.500 2.500 4.500-5",
+  steps: "M3 20h6v-5h6v-5h6",
+  map: "M3.5 6.500 9 4l6 2.500L20.500 4v13.500L15 20l-6-2.500L3.500 20zM9 4v13.500M15 6.500V20",
+  school: "M2.500 9.500 12 5l9.500 4.500L12 14zM6.500 11.800V16c0 1.200 2.500 2.500 5.500 2.500s5.500-1.300 5.500-2.500v-4.200M21.500 9.500V15",
+  key: "M15.500 12a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7zM13 11 4 20M7.200 16.800l2.300 2.300M4 20l1.500 1.500",
+  swap: "M6 8h12.500l-3.500-3.500M18 16H5.500L9 19.500",
+  cycle: "M4 12a8 8 0 0 1 13.700-5.600L20 8.500M20 4v4.500h-4.500M20 12a8 8 0 0 1-13.700 5.600L4 15.500M4 20v-4.500h4.500",
+  find: "M4 6h11M4 11h6M4 16h5M16 18.500a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7zM21 21l-2.500-2.500",
+  crown: "M4 19h16M4.500 15.500 3 7l5 4 4-6 4 6 5-4-1.500 8.500z",
+  scale: "M12 4v16M7.500 20h9M5.500 7h13M5.500 7 3 13a2.600 2.600 0 0 0 5 0zM18.500 7 16 13a2.600 2.600 0 0 0 5 0z",
+  calendar: "M5 5.500h14a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.500a1 1 0 0 1 1-1zM4 10h16M8 3.500v4M16 3.500v4",
+  spark: "M11 4l1.900 4.800 4.800 1.900-4.800 1.900L11 17.400l-1.900-4.800-4.800-1.900 4.800-1.900zM18.500 15l.800 2 2 .800-2 .800-.800 2-.800-2-2-.800 2-.800z",
+  idcard: "M4 5.500h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1zM8.500 12a1.800 1.800 0 1 0 0-3.600 1.800 1.800 0 0 0 0 3.600zM5.800 15.600a2.800 2.800 0 0 1 5.400 0M14 9.500h4M14 13h4",
+  calc: "M6 3.500h12a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1zM8.500 7.500h7v3h-7zM8.600 14.200h.010M12 14.200h.010M15.400 14.200h.010M8.600 17.400h.010M12 17.400h.010M15.400 17.400h.010",
+  star: "M12 3.800l2.500 5.200 5.700.800-4.100 4 1 5.700L12 16.800l-5.100 2.700 1-5.700-4.100-4 5.700-.800z",
+  route: "M6 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6",
+  faq: "M4.500 5h15a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H12l-4.500 3.500V17h-3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM10.200 9.300a1.900 1.900 0 1 1 2.700 1.700c-.600.300-.900.800-.900 1.400M12 14.500v.100",
+  flask: "M9.500 3.500h5M10.500 3.500v6L5 19a1.300 1.300 0 0 0 1.100 2h11.800a1.300 1.300 0 0 0 1.100-2l-5.500-9.500v-6M7.800 15h8.400",
+  dice: "M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM8.500 8.500h.010M15.500 8.500h.010M12 12h.010M8.500 15.500h.010M15.500 15.500h.010",
+  sliders: "M4.500 6.500h9M17.500 6.500h2M4.500 12h2.500M11 12h8.500M4.500 17.500h10M18.500 17.500h1M15.500 8.500a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM16.500 19.500a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+  dots: "M5.500 12h.010M12 12h.010M18.500 12h.010",
+  check: "M4.500 5h15a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM8 12l3 3 5-6",
+  news: "M4 5h13v14H5.500A1.500 1.500 0 0 1 4 17.500zM17 9h3v8.500a1.500 1.500 0 0 1-3 0M7 9h7M7 12.500h7M7 16h4",
+  compass: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM15.500 8.500l-2 5-5 2 2-5z",
+  doc: "M7 3.500h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.500a1 1 0 0 1 1-1zM14 3.500v4h4M9 12h6M9 15.500h6",
+  layers: "M12 4 3.500 8.500 12 13l8.500-4.500zM3.500 12.500 12 17l8.500-4.500M3.500 16.500 12 21l8.500-4.500",
+  trophy: "M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.500 20.500h7M10 17h4",
+  cards: "M5 7h11a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zM8 4h11a1 1 0 0 1 1 1v12",
+  film: "M7 3.500h10a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1zM10.500 9.500v5l4-2.500z",
+  db: "M5 6.500C5 5.100 8.100 4 12 4s7 1.100 7 2.500S15.900 9 12 9 5 7.900 5 6.500zM5 6.500v11C5 18.900 8.100 20 12 20s7-1.100 7-2.500v-11M5 12c0 1.400 3.100 2.500 7 2.500s7-1.100 7-2.500",
+  book: "M5 4.500h10a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10",
+  lock: "M6 10.500h12a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7.500a1 1 0 0 1 1-1zM8.500 10.500V8a3.500 3.500 0 0 1 7 0v2.500",
+  won: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 9l1.500 6 2.500-5 2.500 5L16 9M7.500 12h9"
+};
+function nvIcon(n, sz) { return '<svg class="nv-ic" viewBox="0 0 24 24" width="' + (sz || 20) + '" height="' + (sz || 20) + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + (NV_IC[n] || NV_IC.dots) + '"/></svg>'; }
+function nvLogo(sz) { return '<svg class="nv-logo" viewBox="0 0 512 512" width="' + (sz || 28) + '" height="' + (sz || 28) + '" aria-hidden="true"><rect width="512" height="512" rx="120" fill="#131c31"/><path d="M128 404 232 124l68 184 100-136" fill="none" stroke="#d9b56d" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/><path d="M186 308h114" stroke="#d9b56d" stroke-width="38" stroke-linecap="round"/><path d="M338 160h70v72" fill="none" stroke="#d9b56d" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+function nvTab(id) { for (var i = 0; i < TABS.length; i++) if (TABS[i].id === id) return TABS[i]; return null; }
+function nvName(id) { var t = nvTab(id); return NV_NAME[id] || (t ? t.name : id); }
+function nvDesc(id) { var t = nvTab(id), m = NV_TAB[id]; return (t && t.d) || (m && m[1]) || ""; }
+function nvIcOf(id) { return (NV_TAB[id] && NV_TAB[id][0]) || "dots"; }
+function nvE(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function nvGroups() {
+  var own = nvOwner(), G = NV_GROUPS.map(function (g) { return { id: g.id, nm: g.nm, ic: g.ic, d: g.d, tabs: g.tabs.filter(function (id) { return !!nvTab(id); }) }; }).filter(function (g) { return g.tabs.length && (g.id !== "studio" || own); });
+  if (own) { var st = G.filter(function (g) { return g.id === "studio"; })[0]; if (st) { G = G.filter(function (g) { return g.id !== "studio"; }); G.splice(1, 0, st); } }   /* 주인은 작업실이 홈 바로 아래 */
+  return G;
+}
+function nvGroupOf(id) { var G = nvGroups(); for (var i = 0; i < G.length; i++) if (G[i].tabs.indexOf(id) >= 0) return G[i]; return null; }
+function nvOwner() { return typeof OWNER !== "undefined" && !!OWNER; }
+function nvCurTab() { var s = document.querySelector("section.tab.on"); return s ? s.id.replace(/^tab-/, "") : "home"; }
+function nvGo(id) { NV_sheet(false); showTab(id); window.scrollTo(0, 0); }
+function nvGoGroup(gid) { var g = nvGroups().filter(function (x) { return x.id === gid; })[0]; if (!g) return; var last = NV.last[gid]; nvGo(last && g.tabs.indexOf(last) >= 0 ? last : g.tabs[0]); }
+/* 지역 이름으로 바로 단지 실거래 — 아파트 찾기에 지역을 넣고 불러온다 */
+function nvGoRegion(code, band) {
+  NV_sheet(false); showTab("danji"); window.scrollTo(0, 0);
+  try { if (typeof fillRegionSelects === "function") fillRegionSelects(["dj-region"]); var sel = document.getElementById("dj-region"); if (!sel) return;
+    for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === String(code)) { sel.selectedIndex = i; break; }
+    if (typeof fireChange === "function") fireChange(sel); if (typeof upgradeRegionSelects === "function") upgradeRegionSelects(sel.parentNode);
+    var b = document.getElementById("dj-band"); if (band && b) { b.value = String(band); if (typeof fireChange === "function") fireChange(b); }
+    var go = document.getElementById("dj-go"); if (go && typeof DB !== "undefined" && DB) setTimeout(function () { go.click(); }, 60);
+  } catch (e) { if (window.console) console.warn("nvGoRegion", e); }
+}
+/* 검색 — 화면 이름·설명·검색어 + 시·군·구 이름 */
+function nvSearch(q) {
+  q = String(q || "").replace(/\s+/g, "").toLowerCase(); if (!q) return [];
+  var R = [], seen = {};
+  nvGroups().forEach(function (g) { g.tabs.forEach(function (id) { if (seen[id]) return; var hay = (nvName(id) + nvDesc(id) + ((NV_TAB[id] && NV_TAB[id][2]) || "") + g.nm).replace(/\s+/g, "").toLowerCase(); if (hay.indexOf(q) >= 0) { seen[id] = 1; R.push({ t: "tab", id: id, nm: nvName(id), d: g.nm + (nvDesc(id) ? " · " + nvDesc(id) : ""), ic: nvIcOf(id), w: nvName(id).replace(/\s+/g, "").toLowerCase().indexOf(q) === 0 ? 0 : 1 }); } }); });
+  R.sort(function (a, b) { return a.w - b.w; }); R = R.slice(0, 7);
+  try { var n = 0; if (typeof LAWD_GROUPS !== "undefined") LAWD_GROUPS.forEach(function (g) { g.items.forEach(function (it) { if (n >= 6) return; var nm = g.sido + " " + it[0]; if (nm.replace(/\s+/g, "").toLowerCase().indexOf(q) >= 0) { n++; R.push({ t: "reg", code: it[1], nm: nm, d: "이 지역 아파트 실거래 보기", ic: "pin" }); } }); }); } catch (e) {}
+  return R;
+}
+function nvResHtml(R, q) {
+  if (!q) return "";
+  if (!R.length) return '<div class="nv-res-none">‘' + nvE(q) + '’ — 맞는 화면이나 지역이 없습니다</div>';
+  return R.map(function (r, i) { return '<button type="button" class="nv-res' + (i === 0 ? " first" : "") + '" ' + (r.t === "tab" ? 'data-nv="' + r.id + '"' : 'data-nvreg="' + r.code + '"') + '><i>' + nvIcon(r.ic, 18) + "</i><span><b>" + nvE(r.nm) + "</b><small>" + nvE(r.d) + "</small></span></button>"; }).join("");
+}
+function nvPick(R) { var r = R && R[0]; if (!r) return; if (r.t === "tab") nvGo(r.id); else nvGoRegion(r.code); }
+/* ── 틀 만들기 ── */
+function nvItemsHtml(g, withDesc) {
+  return g.tabs.map(function (id) { return '<button type="button" class="nv-i" data-nv="' + id + '"><i>' + nvIcon(nvIcOf(id), 19) + "</i><span>" + nvE(nvName(id)) + (withDesc && nvDesc(id) ? "<small>" + nvE(nvDesc(id)) + "</small>" : "") + "</span>" + (id === "cart" ? '<em class="nv-cnt"></em>' : "") + "</button>"; }).join("");
+}
+function nvMount() {
+  if (NV.ready || !document.body) return; NV.ready = true;
+  var G = nvGroups(), body = document.body; body.classList.add("nv");
+  var side = document.createElement("aside"); side.id = "nv-side"; side.setAttribute("aria-label", "메뉴");
+  side.innerHTML = '<button type="button" class="nv-brand" data-nv="home" title="홈으로">' + nvLogo(30) + "<b>Track<i>Apt</i></b></button>" +
+    '<div class="nv-find"><label>' + nvIcon("search", 17) + '<input type="search" id="nv-q" placeholder="화면 · 지역 검색" autocomplete="off" aria-label="화면이나 지역 검색"><kbd>/</kbd></label><div class="nv-pop" id="nv-pop" hidden></div></div>' +
+    '<div class="nv-scroll" role="navigation">' + G.map(function (g) { return '<div class="nv-g' + (g.id === "studio" ? " own" : "") + '" data-g="' + g.id + '">' + (g.id === "home" ? "" : '<div class="nv-gh">' + nvE(g.nm) + (g.d ? "<small>" + nvE(g.d) + "</small>" : "") + "</div>") + nvItemsHtml(g) + "</div>"; }).join("") + "</div>" +
+    '<div class="nv-foot"><span id="nv-data"></span><button type="button" data-nvgloss="1">' + nvIcon("book", 16) + "용어 도움</button></div>";
+  var top = document.createElement("div"); top.id = "nv-top";
+  top.innerHTML = '<div class="nv-bar"><button type="button" class="nv-mbrand" data-nv="home" title="홈으로">' + nvLogo(26) + "<b>Track<i>Apt</i></b></button>" +
+    '<div class="nv-title"><small id="nv-crumb"></small><b id="nv-ttl"></b></div><span class="nv-sp"></span><span class="nv-chip" id="nv-data2"></span>' +
+    '<button type="button" class="nv-ib" data-nvsheet="1" aria-label="전체 메뉴 · 검색">' + nvIcon("search", 20) + '</button><button type="button" class="nv-ib" data-nvgloss="1" aria-label="용어 도움">' + nvIcon("help", 20) + "</button></div>" +
+    '<div id="nv-sub" role="navigation" aria-label="같은 묶음의 화면"></div>';
+  var bot = document.createElement("div"); bot.id = "nv-bot"; bot.setAttribute("role", "navigation"); bot.setAttribute("aria-label", "아래 메뉴");
+  var BG = (nvOwner() ? ["home", "market", "region", "apt", "studio"] : ["home", "market", "region", "apt", "my"]).filter(function (id) { return G.some(function (g) { return g.id === id; }); });
+  bot.innerHTML = BG.map(function (id) { var g = G.filter(function (x) { return x.id === id; })[0]; return '<button type="button" data-nvg="' + g.id + '"><i>' + nvIcon(g.ic, 22) + (g.id === "my" ? '<em class="nv-cnt"></em>' : "") + "</i><span>" + nvE(g.nm) + "</span></button>"; }).join("") +
+    '<button type="button" data-nvsheet="1"><i>' + nvIcon("grid", 22) + "</i><span>전체</span></button>";
+  var sh = document.createElement("div"); sh.id = "nv-sheet"; sh.hidden = true; sh.setAttribute("role", "dialog"); sh.setAttribute("aria-label", "전체 메뉴");
+  sh.innerHTML = '<div class="nv-sh-top"><label>' + nvIcon("search", 18) + '<input type="search" id="nv-q2" placeholder="화면 이름이나 지역(예: 분당, 금리)" autocomplete="off" aria-label="화면이나 지역 검색"></label><button type="button" class="nv-ib" data-nvsheet="0" aria-label="닫기">' + nvIcon("x", 20) + '</button></div>' +
+    '<div class="nv-sh-body"><div id="nv-res2" class="nv-res-list" hidden></div><div id="nv-all">' + G.filter(function (g) { return g.id !== "home"; }).map(function (g) { return '<section class="nv-sg' + (g.id === "studio" ? " own" : "") + '"><h4>' + nvIcon(g.ic, 18) + nvE(g.nm) + (g.d ? "<small>" + nvE(g.d) + "</small>" : "") + '</h4><div class="nv-sgl">' + nvItemsHtml(g, true) + "</div></section>"; }).join("") + "</div></div>";
+  body.insertBefore(side, body.firstChild); body.insertBefore(top, side.nextSibling); body.appendChild(bot); body.appendChild(sh);
+  /* 누름 — 한 곳에서 */
+  document.addEventListener("click", function (e) {
+    var t = e.target && e.target.closest ? e.target : null; if (!t) return;
+    var a = t.closest("[data-nv]"); if (a && a.closest("#nv-side,#nv-top,#nv-bot,#nv-sheet,.hx,.nv-hub")) { nvClearQ(); nvGo(a.getAttribute("data-nv")); return; }
+    a = t.closest("[data-nvreg]"); if (a) { nvClearQ(); nvGoRegion(a.getAttribute("data-nvreg")); return; }
+    a = t.closest("[data-nvg]"); if (a) { nvGoGroup(a.getAttribute("data-nvg")); return; }
+    a = t.closest("[data-nvsheet]"); if (a) { NV_sheet(a.getAttribute("data-nvsheet") === "1"); return; }
+    a = t.closest("[data-nvgloss]"); if (a) { NV_sheet(false); if (typeof openGloss === "function") openGloss(""); return; }
+    if (!t.closest(".nv-find")) { var p = document.getElementById("nv-pop"); if (p) p.hidden = true; }
+  });
+  var q1 = side.querySelector("#nv-q"), pop = side.querySelector("#nv-pop"), q2 = sh.querySelector("#nv-q2"), res2 = sh.querySelector("#nv-res2"), all = sh.querySelector("#nv-all");
+  q1.addEventListener("input", function () { var v = q1.value.trim(), R = nvSearch(v); pop.innerHTML = nvResHtml(R, v); pop.hidden = !v; });
+  q1.addEventListener("focus", function () { if (q1.value.trim()) pop.hidden = false; });
+  q1.addEventListener("keydown", function (e) { if (e.key === "Enter") { var R = nvSearch(q1.value); if (R.length) { nvPick(R); nvClearQ(); q1.blur(); } } else if (e.key === "Escape") { nvClearQ(); q1.blur(); } });
+  q2.addEventListener("input", function () { var v = q2.value.trim(), R = nvSearch(v); res2.innerHTML = nvResHtml(R, v); res2.hidden = !v; all.hidden = !!v; });
+  q2.addEventListener("keydown", function (e) { if (e.key === "Enter") { var R = nvSearch(q2.value); if (R.length) { nvPick(R); nvClearQ(); } } });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !sh.hidden) { NV_sheet(false); return; }
+    var tg = e.target && e.target.tagName; if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(tg || "") || (e.target && e.target.isContentEditable)) return;
+    e.preventDefault(); if (window.matchMedia && window.matchMedia("(min-width:1100px)").matches) q1.focus(); else NV_sheet(true);
+  });
+  /* 자료 기준 글자(옛 머리글의 #datainfo)를 새 틀에 비춘다 */
+  var di = document.getElementById("datainfo"), sync = function () { var t = di ? di.textContent : ""; ["nv-data", "nv-data2"].forEach(function (id) { var el = document.getElementById(id); if (el) { el.textContent = t; el.style.display = t ? "" : "none"; } }); var hd = document.getElementById("hx-data"); if (hd) hd.textContent = t; };
+  sync(); if (di && window.MutationObserver) new MutationObserver(sync).observe(di, { childList: true, characterData: true, subtree: true });
+  var onSize = function () { try { var bar = top.querySelector(".nv-bar"), up = document.body.classList.contains("nv-up"); document.documentElement.style.setProperty("--nvH", (top.offsetHeight - (up && bar ? bar.offsetHeight : 0)) + "px"); } catch (e) {} };
+  /* 좁은 화면에서 아래로 읽을 때는 맨 윗줄(로고)을 접어 탭 줄만 남긴다 — 본문을 한 줄이라도 더 */
+  var lastY = 0, tick = false, setUp = function (v) { if (document.body.classList.contains("nv-up") === v) return; document.body.classList.toggle("nv-up", v); onSize(); };
+  window.addEventListener("scroll", function () { if (tick) return; tick = true; (window.requestAnimationFrame || setTimeout)(function () { tick = false; var y = window.pageYOffset || 0, sub = document.getElementById("nv-sub"), can = !(window.matchMedia && window.matchMedia("(min-width:1100px)").matches) && sub && !sub.hidden && sh.hidden;
+    if (!can || y < 90) setUp(false); else if (y > lastY + 10) setUp(true); else if (y < lastY - 10) setUp(false); lastY = y; }); }, { passive: true });
+  window.addEventListener("resize", onSize); NV.onSize = onSize; setTimeout(onSize, 0);
+}
+function nvClearQ() { ["nv-q", "nv-q2"].forEach(function (id) { var el = document.getElementById(id); if (el && el.value) { el.value = ""; try { el.dispatchEvent(new Event("input")); } catch (e) {} } }); var p = document.getElementById("nv-pop"); if (p) p.hidden = true; }
+function NV_sheet(on) { var sh = document.getElementById("nv-sheet"); if (!sh) return; if (!!on === !sh.hidden) return; sh.hidden = !on; document.body.classList.toggle("nv-lock", !!on); if (on) { nvClearQ(); var q = document.getElementById("nv-q2"); if (q && window.matchMedia && window.matchMedia("(min-width:700px)").matches) setTimeout(function () { q.focus(); }, 30); } }
+function nvPaint(id) {
+  nvMount(); id = id || nvCurTab(); NV.cur = id; var g = nvGroupOf(id), gid = g ? g.id : "";
+  if (g) NV.last[g.id] = id;
+  Array.prototype.forEach.call(document.querySelectorAll("#nv-side .nv-i,#nv-sheet .nv-i"), function (b) { b.classList.toggle("on", b.getAttribute("data-nv") === id); });
+  Array.prototype.forEach.call(document.querySelectorAll("#nv-bot [data-nvg]"), function (b) { b.classList.toggle("on", b.getAttribute("data-nvg") === gid); });
+  var ttl = document.getElementById("nv-ttl"), cr = document.getElementById("nv-crumb"); if (ttl) ttl.textContent = id === "browse" ? "전체 메뉴" : nvName(id); if (cr) cr.textContent = g && g.id !== "home" && g.tabs.length > 1 ? g.nm : "";
+  var sub = document.getElementById("nv-sub");
+  if (sub) { var show = g && g.tabs.length > 1; sub.hidden = !show; sub.innerHTML = show ? g.tabs.map(function (t) { return '<button type="button" data-nv="' + t + '" class="' + (t === id ? "on" : "") + '">' + nvE(nvName(t)) + (t === "cart" ? '<em class="nv-cnt"></em>' : "") + "</button>"; }).join("") : "";
+    var on = sub.querySelector(".on"); if (on && sub.scrollWidth > sub.clientWidth) sub.scrollLeft = Math.max(0, on.offsetLeft - (sub.clientWidth - on.offsetWidth) / 2); }
+  document.body.setAttribute("data-shell-g", gid || "none"); document.body.setAttribute("data-shell-t", id);
+  var act = document.querySelector("#nv-side .nv-i.on"); if (act && act.scrollIntoView) { var sc = act.closest(".nv-scroll"); if (sc) { var r = act.getBoundingClientRect(), s = sc.getBoundingClientRect(); if (r.top < s.top || r.bottom > s.bottom) sc.scrollTop += r.top - s.top - 80; } }
+  nvCart(); if (NV.onSize) NV.onSize();
+}
+function nvCart() { var n = 0; try { n = getCart().length; } catch (e) {} Array.prototype.forEach.call(document.querySelectorAll(".nv-cnt"), function (el) { el.textContent = n ? String(n) : ""; }); var hc = document.getElementById("hx-cart"); if (hc) hc.innerHTML = nvHomeCartHtml(); }
+(function () { var o = showTab; showTab = function () { var r = o.apply(this, arguments); try { nvPaint(nvCurTab()); } catch (e) { if (window.console) console.warn("nv", e); } return r; }; })();
+(function () { if (typeof updateCartDot !== "function") return; var o = updateCartDot; updateCartDot = function () { var r = o.apply(this, arguments); try { nvCart(); } catch (e) {} return r; }; })();
+
+/* ── 홈: 오늘 숫자 → 바로 찾기 → 순서대로 보기 ── */
+function nvHomeCartHtml() {
+  var c = []; try { c = getCart(); } catch (e) {}
+  if (!c.length) return '<button type="button" class="hx-act" data-nv="cart"><i>' + nvIcon("star", 22) + '</i><span><b>내 후보</b><small>단지를 담아 두면 여기서 나란히 채점합니다</small></span>' + nvIcon("chev", 18) + "</button>";
+  return '<button type="button" class="hx-act" data-nv="cart"><i>' + nvIcon("star", 22) + "</i><span><b>내 후보 " + c.length + "곳</b><small>" + nvE(c.slice(0, 3).map(function (x) { return x.apt; }).join(" · ") + (c.length > 3 ? " 외 " + (c.length - 3) + "곳" : "")) + "</small></span>" + nvIcon("chev", 18) + "</button>";
+}
+function nvHomeKpi() {
+  var host = document.getElementById("hx-kpi"); if (!host) return; var T = []; try { T = hmTiles(); } catch (e) {}
+  if (!T.length) { host.innerHTML = '<div class="hx-kpis"><div class="hx-k sk"></div><div class="hx-k sk"></div><div class="hx-k sk"></div><div class="hx-k sk"></div></div>'; return; }
+  host.innerHTML = '<div class="hx-kpis n' + Math.min(T.length, 6) + '">' + T.map(function (t) { return '<button type="button" class="hx-k' + (t.own ? " own" : "") + '" data-nv="' + t.go + '"><small>' + nvE(t.k) + (t.own ? "<u>작업실</u>" : "") + '</small><b class="' + (t.c || "") + '">' + nvE(t.v) + "</b><span>" + nvE(t.s || "") + "</span></button>"; }).join("") + "</div>";
+}
+function nvBuildHome(sec) {
+  var regOpts = ""; try { regOpts = LAWD_GROUPS.map(function (g) { return '<optgroup label="' + nvE(g.sido) + '">' + g.items.map(function (it) { return '<option value="' + it[1] + '"' + (it[1] === "11680" ? " selected" : "") + ">" + nvE(it[0]) + "</option>"; }).join("") + "</optgroup>"; }).join(""); } catch (e) {}
+  var step = function (n, nm, q, links) { return '<div class="hx-st"><div class="hx-sth"><i>' + n + "</i><b>" + nm + "</b><small>" + q + '</small></div><div class="hx-stl">' + links.filter(function (id) { return !!nvTab(id); }).map(function (id) { return '<button type="button" data-nv="' + id + '">' + nvIcon(nvIcOf(id), 17) + "<span>" + nvE(nvName(id)) + "</span></button>"; }).join("") + "</div></div>"; };
+  sec.innerHTML = '<div class="hx">' +
+    '<div class="hx-hero"><div class="hx-hl"><h2>오늘의 시장, 실거래로 봅니다</h2><p>국토부 실거래가 · 한국은행 · 청약홈 자료를 매일 계산합니다 <span id="hx-data"></span></p></div>' +
+      '<form class="hx-find" id="hx-find"><b>단지 실거래 바로 보기</b><div class="hx-ff"><select id="hx-reg" aria-label="지역">' + regOpts + '</select><select id="hx-band" aria-label="평형"><option value="59">59㎡대</option><option value="84" selected>84㎡대</option><option value="101">101㎡대</option><option value="46">46㎡대</option><option value="135">135㎡대</option></select><button type="submit" class="btn">보기</button></div><small>최근 거래가 · 최고가 대비 · 전세가율을 단지별로</small></form></div>' +
+    '<div class="hx-sec"><h3>오늘 한눈에<small>누르면 그 화면으로</small></h3><div id="hx-kpi"></div></div>' +
+    '<div class="hx-acts"><button type="button" class="hx-act pri" data-nv="wiz"><i>' + nvIcon("spark", 22) + "</i><span><b>아파트 추천받기</b><small>네 가지만 답하면 조건에 맞는 단지 TOP 5</small></span>" + nvIcon("arrow", 18) + "</button>" +
+      (nvTab("subs") ? '<button type="button" class="hx-act" data-nv="subs"><i>' + nvIcon("calendar", 22) + "</i><span><b>청약 일정</b><small>이번 주 접수 · 발표 · 분양가</small></span>" + nvIcon("chev", 18) + "</button>" : "") +
+      '<span id="hx-cart">' + nvHomeCartHtml() + "</span></div>" +
+    '<div class="hx-sec"><h3>순서대로 보기<small>집을 고르는 네 단계</small></h3><div class="hx-flow">' +
+      step(1, "시장", "지금 오르나 내리나", ["market", "vol", "rates", "supply"]) + step(2, "지역", "어디가 좋은가", ["tiers", "reco", "mapx", "gap"]) +
+      step(3, "아파트", "어느 단지인가", ["danji", "flag", "cmpx"]) + step(4, "자금", "살 수 있나", ["calc", "start", "cart"]) + "</div></div>" +
+    (nvOwner() && nvTab("today") ? '<div class="hx-sec"><h3>작업실<small>주인 전용</small></h3><div class="hx-own">' + ["today", "brief", "insight", "lead", "tpl", "ops"].filter(function (id) { return !!nvTab(id); }).map(function (id) { return '<button type="button" data-nv="' + id + '">' + nvIcon(nvIcOf(id), 18) + "<span>" + nvE(nvName(id)) + "</span></button>"; }).join("") + "</div></div>" : "") +
+    '<div class="homeData" id="home-data"></div></div>';
+  var f = sec.querySelector("#hx-find"); if (f) f.addEventListener("submit", function (e) { e.preventDefault(); nvGoRegion(sec.querySelector("#hx-reg").value, sec.querySelector("#hx-band").value); });
+  try { if (typeof upgradeRegionSelects === "function") upgradeRegionSelects(sec); } catch (e) {}
+  nvHomeKpi(); try { if (typeof renderHomeData === "function") renderHomeData(); } catch (e) {}
+  try { var need = ["daily", "macro"]; if (nvOwner()) need.push("channel"); if (typeof appReady === "function") appReady(need, function () { nvHomeKpi(); if (nvOwner() && typeof ldLoad === "function") ldLoad(nvHomeKpi); }); } catch (e) {}
+}
+/* 전체 메뉴 화면(#browse) — 새 묶음 그대로 */
+function nvBuildBrowse(sec) {
+  sec.innerHTML = '<div class="nv-hub">' + nvGroups().filter(function (g) { return g.id !== "home"; }).map(function (g) { return '<section class="nv-sg' + (g.id === "studio" ? " own" : "") + '"><h4>' + nvIcon(g.ic, 18) + nvE(g.nm) + (g.d ? "<small>" + nvE(g.d) + "</small>" : "") + '</h4><div class="nv-sgl">' + nvItemsHtml(g, true) + "</div></section>"; }).join("") + "</div>";
+}
+/* 옛 목록 줄(더보기 화면)에도 같은 아이콘 */
+hubRowsHtml = function (list) {
+  var IC = { __gloss: "book", __lock: "lock" };
+  return '<div class="hubList">' + list.map(function (t) { return '<button type="button" class="hubRow" data-go="' + t.id + '"><i class="hub-ic">' + nvIcon(IC[t.id] || nvIcOf(t.id), 20) + "</i><span><b>" + nvE(NV_NAME[t.id] && t.id !== "more" ? NV_NAME[t.id] : t.name) + "</b>" + (t.d ? "<small>" + nvE(t.d) + "</small>" : "") + '</span><span class="arr">' + nvIcon("chev", 16) + "</span></button>"; }).join("") + "</div>";
+};
+(function () {
+  TABS.forEach(function (t) { if (t.id === "home") t.build = nvBuildHome; if (t.id === "browse") t.build = nvBuildBrowse; });
+  try { nvMount(); } catch (e) { if (window.console) console.warn("nvMount", e); }
+  /* 홈으로 돌아올 때 숫자·후보를 다시 */
+  if (typeof renderHomeData === "function") { var o = renderHomeData; renderHomeData = function () { var r = o.apply(this, arguments); try { var hd = document.getElementById("hx-data"), di = document.getElementById("datainfo"); if (hd && di) hd.textContent = di.textContent; nvHomeKpi(); nvCart(); } catch (e) {} return r; }; }
+})();
+/* ── 화면 다듬기(만든 뒤 한 번) ── */
+function nvPolishDanji() {
+  var sec = document.getElementById("tab-danji"); if (!sec) return;
+  var h2 = sec.querySelector(".card h2"); if (h2 && h2.firstChild && h2.firstChild.nodeType === 3 && /솔팅/.test(h2.firstChild.nodeValue)) h2.firstChild.nodeValue = "아파트 찾기";
+  var grid = sec.querySelector(".grid3"); if (!grid || grid.querySelector(".nv-advg")) return;
+  var band = document.getElementById("dj-band"), bf = band && band.closest(".field"), reg = document.getElementById("dj-region"), rf = reg && reg.closest(".field");
+  var box = document.createElement("div"); box.className = "nv-advg"; box.hidden = true;
+  ["dj-months", "dj-hh", "dj-sub", "dj-age"].forEach(function (id) { var el = document.getElementById(id), f = el && el.closest(".field"); if (f) box.appendChild(f); });
+  var btn = document.createElement("button"); btn.type = "button"; btn.className = "nv-advb"; btn.setAttribute("aria-expanded", "false");
+  var paint = function () { var n = 0; [["dj-months", "6"], ["dj-hh", "0"], ["dj-sub", "0"], ["dj-age", "0"]].forEach(function (x) { var el = document.getElementById(x[0]); if (el && el.value !== x[1]) n++; }); btn.innerHTML = nvIcon("sliders", 17) + "<span>상세 조건</span><small>" + (n ? n + "개 적용 중" : "기간 · 세대수 · 지하철 · 연식") + "</small>" + nvIcon("chev", 15); btn.classList.toggle("has", n > 0); };
+  btn.addEventListener("click", function () { box.hidden = !box.hidden; btn.setAttribute("aria-expanded", box.hidden ? "false" : "true"); btn.classList.toggle("open", !box.hidden); });
+  box.addEventListener("change", paint);
+  if (rf) grid.insertBefore(rf, grid.firstChild); if (bf) grid.insertBefore(bf, rf ? rf.nextSibling : grid.firstChild);
+  grid.appendChild(btn); grid.appendChild(box); grid.classList.add("nv-filt"); paint();
+}
+document.addEventListener("DOMContentLoaded", function () { try { nvPolishDanji(); } catch (e) { if (window.console) console.warn("nvPolish", e); } });
+/* ══ v14.0 새 틀 END ══ */
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {
   root.innerHTML =
@@ -15261,7 +15515,7 @@ function renderReco() {
       var radar = '<div style="width:100%;max-width:320px;margin:8px auto 0">' +
         radarSvg([{ n: "급지", v: r.s.rank }, { n: "흐름", v: r.s.flow }, { n: "성과", v: r.s.perf }, { n: "수급", v: r.s.supply },
                   { n: "타이밍", v: r.s.timing }, { n: "자금", v: r.s.cash }],
-                 320, i === 0 ? "#3182f6" : "#6b7684") + "</div>" +
+                 320, i === 0 ? "#1a2747" : "#8590a2") + "</div>" +
         radarNote([["전국", r.rank + "위"], ["연복리", r.cagr != null ? r.cagr.toFixed(1) + "%" : ""],
                    ["타이밍", r.timingNote], ["필요현금", eok(r.fin.need)]]);
       return '<div class="reco' + (i === 0 ? " best" : "") + '" style="flex-wrap:wrap">' +
@@ -17756,7 +18010,7 @@ function renderCartReport() {
           '<div style="width:100%;max-width:320px;margin:8px auto 0">' +
             radarSvg([{ n: "급지", v: s.axes.rank }, { n: "성과", v: s.axes.perf }, { n: "타이밍", v: s.axes.timing },
                       { n: "수급", v: s.axes.supply }, { n: "단지", v: s.axes.danji }, { n: "자금", v: s.axes.cash }],
-                     320, i === 0 ? "#3182f6" : "#6b7684") + "</div>" +
+                     320, i === 0 ? "#1a2747" : "#8590a2") + "</div>" +
           radarNote([["급지", s.notes.rank], ["성과", s.notes.perf], ["타이밍", s.notes.timing],
                      ["자금", s.notes.cash]]) +
           env.join("") +

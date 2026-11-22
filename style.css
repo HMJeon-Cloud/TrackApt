@@ -3592,3 +3592,105 @@ tr.hit td:first-child{border-left-color:var(--gold)}
 .sb-links a,.sb-rrow .sb-more{text-decoration:underline;text-underline-offset:3px}
 .nv-i:focus-visible,#nv-sub button:focus-visible,#nv-bot button:focus-visible,.hx-k:focus-visible,.hx-act:focus-visible,.hx-stl button:focus-visible,.nv-ib:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
 /* ══ v14 END ══ */
+/* ══ v14.1 START ══ 화면 안쪽 — 머리(질문 + 숫자 기준) · 핵심 숫자 · 그래프 · 표를 한 가지 모양으로 */
+.pg-head{margin:2px 2px 14px}
+.pg-qrow{display:flex;align-items:center;gap:8px;min-height:30px}
+.pg-q{margin:0;font-size:1.28rem;line-height:1.3;font-weight:800;letter-spacing:-.035em;color:var(--ink);word-break:keep-all}
+.pg-qrow .infoBtn{flex:0 0 auto}
+.pg-basis{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px}
+.pg-b{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:3px 10px 3px 4px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:.75rem;font-weight:600;color:var(--ink2);line-height:1.35;word-break:keep-all}
+.pg-b .s{display:none}
+.pg-b i{font-style:normal;font-weight:800;font-size:.69rem;color:#7a560f;background:var(--goldSoft);border-radius:999px;padding:2px 8px;white-space:nowrap;flex:0 0 auto}
+.pg-how{border:0;background:none;font:inherit;font-size:.75rem;font-weight:700;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 4px;min-height:32px}
+.pg-how:hover{color:var(--ink)}
+.card.pg-lead>h2,.card.pg-lead>.eyebrow,.card.pg-lead>p.sub{display:none}
+.card.pg-lead>.grid:first-of-type{margin-top:0}
+.card.pg-nochart{display:none}
+/* 핵심 숫자 — 어느 화면이나 같은 칸 */
+body.nv section.tab .status{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:8px}
+body.nv section.tab .stat{background:var(--panel2);border:1px solid var(--line-soft);border-radius:12px;padding:12px 14px;min-width:0}
+body.nv section.tab .stat .k{font-size:.74rem;font-weight:600;color:var(--ink-soft);line-height:1.35;word-break:keep-all}
+body.nv section.tab .stat .v{font-size:1.22rem;font-weight:800;letter-spacing:-.03em;line-height:1.25;margin-top:3px;font-variant-numeric:normal;word-break:keep-all}
+body.nv section.tab .stat .v+.k{font-size:.7rem;font-weight:500;color:var(--sub);margin-top:3px!important}
+body.nv section.tab .stat .v.cash{color:var(--gold)}
+/* 결론 한 줄(읽기) */
+body.nv section.tab .card>.note[id$="-read"],body.nv section.tab .card>.note[id$="read"]{background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;padding:12px 14px;line-height:1.7;color:var(--ink2)}
+/* 그래프 상자 */
+.chartbox{height:300px}
+.chartbox.cx-sm{height:150px}
+.cx-cap{margin:14px 0 4px;font-size:.76rem;font-weight:600;color:var(--ink-soft)}
+.ph-chip{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--ink2)}
+.ph-chip i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+/* 표 — 머리줄·줄 높이·더 보기 */
+body.nv section.tab table:not(.in-tbl):not(.tp-tbl) thead th{background:var(--panel2);color:var(--ink-soft);font-weight:700;font-size:.75rem;border-bottom:1px solid var(--line);white-space:nowrap}
+body.nv section.tab table:not(.in-tbl) thead th:first-child{border-radius:8px 0 0 8px}
+body.nv section.tab table:not(.in-tbl) thead th:last-child{border-radius:0 8px 8px 0}
+body.nv section.tab .tblwrap tbody tr:hover td{background:#f8f9fc}
+body.nv section.tab .tblwrap tbody tr.mine td{background:var(--goldSoft)}
+table.pg-clamp tbody tr:nth-child(n+31):not(.mine){display:none}
+.pg-more{display:block;width:100%;margin-top:10px;min-height:44px;border:1px solid var(--line);background:#fff;border-radius:10px;font:inherit;font-size:.86rem;font-weight:700;color:var(--ink2);cursor:pointer}
+.pg-more:hover{background:var(--panel2);border-color:#cfd5df}
+/* 숫자 읽는 법 */
+.pg-sheet h3{font-size:.98rem;font-weight:800;letter-spacing:-.02em;margin:18px 0 6px;color:var(--ink)}
+.pg-sheet h3:first-child{margin-top:0}
+.pg-sheet p,.pg-sheet li{font-size:.88rem;line-height:1.75;color:var(--ink2);word-break:keep-all}
+.pg-sheet ul{margin:0;padding-left:18px}
+.pg-sheet li{margin-bottom:8px}
+.pg-sws{display:flex;flex-wrap:wrap;gap:6px 14px}
+.pg-sw{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--ink2)}
+.pg-sw i{width:18px;height:4px;border-radius:2px;display:inline-block}
+.pg-foot{font-size:.76rem!important;color:var(--sub)!important;margin-top:14px}
+@media (max-width:720px){
+  .pg-head{margin:0 2px 12px}
+  .pg-q{font-size:1.12rem}
+  .pg-basis{gap:5px}
+  .pg-b{font-size:.72rem;padding:3px 9px 3px 4px;min-height:24px}
+  .pg-b .l{display:none}
+  .pg-b .s{display:inline}
+  .pg-b i{font-size:.66rem;padding:2px 7px}
+  .pg-how{padding:4px 2px;min-height:28px;font-size:.72rem}
+  table.pg-clamp tbody tr:nth-child(n+11):not(.mine){display:none}
+  body.nv section.tab .status{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.nv section.tab .stat{padding:10px 12px}
+  body.nv section.tab .stat .v{font-size:1.08rem}
+  .chartbox{height:250px}
+}
+/* 넓은 화면: 그래프·표를 탭 뒤에 숨기지 않고 한 번에 */
+@media (min-width:1100px){
+  body.nv section.tab.on.pg-all{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px;align-items:start}
+  body.nv section.tab.on.pg-all>*{grid-column:1/-1}
+  body.nv section.tab.on.pg-all>.secseg,body.nv section.tab.on.pg-all>p.hint{display:none!important}
+  body.nv section.tab.on.pg-all>.card.segHide{display:block!important}
+  body.nv #tab-market.on.pg-all>.pg-lead~.card{grid-column:auto}
+  body.nv #tab-cmpx.on{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 12px;align-items:start}
+  body.nv #tab-cmpx.on>*{grid-column:1/-1}
+  body.nv #tab-cmpx.on>.pg-third{grid-column:auto}
+  body.nv #tab-cmpx .pg-third .grid{grid-template-columns:1fr}
+}
+/* 금리·청약 표도 같은 머리줄·같은 정렬(숫자는 오른쪽, 이름은 왼쪽) */
+body.nv section.tab .sb-tbl{font-size:.84rem}
+body.nv section.tab .sb-tbl th{background:var(--panel2);color:var(--ink-soft);font-weight:700;font-size:.75rem;padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}
+body.nv section.tab .sb-tbl th:first-child,body.nv section.tab .sb-tbl th:nth-child(2){text-align:left}
+body.nv section.tab .sb-tbl td{padding:9px 10px;border-bottom:1px solid var(--line-soft)}
+body.nv section.tab .sb-tbl thead th:first-child{border-radius:8px 0 0 8px}
+body.nv section.tab .sb-tbl thead th:last-child{border-radius:0 8px 8px 0}
+/* 표 머리 — 저장 단추는 제목 줄 오른쪽으로(한 줄을 따로 차지하지 않게) */
+.rgn[data-nvreg]{cursor:pointer}
+.rgn[data-nvreg]:hover{text-decoration:underline;text-underline-offset:3px}
+.pg-tip{margin:10px 2px 0;font-size:.75rem;color:var(--sub)}
+@media (min-width:720px){
+  body.nv section.tab .card:has(>h2~.expbar){position:relative}
+  body.nv section.tab .card>h2~.expbar{position:absolute;top:16px;right:18px;margin:0;gap:6px}
+  body.nv section.tab .card>h2~.expbar .btn{min-height:32px;padding:0 12px;font-size:.78rem}
+  body.nv section.tab .card:has(>h2~.expbar)>h2,body.nv section.tab .card:has(>h2~.expbar)>p.sub{padding-right:200px}
+}
+/* 조건 줄 — 넓은 화면에서는 지역·기간·단추를 한 줄에 */
+.pg-need{line-height:1.7}
+.pg-need .btn{display:block;margin:10px 0 0;min-height:38px;padding:0 16px}
+@media (min-width:900px){
+  .card.pg-lead>.grid{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 14px}
+  .card.pg-lead>.grid>.field{flex:1 1 260px;min-width:0;grid-column:auto}
+  .card.pg-lead>.grid>.field:has(>.seg){flex:0 0 auto}
+  .card.pg-lead>.grid>.field:has(>.btn){flex:0 0 220px}
+}
+/* ══ v14.1 END ══ */

@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=14.1">
+<link rel="stylesheet" href="style.css?v=14.2">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v14.1</span>
+    <span class="ver">v14.2</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=14.1"></script>
+<script src="cards.js?v=14.2"></script>
 <script>
 "use strict";
 
@@ -12078,8 +12078,8 @@ function ldLineSvg(r) {
   var path = function (key) { return P.map(function (p, k) { return (k ? "L" : "M") + sx(k).toFixed(1) + " " + sy(p[key]).toFixed(1); }).join(" "); }, last = P[P.length - 1];
   var ticks = [mn, (mn + mx) / 2, mx].map(function (v) { return '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + sy(v) + '" y2="' + sy(v) + '" stroke="#eaecf0"/><text x="' + (pl - 6) + '" y="' + (sy(v) + 4) + '" text-anchor="end" font-size="11" fill="#667085">' + ldE(v) + "</text>"; }).join("");
   var xs = P.map(function (p, k) { return k % Math.ceil(P.length / 8) === 0 || k === P.length - 1 ? '<text x="' + sx(k) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="#667085">' + String(p.y).slice(2) + "</text>" : ""; }).join("");
-  return '<svg class="ld-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="대장과 전체 연 중위가">' + ticks + xs + '<path d="' + path("a") + '" fill="none" stroke="#98a2b3" stroke-width="2.5"/><path d="' + path("l") + '" fill="none" stroke="#b42318" stroke-width="3"/>' +
-    '<text x="' + (W - pr + 6) + '" y="' + (sy(last.l) + 4) + '" font-size="12" font-weight="700" fill="#b42318">대장 ' + ldE(last.l) + '</text><text x="' + (W - pr + 6) + '" y="' + (sy(last.a) + 4) + '" font-size="12" font-weight="700" fill="#667085">전체 ' + ldE(last.a) + "</text></svg>";
+  return '<svg class="ld-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="대장과 전체 연 중위가">' + ticks + xs + '<path d="' + path("a") + '" fill="none" stroke="#98a2b3" stroke-width="2.5"/><path d="' + path("l") + '" fill="none" stroke="#30508f" stroke-width="3"/>' +
+    '<text x="' + (W - pr + 6) + '" y="' + (sy(last.l) + 4) + '" font-size="12" font-weight="700" fill="#30508f">대장 ' + ldE(last.l) + '</text><text x="' + (W - pr + 6) + '" y="' + (sy(last.a) + 4) + '" font-size="12" font-weight="700" fill="#667085">전체 ' + ldE(last.a) + "</text></svg>";
 }
 var LD_SORT = [["prem", "가격 배수"], ["ly1", "대장 1년"], ["ay1", "전체 1년"], ["gap1", "1년 차이"], ["lc10", "대장 10년"], ["ldd", "대장 낙폭"], ["cur", "최고가 대비"]];
 function ldSortVal(r, k) { return k === "prem" ? r.prem : k === "ly1" ? r.lead.y1 : k === "ay1" ? r.all.y1 : k === "gap1" ? (r.lead.y1 != null && r.all.y1 != null ? r.lead.y1 - r.all.y1 : null) : k === "lc10" ? r.lead.c10 : k === "ldd" ? r.lead.dd : r.curVsMx; }
@@ -12196,11 +12196,11 @@ function lmChartSvg(r) {
   var m = r.m, A = r.A, P = [], L = m.N - 1; for (var i = 0; i <= L; i++) { if (m.ix[i] == null) continue; var av = A && A.sm[m.i0 + i] ? A.sm[m.i0 + i] : null; P.push({ ym: lmYmAt(m, i), l: m.lv * m.ix[i] / m.ix[L], a: av, n: m.n[i] }); } if (P.length < 6) return "";
   var W = 640, H = 240, pl = 46, pr = 70, pt = 14, pb = 40, vals = []; P.forEach(function (p) { vals.push(p.l); if (p.a) vals.push(p.a); }); var mx = Math.max.apply(null, vals) * 1.04, mn = Math.min.apply(null, vals) * 0.94, sx = function (k) { return pl + (W - pl - pr) * k / (P.length - 1); }, sy = function (v) { return pt + (H - pt - pb) * (1 - (v - mn) / (mx - mn)); };
   var line = function (key) { var d = "", pen = false; P.forEach(function (p, k) { if (p[key] == null) { return; } d += (pen ? "L" : "M") + sx(k).toFixed(1) + " " + sy(p[key]).toFixed(1) + " "; pen = true; }); return d; };
-  var nMax = Math.max.apply(null, P.map(function (p) { return p.n; })) || 1, bars = P.map(function (p, k) { return p.n ? '<rect x="' + (sx(k) - 1.2).toFixed(1) + '" y="' + (H - pb + 4 + (14 - 14 * p.n / nMax)).toFixed(1) + '" width="2.4" height="' + (14 * p.n / nMax).toFixed(1) + '" fill="#f1b8b3"/>' : ""; }).join("");
+  var nMax = Math.max.apply(null, P.map(function (p) { return p.n; })) || 1, bars = P.map(function (p, k) { return p.n ? '<rect x="' + (sx(k) - 1.2).toFixed(1) + '" y="' + (H - pb + 4 + (14 - 14 * p.n / nMax)).toFixed(1) + '" width="2.4" height="' + (14 * p.n / nMax).toFixed(1) + '" fill="#c5ccd8"/>' : ""; }).join("");
   var ticks = [mn, (mn + mx) / 2, mx].map(function (v) { return '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + sy(v) + '" y2="' + sy(v) + '" stroke="#eaecf0"/><text x="' + (pl - 6) + '" y="' + (sy(v) + 4) + '" text-anchor="end" font-size="11" fill="#667085">' + ldE(v) + "</text>"; }).join("");
   var xs = P.map(function (p, k) { return p.ym % 100 === 1 ? '<text x="' + sx(k) + '" y="' + (H - 4) + '" text-anchor="middle" font-size="11" fill="#667085">' + String(p.ym).slice(2, 4) + "</text>" : ""; }).join(""), last = P[P.length - 1], la = null; for (var q = P.length - 1; q >= 0; q--) if (P[q].a) { la = P[q]; break; }
-  return '<svg class="ld-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="대장 실거래 지수와 전체 월 중위가">' + ticks + xs + bars + '<path d="' + line("a") + '" fill="none" stroke="#98a2b3" stroke-width="2"/><path d="' + line("l") + '" fill="none" stroke="#b42318" stroke-width="2.6"/>' +
-    '<text x="' + (W - pr + 6) + '" y="' + (sy(last.l) + 4) + '" font-size="12" font-weight="700" fill="#b42318">대장 ' + ldE(last.l) + "</text>" + (la ? '<text x="' + (W - pr + 6) + '" y="' + (sy(la.a) + (Math.abs(sy(la.a) - sy(last.l)) < 14 ? 16 : 4)) + '" font-size="12" font-weight="700" fill="#667085">전체 ' + ldE(la.a) + "</text>" : "") + '<text x="' + pl + '" y="' + (H - pb + 14) + '" font-size="10" fill="#b42318" text-anchor="end">거래</text></svg>';
+  return '<svg class="ld-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="대장 실거래 지수와 전체 월 중위가">' + ticks + xs + bars + '<path d="' + line("a") + '" fill="none" stroke="#98a2b3" stroke-width="2"/><path d="' + line("l") + '" fill="none" stroke="#30508f" stroke-width="2.6"/>' +
+    '<text x="' + (W - pr + 6) + '" y="' + (sy(last.l) + 4) + '" font-size="12" font-weight="700" fill="#30508f">대장 ' + ldE(last.l) + "</text>" + (la ? '<text x="' + (W - pr + 6) + '" y="' + (sy(la.a) + (Math.abs(sy(la.a) - sy(last.l)) < 14 ? 16 : 4)) + '" font-size="12" font-weight="700" fill="#667085">전체 ' + ldE(la.a) + "</text>" : "") + '<text x="' + pl + '" y="' + (H - pb + 14) + '" font-size="10" fill="#30508f" text-anchor="end">거래</text></svg>';
 }
 function lmSectionHtml() {
   var D = LD.data, has = D && Object.keys(D.r).some(function (c) { return D.r[c].m; });
@@ -13157,6 +13157,178 @@ function pgRankBtn(rows, shown) { var cv = document.getElementById("rk-chart"); 
   if (!b) { b = document.createElement("button"); b.type = "button"; b.id = "rk-allbtn"; b.className = "pg-more"; b.setAttribute("data-rkall", "1"); box.parentNode.insertBefore(b, box.nextSibling); }
   b.style.display = rows.length > 40 ? "" : "none"; b.textContent = PGS.rankAll ? "내 위치 둘레만 보기" : "전체 " + rows.length + "곳 보기 (지금은 " + shown[0].rank + "~" + shown[shown.length - 1].rank + "위)"; }
 /* ══ v14.1 그래프·표·화면 END ══ */
+/* ══ v14.2 작업실·카드 START ══
+   ① 작업실(주인 전용) 틀 — 넓은 화면 두 단(오늘 작업 · 30일 실거래), 모든 화면에 같은 구역 바로가기, 긴 목록 접기.
+      글자 크기·구역 제목·표·색은 style.css 의 v14.2 구역에서 한 가지 모양으로 맞춘다.
+   ② 카드 — (아래 '카드' 구역) 틀 모양 고르기 · 올림 글 구성. */
+var WK = { wide: 1180, lead: 6 };
+function wkWide() { return window.innerWidth >= WK.wide; }
+/* 상자들을 두 단으로 — pick(el) 이 "a"(왼쪽) · "b"(오른쪽) · null(그대로) 을 돌려준다. 좁은 화면에서는 손대지 않는다(원래 순서 그대로) */
+function wkCols(body, pick, key) {
+  if (!body || !wkWide()) return; for (var i = 0; i < body.children.length; i++) if (body.children[i].classList.contains("wk-cols")) return;
+  var A = [], B = [], first = null; Array.prototype.forEach.call(body.children, function (c) { var w = pick(c); if (w === "a") A.push(c); else if (w === "b") B.push(c); if (w && !first) first = c; });
+  if (!A.length || !B.length) return;
+  var wrap = document.createElement("div"), a = document.createElement("div"), b = document.createElement("div"); wrap.className = "wk-cols wk-" + key; a.className = "wk-col wk-a"; b.className = "wk-col wk-b";
+  body.insertBefore(wrap, first); A.forEach(function (c) { a.appendChild(c); }); B.forEach(function (c) { b.appendChild(c); }); wrap.appendChild(a); wrap.appendChild(b);
+}
+/* 오늘 작업: 왼쪽 = 오늘 이슈·오늘 카드(할 일), 오른쪽 = 보낼 글(아침 브리핑)·자료·점검·기록 */
+function wkToday() { var box = document.getElementById("hub-body"); if (!box) return; wkCols(box, function (c) { return c.classList.contains("hub-list") ? "a" : (c.tagName === "DETAILS" && c.classList.contains("hub-det")) ? "b" : null; }, "today"); }
+(function () { if (typeof hubPaint !== "function") return; var o = hubPaint; hubPaint = function () { var r = o.apply(this, arguments); try { wkToday(); } catch (e) { if (window.console) console.warn("wkToday", e); } return r; }; })();
+/* 30일 실거래: 왼쪽 = 이슈·거래·신고가·대장·후보, 오른쪽 = 값·비싼 거래·금리·카드로 */
+function wkBrief() {
+  var sec = document.getElementById("tab-brief"); if (!sec) return;
+  wkCols(sec, function (c) { if (!c.classList.contains("card") || c.classList.contains("mk-card") || c.offsetParent === null) return null; var h = c.querySelector("h2"), t = h ? h.textContent : "";
+    if (/이번 주 이슈|거래가 몰리는|신고가|대장아파트|참고 후보/.test(t)) return "a"; if (/값이 움직이는|가장 비싸게|금리|카드로/.test(t)) return "b"; return null; }, "brief");
+  var lead = document.getElementById("bf-lead"); if (lead && !lead.getAttribute("data-wk")) { lead.setAttribute("data-wk", "1"); lead.classList.add("wk-clip");
+    var b = document.createElement("button"); b.type = "button"; b.className = "wk-more"; b.setAttribute("data-wkmore", "bf-lead"); lead.parentNode.insertBefore(b, lead.nextSibling);
+    try { new MutationObserver(function () { wkMoreLabel(lead, b); }).observe(lead, { childList: true, subtree: true }); } catch (e) {} wkMoreLabel(lead, b); }
+}
+function wkMoreLabel(lead, b) { var n = lead.querySelectorAll(".bfleads > .bflg").length; b.style.display = n > WK.lead ? "" : "none"; b.textContent = lead.classList.contains("wk-clip") ? "나머지 " + (n - WK.lead) + "곳 더 보기" : "처음 " + WK.lead + "곳만 보기"; }
+document.addEventListener("click", function (e) { var m = e.target.closest && e.target.closest("[data-wkmore]"); if (!m) return; var el = document.getElementById(m.getAttribute("data-wkmore")); if (el) { el.classList.toggle("wk-clip"); wkMoreLabel(el, m); } });
+/* 긴 화면 줄이기 — 인사이트·분석 브리핑에 쓰던 '제목 줄만 보이고 누르면 펼침'을 본질·변수와 데이터 운영에도.
+   본질·변수: ① 본질과 ③ 변수는 늘 펼쳐 두고 나머지는 접는다 · 데이터 운영: 최신화 표와 키 유효기간만 펼쳐 둔다(나머지는 참고 설명).
+   대장 vs 전체의 긴 표 두 개는 열 줄만 보이고 '더 보기'(줄을 눌러 그래프를 바꾸는 동작은 그대로). 바로가기를 누르면 접힌 구역은 저절로 펼쳐진다. */
+function wkFold(id) {
+  if (typeof uxFoldCards !== "function") return; var sec = document.getElementById("tab-" + id); if (!sec) return; var vis = function (c) { return c.offsetParent !== null || c.classList.contains("ux-folded"); }, L;
+  if (id === "value") { L = Array.prototype.slice.call(sec.querySelectorAll("#vx-body .card.vx-sec, #vx-body .card.in-sec")).filter(vis); if (L.length >= 4) uxFoldCards("value", L.filter(function (c, i) { return i !== 0 && i !== 2; })); }
+  else if (id === "ops") { L = Array.prototype.slice.call(sec.querySelectorAll("#ops-body > .card.in-sec")).filter(vis); if (L.length >= 4) uxFoldCards("ops", L.slice(2)); }
+  else if (id === "lead") Array.prototype.forEach.call(sec.querySelectorAll("#ld-body table.ld-tbl"), function (t, i) { var tb = t.tBodies[0]; if (!tb || t.closest(".chcard")) return; var n = tb.rows.length, wrap = t.closest(".in-tblw") || t, key = "ld" + i;
+      var btn = wrap.nextElementSibling && wrap.nextElementSibling.classList.contains("wk-more") ? wrap.nextElementSibling : null;
+      if (n <= 13) { t.classList.remove("wk-rows"); if (btn) btn.remove(); return; }
+      if (WK.open[key]) t.classList.remove("wk-rows"); else t.classList.add("wk-rows");
+      if (!btn) { btn = document.createElement("button"); btn.type = "button"; btn.className = "wk-more"; btn.setAttribute("data-wkrows", key); wrap.parentNode.insertBefore(btn, wrap.nextSibling); }
+      btn.textContent = t.classList.contains("wk-rows") ? "나머지 " + (n - 10) + "줄 더 보기" : "처음 10줄만 보기"; });
+}
+WK.open = {};
+document.addEventListener("click", function (e) { var m = e.target.closest && e.target.closest("[data-wkrows]"); if (m) { var k = m.getAttribute("data-wkrows"); WK.open[k] = !WK.open[k]; wkFold("lead"); return; }
+  if (e.target.closest && e.target.closest("#tab-lead,#tab-value,#tab-ops")) { clearTimeout(window.__wkFoldT); window.__wkFoldT = setTimeout(function () { var s = document.querySelector("section.tab.on"); if (s) { var id = s.id.replace("tab-", ""); try { wkFold(id); tocBarFill(id); } catch (e2) {} } }, 400); } });
+/* 구역 바로가기 — 네 화면에만 있던 것을 모든 작업실 화면에(오늘 작업·본질/변수·대장·데이터 운영 포함) */
+var WK_TOC = { report: ".rp2-cover, .card.rp2-sec, .card.cmp-card", insight: "#in-body > .card, #tab-insight > .card.cmp-card", tpl: "#tpx-ch, #tpx-s1, #tpx-s2, #tpx-s3, #tpx-s4", brief: "#tab-brief .card:not(.mk-card)",
+  value: "#vx-body .card.vx-sec, #vx-body .card.in-sec", lead: "#ld-body > .card.in-sec", ops: "#ops-body > .card.in-sec" };
+tocBarFill = function (id) {
+  var bar = document.getElementById("stu-tocbar-" + id), sec = document.getElementById("tab-" + id); if (!bar || !sec) return; var sel = WK_TOC[id]; if (!sel) { bar.hidden = true; return; }
+  var L = Array.prototype.slice.call(sec.querySelectorAll(sel)).filter(function (c) { return c.offsetParent !== null && !c.closest(".shot-host") && !c.classList.contains("in-hd") && !c.classList.contains("ld-top"); });
+  var lab = function (c) { if (c.classList.contains("rp2-cover")) return { a: "요약", b: "" }; var h = c.querySelector(":scope > .in-q, :scope > h3, :scope > h2, :scope > summary b, :scope > .tpx-hd h2, :scope > .cmp-h b"); if (!h) return ""; var x = h.cloneNode(true);
+    Array.prototype.forEach.call(x.querySelectorAll("small,i:not(.keep),button,span.bfchev"), function (k) { k.remove(); }); var full = x.textContent.replace(/\s+/g, " ").replace(/^\d+\.\s*/, "").trim(), cut = function (t) { return t.replace(/[?？]$/, "").trim().replace(/^(.{13}).+$/, "$1…"); };
+    var pa = full.split(/\s*—\s*/); return { a: cut(pa[0] || ""), b: pa[1] ? cut(pa[1]) : "" }; };
+  /* 같은 id 가 다른 화면에도 있는 구역(내 자산 점검)이 있어, 바로가기는 id 가 아니라 이 화면 안의 표식(data-wkid)으로 찾는다 */
+  var items = L.map(function (c, k) { var key = c.getAttribute("data-wkid") || ("wk-" + id + "-" + k); c.setAttribute("data-wkid", key); var lb = lab(c); return { id: key, t: lb.a, alt: lb.b }; }).filter(function (x) { return x.t; });
+  var seen = {}; items.forEach(function (x) { seen[x.t] = (seen[x.t] || 0) + 1; }); items.forEach(function (x) { if (seen[x.t] > 1 && x.alt) x.t = x.alt; });      /* 같은 이름이 겹치면 줄표 뒤의 말을 이름으로 */
+  if (items.length < 3) { bar.hidden = true; return; }
+  var html = items.map(function (x, k) { return '<button type="button" data-wktoc="' + x.id + '"><i>' + (k + 1) + "</i>" + escHtml(x.t) + "</button>"; }).join("");
+  bar.hidden = false; if (bar.getAttribute("data-k") !== html) { bar.innerHTML = html; bar.setAttribute("data-k", html); }
+};
+function wkTocOff(bar) { var nt = document.getElementById("nv-top"), b = nt ? nt.getBoundingClientRect().bottom : 0; return Math.max(0, b) + (bar ? bar.offsetHeight : 0); }
+tocActive = function (id) {
+  var bar = document.getElementById("stu-tocbar-" + id), sec = document.getElementById("tab-" + id); if (!bar || bar.hidden || !sec) return; var top = wkTocOff(bar) + 14, cur = null, B = bar.querySelectorAll("[data-wktoc]");
+  var best = -1e9;      /* 두 단 화면에서도 맞게 — 기준선을 지난 구역 가운데 가장 아래(기준선에 가까운) 것 */
+  Array.prototype.forEach.call(B, function (b) { var el = sec.querySelector('[data-wkid="' + b.getAttribute("data-wktoc") + '"]'); if (!el || el.offsetParent === null) return; var y = el.getBoundingClientRect().top - top; if (y <= 0 && y > best) { best = y; cur = b; } });
+  Array.prototype.forEach.call(B, function (b) { b.classList.toggle("on", b === cur); });
+  if (cur && bar.scrollWidth > bar.clientWidth) { var l = cur.offsetLeft - bar.clientWidth / 2 + cur.offsetWidth / 2; if (Math.abs(bar.scrollLeft - l) > 40) bar.scrollLeft = l; } else if (!cur && bar.scrollLeft) bar.scrollLeft = 0;
+};
+document.addEventListener("click", function (e) {
+  var g = e.target.closest && e.target.closest("[data-wktoc]"); if (g) { var sec = g.closest("section"), el = sec && sec.querySelector('[data-wkid="' + g.getAttribute("data-wktoc") + '"]'); if (!el) return;
+    if (el.classList.contains("ux-folded")) { var fb = el.querySelector(":scope > .ux-fold"); if (fb) fb.click(); } if (el.classList.contains("folded")) { var h2 = el.querySelector(":scope > h2"); if (h2) h2.click(); } if (el.tagName === "DETAILS") el.open = true;
+    var off = wkTocOff(g.closest(".stu-tocbar")) + 8; window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.pageYOffset - off), behavior: "smooth" }); return; }
+  var gt = e.target.closest && e.target.closest(".stu-guide.adm-g .adm-gt"); if (gt) gt.parentNode.classList.toggle("wk-open");      /* 쓰는 법 — 한 줄로 접어 두고 누르면 펼침 */
+});
+window.addEventListener("scroll", function () { var t = (location.hash || "").slice(1); if (/^(today|value|lead|ops)$/.test(t)) { clearTimeout(window.__wkTocT); window.__wkTocT = setTimeout(function () { try { tocActive(t); } catch (e) {} }, 80); } }, { passive: true });
+(function () {
+  if (typeof studioBar !== "function") return; var o = studioBar;
+  studioBar = function (id) {
+    var r = o.apply(this, arguments);
+    try { if (typeof OWNER !== "undefined" && OWNER && WK_TOC[id]) { var sec = document.getElementById("tab-" + id);
+        if (sec && !document.getElementById("stu-tocbar-" + id)) { var tb = document.createElement("nav"); tb.className = "stu-tocbar"; tb.id = "stu-tocbar-" + id; tb.hidden = true; var guide = sec.querySelector(".stu-guide"); if (guide) guide.insertAdjacentElement("afterend", tb); else sec.insertBefore(tb, sec.firstChild); }
+        if (id === "brief") { wkBrief(); setTimeout(wkBrief, 900); }
+        if (id === "today") setTimeout(wkToday, 50);
+        [300, 1400, 3400, 7000].forEach(function (ms) { setTimeout(function () { try { if (id === "brief") wkBrief(); wkFold(id); tocBarFill(id); tocActive(id); } catch (e) {} }, ms); }); } } catch (e) { if (window.console) console.warn("wk", e); }
+    return r;
+  };
+})();
+/* ── 카드 ① 틀 모양(스킨) — 같은 내용을 세 가지 틀로. 고른 모양은 이 기기에 기억한다 ── */
+var WK_SKINS = [["a", "기둥형", "왼쪽 남색 기둥(기본)"], ["b", "띠형", "위 남색 띠"], ["c", "종이형", "미색 바탕 · 금색 테두리"]];
+function wkSkin() { try { if (typeof TP !== "undefined" && TP.skin) return TP.skin; var v = localStorage.getItem("trackapt_card_skin"); return v === "b" || v === "c" ? v : "a"; } catch (e) { return "a"; } }
+(function () { if (typeof tpFrame !== "function") return; var o = tpFrame; tpFrame = function () { var h = o.apply(this, arguments), k = wkSkin(); return k && k !== "a" ? h.replace('class="chcard tp-card ub ', 'class="chcard tp-card ub sk-' + k + ' ') : h; }; })();
+(function () { if (typeof tprOptsHtml !== "function") return; var o = tprOptsHtml; tprOptsHtml = function () { var h = o.apply(this, arguments), k = wkSkin();
+  var row = '<div class="tpr-g"><small>틀 모양</small><div class="tpr-skin">' + WK_SKINS.map(function (s) { return '<button type="button" data-tpskin="' + s[0] + '" class="' + (k === s[0] ? "on" : "") + '" title="' + s[2] + '"><i></i>' + s[1] + "</button>"; }).join("") + "</div></div>";
+  var at = h.indexOf('<div class="tpr-g"><small>그리기</small>'); if (at < 0) return h + row; var end = h.indexOf("</div></div>", at); return end < 0 ? h + row : h.slice(0, end + 12) + row + h.slice(end + 12); }; })();
+document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-tpskin]"); if (!b) return; TP.skin = b.getAttribute("data-tpskin"); try { localStorage.setItem("trackapt_card_skin", TP.skin); } catch (e2) {}
+  try { var oh = document.getElementById("tpr-opts"); if (oh) oh.innerHTML = tprOptsHtml(); tpPaint(); } catch (e3) { if (window.console) console.warn("skin", e3); } });   /* 내용은 그대로 두고 틀만 다시 그린다(손으로 고친 글 유지) */
+/* ── 카드 ② 새 양식 '큰 숫자 한 장' — 순위가 있는 주제에서 1위를 크게, 2~5위를 아래 줄로. '같은 내용, 다른 모양'에 나온다.
+   큰 숫자는 '줄이 서 있는 순서를 만든 칸'의 값이다(평당가 순이면 평당가) — 순서가 없는 표(일정·노선)에는 이 양식을 내놓지 않는다 ── */
+function wkUnitNum(v) { var s = String(v == null ? "" : v).replace(/,/g, "").trim(), m = s.match(/^([+\-−]?\d+(?:\.\d+)?)\s*(%p|%|억|만|천|건|곳|세대|가구|:1|대1|배|점|원|㎡|평|위|년|개월|일)?$/); if (!m) return null;   /* 칸 전체가 숫자(+단위)일 때만 */
+  var n = parseFloat(m[1].replace("−", "-")); if (isNaN(n)) return null; return m[2] === "억" ? n * 10000 : m[2] === "천" ? n * 0.1 : n; }
+function wkSortedCol(rows) {      /* 줄이 어느 숫자 칸 순서로 서 있는지 — 앞 여덟 줄에서 빈칸(–)은 건너뛰고, 숫자가 넷 이상(줄이 적으면 전부) 한 방향이면 그 칸 */
+  var n = Math.min(rows.length, 8); if (n < 3) return -1;
+  for (var c = 1; c < rows[0].length; c++) { var V = [], bad = false; for (var i = 0; i < n; i++) { var raw = String(rows[i][c] == null ? "" : rows[i][c]).trim(); if (raw === "" || raw === "–" || raw === "-" || raw === "—") continue; var x = wkUnitNum(raw); if (x == null) { bad = true; break; } V.push(x); }
+    if (bad || V.length < Math.min(4, n)) continue;
+    var up = true, dn = true, diff = false; for (var j = 1; j < V.length; j++) { if (V[j] > V[j - 1]) dn = false; if (V[j] < V[j - 1]) up = false; if (V[j] !== V[j - 1]) diff = true; }
+    if (diff && (up || dn)) return c; }
+  return -1;
+}
+/* 핵심 줄 '…중 1위는 …' — 줄이 실제로 어떤 숫자 순서로 서 있을 때만 쓴다. 일정·노선처럼 순위가 아닌 표에는 '1위'라고 쓰지 않는다(청약 일정 카드에 "12단지 중 1위는 …, 특공 11.23"이 나오던 것) */
+(function () { if (typeof tpLeadOf !== "function") return; var o = tpLeadOf; window.__tpLeadOf0 = o; tpLeadOf = function (d) { var lead = o.apply(this, arguments);
+  try { if (lead && /1위는|가장 [가-힣]+ 곳은/.test(lead)) { var rows = tpRows(d.rows || d.items || []).filter(function (r) { return r.join("").trim(); }); if (rows.length >= 3 && wkSortedCol(rows) < 0) return ""; } } catch (e) {} return lead; }; })();
+if (typeof TPL !== "undefined" && typeof tpFrame === "function") {
+  TPL.heroOne = { nm: "큰 숫자 한 장", cat: "market", fields: [["src", "출처·기준", "text", ""], ["title", "제목", "text", "서울 1년 상승률"], ["sub", "부제", "text", ""], ["items", "항목(이름 | 값 | 보조) — 첫 줄이 크게", "rows", "중랑구 | +29.3% | 1년 변화"], ["foot", "맨 아래 메모", "text", ""]],
+    auto: function () { return null; },
+    render: function (d) {
+      var all = vzItems(d, 99), R = all.slice(0, 5); if (!R.length) return tpFrame(d._cat || "market", d, '<p class="tp-vz-none">줄이 있어야 그립니다</p>');
+      var top = R[0], nm = String(top[0] || ""), v = String(top[1] || "–"), fn = nm.length <= 6 ? 26 : nm.length <= 10 ? 22 : nm.length <= 14 ? 18 : 15, fv = v.length <= 6 ? 46 : v.length <= 8 ? 38 : v.length <= 11 ? 30 : 22;
+      var body = '<div class="tp-fill"><div class="tp-hero"><div class="tp-hero-top"><span class="k">1위</span><b class="nm" style="font-size:' + fn + 'px">' + tpE(nm) + '</b><b class="v" style="font-size:' + fv + 'px">' + tpE(v) + "</b>" + (top[2] ? "<small>" + tpE(top[2]) + "</small>" : "") + "</div>" +
+        (R.length > 1 ? '<div class="tp-hero-list">' + R.slice(1).map(function (r, i) { return "<div><i>" + (i + 2) + "</i><span>" + tpE(r[0]) + (r[2] ? "<small>" + tpE(r[2]) + "</small>" : "") + "</span><b>" + tpE(r[1] || "–") + "</b></div>"; }).join("") + "</div>" : "") +
+        (d._tot && d._tot > R.length ? '<p class="tp-hero-more">상위 ' + R.length + " · 전체 " + d._tot + "</p>" : "") + "</div></div>";
+      var d2 = {}; Object.keys(d).forEach(function (k) { if (k !== "_tot" && k !== "_more") d2[k] = d[k]; });      /* 핵심 줄의 숫자를 큰 숫자와 같은 값으로 맞춘다 · '상위 n/전체'는 위 한 줄로만(틀의 줄 세기는 표 전용) */
+      var m = String(d.lead || "").match(/^(.*1위는\s*)/); if (m) d2.lead = m[1] + nm + ", " + v;
+      return tpFrame(d._cat || "market", d2, body);
+    } };
+  try { if (typeof TPL_ORDER !== "undefined" && TPL_ORDER.indexOf("heroOne") < 0) TPL_ORDER.push("heroOne"); if (typeof TP_XTPL !== "undefined" && TP_XTPL.indexOf("heroOne") < 0) TP_XTPL.push("heroOne"); } catch (e) {}
+  (function () { var conv = tpConvert; tpConvert = function (d, to) { if (to !== "heroOne") return conv.apply(this, arguments);
+    var X = tpRowsOf(d); if (!X) return d; var kc = wkSortedCol(X.rows), o = {}; ["src", "badge", "title", "sub", "foot", "_cat", "_icon", "tag", "noLead", "_more", "_tot"].forEach(function (k) { if (d[k] != null) o[k] = d[k]; }); o._off = d._off || 0; o._sorted = kc >= 0 ? 1 : 0; if (kc < 0) kc = 1;
+    o.items = X.rows.map(function (r) { return [r[0], String(r[kc] || "").trim() || "–", r.filter(function (_, i) { return i && i !== kc && String(r[i] || "").trim(); }).join(" · ")]; }); return o; }; })();
+  (function () { var o = tprXOk; tprXOk = function (id) { if (id !== "heroOne") return o.apply(this, arguments);
+    try { var R = TPR[TP.r], src = (R._pages && R._pages.length ? R._pages : TP.pages) || []; if (!src.length) return false;
+      if (!/1위|가장 (낮은|높은|큰|작은|많은|비싼|싼)/.test(String(src[0].lead || ""))) return false;      /* 핵심 줄이 순위를 말하는 주제만 */
+      var d = tpConvert(src[0], "heroOne"); if (!(d && d._sorted && d.items && d.items.length >= 3)) return false;
+      var DATE = /^(\d{2,4}[.\-\/년]\s*\d{1,2}|\d{1,2}[.\/]\d{1,2}|\d{4}년?$|\d{1,2}월|\d+주)/; return d.items.slice(0, 5).filter(function (it) { return DATE.test(String(it[0] || "").trim()); }).length < 2; } catch (e) { return false; } }; })();
+}
+/* ── 카드 ③ 인스타 올림 글 — 줄 나열 대신 '질문 → 핵심 → 눈에 띄는 것 → 읽는 법 → 묻기 → 저장' 순서로(스레드 글과 같은 재료·같은 말투)
+   1) 첫 줄: 궁금하게 만드는 질문  2) 핵심 한 줄(카드의 '핵심')  3) 순위는 1. 2. 3., 일정·목록은 · 로 다섯 줄
+   4) 읽는 법 한두 문장  5) 함께 보면(있을 때)  6) 댓글을 부르는 질문 + 저장 안내  7) 기준 · 투자 권유 아님 · 해시태그 ── */
+(function () { if (typeof tpCaption !== "function" || typeof thrFromTpl !== "function") return; var old = tpCaption;
+  tpCaption = function () {
+    try {
+      var P = (typeof TP !== "undefined" && TP.pages) || []; if (!P.length) return ""; var d0 = P[0], t = TPL[TP.id] || {}, cat = d0._cat || t.cat, T = thrFromTpl(); if (!T) return old();
+      var a = T.split(THR_SEP), rest = (a[1] || "").split(THR_SEP2), ask = (rest[1] || "").trim(), B = (a[0] || "").split(/\n{2,}/).map(function (x) { return x.trim(); }).filter(Boolean);
+      var hook = B.shift() || String(d0.title || ""), basis = B.length && /^기준 /.test(B[B.length - 1]) ? B.pop() : (d0.src ? "기준 " + d0.src : ""), list = [], read = [];
+      if (B.length >= 2) { list = B[0].split("\n"); read = B.slice(1).join("\n").split("\n"); } else if (B.length === 1) { var one = B[0].split("\n"); if (one.length >= 2 && !one.every(function (x) { return /[다요]\.?$/.test(x); })) list = one; else read = one; }
+      var ranked = /1위/.test(String(d0.lead || "")), out = [hook], lead = String(d0.lead || "").trim();
+      if (lead && hook.indexOf(lead) < 0) out.push(lead);
+      out.push("");
+      if (list.length) { list.forEach(function (x, k) { out.push((ranked ? (k + 1) + ". " : "· ") + x); }); out.push(""); }
+      if (read.length) { out.push(read.join(" ")); out.push(""); }
+      var TD = []; P.forEach(function (d) { (d._today || []).forEach(function (f) { var x = f.t + (f.s ? " (" + f.s + ")" : ""); if (TD.indexOf(x) < 0) TD.push(x); }); }); if (TD.length) { TD.slice(0, 2).forEach(function (x) { out.push("맥락 — " + x); }); out.push(""); }
+      if (d0.note) { out.push("함께 보면 — " + d0.note + (d0.noteSrc ? " (" + d0.noteSrc + ")" : "")); out.push(""); }
+      if (ask) out.push(ask);
+      var keep = (ranked ? "저장해 두면 다음에 같은 숫자와 비교할 수 있습니다." : "저장해 두면 필요할 때 다시 볼 수 있습니다.") + (typeof TP_SHARE_TO !== "undefined" && TP_SHARE_TO[cat] ? " " + TP_SHARE_TO[cat] + "께 보내 주셔도 좋습니다." : "");
+      out.push(P.length > 1 ? "전체 내용은 카드 " + P.length + "장에 있습니다. " + keep : keep);
+      out.push(""); if (basis) out.push(basis); out.push("참고 자료이며 투자 권유가 아닙니다."); out.push("");
+      out.push(((typeof TP_TAGS !== "undefined" && TP_TAGS[cat]) || []).concat(["#부동산", "#아파트", "#우상향연구소"]).join(" "));
+      return out.join("\n").replace(/\n{3,}/g, "\n\n");
+    } catch (e) { return old(); }
+  }; })();
+/* ── 카드 ④ 핵심 줄의 값 고르기 — 부제가 '평당 중위값 높은 순'처럼 줄 세운 칸을 말하면 그 칸을 쓴다
+   (예전엔 부제 뒤쪽 메모에 '변화'라는 말만 있어도 변화 칸을 골라 "1위는 강남구, 변화 −1.5%"가 됐다 — 순위는 평당가인데 숫자는 변화율) ── */
+(function () { if (typeof tpKeyIdx !== "function") return; var o = tpKeyIdx; tpKeyIdx = function (X, d, r) {
+  try { var cols = (X && X.cols) || [], m = (String(d.sub || "") + " · " + String(d.title || "")).match(/([^·,]*?)\s*(높은|낮은|많은|적은|큰|작은|비싼|싼)\s*순/);
+    if (m) for (var i = 1; i < cols.length; i++) { var c = String(cols[i] || "").replace(/\(.*?\)/g, "").trim(); if (c && m[1].indexOf(c) >= 0 && /\d/.test(String(r[i] || ""))) return i; } } catch (e) {}
+  return o.apply(this, arguments); }; })();
+/* ── 카드 ⑤ 표지의 큰 숫자 — '25곳 중 1위는 …, +29.3%'에서 개수(25곳)가 아니라 1위의 값(+29.3%)을 크게. 이름은 그대로 다음 장으로 미룬다 ── */
+(function () { if (typeof tpCoverOf !== "function") return; var o = tpCoverOf; tpCoverOf = function (pages) { var c = o.apply(this, arguments);
+  try { var m = String((pages[0] || {}).lead || "").match(/(1위는|가장 [가-힣]+ 곳은)\s+.+,\s*([^,]+)$/); if (m) { var v = m[2].trim(), b = tpBigNum(v) || (/\d/.test(v) && v.length <= 10 ? v : ""); if (b) { c.big = b; c.bigLb = m[1] === "1위는" ? "1위의 숫자" : "그곳의 숫자"; } } } catch (e) {} return c; }; })();
+/* ── 카드 ⑥ 정리 카드(금일·금주·금월)의 같은 줄 — 여러 장으로 나뉜 코너 카드가 같은 질문·같은 숫자를 세 번씩 넣던 것을 한 번만 ── */
+(function () { if (typeof cdCardsQA !== "function") return; var o = cdCardsQA; cdCardsQA = function () { var R = o.apply(this, arguments) || [], seen = {}; return R.filter(function (r) { var k = Array.isArray(r) ? r.join("|") : String(r); if (seen[k]) return false; seen[k] = 1; return true; }); }; })();
+/* ══ v14.2 작업실·카드 END ══ */
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {
   root.innerHTML =

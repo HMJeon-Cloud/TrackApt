@@ -150,7 +150,7 @@ Object.keys(ledger).forEach(function (code) {
 });
 if (chk.length) { chk.sort(function (a, b) { return a - b; }); console.log("규칙 일치 점검(" + lastYm + " 평당가 중위, " + chk.length + "곳): 중간 차이 " + (chk[chk.length >> 1] * 100).toFixed(1) + "% · 최대 " + (chk[chk.length - 1] * 100).toFixed(1) + "%"); }
 
-var out = { v: 1, built: new Date().toISOString().slice(0, 10), src: (base.src || "국토부 실거래") + " + 자동 봉인(brief_build 월별 장부)", rule: base.rule, m0: base.m0, months: M,
+var out = { v: 1, built: new Date().toISOString().slice(0, 10), builtAt: new Date().toISOString() /* v14.3 화면의 '○월 ○일 수집' 표기용 — built 는 UTC 날짜라 한국 날짜와 하루 어긋날 수 있다 */, src: (base.src || "국토부 실거래") + " + 자동 봉인(brief_build 월별 장부)", rule: base.rule, m0: base.m0, months: M,
   auto: true, baseLast: lastYm, prov: prov, stat: base.stat, regions: regions, groups: groups };
 fs.writeFileSync(OUT_P, JSON.stringify(out));
 fs.writeFileSync(GRP_P, JSON.stringify(groupsLedger));

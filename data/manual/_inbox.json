@@ -1,7 +1,7 @@
 {
  "v": 1,
- "builtAt": "2026-11-21T21:58:34.646Z",
- "asOf": 20261122,
+ "builtAt": "2026-11-22T22:05:44.509Z",
+ "asOf": 20261123,
  "items": [
   {
    "kind": "transit",
@@ -15,17 +15,6 @@
    "todo": "data/manual/transit.json 에서 'GTX-C 덕정~수원' 의 status·open·note 를 확인해 주세요",
    "firstSeen": "2026-11-21",
    "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-21",
-   "title": "아낌e보금자리론 11월 금리 인상에 따른 내 집 마련 전략과 실질적인 상환 부담 체크",
-   "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTE5YV3U3Y0x1ZVdEQk9FbW9aTlI0RzZONUh4cGxUdUNlY3hzaDlEUjl6M2pjRG9IYWVYSTJfUDhkU2xlTUljTklibVZQbWMwR3NkNWx3?oc=5",
-   "src": "블로그차트",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-22",
-   "isNew": true
   },
   {
    "kind": "loan",
@@ -47,17 +36,6 @@
    "official": false,
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-11-20",
-   "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-16",
-   "title": "\"3억 빌리면 매달 161만원 갚아야\" 보금자리론 금리 5% 돌파…서민들 '발칵'",
-   "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9Ca2Y3bnh6NmlKYVZrSUFhX1E4bnRKUENDYzJvTW9TUVBVc09Bek5uWXpFYWo0NW52S3ZoaWJCMnRQMjBXaUsxU2I4cUtMNmlvLUZ3N3A3bWlkYlBFQlVRazVJVTQzalRQcnI5bw?oc=5",
-   "src": "나남뉴스",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-21",
    "isNew": false
   }
  ]

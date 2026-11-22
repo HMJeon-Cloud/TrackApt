@@ -219,3 +219,31 @@ console.log("market_core.json — " + base.m0 + " ~ " + idxYm(lastI) + " (" + M 
     console.log("대장 비교(_lead.json) — 지역 " + nReg + "곳 · 대장 " + nMatch + "/" + nLead + "곳을 저장본과 이름으로 맞춤 · " + Math.round(fs.statSync(path.join(MO_DIR, "_lead.json")).size / 1024) + "KB");
   } catch (e) { console.log("대장 비교 만들기 실패(본 작업과 무관): " + e.message); }
 })();
+
+/* ══ v14.1 같은 단지끼리 잰 전세가율 — data/monthly/_jr.json ══
+   지역 전세가율을 '지역 전세 중위 ÷ 지역 매매 중위'로 재면, 매매와 전세가 서로 다른 단지에서 거래될 때 크게 틀린다
+   (종로구: 중위끼리 70% · 같은 단지끼리 51%). 그래서 단지별 저장본(trades/{시군구}.json)에서
+   '같은 단지 · 같은 평형대(59·84㎡)에서 그 해에 매매와 전세가 둘 다 2건 이상 거래된 곳'만 골라 전세 ÷ 매매를 구하고,
+   거래 건수(둘 중 적은 쪽)로 가중한 가운데 값을 그 지역 그 해의 전세가율로 쓴다. 맞춘 단지·평형이 5곳 미만인 해는 비운다(틀린 값보다 빈칸).
+   실거래 호출 없음(파일만 읽음). 실패해도 본 작업(market_core.json)에는 영향이 없다. */
+(function jrBuild() {
+  try {
+    var TR = path.join(ROOT, "trades"); if (!fs.existsSync(TR)) { console.log("전세가율(_jr.json): trades/ 없음 — 건너뜀"); return; }
+    var out = { v: 1, built: new Date().toISOString().slice(0, 10), y0: null, years: null, minPairs: 5, minDeals: 2,
+      rule: "같은 단지·같은 평형대(59·84㎡)에서 그 해 매매·전세가 둘 다 2건 이상인 곳의 전세 중위 ÷ 매매 중위 · 건수 가중 가운데 값 · 5곳 미만인 해는 비움", r: {} }, nReg = 0, nNow = 0;
+    var wmed = function (R) { R.sort(function (a, b) { return a[0] - b[0]; }); var tot = R.reduce(function (a, x) { return a + x[1]; }, 0), acc = 0; for (var i = 0; i < R.length; i++) { acc += R[i][1]; if (acc >= tot / 2) return R[i][0]; } return R[R.length - 1][0]; };
+    var at = function (ser, i) { if (!ser || !ser.p) return [null, 0]; var j = i - (ser.o || 0); return j >= 0 && j < ser.p.length && ser.p[j] > 0 ? [ser.p[j], (ser.c && ser.c[j]) || 0] : [null, 0]; };
+    fs.readdirSync(TR).forEach(function (f) {
+      if (!/^\d{5}\.json$/.test(f)) return; var T = readJson(path.join(TR, f)); if (!T || !T.cx || !T.years) return;
+      if (out.y0 == null) { out.y0 = T.y0; out.years = T.years; } if (T.y0 !== out.y0 || T.years !== out.years) return;
+      var V = [], N = [], any = false;
+      for (var i = 0; i < T.years; i++) {
+        var R = []; T.cx.forEach(function (c) { ["59", "84"].forEach(function (bk) { var s = at(c.s && c.s[bk], i), r = at(c.r && c.r[bk], i); if (s[0] && r[0] && s[1] >= 2 && r[1] >= 2) R.push([r[0] / s[0] * 100, Math.min(s[1], r[1])]); }); });
+        if (R.length >= 5) { V.push(Math.round(wmed(R) * 10) / 10); N.push(R.length); any = true; } else { V.push(null); N.push(R.length); }
+      }
+      if (any) { out.r[f.slice(0, 5)] = { v: V, n: N }; nReg++; if (V[T.years - 1] != null) nNow++; }
+    });
+    fs.mkdirSync(MO_DIR, { recursive: true }); fs.writeFileSync(path.join(MO_DIR, "_jr.json"), JSON.stringify(out));
+    console.log("전세가율(_jr.json) — 지역 " + nReg + "곳 · 올해 값 있는 곳 " + nNow + "곳 · " + Math.round(fs.statSync(path.join(MO_DIR, "_jr.json")).size / 1024) + "KB");
+  } catch (e) { console.log("전세가율(_jr.json) 만들기 실패(본 작업과 무관): " + e.message); }
+})();

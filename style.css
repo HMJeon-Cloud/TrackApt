@@ -3818,3 +3818,7 @@ body.adm .stu-tocbar::-webkit-scrollbar{display:none}
 .tpr-skin button[data-tpskin="c"] i{background:#fbf6ea;border-color:#c9a55a}
 .tpr-skin button[data-tpskin="c"] i::before{left:4px;right:4px;top:9px;height:4px;background:#d4af6a}
 /* ══ v14.2 END ══ */
+/* ══ v14.3 START ══  실시간 기준 — 잠정 달(신고 진행 중) 표시 */
+.pg-prov{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:999px;background:#eef1f5;color:#667085;font-size:.68rem;font-weight:700;line-height:1.5;vertical-align:1px;white-space:nowrap}
+tr.pg-live td b{color:#667085}
+/* ══ v14.3 END ══ */

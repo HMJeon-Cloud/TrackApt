@@ -1,21 +1,8 @@
 {
  "v": 1,
- "builtAt": "2026-11-22T22:05:44.509Z",
+ "builtAt": "2026-11-23T07:22:38.954Z",
  "asOf": 20261123,
  "items": [
-  {
-   "kind": "transit",
-   "line": "GTX-C 덕정~수원",
-   "what": "일정 변경",
-   "date": "2026-11-21",
-   "title": "동북선 준공 2028년 8월로 9개월 연기 — 6중 역세권선 왕십리 스케쥴 변화는? (GTX-C 9월 실착공, 신설 역 2km 안 62개 단지, 성동구 집값 2주 연속 하락)",
-   "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFA5T2VsS1oxMDJxd3c5MGRNMVhkOVAwWmJIaTRDMjdxNEcyUG5WV0duUEk4TGstMXd5TDRYSllDdVhjelNSeU4zYjUyb3RPTnZHMVdtc2FpOTU5bXZZaG1GWGJWMzhtYXdtYV9FQ08zbmFnUGx6OUxsZWF4TVE?oc=5",
-   "src": "네이버 프리미엄콘텐츠",
-   "official": false,
-   "todo": "data/manual/transit.json 에서 'GTX-C 덕정~수원' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-11-21",
-   "isNew": false
-  },
   {
    "kind": "loan",
    "date": "2026-11-20",

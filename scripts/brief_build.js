@@ -219,40 +219,41 @@ var LEAD_RULE = String(process.env.LEAD_RULE || "price");   /* v13.4 "price" = �
      ② 한 면적대 안에 타입이 여럿이면 대표 거래가 가장 비싼 타입이 그 단지의 값.
         (예전엔 '가장 최근에 거래된 타입'이라, 75㎡가 나중에 팔리면 84㎡ 대장이 75㎡ 값으로 밀려났다 — 수원 팔달구 매교역푸르지오SK뷰 85㎡ 11.4억이 75㎡ 9.9억으로)
      ③ 그 값이 높은 순으로 3곳(같으면 더 최근 거래).
-   적는 값: p = 대표 거래 [금액, 날짜, 층] · n3 = 그 면적의 최근 3개월 거래 수(0 이면 p 는 3개월 밖의 가장 최근 거래) · lt = 그 면적의 가장 최근 거래(p 와 다를 때만)
-            · mx = 2020년 이후 같은 면적 최고가.
+   적는 값: p = 대표 거래 [금액, 날짜, 층] · ar = 그 거래의 전용면적(반올림 — ㎡당가 계산용, 화면 이름은 tyOf 규칙으로 84·59)
+            · n3 = 그 타입의 최근 3개월 거래 수(0 이면 p 는 3개월 밖의 가장 최근 거래) · lt = 그 타입의 가장 최근 거래(p 와 다를 때만)
+            · mx = 2020년 이후 같은 타입 최고가. v14.5 '면적'은 타입(tyOf) — 84.97㎡(반올림 85)와 84.4㎡ 는 같은 84 타입으로 묶는다.
    skip = 옛 기록만 남은 이름(phantomKeys). */
 var LEAD_WIN = Number(process.env.LEAD_WIN || 90), LEAD_RULE_V = 2;
 function lbOf(area) { return area < 55 ? "S" : area < 70 ? "59" : area < 95 ? "84" : "L"; }
 function leadersOf(lawd, hi, sale, cur, today, skip) {
   leadersOf.pool = []; skip = skip || {};
   var cut = dayN(shiftDay(today, -365)), cut3 = dayN(shiftDay(today, -LEAD_WIN)), Y = today.getFullYear(), L = {}, M = {}, YR = {}, N30 = {}, H3 = {}, N3 = {};
-  function put(ak, ar, rec, isMax) {
-    var T = isMax ? M : L, row = T[ak] || (T[ak] = {}), c = row[ar];
-    if (isMax ? (!c || rec[0] > c[0]) : (!c || rec[1] > c[1])) row[ar] = rec;
+  function put(ak, ty, rec, isMax) {          /* ty = 타입(tyOf) · rec = [금액, 날짜, 층, 반올림 면적] */
+    var T = isMax ? M : L, row = T[ak] || (T[ak] = {}), c = row[ty];
+    if (isMax ? (!c || rec[0] > c[0] || (rec[0] === c[0] && rec[1] < c[1])) : (!c || rec[1] > c[1] || (rec[1] === c[1] && rec[0] > c[0]))) row[ty] = rec;   /* 최고가가 같으면 처음 찍은 날 · 가장 최근 거래가 같은 날이면 높은 값 */
   }
-  Object.keys(hi.l || {}).forEach(function (ak) { Object.keys(hi.l[ak]).forEach(function (ar) { put(ak, ar, hi.l[ak][ar], false); }); });
-  Object.keys(hi.m || {}).forEach(function (ak) { Object.keys(hi.m[ak]).forEach(function (ar) { put(ak, ar, hi.m[ak][ar], true); }); });
+  Object.keys(hi.l || {}).forEach(function (ak) { Object.keys(hi.l[ak]).forEach(function (ar) { var r = hi.l[ak][ar]; put(ak, String(tyOf(ar)), [r[0], r[1], r[2], Number(ar)], false); }); });
+  Object.keys(hi.m || {}).forEach(function (ak) { Object.keys(hi.m[ak]).forEach(function (ar) { var r = hi.m[ak][ar]; put(ak, String(tyOf(ar)), [r[0], r[1], r[2], Number(ar)], true); }); });
   Object.keys(hi.y || {}).forEach(function (ak) { YR[ak] = hi.y[ak]; });
   sale.forEach(function (t) {
     if (!priced(t)) return;
-    var ak = t.dong + "|" + t.apt, ar = String(Math.round(t.area)), rec = [t.amount, dnum(t), Number(t.floor) || 0];
-    put(ak, ar, rec, false); put(ak, ar, rec, true);
+    var ak = t.dong + "|" + t.apt, ty = String(tyOf(t.area)), rec = [t.amount, dnum(t), Number(t.floor) || 0, Math.round(t.area)];
+    put(ak, ty, rec, false); put(ak, ty, rec, true);
     if (t.buildYear) YR[ak] = Number(t.buildYear);
-    if (rec[1] > cut3) { var k3 = ak + "|" + ar, c3 = H3[k3]; N3[k3] = (N3[k3] || 0) + 1; if (!c3 || rec[0] > c3[0] || (rec[0] === c3[0] && rec[1] > c3[1])) H3[k3] = rec; }   /* 최근 3개월 최고가 거래 */
+    if (rec[1] > cut3) { var k3 = ak + "|" + ty, c3 = H3[k3]; N3[k3] = (N3[k3] || 0) + 1; if (!c3 || rec[0] > c3[0] || (rec[0] === c3[0] && rec[1] > c3[1])) H3[k3] = rec; }   /* 최근 3개월 최고가 거래 */
   });
   cur.forEach(function (t) { var k = t.dong + "|" + t.apt + "|" + lbOf(Math.round(t.area)); N30[k] = (N30[k] || 0) + 1; });
-  var repOf = function (ak, ar) { var r = L[ak][ar]; if (!r || r[1] <= cut) return null; return H3[ak + "|" + ar] || r; };   /* 대표 거래 — 3개월 최고가, 없으면 1년 안 가장 최근 거래 */
+  var repOf = function (ak, ty) { var r = L[ak][ty]; if (!r || r[1] <= cut) return null; return H3[ak + "|" + ty] || r; };   /* 대표 거래 — 그 타입의 3개월 최고가, 없으면 1년 안 가장 최근 거래 */
   var better = function (a, b) { return !b || a[0] > b[0] || (a[0] === b[0] && a[1] > b[1]); };
   var aks = Object.keys(L).filter(function (ak) { return !skip[ak] && Object.keys(L[ak]).some(function (ar) { return L[ak][ar][1] > cut; }); });
   if (!aks.length) return null;
   var groups = aks.map(function (ak) { var i = ak.indexOf("|"); return { dong: ak.slice(0, i), apt: ak.slice(i + 1) }; });
   var hh = householdsOf(lawd, groups), anyHH = hh.some(function (x) { return x; }), out = { hh: anyHH };
   var mk = function (i, ak, best, extra) {
-    var lt = L[ak][String(best.ar)], c = { apt: groups[i].apt, dong: groups[i].dong, hh: hh[i] || null, by: YR[ak] || null, ar: best.ar, p: best.p, mx: [best.mx[0], best.mx[1]] };
+    var lt = L[ak][String(best.ty)], c = { apt: groups[i].apt, dong: groups[i].dong, hh: hh[i] || null, by: YR[ak] || null, ar: best.ar, p: [best.p[0], best.p[1], best.p[2]], mx: [best.mx[0], best.mx[1]] };
     if (c.mx[0] < c.p[0]) c.mx = [c.p[0], c.p[1]];
     Object.keys(extra).forEach(function (k) { c[k] = extra[k]; });
-    c.n3 = N3[ak + "|" + best.ar] || 0;
+    c.n3 = N3[ak + "|" + best.ty] || 0;
     if (lt && (lt[0] !== c.p[0] || lt[1] !== c.p[1])) c.lt = [lt[0], lt[1], lt[2]];
     return c;
   };
@@ -260,10 +261,10 @@ function leadersOf(lawd, hi, sale, cur, today, skip) {
     var cand = [];
     aks.forEach(function (ak, i) {
       var best = null;
-      Object.keys(L[ak]).forEach(function (ar) {
-        if (lbOf(Number(ar)) !== bk) return;
-        var r = repOf(ak, ar); if (!r) return;
-        if (!best || better(r, best.p)) best = { ar: Number(ar), p: r, mx: (M[ak] && M[ak][ar]) || r };   /* 면적대 안에서 가장 비싸게 팔린 타입 */
+      Object.keys(L[ak]).forEach(function (ty) {
+        if (lbOf(Number(ty)) !== bk) return;
+        var r = repOf(ak, ty); if (!r) return;
+        if (!best || better(r, best.p)) best = { ty: Number(ty), ar: r[3] || Number(ty), p: r, mx: (M[ak] && M[ak][ty]) || r };   /* 면적대 안에서 가장 비싸게 팔린 타입 */
       });
       if (!best) return;
       var h = hh[i], by = YR[ak] || null, young = by && by >= Y - 20;
@@ -280,7 +281,7 @@ function leadersOf(lawd, hi, sale, cur, today, skip) {
   var pc = [];
   aks.forEach(function (ak, i) {
     var best = null;
-    Object.keys(L[ak]).forEach(function (ar) { var a = Number(ar); if (!(a > 0)) return; var r = repOf(ak, ar); if (!r) return; var pp = r[0] / a; if (!best || pp > best.ppm || (pp === best.ppm && r[1] > best.p[1])) best = { ar: a, p: r, mx: (M[ak] && M[ak][ar]) || r, ppm: pp }; });
+    Object.keys(L[ak]).forEach(function (ty) { var r = repOf(ak, ty); if (!r) return; var a = r[3] || Number(ty); if (!(a > 0)) return; var pp = r[0] / a; if (!best || pp > best.ppm || (pp === best.ppm && r[1] > best.p[1])) best = { ty: Number(ty), ar: a, p: r, mx: (M[ak] && M[ak][ty]) || r, ppm: pp }; });   /* ㎡당가는 그 거래의 면적으로 */
     if (!best) return;
     pc.push(mk(i, ak, best, { n30: ["S", "59", "84", "L"].reduce(function (q, b) { return q + (N30[ak + "|" + b] || 0); }, 0), pm: Math.round(best.ppm), ppm: best.ppm }));
   });
@@ -337,9 +338,14 @@ function topDeals(list, n) {
   });
 }
 function key(t) { return t.dong + "|" + t.apt + "|" + band(t.area); }
-/* 신고가는 '같은 단지 · 같은 전용면적(㎡ 반올림)'끼리만 견준다 — 74㎡와 84㎡를 한 평형대로 묶으면
-   넓은 집이 팔린 것만으로 신고가처럼 보인다 (v6.6) */
-function tkey(t) { return t.dong + "|" + t.apt + "|" + Math.round(t.area); }
+/* v14.5 주택형(타입) 이름 — 전용면적을 반올림하되 84.5~85㎡ 는 84, 59.5~60㎡ 는 59.
+   사람들은 전용 84.97㎡ 를 '84'로, 59.98㎡ 를 '59'로 부른다(국민주택규모 85㎡ · 소형 60㎡ 바로 아래로 짓는다). 반올림만 하면 85 · 60 으로 따로 보였다.
+   최고가 장부(data/highs)의 칸 이름(반올림 면적)은 그대로 두고, 견주고 고를 때만 이 이름으로 묶는다 — 84 칸과 85 칸은 같은 84 타입.
+   (자료에서 반올림 85 칸의 100%, 60 칸의 99.7%가 85·60 미만 — 대장 장부의 거래 42만 건) */
+function tyOf(a) { var r = Math.round(Number(a)); return r === 85 ? 84 : r === 60 ? 59 : r; }
+/* 신고가는 '같은 단지 · 같은 타입'끼리만 견준다 — 74㎡와 84㎡를 한 평형대로 묶으면
+   넓은 집이 팔린 것만으로 신고가처럼 보인다 (v6.6) · v14.5 84.97㎡(반올림 85)와 84.4㎡ 는 같은 84 타입 */
+function tkey(t) { return t.dong + "|" + t.apt + "|" + tyOf(t.area); }
 function ymNext(ym) { var y = Math.floor(ym / 100), m = ym % 100 + 1; return m === 13 ? (y + 1) * 100 + 1 : y * 100 + m; }
 
 /* ── 역대 최고가 장부 data/highs/{lawd}.json (v6.4) ──────────────────────
@@ -368,10 +374,12 @@ function foldHi(h, list) {
     }
   });
 }
-function hiGet(h, k) {
+function hiGet(h, k) {                     /* k = 동|단지|타입 — 장부의 칸(반올림 면적) 가운데 같은 타입인 칸들의 최고가 */
   if (!h) return null;
-  var i = k.lastIndexOf("|"), row = h.m[k.slice(0, i)];
-  return row ? row[k.slice(i + 1)] || null : null;
+  var i = k.lastIndexOf("|"), row = h.m[k.slice(0, i)], ty = Number(k.slice(i + 1)), best = null;
+  if (!row) return null;
+  Object.keys(row).forEach(function (b) { if (tyOf(Number(b)) !== ty) return; var r = row[b]; if (!best || r[0] > best[0]) best = r; });
+  return best;
 }
 var HI_CALLS = 0;
 async function updateHi(lawd, sealTo, lTarget) {
@@ -511,7 +519,7 @@ async function summarize(lawd, today) {
   var byT = {};
   cur.forEach(function (t) {
     if (!priced(t)) return;
-    var k = tkey(t), g = byT[k] || (byT[k] = { apt: t.apt, dong: t.dong, band: band(t.area), area: Math.round(t.area), n: 0, max: null });
+    var k = tkey(t), g = byT[k] || (byT[k] = { apt: t.apt, dong: t.dong, band: band(t.area), area: tyOf(t.area), n: 0, max: null });
     g.n++;
     if (!g.max || t.amount > g.max.amount) g.max = { amount: t.amount, floor: t.floor, area: t.area, d: dnum(t) };
   });

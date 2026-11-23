@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=14.5">
+<link rel="stylesheet" href="style.css?v=14.6">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v14.5</span>
+    <span class="ver">v14.6</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=14.5"></script>
+<script src="cards.js?v=14.6"></script>
 <script>
 "use strict";
 
@@ -136,7 +136,7 @@ var GROUPS = [
     { id: "calc",    name: "돈 계산",     build: buildCalc } ] },
   { id: "browse", name: "둘러보기", ic: "🔍", tabs: [
     { id: "browse",  name: "둘러보기",    build: buildBrowse },
-    { id: "today",   name: "오늘 작업", cat: "studio", ic: "✅", d: "관리자 첫 화면 — 데이터 확인 → 기사·이슈 → 오늘 올릴 것 → 판단 → 올리기 전 체크 (주인 전용)", build: buildToday },
+    { id: "today",   name: "작업실 홈", cat: "studio", ic: "✅", d: "아침 5~10분 점검판 — 할 일 · 데이터 현황 · 오늘 시장 · 일정 · 오늘 올릴 것을 한 화면에 (주인 전용)", build: buildToday },
     { id: "brief",   name: "30일 실거래", cat: "studio", ic: "📰", d: "최근 30일 실거래 현황 — 거래·값·신고가·대장을 숫자로 확인(주인 전용)", build: buildBrief },
     { id: "channel", name: "정기 코너", cat: "studio", ic: "📣", d: "카드 만들기 안 '정기 코너'로 합쳐짐", build: function (sec) { sec.innerHTML = '<p class="hint">정기 코너은 카드 만들기 안의 정기 코너로 합쳐졌습니다.</p>'; } },
     { id: "tpl", name: "카드 만들기", cat: "studio", ic: "🗂️", d: "데이터·지역·양식을 골라 4:5 카드 (직접 입력·AI)", build: buildTpl },
@@ -1523,7 +1523,7 @@ function buildChannel(root) {
       '<div class="chcards strip" id="ch-cards"></div>' +
       '<div class="chbtns" style="margin:10px 0 0"><button type="button" class="btn sm" id="ch-zip">카드 전부 ZIP 저장</button><button type="button" class="btn sm ghost" id="ch-view">세로로 크게 보기</button><button type="button" class="btn sm ghost" data-chverify="1">숫자 검사(Claude)</button><span class="hint" id="ch-vfmsg">옆으로 넘겨 확인 · 파일 이름 번호 순서로 올리면 됩니다(최대 10장)</span></div><div id="ch-vfbox" class="cap-aix" hidden></div></div>' +
     '<div class="card chstep"><h2><i class="chstepno">2</i>올릴 글</h2>' + CH_HELP_TEXT +
-      '<div class="tpx-tools tp-capai ch-ai"><button type="button" class="btn sm" data-chai="1">AI 문구 만들기</button><button type="button" class="btn sm ghost" data-chweek="1">AI 주간 브리핑</button><label class="hint" title="보통 필요 없음 — 오늘 작업에서 모은 자료가 들어갑니다"><input type="checkbox" id="ch-aiweb"> 웹 검색 추가</label><input id="ch-ainote" class="cap-note" placeholder="요청(선택) · 예: 사회초년생 관점"><button type="button" class="btn sm ghost" data-chaibase="1" id="ch-aibase" hidden>기본 글로</button><span class="hint" id="ch-aimsg">Claude · 누를 때만</span><span class="hint" id="ch-wkmsg"></span></div><div id="ch-aibox" class="cap-aix" hidden></div><div id="ch-wkbox" class="cap-aix" hidden></div>' +
+      '<div class="tpx-tools tp-capai ch-ai"><button type="button" class="btn sm" data-chai="1">AI 문구 만들기</button><button type="button" class="btn sm ghost" data-chweek="1">AI 주간 브리핑</button><label class="hint" title="보통 필요 없음 — 작업실 홈에서 모은 자료가 들어갑니다"><input type="checkbox" id="ch-aiweb"> 웹 검색 추가</label><input id="ch-ainote" class="cap-note" placeholder="요청(선택) · 예: 사회초년생 관점"><button type="button" class="btn sm ghost" data-chaibase="1" id="ch-aibase" hidden>기본 글로</button><span class="hint" id="ch-aimsg">Claude · 누를 때만</span><span class="hint" id="ch-wkmsg"></span></div><div id="ch-aibox" class="cap-aix" hidden></div><div id="ch-wkbox" class="cap-aix" hidden></div>' +
       '<div class="cap2"><div><div class="seg" id="ch-tmode"><button type="button" data-t="insta" class="on">인스타 글</button><button type="button" data-t="reels">릴스 대본</button><button type="button" data-t="raw">상세 원문</button></div>' +
       '<textarea class="chpost" id="ch-text" rows="14" spellcheck="false"></textarea></div>' +
       '<div><div class="seg cap2-hd"><b>스레드 글</b><small class="hint" id="ch-tlen2"></small><button type="button" class="btn sm ghost" id="ch-copy2">스레드 글 복사</button></div><textarea class="chpost" id="ch-text2" rows="14" spellcheck="false"></textarea></div></div>' +
@@ -6342,7 +6342,7 @@ function buildTpl(sec) {
     '<div class="card tpx-s" id="tpx-s4"><div class="tpx-hd"><h2><i>4</i>확인 · 글 · 저장</h2><span class="hint">차례대로: 숫자 검사 → 올릴 글 → 저장</span></div>' +
       '<div class="tpx-step"><b>① 숫자 검사</b><div class="tpx-tools"><button type="button" class="btn sm" data-tpverify="1">숫자 검사(Claude)</button><span class="hint" id="tp-vfmsg">카드 이미지를 원본 숫자와 대조 · 누를 때만</span></div><div id="tp-vfbox" class="cap-aix" hidden></div></div>' +
       '<details class="tp-cap" id="tp-capw" open><summary>② 올릴 글 <small class="hint">기본 글은 카드와 함께 자동 · AI 문구는 누를 때만(Claude)</small></summary>' +
-        '<div class="tpx-tools tp-capai"><button type="button" class="btn sm" data-tpcapai="1">AI 문구 만들기</button><label class="hint" title="보통 필요 없음 — 오늘 작업에서 모은 자료가 들어갑니다"><input type="checkbox" id="tp-capweb"> 웹 검색 추가</label><input id="tp-capnote" class="cap-note" placeholder="요청(선택) · 예: 신혼부부 관점, 질문형 첫 줄"><button type="button" class="btn sm ghost" data-tpcapbase="1" id="tp-capbase" hidden>기본 글로</button><span class="hint" id="tp-capaimsg"></span></div><div id="tp-capaix" class="cap-aix" hidden></div><div class="cap2">' +
+        '<div class="tpx-tools tp-capai"><button type="button" class="btn sm" data-tpcapai="1">AI 문구 만들기</button><label class="hint" title="보통 필요 없음 — 작업실 홈에서 모은 자료가 들어갑니다"><input type="checkbox" id="tp-capweb"> 웹 검색 추가</label><input id="tp-capnote" class="cap-note" placeholder="요청(선택) · 예: 신혼부부 관점, 질문형 첫 줄"><button type="button" class="btn sm ghost" data-tpcapbase="1" id="tp-capbase" hidden>기본 글로</button><span class="hint" id="tp-capaimsg"></span></div><div id="tp-capaix" class="cap-aix" hidden></div><div class="cap2">' +
         '<div><div class="seg cap2-hd"><b>인스타 글</b><small class="hint" id="tp-capmsg"></small><button type="button" class="btn sm ghost" data-tpcopy="insta">복사</button></div><textarea class="chpost" id="tp-cap" rows="12" spellcheck="false"></textarea></div>' +
         '<div><div class="seg cap2-hd"><b>스레드 글</b><small class="hint" id="tp-capmsg2"></small><button type="button" class="btn sm ghost" data-tpcopy="threads">복사</button></div><textarea class="chpost" id="tp-cap2" rows="12" spellcheck="false"></textarea></div></div></details>' +
       '<div class="tpx-step"><b>③ 저장</b><div class="tpx-tools"><button type="button" class="btn" data-tpzip="1">전부 저장 ZIP</button><button type="button" class="btn sm ghost" data-tpcopy="insta">인스타 글 복사</button><button type="button" class="btn sm ghost" data-tpcopy="threads">스레드 글 복사</button><button type="button" class="btn sm ghost" data-tpreel="1">릴스 카드로</button></div><p class="hint">이미지는 장마다 [이미지 저장], 한 번에 받으려면 ZIP</p></div></div>';
@@ -6447,7 +6447,7 @@ function tpMixRun() {
   var m = document.getElementById("tp-mixmsg"), btn = document.querySelector("[data-tpmixrun]"), P = TP.pages || [];
   if (!P.length || !TP.autoOk) { if (m) m.textContent = "카드를 먼저 만드세요"; return; }
   if (typeof rcTok === "function" && !rcTok()) { if (m) m.textContent = "주인 인증이 필요합니다"; return; }
-  var F = tpMixFacts(); if (!F.length) { if (m) m.textContent = "오늘 자료가 없습니다 — 오늘 작업에서 [오늘 준비]를 먼저"; return; }
+  var F = tpMixFacts(); if (!F.length) { if (m) m.textContent = "오늘 자료가 없습니다 — 작업실 홈에서 [오늘 준비]를 먼저"; return; }
   TP.mix = "today"; var base = TP.pagesBase || P, key = tpMixKey(base), R = TPR[TP.r] || {}, t = TPL[TP.id] || {};
   if (btn) btn.disabled = true; if (m) m.textContent = "Claude가 취합하는 중 · 카드 " + base.length + "장 + 오늘 자료 " + F.length + "줄 (10~25초)";
   rcPost("/api/ai", { mode: "mix", pages: tpMixPages(base), facts: F, cat: base[0]._cat || t.cat || "", nm: R.nm || "", size: TP.o.size || "multi" }).then(function (j) {
@@ -6457,7 +6457,7 @@ function tpMixRun() {
 }
 function tpMixBar() {
   var hasT = typeof tdAiGet === "function" && tdAiGet(); if (TP.mix === "app") return "";
-  if (!hasT) return '<i class="hint">오늘 자료가 없습니다 — 오늘 작업에서 [오늘 준비]를 하면 취합할 수 있습니다</i>';
+  if (!hasT) return '<i class="hint">오늘 자료가 없습니다 — 작업실 홈에서 [오늘 준비]를 하면 취합할 수 있습니다</i>';
   var hit = TP.mixHit;
   return '<button type="button" class="btn sm' + (hit ? " ghost" : "") + '" data-tpmixrun="1">' + (hit ? "다시 취합" : "Claude로 취합 (1회 · 10~25초)") + '</button><span class="hint" id="tp-mixmsg">' + (hit ? "취합됨 · 바뀐 것 " + TP.mixN + "개" + (hit.dropped && hit.dropped.length ? " · 근거 없는 숫자라 뺀 줄 " + hit.dropped.length : "") + (TP.mixN ? " · 핵심 줄·맥락 줄·빈칸이 오늘 자료로 보강됨" : " — 이 카드와 이어지는 오늘 자료가 없었습니다") : "앱 데이터 카드에 오늘 자료의 맥락을 엮고(핵심 한 줄·맥락 줄), 빈칸이 있으면 채웁니다 · 숫자는 둘 다의 원문만") + "</span>";
 }
@@ -6893,7 +6893,7 @@ function tpApplyPreset(x) {
 }
 /* ══ v9.24 콘텐츠 만들기 — 네 화면을 한 줄로 잇는 상단 바 ══
    30일 실거래(보기) → 정기 코너(오늘 올리기) → 카드 만들기(4:5) → 릴스 카드(9:16). 각 화면 맨 위에 같은 바가 붙는다. */
-var STUDIO = [["today", "오늘 작업", "점검·이슈·할 일", "확인"], ["brief", "30일 실거래", "숫자 보기", "확인"], ["insight", "인사이트", "결론부터", "판단"], ["report", "분석 브리핑", "VIP 보고서", "판단"], ["tpl", "카드 만들기", "코너 카드 + 4:5 카드", "만들기"], ["reel", "릴스 카드", "9:16 한 장", "만들기"], ["ops", "데이터 운영", "키·수집", "관리"]];   /* v9.63 일하는 순서: 확인 → 판단 → 만들기 · 관리 */
+var STUDIO = [["today", "작업실 홈", "할 일·시장·일정·올릴 것", "확인"], ["brief", "30일 실거래", "숫자 보기", "확인"], ["insight", "인사이트", "결론부터", "판단"], ["report", "분석 브리핑", "VIP 보고서", "판단"], ["tpl", "카드 만들기", "코너 카드 + 4:5 카드", "만들기"], ["reel", "릴스 카드", "9:16 한 장", "만들기"], ["ops", "데이터 운영", "키·수집", "관리"]];   /* v9.63 일하는 순서: 확인 → 판단 → 만들기 · 관리 */
 function studioBar(id) {
   var isS = STUDIO.some(function (s) { return s[0] === id; });
   document.body.classList.toggle("stu-on", isS);
@@ -7512,7 +7512,7 @@ function tdBuild() {
 }
 function tdPaint() {
   var el = document.getElementById("td-box"); if (!el) return; var L = tdBuild();
-  el.innerHTML = '<div class="td-hd"><h3>오늘 할 일 <small>' + tpE(TD.at) + (typeof tdAiGet === "function" && tdAiGet() ? " · 기사·이슈 + 데이터로 고른 주제 " : " · 데이터로 고른 주제 ") + L.length + '개</small></h3><button type="button" class="btn sm ghost" data-tdre="1">다시 고르기</button>' + (typeof rcTok === "function" && rcTok() ? '<small class="hint">' + tpE(tdAiGet() ? "오늘 자료 " + tdAiAt() + " 모음 기준(오늘 작업 2단계) · 이슈 " + (tdAiGet().issues || []).length + "건" : "오늘 자료를 아직 안 모음 — ") + '</small>' + (tdAiGet() ? '<button type="button" class="btn sm ghost" data-tdaioff="1">데이터만</button>' : '<a href="#today" class="btn sm ghost">오늘 작업에서 모으기</a>') + '<span class="hint" id="td-aimsg"></span>' : "") + '</div>' + (typeof tdAiIssuesHtml === "function" ? tdAiIssuesHtml() : "") +
+  el.innerHTML = '<div class="td-hd"><h3>오늘 할 일 <small>' + tpE(TD.at) + (typeof tdAiGet === "function" && tdAiGet() ? " · 기사·이슈 + 데이터로 고른 주제 " : " · 데이터로 고른 주제 ") + L.length + '개</small></h3><button type="button" class="btn sm ghost" data-tdre="1">다시 고르기</button>' + (typeof rcTok === "function" && rcTok() ? '<small class="hint">' + tpE(tdAiGet() ? "오늘 자료 " + tdAiAt() + " 모음 기준(작업실 홈 [오늘 준비]) · 이슈 " + (tdAiGet().issues || []).length + "건" : "오늘 자료를 아직 안 모음 — ") + '</small>' + (tdAiGet() ? '<button type="button" class="btn sm ghost" data-tdaioff="1">데이터만</button>' : '<a href="#today" class="btn sm ghost">작업실 홈에서 모으기</a>') + '<span class="hint" id="td-aimsg"></span>' : "") + '</div>' + (typeof tdAiIssuesHtml === "function" ? tdAiIssuesHtml() : "") +
     '<ol class="td-list">' + L.map(function (c, i) { var R = TPR[c.r]; return '<li' + (c.ai ? ' class="ai"' : "") + '><button type="button" data-td="' + i + '"><b>' + tpE(R.nm) + "</b><small>" + tpE(R.grp) + '</small><span>' + tpE(c.why) + "</span></button></li>"; }).join("") + "</ol>" +
     '<p class="hint">고른 이유는 앱이 모은 데이터(실거래·청약·금리·일정)의 신호입니다. 누르면 그 재료로 바로 채웁니다 · 투자 권유 아님</p>';
 }
@@ -8499,7 +8499,7 @@ var OPS = {
     ["SCHOOLINFO_API_KEY", "GitHub Secrets", "schoolinfo.go.kr 학교알리미 → 알리미 소식 → OpenAPI 신청", "초·중·고 5,700곳 기본정보·학생수·입학생·전출입 + data/school 의 학업성취 CSV", "새벽 전체", "school_data.json", "학업성취도는 공시 엑셀을 손으로 내려받아 data/school 에 넣음(아래 수동)"],
     ["OWNER_KEY", "Vercel 환경변수", "직접 정한 비밀 문자열", "주인 인증(HMAC 토큰) — 인사이트·브리핑·카드 만들기·보관함 접근", "—", "api/owner.js", "바꾸면 모든 기기에서 다시 로그인"],
     ["OPENAI_API_KEY", "Vercel 환경변수", "platform.openai.com → API keys", "인사이트 「넌 어떻게 생각하는데?」 답 · 카드 AI 배경/전체 그림 · 릴스 설계", "버튼을 누를 때만 호출(자동 없음) · 과금 주의", "api/ai.js · api/img.js", "GEMINI_API_KEY 는 선택(그림 대체)"],
-    ["KV_REST_API_URL / TOKEN (또는 UPSTASH_REDIS_REST_URL / TOKEN)", "Vercel 환경변수 — TrackStock 과 같은 방법: Vercel 프로젝트 → Storage → Connect Store → 기존 Upstash Redis(TrackStock 것) 연결하면 KV_REST_API_URL/TOKEN 이 자동 등록 → Redeploy", "TrackStock 과 같은 Upstash DB 를 써도 됨(TrackApt 키는 모두 ta:v: 로 시작, TrackStock 은 sm: 이라 안 겹침)", "보관함: 저장한 카드·양식·속사정 메모·예상 기록·외부 조사 결과 · 오늘 작업 결과(PC·휴대폰 공통)", "쓸 때마다", "api/_vault.js", "무료 한도 안(항목 300개 상한)"]
+    ["KV_REST_API_URL / TOKEN (또는 UPSTASH_REDIS_REST_URL / TOKEN)", "Vercel 환경변수 — TrackStock 과 같은 방법: Vercel 프로젝트 → Storage → Connect Store → 기존 Upstash Redis(TrackStock 것) 연결하면 KV_REST_API_URL/TOKEN 이 자동 등록 → Redeploy", "TrackStock 과 같은 Upstash DB 를 써도 됨(TrackApt 키는 모두 ta:v: 로 시작, TrackStock 은 sm: 이라 안 겹침)", "보관함: 저장한 카드·양식·속사정 메모·예상 기록·외부 조사 결과 · 작업실 홈 결과(PC·휴대폰 공통)", "쓸 때마다", "api/_vault.js", "무료 한도 안(항목 300개 상한)"]
   ],
   /* 2. 키 없이 자동 */
   auto: [
@@ -9118,7 +9118,7 @@ function tdAiFacts(max) {
   return L.slice(0, max || 40);
 }
 function tdAiAt() { var A = tdAiGet(); if (!A || !A.at) return ""; var d = new Date(A.at + 9 * 3600e3); return ("0" + d.getUTCHours()).slice(-2) + ":" + ("0" + d.getUTCMinutes()).slice(-2); }
-function tdAiNote() { var A = tdAiGet(); return A ? "오늘 자료 " + tdAiAt() + " 모음(사실 " + (A.facts || []).length + " · 이슈 " + (A.issues || []).length + ") 포함" : "오늘 자료 아직 안 모음 — 오늘 작업 2단계에서 한 번 모으면 바깥 사실까지 반영"; }
+function tdAiNote() { var A = tdAiGet(); return A ? "오늘 자료 " + tdAiAt() + " 모음(사실 " + (A.facts || []).length + " · 이슈 " + (A.issues || []).length + ") 포함" : "오늘 자료 아직 안 모음 — 작업실 홈 [오늘 준비]로 한 번 모으면 바깥 사실까지 반영"; }
 /* AI 추천 → 오늘 할 일 목록(데이터 후보의 옵션은 그대로 이어받음). 데이터 후보 중 AI 가 빠뜨린 높은 점수 3개는 뒤에 붙인다 */
 function tdAiList(C) {
   var A = tdAiGet(); if (!A || !(A.cards || []).length) return null;
@@ -9144,7 +9144,7 @@ if (TPR_ORDER.indexOf("aiIssue") < 0) TPR_ORDER.splice(Math.max(0, TPR_ORDER.ind
 /* 정기 코너 맨 위 — Claude 추천 코너 + 오늘 이슈 */
 function tdAiChannelHtml() {
   var A = tdAiGet(), own = typeof rcTok === "function" && rcTok(); if (!own) return "";
-  var H = '<div class="chplan ch-tdai"><small>오늘 자료</small>' + (A ? '<span class="hint" id="ch-tdmsg">' + tdAiAt() + " 모음 · 사실 " + (A.facts || []).length + "줄 · 이슈 " + (A.issues || []).length + "건 — AI 문구·주간 브리핑에 자동으로 들어감 · 추천 카드 " + (A.cards || []).length + "개는 카드 만들기 ①에</span>" : '<a href="#today" class="btn sm ghost">오늘 작업에서 오늘 자료 모으기</a><span class="hint" id="ch-tdmsg">하루 한 번 — 모으면 코너 추천·AI 문구에 자동 반영</span>') + "</div>";
+  var H = '<div class="chplan ch-tdai"><small>오늘 자료</small>' + (A ? '<span class="hint" id="ch-tdmsg">' + tdAiAt() + " 모음 · 사실 " + (A.facts || []).length + "줄 · 이슈 " + (A.issues || []).length + "건 — AI 문구·주간 브리핑에 자동으로 들어감 · 추천 카드 " + (A.cards || []).length + "개는 카드 만들기 ①에</span>" : '<a href="#today" class="btn sm ghost">작업실 홈에서 오늘 자료 모으기</a><span class="hint" id="ch-tdmsg">하루 한 번 — 모으면 코너 추천·AI 문구에 자동 반영</span>') + "</div>";
   if (A && (A.corners || []).length) H += '<div class="chplan"><small>Claude 추천</small>' + A.corners.map(function (c) { return '<button type="button" data-ch="' + aiEsc(c.tab) + '" class="chplan-d" title="' + aiEsc(c.why) + '"><b>' + aiEsc(CH_TAB_SHORT[c.tab] || c.tab) + "</b><i>" + aiEsc((c.why || "").slice(0, 18)) + "</i></button>"; }).join("") + "</div>";
   return H + tdAiIssuesHtml();
 }
@@ -9166,7 +9166,7 @@ function rpClaude(topicId, auto) {
 function rpClaudeAll(all) {
   var todo = RP_TOPICS.filter(function (t) { return all || !(RP2.ext || []).some(function (x) { return x.data.topic === t[0]; }); }).map(function (t) { return t[0]; });
   if (!todo.length) { RP2.msg = "모든 주제에 저장된 조사가 있습니다 — 새로 하려면 [8주제 모두 새로]"; rpPaint(); return; }
-  if (!confirm((all ? "8주제 모두 새로" : "비어 있는 주제 " + todo.length + "개를") + " 조사해 자동 저장할까요?\n(3개씩 동시에 · 전체 약 2~3분 · 비용 약 " + (todo.length * 0.1).toFixed(1) + "~" + (todo.length * 0.2).toFixed(1) + "달러" + (typeof tdAiGet === "function" && tdAiGet() ? " · 오늘 자료를 같이 써서 검색을 줄임" : " · 먼저 오늘 작업에서 자료를 모으면 검색이 줄어듦") + ")")) return;
+  if (!confirm((all ? "8주제 모두 새로" : "비어 있는 주제 " + todo.length + "개를") + " 조사해 자동 저장할까요?\n(3개씩 동시에 · 전체 약 2~3분 · 비용 약 " + (todo.length * 0.1).toFixed(1) + "~" + (todo.length * 0.2).toFixed(1) + "달러" + (typeof tdAiGet === "function" && tdAiGet() ? " · 오늘 자료를 같이 써서 검색을 줄임" : " · 먼저 작업실 홈에서 자료를 모으면 검색이 줄어듦") + ")")) return;
   var i = 0, done = 0, fail = [], run = 0, N = Math.min(3, todo.length); RP2.busy = 1; RP2.prog = { n: todo.length, done: 0 };
   function fin() { if (--run > 0 || i < todo.length) return; RP2.busy = 0; RP2.prog = null; RP2.msg = done + "개 주제 조사·저장 끝" + (fail.length ? " · 실패 " + fail.join(", ") + " (다시 누르면 빈 것만)" : ""); rpLoadExt(); var hm2 = document.getElementById("hub-rpmsg"); if (hm2) hm2.textContent = RP2.msg; if (typeof hubPaint === "function" && document.getElementById("hub-body")) setTimeout(hubPaint, 1200); }
   function next() { if (i >= todo.length) return; var id = todo[i++]; run++; rpClaude(id, true).then(function () { done++; }, function () { fail.push(rpTopic(id)[1].split(" — ")[0]); }).then(function () { RP2.prog = { n: todo.length, done: done + fail.length }; RP2.msg = "조사 중 " + (done + fail.length) + "/" + todo.length; rpPaint(); var hm = document.getElementById("hub-rpmsg"); if (hm) hm.textContent = RP2.msg; next(); fin(); }); }
@@ -9624,7 +9624,7 @@ function chAiPreLoad() { if (CH.aiPre) return CH.aiPre; try { var o = JSON.parse
 function chApplyPre() {
   var P = chAiPreLoad()[CH.tab]; if (!P || CH.ai) return;
   CH.ai = { key: typeof chAiKey === "function" ? chAiKey() : "", insta: P.insta, threads: P.threads, pre: 1 }; chShowText();
-  var m = document.getElementById("ch-aimsg"); if (m) m.textContent = "오늘 작업에서 미리 쓴 글(" + P.at + " · " + (P.model || "") + ") · 다시 쓰려면 [AI 문구 만들기]";
+  var m = document.getElementById("ch-aimsg"); if (m) m.textContent = "작업실 홈에서 미리 쓴 글(" + P.at + " · " + (P.model || "") + ") · 다시 쓰려면 [AI 문구 만들기]";
   var bb = document.getElementById("ch-aibase"); if (bb) bb.hidden = false;
   var bx = document.getElementById("ch-aibox"), H = "";
   if ((P.hooks || []).length) H += '<div><b>다른 첫 줄</b> <small class="hint">누르면 인스타 글 첫 줄을 바꿉니다</small><div class="cap-hooks">' + P.hooks.map(function (h) { return '<button type="button" class="btn sm ghost" data-chhook="' + aiEsc(h) + '">' + aiEsc(h) + "</button>"; }).join("") + "</div></div>";
@@ -9854,7 +9854,7 @@ document.addEventListener("click", function (ev) {
 var UX_GUIDE = {
   today: { what: "하루 일의 시작 — 데이터 상태를 보고, 오늘 올릴 것을 준비하는 곳", steps: ["[오늘 준비] 한 번(오늘 자료 모으기 → 추천 → 글 미리 쓰기, 약 2분)", "아래 '오늘 올릴 것'에서 열어 카드·글 확인", "[숫자 검사] → 글 복사 → 인스타·스레드에 올리고 [올림 표시]"], tip: "다른 화면은 확인용: 30일 실거래(숫자) · 인사이트·분석 브리핑(판단) · 카드 만들기(직접 고를 때) · 릴스 카드(9:16 한 장) · 주인은 앱을 열면 이 화면부터 시작합니다(홈부터 열려면 아래 [시작 화면: 홈])", start: 1 },
   brief: { what: "30일 실거래 — 최근 30일 숫자를 확인하는 곳(호출 없음)", steps: ["위에서 지역(서울·경기…)과 권역 선택", "요약 → 이슈 → 거래 → 값 → 신고가 순서로 내려 보기(칩을 누르면 바로 이동)", "카드로 쓰고 싶은 표는 [카드로] 또는 카드 만들기에서 '30일 실거래 그대로'"], tip: "" },
-  insight: { what: "오늘 시장 한 줄 판단 — 숫자(앱) + 속사정 메모 + 양쪽 의견 → 결론(규칙으로 계산, 호출 없음)", steps: ["맨 위 온도계와 '한 줄로'만 봐도 충분", "근거가 궁금하면 '숫자가 말하는 것' → 상승론·하락론", "AI 질문은 선택 — 오늘 작업의 인사이트(선택)에서 1회"], tip: "[카드로 만들기]를 누르면 이 결론이 카드 재료로 들어갑니다" },
+  insight: { what: "오늘 시장 한 줄 판단 — 숫자(앱) + 속사정 메모 + 양쪽 의견 → 결론(규칙으로 계산, 호출 없음)", steps: ["맨 위 온도계와 '한 줄로'만 봐도 충분", "근거가 궁금하면 '숫자가 말하는 것' → 상승론·하락론", "AI 질문은 선택 — 작업실 홈의 인사이트(선택)에서 1회"], tip: "[카드로 만들기]를 누르면 이 결론이 카드 재료로 들어갑니다" },
   report: { what: "VIP 보고서 형식의 긴 분석 — 7축 진단 · 지역 · 정책 · 과거 사례 · 전망 · 대응(호출 없음)", steps: ["검은 요약 상자 5줄이 핵심", "아래 바로 가기 칩으로 필요한 장만 이동", "[브리핑 글 복사]·[파일로]로 내보내기 · 외부 조사는 직접 붙여넣기"], tip: "" },
   tpl: { what: "카드 만들기 — 주제 고르기 → 모양 → 확인 → 저장·올리기 (위에서 아래로 한 번에)", steps: ["'오늘 할 일' 10개 중 하나를 누르면 바로 카드가 만들어짐(또는 아래 주제 목록·검색)", "재료(앱 데이터 / 오늘 자료 취합) · 분량 · 크기 · 양식만 고르면 끝", "③ 확인에서 [숫자 검사] → ④ ZIP 저장 · 글 복사 · 올림 표시"], tip: "정기 코너(한주 예상·전일 정리 등)는 맨 위 '정기 코너'를 펼치면 있습니다" },
   reel: { what: "릴스 표지 한 장(9:16) — 재료 고르고 [만들기]", steps: ["재료: 앱 데이터에서 하나 이상 선택", "요청: 비워 두어도 됨 · AI 사용 범위는 '우리 양식'(0원)이 기본", "결과에서 [숫자 검사] → 저장"], tip: "4:5 게시형과 여러 장은 '카드 만들기'에서" }
@@ -9863,7 +9863,7 @@ function uxGuideOn(id) { try { return !JSON.parse(localStorage.getItem("trackapt
 function uxGuideSet(id, off) { try { var o = JSON.parse(localStorage.getItem("trackapt_uxguide_v1") || "{}"); if (off) o[id] = 1; else delete o[id]; localStorage.setItem("trackapt_uxguide_v1", JSON.stringify(o)); } catch (e) {} }
 function uxGuideHtml(id) {
   var G = UX_GUIDE[id]; if (!G) return ""; var E = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
-  var st = ""; if (G.start) { var cur = ""; try { cur = localStorage.getItem("trackapt_owner_start") || "today"; } catch (e) {} st = '<p class="hint">시작 화면: <button type="button" class="btn sm ghost" data-uxstart="' + (cur === "home" ? "today" : "home") + '">' + (cur === "home" ? "지금 홈 → 오늘 작업으로 바꾸기" : "지금 오늘 작업 → 홈으로 바꾸기") + "</button></p>"; }
+  var st = ""; if (G.start) { var cur = ""; try { cur = localStorage.getItem("trackapt_owner_start") || "today"; } catch (e) {} st = '<p class="hint">시작 화면: <button type="button" class="btn sm ghost" data-uxstart="' + (cur === "home" ? "today" : "home") + '">' + (cur === "home" ? "지금 홈 → 작업실 홈으로 바꾸기" : "지금 작업실 홈 → 홈으로 바꾸기") + "</button></p>"; }
   return '<div class="stu-guide" data-uxg="' + id + '"><div class="stu-gh"><b>' + E(G.what) + '</b><button type="button" class="stu-gx" data-uxclose="' + id + '" title="이 화면 안내 닫기">닫기</button></div><ol>' + G.steps.map(function (t) { return "<li>" + E(t) + "</li>"; }).join("") + "</ol>" + (G.tip ? '<p class="hint">' + E(G.tip) + "</p>" : "") + st + '<div class="stu-toc" id="stu-toc-' + id + '"></div></div>';
 }
 /* 긴 화면은 장 제목으로 바로 가기 칩 */
@@ -9877,7 +9877,7 @@ document.addEventListener("click", function (ev) {
   var t = ev.target; if (!t || !t.closest) return;
   var x = t.closest("[data-uxclose]"); if (x) { uxGuideSet(x.dataset.uxclose, true); var g = x.closest(".stu-guide"); if (g) g.remove(); var o = document.querySelector('[data-uxopen="' + x.dataset.uxclose + '"]'); if (o) o.hidden = false; return; }
   var op = t.closest("[data-uxopen]"); if (op) { uxGuideSet(op.dataset.uxopen, false); op.hidden = true; var bar = op.closest(".stu-bar"); if (bar) bar.insertAdjacentHTML("afterend", uxGuideHtml(op.dataset.uxopen)); setTimeout(function () { uxToc(op.dataset.uxopen); }, 50); return; }
-  var stb = t.closest("[data-uxstart]"); if (stb) { try { localStorage.setItem("trackapt_owner_start", stb.dataset.uxstart); } catch (e) {} stb.textContent = "바꿨습니다 — 다음에 열 때부터 " + (stb.dataset.uxstart === "home" ? "홈" : "오늘 작업"); return; }
+  var stb = t.closest("[data-uxstart]"); if (stb) { try { localStorage.setItem("trackapt_owner_start", stb.dataset.uxstart); } catch (e) {} stb.textContent = "바꿨습니다 — 다음에 열 때부터 " + (stb.dataset.uxstart === "home" ? "홈" : "작업실 홈"); return; }
   var go = t.closest("[data-uxgo]"); if (go) { var el = document.getElementById(go.dataset.uxgo); if (el) { var card = el.closest("details"); if (card && !card.open) card.open = true; el.scrollIntoView({ behavior: "smooth", block: "start" }); } }
 });
 (function () {
@@ -10031,7 +10031,7 @@ function snapPull(cb) {
 }
 function snapHtml(n) {
   var A = snapAll(), ks = Object.keys(A).sort().reverse().slice(0, n || 30), E = function (t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
-  if (!ks.length) return '<p class="hint">아직 기록이 없습니다 — 오늘 작업에서 [오늘 준비]나 판단을 하면 그날 온도·한 줄·숫자가 남습니다.</p>';
+  if (!ks.length) return '<p class="hint">아직 기록이 없습니다 — 작업실 홈에서 [오늘 준비]나 판단을 하면 그날 온도·한 줄·숫자가 남습니다.</p>';
   var f = function (v, d, u) { return v == null ? "–" : (d ? Number(v).toFixed(d) : fmt(v)) + (u || ""); }, today = chKstDate().key;
   return '<table class="hub-tbl snap-tbl"><tr><th>날짜</th><th>온도</th><th>한 줄</th><th>30일 매매</th><th>신고가</th><th>지수</th><th>기준금리</th></tr>' + ks.map(function (k) { var s = A[k]; return '<tr class="' + (k === today ? "now" : "") + '"><td>' + E(String(k).replace(/^\d{4}-?(\d\d)-?(\d\d)$/, "$1.$2")) + "</td><td>" + E(s.temp || "–") + "</td><td>" + E(s.line || "–") + "</td><td>" + f(s.vol30, 0, "건") + "</td><td>" + f(s.hiN, 0, "곳") + "</td><td>" + f(s.idx, 1) + "</td><td>" + f(s.base, 2, "%") + "</td></tr>"; }).join("") + "</table><p class=\"hint\">그날 화면에 있던 숫자와 판단을 그대로 남깁니다(수정 없음). 지금 숫자와 견줘 보려면 맨 위 줄(오늘)과 비교하세요.</p>";
 }
@@ -10245,7 +10245,7 @@ function inAnsSave() {
   try { localStorage.setItem(IN_AI_LS, JSON.stringify({ day: chKstDate().key, ai: Object.assign({}, IN.ai, { at: IN.ai.at.getTime() }) })); } catch (e) {}
   if (typeof hubLogSet === "function") hubLogSet("insight", { q: P.q, h: J.headline || String(J.answer || "").slice(0, 60), cf: (J.confidence || {}).level || "", day: chKstDate().key });
   if (typeof dailyPush === "function") dailyPush();
-  IN.aiErr = ""; IN.askMsg = "저장했습니다 — 아래에 답이 보이고, 오늘 작업·브리핑·인사이트 기록에 반영됩니다(PC·휴대폰 공통)"; inPaint();
+  IN.aiErr = ""; IN.askMsg = "저장했습니다 — 아래에 답이 보이고, 작업실 홈·브리핑·인사이트 기록에 반영됩니다(PC·휴대폰 공통)"; inPaint();
   setTimeout(function () { inAiOpen(); var el = document.querySelector(".in-aiout"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 120);
 }
 function inAiOpen() { var c = document.querySelector("#tab-insight .in-ai"); if (c && c.classList.contains("ux-folded")) { var b = c.querySelector(":scope > .ux-fold"); if (b) b.click(); else c.classList.remove("ux-folded"); } }   /* 접힌 섹션이면 펼친다 */
@@ -11254,7 +11254,7 @@ function emWhy() {
     return out;
   }
   if (/^cc_/.test(id)) { out.t = "정기 코너 '" + (R.nm || id) + "' 카드가 오늘 비어 있습니다"; out.why.push("정기 코너는 그날 자료로 카드를 만듭니다. 오늘 이 코너에 해당하는 자료(실거래·청약·금리 등)가 없거나 아직 모이지 않았어요."); out.how.push("정기 코너를 열어 이 코너를 한 번 보면 어떤 칸이 비었는지 보입니다. 새벽 수집 뒤(아침)에 다시 만들면 채워지는 경우가 많습니다."); out.btn.push(["corner", id.slice(3), "정기 코너 열기"]); out.btn.push(["emre", "1", "다시 만들기"]); return out; }
-  if (/^(aiIssue|newsBoard|noteIssue)$/.test(id)) { out.t = "오늘 자료가 아직 없습니다"; out.why.push(id === "noteIssue" ? "메모 이슈는 인사이트에 저장한 상황 메모가 있어야 만들어집니다." : "이 주제는 오늘 작업의 [오늘 준비](오늘 자료 모으기)로 모은 이슈를 재료로 씁니다."); out.how.push(id === "newsBoard" ? "오늘 작업에서 [오늘 준비]를 하거나, 아래 '세부 고치기'의 [프롬프트 복사] → Claude 답 붙여넣기로 13건을 채우세요." : "오늘 작업에서 [오늘 준비]를 눌러 자료를 모은 뒤 다시 오세요."); out.btn.push(["go", "today", "오늘 작업 열기"]); return out; }
+  if (/^(aiIssue|newsBoard|noteIssue)$/.test(id)) { out.t = "오늘 자료가 아직 없습니다"; out.why.push(id === "noteIssue" ? "메모 이슈는 인사이트에 저장한 상황 메모가 있어야 만들어집니다." : "이 주제는 작업실 홈의 [오늘 준비](오늘 자료 모으기)로 모은 이슈를 재료로 씁니다."); out.how.push(id === "newsBoard" ? "작업실 홈에서 [오늘 준비]를 하거나, 아래 '세부 고치기'의 [프롬프트 복사] → Claude 답 붙여넣기로 13건을 채우세요." : "작업실 홈에서 [오늘 준비]를 눌러 자료를 모은 뒤 다시 오세요."); out.btn.push(["go", "today", "작업실 홈 열기"]); return out; }
   var key = typeof rgKeyOf === "function" ? rgKeyOf(R) : "", hasBand = (R.opts || []).indexOf("band") >= 0;
   if (key) { var sn = typeof tprScopeNm === "function" ? tprScopeNm(o[key] || (key === "sscope" ? "all" : "seoul")) : ""; out.t = sn + "에는 '" + (R.nm || id) + "' 자료가 0건입니다"; out.why.push(R.grp === "청약·일정" ? sn + "에 지금 해당하는 청약 공고·결과가 없습니다(청약홈 공고 기준 — 지역마다 공고 시기가 몰려 있어 자주 비는 게 정상이에요)." : sn + "·고른 조건(" + (hasBand && o.band ? (o.band === "all" ? "전 면적" : o.band + "㎡") + " · " : "") + "최근 30일)에 맞는 거래가 없었습니다."); out.how.push(hasBand && o.band && o.band !== "all" ? "지역을 넓히거나 평형을 '전체 평형'으로 바꾸면 나옵니다." : "아래 버튼으로 지역을 넓히면 나옵니다."); regionBtns(key); if (hasBand && o.band && o.band !== "all") out.btn.push(["band", "all", "전체 평형으로"]); return out; }
   out.why.push("이 주제의 재료가 지금 0건입니다" + (R.hint ? " — " + R.hint : "") + ".");
@@ -11290,7 +11290,7 @@ UX_GUIDE.ops = { what: "데이터 운영 — 무엇이 언제 어디서 들어�
 /* 안내 상자: 제목 · 번호 목록 · 한 줄 팁 · 아래 '알겠어요' */
 uxGuideHtml = function (id) {
   var G = UX_GUIDE[id]; if (!G) return ""; var E = function (t) { return escHtml(String(t)); };
-  var st = ""; if (G.start) { var cur = ""; try { cur = localStorage.getItem("trackapt_owner_start") || "today"; } catch (e) {} st = '<button type="button" class="adm-lnk" data-uxstart="' + (cur === "home" ? "today" : "home") + '">' + (cur === "home" ? "앱을 열면 오늘 작업부터 보기" : "앱을 열면 홈부터 보기") + "</button>"; }
+  var st = ""; if (G.start) { var cur = ""; try { cur = localStorage.getItem("trackapt_owner_start") || "today"; } catch (e) {} st = '<button type="button" class="adm-lnk" data-uxstart="' + (cur === "home" ? "today" : "home") + '">' + (cur === "home" ? "앱을 열면 작업실 홈부터 보기" : "앱을 열면 홈부터 보기") + "</button>"; }
   return '<div class="stu-guide adm-g" data-uxg="' + id + '"><b class="adm-gt">' + E(G.what) + '</b><ol>' + G.steps.map(function (t) { return "<li>" + E(t) + "</li>"; }).join("") + "</ol>" + (G.tip ? '<p class="adm-gtip">' + E(G.tip) + "</p>" : "") + '<div class="adm-gbtm"><button type="button" class="adm-lnk" data-uxclose="' + id + '">알겠어요, 다시 보지 않기</button>' + st + '</div><div class="stu-toc" id="stu-toc-' + id + '"></div></div>';
 };
 if (typeof STEP_DESC !== "undefined") { STEP_DESC.today = "자료 모으기 · 올릴 것"; STEP_DESC.brief = "30일 숫자 확인"; STEP_DESC.insight = "오늘 한 줄 판단"; STEP_DESC.report = "길게 보는 보고서"; STEP_DESC.value = "본질과 변수"; STEP_DESC.tpl = "카드 · 글"; STEP_DESC.reel = "릴스 한 장"; STEP_DESC.ops = "수집·키 관리"; }
@@ -11806,7 +11806,7 @@ function opkHtml() {
   return '<div class="card in-sec op-sec" id="opk-sec"><div class="in-q"><i>🔑</i>키 유효기간 <small>키 값은 적지 않는다 — 만료일만 적어 두면 남은 날을 센다</small></div>' +
     (soon.length ? '<p class="op-alert"><b>60일 안에 만료</b> — ' + soon.map(function (x) { return x.k + " " + (x.left < 0 ? "만료됨" : x.left + "일"); }).join(" · ") + "</p>" : "") +
     '<div class="in-tblw"><table class="in-tbl op-tbl key"><tr><th>키</th><th>유효기간 규칙</th><th>내 날짜</th><th>남은 날</th><th>어디서 확인·연장 · 만료되면 보이는 것</th></tr>' + OP_KEYS.map(opkRow).join("") + '</table></div>' +
-    '<p class="hint">만료일을 아는 키는 만료일을, 모르면 발급일을 적는다(공공데이터포털·KOSIS 는 발급일 + 2년으로 추정해 보여 준다 — 마이페이지의 날짜가 정확하다). 60일 전부터 노란색, 30일 전부터 빨간색으로 바뀌고 오늘 작업 화면 위에도 한 줄이 뜬다. 날짜는 이 기기와 내 보관함에만 저장된다.<br>GitHub 예약 실행: 공개 저장소는 60일 동안 저장소 활동이 없으면 예약 워크플로가 자동으로 꺼진다(공식 문서). 지금은 매일 자동 커밋이 올라와 해당되지 않지만, 수집이 여러 날 멈춘 뒤라면 Actions 탭에서 워크플로가 Disabled 인지 먼저 본다.</p></div>';
+    '<p class="hint">만료일을 아는 키는 만료일을, 모르면 발급일을 적는다(공공데이터포털·KOSIS 는 발급일 + 2년으로 추정해 보여 준다 — 마이페이지의 날짜가 정확하다). 60일 전부터 노란색, 30일 전부터 빨간색으로 바뀌고 작업실 홈의 할 일·데이터 현황에도 뜬다. 날짜는 이 기기와 내 보관함에만 저장된다.<br>GitHub 예약 실행: 공개 저장소는 60일 동안 저장소 활동이 없으면 예약 워크플로가 자동으로 꺼진다(공식 문서). 지금은 매일 자동 커밋이 올라와 해당되지 않지만, 수집이 여러 날 멈춘 뒤라면 Actions 탭에서 워크플로가 Disabled 인지 먼저 본다.</p></div>';
 }
 document.addEventListener("change", function (ev) { var e = ev.target; if (!e || !e.dataset || !e.dataset.opk) return; opkLoad(); var o = OPK.d[e.dataset.opk] = OPK.d[e.dataset.opk] || {}; if (e.value) o[e.dataset.f] = e.value; else delete o[e.dataset.f]; opkSave(); var s = document.getElementById("opk-sec"); if (s) s.outerHTML = opkHtml(); });
 /* 운영 화면에 붙이기 + '언제 도나' 표를 수집기(v12.0)와 맞춤 */
@@ -13458,6 +13458,253 @@ function ldTermTxt() { return ldRuleV() >= 2 ? "최근 " + ldWinNm() + " 최고 
    수집기(brief_build tyOf)와 같은 규칙 — 화면의 모든 면적 이름과 '같은 타입' 비교가 이 함수를 쓴다. 값(㎡당가) 계산에는 쓰지 않는다. */
 function tyNm(a) { var n = Number(a); if (!(n > 0)) return ""; var r = Math.round(n); return r === 85 ? 84 : r === 60 ? 59 : r; }
 /* ══ v14.5 타입 이름 END ══ */
+/* ══ v14.6 작업실 홈 START ══
+   작업실 첫 화면(예전 '오늘 작업')을 아침 5~10분 점검판으로 다시 짠다.
+   맨 위 한 장(날짜 · 자료 기준 · 오늘 꼭 할 일 진행 · 다섯 칸 요약 · [오늘 준비]) 아래에
+   ① 할 일 ② 데이터 현황 ③ 오늘 시장 ④ 일정 ⑤ 오늘 올릴 것 → 맨 아래 '자세히'(필요할 때만 펼침).
+   · 새로 부르는 것 없음(호출 0). 이미 받은 자료와 기존 계산(opStatus · 인사이트 신호 · chEvents/sbEvents 일정 · hubItems · 아침 브리핑)만 모은다.
+   · 기존 부품(오늘 준비 · 프롬프트로 깊게 · 아침 브리핑 · 오늘 이슈 · 오늘 카드 · 즐겨찾기 · 접힌 상세)은 버리지 않고 새 판의 제자리로 옮긴다 — 버튼 동작 · 기록 · 보관함 저장이 그대로다.
+   · 숫자마다 기준(언제 것인지)을 옆에 적는다. 자료가 아직 안 왔으면 0 이 아니라 '불러오는 중'.
+   · 시장 판정은 인사이트 · 아침 브리핑과 같은 계산(inSignals → inTemp). 월별 저장본이 오기 전에는 판정을 내지 않는다(빠진 신호로 다른 답이 나오지 않게). */
+var HM = { key: "", all: {}, mcT: null };
+function hmE(s) { return escHtml(String(s == null ? "" : s)); }
+function hmTx(s) { return String(s == null ? "" : s).replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">"); }   /* 기사 제목에 섞여 오는 HTML 표기(&amp; 등)를 글자로 */
+function hmCls(v) { return v == null || !isFinite(v) ? "" : v > 0 ? "up" : v < 0 ? "down" : ""; }
+function hmSg(v, d, u) { if (v == null || !isFinite(v)) return ""; var t = Math.abs(v).toFixed(d == null ? 1 : d), z = Number(t) === 0; return (z ? "" : v > 0 ? "+" : "−") + t + (u == null ? "%" : u); }
+function hmToday() { return chDayKey(chKstNow()); }
+function hmDn(n) { return chDayKey(chShift(chKstNow(), n)); }
+function hmDl(dn) { return chMD(dn) + "(" + chWd(dn) + ")"; }
+function hmBusy() { try { return !!(HUB.all || HUB.jBusy || HUB.pcBusy || document.querySelector("[data-tdai][disabled]")); } catch (e) { return false; } }
+function hmMcOk() { try { return typeof inMcOk === "function" && !!inMcOk(); } catch (e) { return false; } }
+
+/* 시장 신호 — 자료가 바뀔 때만 다시 계산. 월별 저장본(MC) · 30일 실거래(CH) · 통계(DY) · 금리(MACRO)가 다 와야 판정한다 */
+function hmDataKey() { try { return [CH.data && CH.data.builtAt, DY.data && DY.data.builtAt, MACRO.data && MACRO.data.builtAt, typeof MC !== "undefined" && MC ? (MC.builtAt || MC.built) : "", CH.val && CH.val.built].join("|"); } catch (e) { return ""; } }
+function hmPrep() {
+  if (!hmMcOk() || typeof chOk !== "function" || !chOk() || typeof DY === "undefined" || !DY.data || typeof MACRO === "undefined" || !MACRO.data) return false;
+  var k = hmDataKey(); if (HM.key === k && IN.S && IN.T && IN.S.length) return true;
+  var ok = false; try { ok = typeof inPrep === "function" && inPrep(); } catch (e) { if (typeof appErr === "function") appErr("작업실 홈 · 시장", e); }
+  HM.key = ok ? k : ""; return !!ok;
+}
+/* 월별 저장본이 늦게 오면 그때 한 번 다시 그린다 */
+function hmWaitMc() {
+  if (HM.mcT || hmMcOk()) return; var n = 0;
+  HM.mcT = setInterval(function () { if (hmMcOk() || ++n > 80) { clearInterval(HM.mcT); HM.mcT = null; if (hmMcOk() && document.getElementById("hub-body") && typeof hubPaint === "function") hubPaint(); } }, 500);
+}
+
+/* ── ① 할 일 — 꼭 할 것 · 하면 좋은 것(선택) · 끝낸 것(아래로) ── */
+function hmRegular() { var reg = (typeof chPlanRegular === "function" ? chPlanRegular() : []).concat(typeof chPlanTheme === "function" && chPlanTheme() ? [chPlanTheme()] : []), seen = {}; return reg.filter(function (t) { if (!t || seen[t]) return false; seen[t] = 1; return true; }); }
+function hmDbr() { try { return (typeof DBR !== "undefined" && DBR.cur) || (typeof dbrLoad === "function" ? dbrLoad() : null); } catch (e) { return null; } }
+function hmLoaderFail() { try { return HUB.st && !HUB.st.ok ? HUB.st.fail.map(function (k) { return (APP_LOADERS[k] || { nm: k }).nm; }) : []; } catch (e) { return []; } }
+function hmKeysSoon() { try { var KD = opkLoad(); return OP_KEYS.map(function (k) { var d = KD[k[0]] || {}, exp = d.exp ? opN(d.exp) : null; return exp ? { k: k[0], left: -opDays(exp) } : null; }).filter(function (x) { return x && x.left <= 60; }).sort(function (a, b) { return a.left - b.left; }); } catch (e) { return []; } }
+function hmTodo(op) {
+  var T = [], tk = chKstDate().key, posted = typeof chPosted === "function" ? chPosted() : {}, busy = hmBusy(), fail = hmLoaderFail();
+  /* 데이터 */
+  if (op) { var bad = op.L.filter(function (x) { return x.st === "bad"; }), nb = bad.length + fail.length;
+    if (nb) T.push({ k: "data", lv: 1, bad: true, t: "데이터 문제 " + nb + "건 — 그 숫자는 올리지 않기", d: bad.map(function (x) { return x.nm; }).concat(fail.map(function (x) { return x + "(이 화면이 못 불러옴)"; })).slice(0, 3).join(" · "), b: [["데이터 운영", 'data-hmgo="ops"']] });
+    else T.push({ k: "data", lv: 1, done: true, t: "데이터 확인", d: "문제 없음" + (op.late ? " · 늦은 것 " + op.late + "건은 데이터 현황에" : "") }); }
+  else T.push({ k: "data", lv: 1, wait: true, t: "데이터 확인", d: "자료를 불러오는 중" });
+  var ks = hmKeysSoon(); if (ks.length) T.push({ k: "keys", lv: ks[0].left <= 30 ? 1 : 2, bad: ks[0].left <= 30, t: "API 키 만료 " + (ks[0].left < 0 ? "지남" : "임박") + " " + ks.length + "개", d: ks.map(function (x) { return x.k + " " + (x.left < 0 ? "만료됨" : x.left + "일 남음"); }).join(" · ") + " — 새 키를 받아 Vercel·GitHub Secrets 에 넣기", b: [["데이터 운영", 'data-hmgo="ops"']] });
+  try { var due = typeof sbPvDue === "function" ? sbPvDue() : []; if (due.length) T.push({ k: "subs", lv: 1, bad: true, t: "청약 공고일이 지났는데 자료에 없음 " + due.length + "곳", d: due.map(function (x) { return x.nm; }).slice(0, 3).join(" · ") + " — Actions › Run workflow(only: subs)로 수집을 앞당기기", b: [["청약 화면", 'data-hmgo="subs"']] }); } catch (e) {}
+  /* 아침 브리핑 */
+  var o = hmDbr(); T.push({ k: "dbr", lv: 1, done: !!(o && o.sent), t: "아침 브리핑 보내기(텔레그램)", d: o && o.sent ? "보냄 " + o.sent : "숫자·일정은 자동으로 채워져 있음 · 7:30~10:00 · 글은 '오늘 올릴 것' 맨 위에서 확인", b: [["글 복사", 'data-dbrcopy="tg"'], ["보낸 표시", 'data-dbrsent="1"']] });
+  /* 정기 코너 */
+  var reg = hmRegular(), pN = reg.filter(function (t) { return posted[t] === tk; }).length, nx = reg.filter(function (t) { return posted[t] !== tk; })[0];
+  if (reg.length) T.push({ k: "corner", lv: 1, done: pN >= reg.length, t: "정기 코너 올리기 " + pN + "/" + reg.length, d: reg.map(function (t) { return (CH_TAB_SHORT[t] || t) + (posted[t] === tk ? " ✓" : ""); }).join(" · "), b: nx ? [["열기 · " + (CH_TAB_SHORT[nx] || nx), 'data-hubch="' + hmE(nx) + '"']] : [] });
+  /* 숫자 검사 */
+  var LG = typeof hubLog === "function" ? hubLog() : { verify: [] }, V = LG.verify || [], vOk = V.filter(function (v) { return v.ok; }).length, vL = V[V.length - 1];
+  T.push({ k: "verify", lv: 1, done: vOk > 0 && !!(vL && vL.ok), t: "올리기 전 숫자 검사", d: vL ? "마지막 " + vL.at + " · " + vL.where + " · " + (vL.ok ? "통과" : "확인할 곳 " + vL.n + "개") + " · 오늘 통과 " + vOk + "회" : "카드를 열고 [숫자 검사] — 확인할 곳 0개면 통과(Claude 1회)", b: [["카드 만들기", 'data-hmgo="tpl"']] });
+  /* 선택 */
+  var A = typeof tdAiGet === "function" ? tdAiGet() : null;
+  T.push({ k: "prep", lv: 2, done: !!A, t: "오늘 자료 모으기", d: A ? "모음 " + tdAiAt() + " · 이슈 " + (A.issues || []).length + "건" : "기사·일정을 모아 '오늘 이슈'와 브리핑 이슈 칸을 채움 · 약 1분 30초(Claude)", b: [["오늘 준비", 'data-huball="1"' + (busy ? " disabled" : "")]] });
+  T.push({ k: "judge", lv: 2, done: !!LG.insight, t: "오늘 시장 한 줄 판단", d: LG.insight ? LG.insight.h : "숫자 + 속사정 메모로 결론 한 줄 · 인사이트·브리핑 기록에 남음(Claude 1회)", b: [["판단 만들기", 'data-hubjudge="어떤 상황이야?"' + (HUB.jBusy ? " disabled" : "")]] });
+  try { var IB = (MACRO.data && MACRO.data.inbox) || []; if (IB.length) T.push({ k: "inbox", lv: 2, t: "손으로 확인할 기사 " + IB.length + "건", d: (hmTx(IB[0].title).length > 46 ? hmTx(IB[0].title).slice(0, 45) + "…" : hmTx(IB[0].title)) + (IB.length > 1 ? " 외 " + (IB.length - 1) + "건" : "") + " — " + (IB[0].todo || "맞으면 data/manual 파일에 적기"), b: [["데이터 운영", 'data-hmgo="ops"']] }); } catch (e) {}
+  try { if (typeof RP2 !== "undefined" && RP2.ext && RP2.ext.length && typeof RP_TOPICS !== "undefined") { var n = 0, old = ""; RP_TOPICS.forEach(function (t) { var x = RP2.ext.filter(function (e) { return e.data && e.data.topic === t[0]; })[0]; if (x) { n++; var a = String(x.data.asOf || ""); if (a && (!old || a < old)) old = a; } }); var age = old ? opDays(opN(old.replace(/\D/g, "").slice(0, 8))) : null;
+    if (n < RP_TOPICS.length || (age != null && age > 30)) T.push({ k: "ext", lv: 2, t: "외부 조사 채우기 " + n + "/" + RP_TOPICS.length, d: (old ? "가장 오래된 조사 " + old + (age != null ? "(" + age + "일 전)" : "") + " · " : "") + "빈 주제나 한 달 넘은 주제는 분석 브리핑 7장에서", b: [["분석 브리핑", 'data-hmgo="report"']] }); } } catch (e) {}
+  var rank = function (x) { return x.done ? 9 : x.wait ? 8 : x.lv; };
+  return T.map(function (x, i) { x.i = i; return x; }).sort(function (a, b) { return rank(a) - rank(b) || a.i - b.i; });
+}
+function hmTodoHtml(todo) {
+  return '<ul class="hm-todo">' + todo.map(function (x) {
+    var b = !x.done && (x.b || []).length ? '<span class="hm-tb">' + x.b.map(function (y, i) { return '<button type="button" class="btn sm' + (i === 0 && x.lv === 1 ? "" : " ghost") + '" ' + y[1] + ">" + hmE(y[0]) + "</button>"; }).join("") + "</span>" : "";
+    return '<li class="' + (x.done ? "done" : x.wait ? "wait" : x.lv === 1 ? "must" + (x.bad ? " bad" : "") : "opt") + '"><i></i><div><b>' + hmE(x.t) + (x.lv === 2 && !x.done ? " <u>선택</u>" : "") + "</b>" + (x.d ? "<small>" + hmE(x.d) + "</small>" : "") + "</div>" + b + "</li>";
+  }).join("") + "</ul>";
+}
+
+/* ── ② 데이터 현황 — 문제·늦은 것은 펼쳐서, 핵심 정상 자료는 한 줄씩, 나머지는 접어서 ── */
+function hmDataHtml(op) {
+  if (!op) return '<p class="hint">자료를 불러오는 중</p>';
+  var core = /최근 30일 실거래|월별 저장본|기준금리|주간 매매|청약 공고|자료 점검/, L = op.L, P = L.filter(function (x) { return x.st !== "ok"; }).sort(function (a, b) { return (a.st === "bad" ? 0 : 1) - (b.st === "bad" ? 0 : 1); }), C = L.filter(function (x) { return x.st === "ok" && core.test(x.nm); }), R = L.filter(function (x) { return x.st === "ok" && !core.test(x.nm); });
+  var cut = function (s, n) { s = String(s || ""); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+  var row = function (x, full) { return '<li class="' + x.st + (full ? "" : " one") + '"><i></i><div><b>' + hmE(x.nm) + "</b><small>" + hmE(x.last) + (x.got && x.got !== "–" ? " · 수집 " + hmE(x.got) : "") + (full && x.next && x.next !== "–" ? " · 다음 " + hmE(x.next) : "") + "</small>" + (full && x.msg ? "<p>" + hmE(cut(x.msg, 110)) + "</p>" : "") + (full && x.fix ? "<details><summary>어떻게 고치나</summary><p>" + hmE(x.fix) + "</p></details>" : "") + "</div></li>"; };
+  var ks = hmKeysSoon(), fail = hmLoaderFail(), fold = !!HM.all.data;
+  return '<div class="op-sum hm-dsum"><span class="ok"><b>' + (L.length - op.bad - op.late) + '</b>정상</span><span class="late"><b>' + op.late + '</b>확인</span><span class="bad"><b>' + op.bad + "</b>문제</span></div>" +
+    (op.keyBad ? '<p class="op-alert"><b>수집 기록에 키 오류 문구</b> ' + hmE(cut(op.keyBad, 170)) + "</p>" : "") +
+    (fail.length ? '<p class="op-alert"><b>이 화면이 못 불러온 자료</b> ' + hmE(fail.join(", ")) + " — 새로 고침 뒤에도 그대로면 데이터 운영에서 확인</p>" : "") +
+    (ks.length ? '<p class="op-alert hm-soft"><b>키 만료</b> ' + hmE(ks.map(function (x) { return x.k + " " + (x.left < 0 ? "만료됨" : x.left + "일 남음"); }).join(" · ")) + "</p>" : "") +
+    '<ul class="hm-dl">' + P.map(function (x) { return row(x, true); }).join("") + C.map(function (x) { return row(x, false); }).join("") + (fold ? R.map(function (x) { return row(x, false); }).join("") : "") + "</ul>" +
+    (R.length ? '<button type="button" class="wk-more hm-more" data-hmmore="data">' + (fold ? "정상 자료 접기" : "정상 자료 " + R.length + "개 더 보기") + "</button>" : "");
+}
+
+/* ── ③ 오늘 시장 — 판정(인사이트와 같은 계산) + 핵심 숫자 8개(기준 칸 따로) ── */
+function hmPc2(v) { return (v >= 0.005 ? "+" : v <= -0.005 ? "−" : "") + Math.abs(v).toFixed(2) + "%"; }
+function hmKpis() {
+  var M = IN.metrics || {}, R = [], row = function (nm, val, chg, c, at, go) { R.push({ nm: nm, val: val, chg: chg, c: c, at: at || "", go: go }); };
+  var v = M.seoulVol30; if (v && v.v != null) row("서울 최근 30일 매매", fmt(v.v) + "건", v.chg != null ? hmSg(v.chg, 0) + " 한 달 전 같은 시점" : "비교 기록 없음", hmCls(v.chg), (v.at ? v.at + " 계약" : ""), "brief");
+  var h = M.hiN; if (h && h.v != null) row("수도권 30일 신고가", fmt(h.v) + "건", h.deals ? "매매 " + fmt(h.deals) + "건의 " + (h.v / h.deals * 100).toFixed(1) + "%" : "", "", h.at, "brief");
+  var ix = M.seoulIdx; if (ix && ix.v != null) row("서울 매매지수(실거래)", ix.v.toFixed(1), [ix.yoy != null ? "1년 " + hmSg(ix.yoy, 1) : "", ix.prev ? "전월 " + hmSg((ix.v / ix.prev - 1) * 100, 1) : ""].filter(Boolean).join(" · "), hmCls(ix.yoy), ix.at, "market");
+  try { var W = DY.data && DY.data.weekly, S = W && W.seoul ? W.seoul.filter(function (p) { return p[1] != null; }) : []; if (S.length >= 2) { var a = S[S.length - 1], b = S[S.length - 2], wc = (a[1] / b[1] - 1) * 100, RS = W.rent && W.rent.seoul ? W.rent.seoul.filter(function (p) { return p[1] != null; }) : [], rc = null;
+    if (RS.length >= 2 && RS[RS.length - 1][0] === a[0]) rc = (RS[RS.length - 1][1] / RS[RS.length - 2][1] - 1) * 100;
+    var age = opDays(a[0]); row("부동산원 주간 서울 매매", hmPc2(wc), (rc != null ? "전세 " + hmPc2(rc) : "") + (age != null && age > 13 ? (rc != null ? " · " : "") + "새 발표 늦음" : ""), wc >= 0.005 ? "up" : wc <= -0.005 ? "down" : "", chMD(a[0]) + " 주", "market"); } } catch (e) {}
+  var bs = M.base; if (bs && bs.v != null) row("기준금리", bs.v.toFixed(2) + "%", bs.dir ? "마지막 결정 " + bs.dir + (bs.at ? "(" + bs.at + ")" : "") : "", "", "한국은행", "rates");
+  var mo = M.mort; if (mo && mo.v != null) row("주담대 평균(신규)", mo.v.toFixed(2) + "%", mo.prev != null ? "전월 " + hmSg(mo.v - mo.prev, 2, "%p") : "", hmCls(mo.prev != null ? Number((mo.v - mo.prev).toFixed(2)) : null), mo.at ? "'" + mo.at : "", "rates");
+  var u = M.unsold; if (u && u.v != null) { var ud = u.prev != null ? u.v - u.prev : null; row("전국 미분양", fmt(u.v) + "호", ud != null ? "전월 " + (ud > 0 ? "+" : ud < 0 ? "−" : "") + fmt(Math.abs(ud)) + "호" : "", hmCls(ud), u.at, "supply"); }
+  var sm = M.subsMed; if (sm && sm.v != null) row("청약 1순위 경쟁률 중위", sm.v.toFixed(1) + ":1", "최근 60일 " + sm.n + "단지 · 미달 " + sm.short + "곳", "", typeof tprSubsBasis === "function" ? tprSubsBasis() : "청약홈", "subs");
+  return R;
+}
+function hmMktHtml(ok) {
+  var S = IN.S || [], T = IN.T;
+  if (!ok || !S.length || !T) return '<p class="hint">' + (hmMcOk() ? "실거래·금리·통계 자료를 불러오는 중" : "월별 저장본(지수·거래량)을 불러오는 중") + " — 다 들어오면 판정과 숫자가 채워집니다(빠진 자료로 판정하지 않음)</p>";
+  var K = hmKpis(), show = S.filter(function (x) { return x.id !== "F12"; }), pos = show.filter(function (x) { return x.sc > 0; }).sort(function (a, b) { return b.sc * b.w - a.sc * a.w; }).slice(0, 3), neg = show.filter(function (x) { return x.sc < 0; }).sort(function (a, b) { return a.sc * a.w - b.sc * b.w; }).slice(0, 3);
+  var f = function (x) { return "<li>" + hmE(x.nm) + " <b>" + hmE(x.val) + "</b></li>"; };
+  return '<div class="in-temp hm-temp"><div class="in-gauge"><div class="in-gbar"><em class="eq" style="left:' + Math.round((T.tEq + 1) / 2 * 100) + '%" title="가중치 없이"></em><i style="left:' + T.pct + "%;background:" + T.col + '"></i></div><div class="in-glb"><span>냉각</span><span>관망</span><span>과열</span></div></div>' +
+      '<div class="in-tsum"><b style="color:' + T.col + '">' + hmE(T.nm) + "</b><small>신호 " + T.n + "개 · 더운 쪽 " + T.up + " · 식는 쪽 " + T.dn + (T.sens ? " · 가중치를 같게 두면 「" + hmE(T.nmEq) + "」— 경계 구간" : "") + "</small></div></div>" +
+    (IN.sit ? '<p class="hm-sit">' + hmE(IN.sit) + "</p>" : "") +
+    '<div class="in-tblw"><table class="in-tbl hm-kpi"><thead><tr><th>지표</th><th>지금</th><th>변화</th><th>기준</th></tr></thead><tbody>' + K.map(function (r) { return '<tr data-hmgo="' + r.go + '" title="' + hmE(r.nm) + ' 화면으로"><td>' + hmE(r.nm) + '<small class="hm-at">' + hmE(r.at || "") + "</small></td><td><b>" + hmE(r.val) + '</b></td><td class="' + r.c + '">' + hmE(r.chg || "–") + "</td><td>" + hmE(r.at || "–") + "</td></tr>"; }).join("") + "</tbody></table></div>" +
+    (pos.length || neg.length ? '<div class="hm-sig">' + (pos.length ? '<div><em class="up">더운 쪽</em><ul>' + pos.map(f).join("") + "</ul></div>" : "") + (neg.length ? '<div><em class="down">식는 쪽</em><ul>' + neg.map(f).join("") + "</ul></div>" : "") + "</div>" : "") +
+    '<p class="hint">판정은 신호 ' + T.n + "개를 규칙으로 점수 매긴 것 — 인사이트 · 아침 브리핑의 '온도'와 같은 계산(호출 없음). 줄을 누르면 그 화면으로.</p>" +
+    '<div class="hm-links"><button type="button" class="btn sm ghost" data-hmgo="insight">인사이트</button><button type="button" class="btn sm ghost" data-hmgo="brief">30일 실거래</button><button type="button" class="btn sm ghost" data-hmgo="report">분석 브리핑</button><button type="button" class="btn sm ghost" data-hmgo="value">본질·변수</button></div>';
+}
+
+/* ── ④ 일정 — 오늘 · 내일 · 그 뒤 7일. 재료는 금일·금주 확인 카드와 같다(일정 파일 · 대책 시행일 · 노선 · 청약 특공/1순위/발표/무순위 · 월요일 금리 수집) ── */
+function hmEvents(f, t) {
+  var out = [], ymd = function (d) { return new Date(Date.UTC(Math.floor(d / 10000), Math.floor(d / 100) % 100 - 1, d % 100)); };
+  try { if (typeof chEvents === "function") chEvents(f, t).forEach(function (e) { out.push({ d: e.d, kind: e.kind, txt: e.title + (e.verify && !/확인 필요/.test(e.title) ? " (날짜 확인 필요)" : ""), note: e.note || "" }); }); } catch (e) { if (typeof appErr === "function") appErr("작업실 홈 · 일정", e); }
+  try { if (typeof tprSubs === "function" && tprSubs() && typeof sbEvents === "function" && typeof sbChAll === "function") { var by = {}; sbEvents(sbChAll(), f, t).forEach(function (e) { if (!/특별공급|1순위|당첨자 발표|무순위 접수/.test(e.kind)) return; var k = e.d + e.kind; (by[k] || (by[k] = { d: e.d, kind: e.kind, L: [] })).L.push(e.it.nm); });
+    Object.keys(by).forEach(function (k) { var x = by[k]; out.push({ d: x.d, kind: "청약 " + x.kind, txt: x.L.slice(0, 3).join(" · ") + (x.L.length > 3 ? " 외 " + (x.L.length - 3) + "곳" : "") }); }); } } catch (e) {}
+  try { if (typeof rtData === "function" && rtData()) for (var d = f; d <= t; d = chDayKey(chShift(ymd(d), 1))) if (ymd(d).getUTCDay() === 1) out.push({ d: d, kind: "금리 비교", txt: "금감원 공시 금리 주간 수집 — 지난주 대비 바뀐 곳 확인" }); } catch (e) {}
+  return out.sort(function (a, b) { return a.d - b.d; });
+}
+function hmKindCls(k) { return /청약/.test(k) ? "k-sub" : /금리/.test(k) ? "k-rate" : /정책|세금/.test(k) ? "k-pol" : /교통/.test(k) ? "k-tr" : /통계/.test(k) ? "k-stat" : "k-etc"; }
+function hmNewsHtml() {
+  try { var N = CH.data && CH.data.news, TP = N && N.topics; if (!TP) return ""; var nm = { policy: "정책", rate: "금리", bear: "하락", bull: "상승" }, ks = ["policy", "rate", "bear", "bull"].concat(Object.keys(TP).filter(function (k) { return !nm[k]; })).filter(function (k) { return (TP[k] || []).length; });
+    if (!ks.length) return "";
+    return '<details class="hm-news" data-hmnews="1"' + (HM.all.news ? " open" : "") + "><summary><b>기사 흐름</b><small>" + hmE(ks.map(function (k) { return (nm[k] || k) + " " + TP[k].length; }).join(" · ")) + " · 제목 자동 수집 " + hmE(N.topicsAt ? chMD(Number(String(N.topicsAt).replace(/\D/g, "").slice(0, 8))) : "") + "</small></summary><ul>" +
+      ks.map(function (k) { var x = TP[k][0]; return "<li><em>" + hmE(nm[k] || k) + '</em><a href="' + hmE(x.u) + '" target="_blank" rel="noopener">' + hmE(hmTx(x.t)) + "</a> <small>" + hmE(hmTx(x.s || "")) + (x.d ? " · " + hmE(chMD(Number(String(x.d).replace(/\D/g, "").slice(0, 8)))) : "") + "</small></li>"; }).join("") +
+      '</ul><p class="hint">분류마다 첫 기사 제목만 — 판단이 아니라 흐름 확인용. 숫자와 판정은 위 오늘 시장 기준.</p></details>'; } catch (e) { return ""; }
+}
+function hmEvHtml(E) {
+  var t0 = hmToday(), t1 = hmDn(1), t7 = hmDn(7), more = !!HM.all.ev;
+  var li = function (e, showD) { return '<li><em class="' + hmKindCls(e.kind) + '">' + hmE(e.kind) + "</em><span>" + (showD ? '<small class="hm-d">' + hmE(hmDl(e.d)) + "</small> " : "") + hmE(e.txt) + (e.note ? " <small>— " + hmE(String(e.note).length > 40 ? String(e.note).slice(0, 39) + "…" : e.note) + "</small>" : "") + "</span></li>"; };
+  var G = [["오늘", hmDl(t0), E.filter(function (e) { return e.d === t0; }), 99, false], ["내일", hmDl(t1), E.filter(function (e) { return e.d === t1; }), 99, false], ["그 뒤 7일", chMD(hmDn(2)) + "~" + chMD(t7), E.filter(function (e) { return e.d > t1 && e.d <= t7; }), more ? 99 : 6, true]];
+  var h = G.map(function (g, gi) { return '<div class="hm-evg"><h4>' + g[0] + " <small>" + hmE(g[1]) + " · " + g[2].length + "건</small></h4>" + (g[2].length ? '<ul class="hm-ev">' + g[2].slice(0, g[3]).map(function (e) { return li(e, g[4]); }).join("") + "</ul>" : '<p class="hint">' + (gi === 0 ? "오늘 잡힌 일정이 없습니다" : "없음") + "</p>") + "</div>"; }).join("");
+  var later = G[2][2].length; if (later > 6) h += '<button type="button" class="wk-more hm-more" data-hmmore="ev">' + (more ? "그 뒤 7일 접기" : "그 뒤 7일 " + (later - 6) + "건 더 보기") + "</button>";
+  return h + hmNewsHtml();
+}
+
+/* ── 맨 위 한 장 ── */
+function hmBasis() {
+  var B = [];
+  try { if (CH.data && CH.data.builtAt) B.push("실거래 " + kstTxt(CH.data.builtAt) + " 수집"); } catch (e) {}
+  try { if (hmMcOk() && typeof rvYmTxt === "function") B.push("월별 통계 " + rvYmTxt() + "까지" + (typeof rvProv === "function" && rvProv() ? "(" + rvProvTxt() + " 잠정)" : "")); } catch (e) {}
+  try { if (MACRO.data && MACRO.data.builtAt) B.push("금리·일정 " + kstTxt(MACRO.data.builtAt)); } catch (e) {}
+  try { if (DY.data && DY.data.builtAt) B.push("통계·청약 " + kstTxt(DY.data.builtAt)); } catch (e) {}
+  return B.join(" · ");
+}
+function hmHeadHtml(todo, tiles) {
+  var req = todo.filter(function (x) { return x.lv === 1 && !x.wait; }), dn = req.filter(function (x) { return x.done; }).length, pct = req.length ? Math.round(dn / req.length * 100) : 0;
+  return '<div class="hm-head"><div class="hm-hl"><b>' + hmE(typeof dyDate === "function" ? dyDate().txt : "") + " <span>작업실 홈</span></b><small>" + hmE(hmBasis() || "자료를 불러오는 중") + '</small><small class="hm-sync"></small></div>' +
+    '<div class="hm-prog"><small>오늘 꼭 할 일</small><b>' + dn + "<i>/" + req.length + '</i></b><div class="hm-bar"><span style="width:' + pct + '%"></span></div></div></div>' +
+    '<ol class="hm-route"><li>[오늘 준비] 누르기 <i>선택 · 약 1분 30초 — 도는 동안 ②③</i></li><li>할 일 · 오늘 시장 <i>2분</i></li><li>일정 · 데이터 <i>1분</i></li><li>아침 브리핑 보내기 <i>1분</i></li><li>카드 열기 → 숫자 검사 → 올리기 <i>3~5분</i></li></ol>' +
+    '<div class="hm-tiles">' + tiles.map(function (x) { return '<button type="button" class="hm-tile ' + (x.st || "") + '" data-hmscroll="' + x.go + '"><small>' + hmE(x.k) + "</small><b>" + (x.dot ? '<i style="background:' + x.dot + '"></i>' : "") + hmE(x.v) + "</b><span>" + hmE(x.s || "") + "</span></button>"; }).join("") + "</div>";
+}
+function hmSec(id, title, time, sub, body, act, cls) { return '<section class="card hm-sec' + (cls ? " " + cls : "") + '" id="' + id + '"><div class="hm-sh"><h3>' + title + (time ? " <i>" + time + "</i>" : "") + "</h3>" + (sub ? "<small>" + sub + "</small>" : "") + (act || "") + "</div>" + body + "</section>"; }
+
+/* ── 그리기 — 기존 hubPaint 가 그린 부품을 새 판으로 옮긴다 ── */
+function hmPaint() {
+  if (typeof OWNER === "undefined" || !OWNER) return;
+  var box = document.getElementById("hub-body"); if (!box || box.querySelector(".hm")) return;
+  var q = function (s) { return box.querySelector(s); }, qa = function (s) { return Array.prototype.slice.call(box.querySelectorAll(s)); };
+  var hero = q(".hub-hero"), tdp = q("#hub-tdp"), dbr = q("details.dbr"), iss = q(".card.hub-list.hub-iss"), crd = q(".card.hub-list.hub-card"), lst = iss || crd ? null : q(".card.hub-list"), fav = q("#fav-slot-hub"), top = q(".hub-top"), sync = q("#hub-sync");
+  if (!hero && !iss && !crd && !lst) return;   /* 아직 그릴 것이 없음(불러오는 중 글만 있는 상태) */
+  var dets = qa("details.hub-det:not(.dbr)").filter(function (d) { return !d.parentElement || !d.parentElement.closest("details"); });
+  var op = null; try { if (typeof opStatus === "function" && (HUB.st || (typeof DY !== "undefined" && DY.data && typeof MACRO !== "undefined" && MACRO.data && CH.data))) op = opStatus(); } catch (e) { if (typeof appErr === "function") appErr("작업실 홈 · 데이터", e); }
+  var mk = hmPrep(); if (!hmMcOk()) hmWaitMc();
+  var todo = hmTodo(op), T = IN.T, t0 = hmToday(), E = hmEvents(t0, hmDn(7)), nT = E.filter(function (e) { return e.d === t0; }).length, n1 = E.filter(function (e) { return e.d === hmDn(1); }).length;
+  var nIss = iss ? iss.querySelectorAll(".hub-row").length : 0, nCrd = (crd || lst) ? (crd || lst).querySelectorAll(".hub-row").length : 0, reg = hmRegular(), tk = chKstDate().key, posted = typeof chPosted === "function" ? chPosted() : {}, pN = reg.filter(function (t) { return posted[t] === tk; }).length;
+  var left = todo.filter(function (x) { return x.lv === 1 && !x.done && !x.wait; }), o = hmDbr(), LG = typeof hubLog === "function" ? hubLog() : { verify: [] }, vOk = (LG.verify || []).filter(function (v) { return v.ok; }).length, pre = 0, nf = hmLoaderFail().length; try { pre = Object.keys(typeof chAiPreLoad === "function" ? chAiPreLoad() : {}).length; } catch (e) {}
+  var tiles = [
+    { k: "할 일", v: left.length ? "남은 " + left.length + "개" : todo.some(function (x) { return x.wait; }) ? "확인 중" : "꼭 할 일 끝", s: left[0] ? left[0].t : "선택 작업만 남음", st: left.length ? "warn" : todo.some(function (x) { return x.wait; }) ? "" : "ok", go: "hm-todo" },
+    { k: "데이터", v: !op ? "확인 중" : op.bad || nf ? "문제 " + (op.bad + nf) : op.late ? "확인 " + op.late : "정상", s: CH.data && CH.data.builtAt ? "실거래 " + kstTxt(CH.data.builtAt) : "", st: !op ? "" : op.bad || nf ? "bad" : op.late ? "warn" : "ok", go: "hm-data" },
+    { k: "시장", v: mk && T ? T.nm : "계산 중", s: mk && T ? "더운 신호 " + T.up + " · 식는 신호 " + T.dn : "자료를 기다리는 중", dot: mk && T ? T.col : "", go: "hm-mkt" },
+    { k: "일정", v: "오늘 " + nT + "건", s: "내일 " + n1 + " · 7일 안 " + E.length + "건", go: "hm-ev" },
+    { k: "올릴 것", v: reg.length ? "정기 " + pN + "/" + reg.length : (nIss + nCrd) + "개", s: "브리핑 " + (o && o.sent ? "보냄" : "아직") + " · 이슈 " + nIss + " · 카드 " + nCrd, st: reg.length && pN >= reg.length && o && o.sent ? "ok" : "", go: "hm-up" }];
+  var upSum = [reg.length ? "정기 코너 " + pN + "/" + reg.length + " 올림" : "", "숫자 검사 통과 " + vOk + "회", o && o.sent ? "아침 브리핑 보냄 " + o.sent : "아침 브리핑 아직", pre ? "미리 쓴 글 " + pre + "개" : ""].filter(Boolean);
+  var wrap = document.createElement("div"); wrap.className = "hm";
+  wrap.innerHTML = '<div class="card hm-top">' + hmHeadHtml(todo, tiles) + "</div>" +
+    '<div class="hm-grid"><div class="hm-col hm-a">' +
+      hmSec("hm-todo", "할 일", "1분", "위에서부터 · 빨간 점은 문제 · 끝낸 것은 아래로", hmTodoHtml(todo)) +
+      hmSec("hm-ev", "일정", "30초", "오늘 · 내일 · 그 뒤 7일 — 금리·통계·정책·청약", hmEvHtml(E)) +
+    '</div><div class="hm-col hm-b">' +
+      hmSec("hm-mkt", "오늘 시장", "1분", "규칙 판정 · 핵심 숫자 · 기준", hmMktHtml(mk)) +
+      hmSec("hm-data", "데이터 현황", "30초", "마지막 자료 · 수집 · 다음 수집", hmDataHtml(op), '<button type="button" class="btn sm ghost" data-hmgo="ops">데이터 운영</button>') +
+    "</div>" +
+    hmSec("hm-up", "오늘 올릴 것", "4~6분", "아침 브리핑 → 오늘 카드(정기 코너) → 오늘 이슈 · 열기 → [숫자 검사] → 글 복사 → 올리고 [올림 표시]", '<div class="hm-upsum">' + upSum.map(function (t) { return "<span>" + hmE(t) + "</span>"; }).join("") + '</div><div class="hm-upa"></div><div class="hm-up2"></div>', "", "hm-up") +
+    "</div>" +
+    '<div class="hm-foot"><h3>자세히 <small>필요할 때만 펼치기 — 오늘 자료 · 인사이트 · 데이터 점검 · 검사·올림 기록 · 미리 쓰기</small></h3><div class="hm-dets"></div></div>';
+  /* 옛 부품 옮기기 */
+  var headCard = wrap.querySelector(".hm-top");
+  if (sync) { var sl = headCard.querySelector(".hm-sync"); if (sl) sl.parentNode.replaceChild(sync, sl); }
+  if (hero) { hero.classList.add("hm-hero"); headCard.appendChild(hero); }
+  if (tdp) headCard.parentNode.insertBefore(tdp, headCard.nextSibling);
+  var upa = wrap.querySelector(".hm-upa"), up2 = wrap.querySelector(".hm-up2");
+  if (dbr) upa.appendChild(dbr);
+  if (fav) upa.appendChild(fav);
+  [[crd || lst, "crd", 6], [iss, "iss", 5]].forEach(function (p) {
+    var el = p[0]; if (!el) return; var sub = document.createElement("div"); sub.className = "hm-sub hm-sub-" + p[1]; var h3 = el.querySelector("h3");
+    sub.innerHTML = "<h4>" + (h3 ? h3.innerHTML : "") + "</h4>"; Array.prototype.slice.call(el.childNodes).forEach(function (c) { if (c !== h3) sub.appendChild(c); });
+    var rw = sub.querySelector(".hub-rows"); if (rw) Array.prototype.slice.call(rw.children).filter(function (r) { return r.classList.contains("hub-row") && r.classList.contains("done"); }).forEach(function (r) { rw.appendChild(r); });   /* 올린 것은 아래로 */
+    var n = sub.querySelectorAll(".hub-row").length; if (n > p[2]) { sub.classList.add("hm-clip" + p[2]); if (!HM.all[p[1]]) sub.classList.add("hm-clip"); var b = document.createElement("button"); b.type = "button"; b.className = "wk-more hm-more"; b.setAttribute("data-hmmore", p[1]); b.textContent = HM.all[p[1]] ? "처음 " + p[2] + "개만 보기" : "나머지 " + (n - p[2]) + "개 더 보기"; if (rw) rw.parentNode.insertBefore(b, rw.nextSibling); else sub.appendChild(b); }
+    up2.appendChild(sub); el.remove(); });
+  var dslot = wrap.querySelector(".hm-dets"); dets.forEach(function (d) { dslot.appendChild(d); }); if (!dets.length) wrap.querySelector(".hm-foot").remove();
+  if (top) top.remove();
+  while (box.firstChild) box.removeChild(box.firstChild);   /* 남은 빈 껍데기(두 단 틀 · 원래 목록 자리) 비우기 */
+  box.appendChild(wrap);
+  var ob = document.getElementById("op-banner"); if (ob) ob.remove();   /* 같은 내용이 할 일 · 데이터 현황에 있다 */
+}
+(function () { if (typeof hubPaint !== "function") return; var o = hubPaint; hubPaint = function () { var r = o.apply(this, arguments); try { hmPaint(); } catch (e) { if (typeof appErr === "function") appErr("작업실 홈", e); if (window.console) console.warn("hmPaint", e); } return r; }; })();
+(function () { if (typeof onDataReady !== "function") return; var o = onDataReady; onDataReady = function () { var r = o.apply(this, arguments); try { if (typeof OWNER !== "undefined" && OWNER && HUB.st && document.getElementById("hub-body") && typeof hubPaint === "function") setTimeout(hubPaint, 0); } catch (e) {} return r; }; })();
+/* 아침 브리핑 초안 두 가지 손보기
+   ① 월별 저장본(지수)보다 먼저 만들어지면 '서울 매매지수' 줄이 빠지고 온도가 덜 모인 신호로 계산된 채 하루 동안 남았다 → 저장본이 들어오면 한 번 다시 만든다.
+   ② 화면을 다시 열 때마다 자동으로 새로 만들면서 '보낸 표시'와 손으로 고친 글이 지워졌다 → 자동으로 다시 만들 때는 보냈거나 · Claude로 다듬었거나 · 고친 글은 그대로 두고,
+      [다시 만들기]를 직접 누른 때만 새로 만든다(이때도 '보냄'은 남긴다). */
+function hmDbrEdited(o) { try { return !!(o && o.parts && (o.tg !== dbrText(o.parts, "tg") || o.kakao !== dbrText(o.parts, "kakao"))); } catch (e) { return false; } }
+(function () {
+  if (typeof dbrBuild !== "function" || typeof dbrParts !== "function") return;
+  var op = dbrParts; dbrParts = function () { var P = op.apply(this, arguments); try { P.mc = hmMcOk(); } catch (e) {} return P; };
+  var ob = dbrBuild; dbrBuild = function (force) {
+    var prev = null; try { prev = (typeof DBR !== "undefined" && DBR.cur) || dbrLoad(); } catch (e) {}
+    if (force && !HM.dbrUser && prev && (prev.sent || prev.ai || hmDbrEdited(prev))) return prev;
+    if (!force && prev && !prev.ai && !prev.sent && prev.parts && !prev.parts.mc && hmMcOk() && !hmDbrEdited(prev)) force = true;
+    var o = ob.call(this, force);
+    try { if (force && prev && prev.sent && o && !o.sent && o.day === prev.day) { o.sent = prev.sent; dbrSave(o); } } catch (e) {}
+    return o;
+  };
+  document.addEventListener("click", function (ev) { if (ev.target && ev.target.closest && ev.target.closest("[data-dbrre]")) { HM.dbrUser = true; setTimeout(function () { HM.dbrUser = false; }, 0); } }, true);
+})();
+document.addEventListener("click", function (ev) {
+  var t = ev.target; if (!t || !t.closest || !t.closest("#tab-today")) return;
+  var g = t.closest("[data-hmgo]"); if (g && !t.closest("a")) { showTab(g.getAttribute("data-hmgo")); window.scrollTo(0, 0); return; }
+  var s = t.closest("[data-hmscroll]"); if (s) { var el = document.getElementById(s.getAttribute("data-hmscroll")); if (el) { var y = el.getBoundingClientRect().top + window.pageYOffset - 72; window.scrollTo({ top: Math.max(0, y), behavior: "smooth" }); } return; }
+  var m = t.closest("[data-hmmore]"); if (m) { var k = m.getAttribute("data-hmmore"); HM.all[k] = !HM.all[k];
+    if (k === "iss" || k === "crd") { var sub = m.closest(".hm-sub"), lim = k === "iss" ? 5 : 6; if (sub) { sub.classList.toggle("hm-clip", !HM.all[k]); m.textContent = HM.all[k] ? "처음 " + lim + "개만 보기" : "나머지 " + (sub.querySelectorAll(".hub-row").length - lim) + "개 더 보기"; } return; }
+    if (typeof hubPaint === "function") hubPaint(); return; }
+  var c = t.closest(".hm-todo [data-dbrcopy]"); if (c) { setTimeout(function () { c.textContent = "복사됨 ✓"; setTimeout(function () { if (c.isConnected) c.textContent = "글 복사"; }, 2500); }, 0); }
+});
+document.addEventListener("toggle", function (ev) { var d = ev.target; if (d && d.matches && d.matches("[data-hmnews]")) HM.all.news = d.open; }, true);
+/* 안내 — 화면 이름은 TABS · STUDIO 원문에서 바꿨다(작업실 홈). 저장 이름('오늘 작업 날짜')은 예전 기록과 이어지게 그대로 */
+if (typeof UX_GUIDE !== "undefined") UX_GUIDE.today = { what: "작업실 홈 — 아침 5~10분이면 오늘 할 일이 끝나도록 한 화면에 모았습니다", steps: ["맨 위 다섯 칸(할 일 · 데이터 · 시장 · 일정 · 올릴 것)을 훑고, 노란·빨간 칸부터 누르세요(그 구역으로 내려갑니다). [오늘 준비]는 선택 — 누르고 기다리는 1분 30초 동안 아래를 읽으면 됩니다.", "할 일 · 오늘 시장(2분) → 일정 · 데이터 현황(1분)을 본 뒤, 아침 브리핑 글을 복사해 보내고 [보낸 표시].", "오늘 올릴 것에서 하나씩 열어 [숫자 검사] → 글 복사 → 올린 뒤 [올림 표시]. 끝낸 줄은 아래로 내려가고 맨 위 진행 막대가 찹니다."], tip: "이 화면의 숫자·판정은 이미 받은 자료로 계산합니다(호출 0). Claude 는 [오늘 준비] · [판단 만들기] · [숫자 검사]를 누를 때만 씁니다.", start: 1 };
+if (typeof STEP_DESC !== "undefined") STEP_DESC.today = "아침 점검 · 올릴 것";
+/* ══ v14.6 작업실 홈 END ══ */
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {
   root.innerHTML =

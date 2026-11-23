@@ -194,23 +194,27 @@ console.log("market_core.json — " + base.m0 + " ~ " + idxYm(lastI) + " (" + M 
        단지마다 그 달 거래의 ㎡당가 중위 → 거래 없는 달은 직전 값 유지 → 지수는 '두 달 모두 값이 있는 단지'들의 전월 대비 평균을 이어 붙인다(단지가 바뀌어도 수준이 튀지 않게).
        lv = 지금 대장 3곳의 최근 값 평균 × 면적(84 또는 59) · ix = 이어 붙인 지수(마지막 달 = 100) · n = 그 달 실제 거래 수 · k = 값이 있는 대장 수 · rc = 최근 거래 8건 */
     try {
-      var LDIR = path.join(ROOT, "data", "highs", "lead"), nowYm = kstYm(), mN = 0, mTrades = 0, lb = function (a) { return a < 55 ? "S" : a < 70 ? "59" : a < 95 ? "84" : "L"; }, med = function (A) { A = A.slice().sort(function (x, y) { return x - y; }); var h = A.length >> 1; return A.length % 2 ? A[h] : (A[h - 1] + A[h]) / 2; };
+      var LDIR = path.join(ROOT, "data", "highs", "lead"), nowYm = kstYm(), mN = 0, mTrades = 0, lb = function (a) { a = Math.round(a); return a < 55 ? "S" : a < 70 ? "59" : a < 95 ? "84" : "L"; }   /* v14.4 반올림한 면적으로 — 대장을 고를 때(brief_build)와 같은 자. 예전엔 69.5㎡ 대장이 지수에서는 59㎡대로 갈려 빠졌다 */, med = function (A) { A = A.slice().sort(function (x, y) { return x - y; }); var h = A.length >> 1; return A.length % 2 ? A[h] : (A[h - 1] + A[h]) / 2; };
       if (fs.existsSync(LDIR)) Object.keys(B.regions).forEach(function (code) {
         var G = readJson(path.join(LDIR, code + ".json")), L = B.regions[code].leaders; if (!G || G.v !== 2 || !G.t || !L) return; var from = G.from || nowYm, i0 = ymIdx(from), N = ymIdx(nowYm) - i0 + 1; if (N < 3) return;
         var M = {};
+        /* v14.4 빈 구간 — 뒤늦게 후보가 된 단지는 장부에 '아주 옛 달'과 '최근 달'만 있고 그 사이가 비어 있을 수 있다(수원 영통구 황골마을주공1: 2015년 213건 · 2026년 81건, 그 사이 0건).
+           그대로 이으면 2015년 값이 10년 동안 그대로 가다가 한 달에 뛴다. → 수집기가 다시 훑는 중인 단지(reFor)는 훑은 자리(re)부터만, 아직 훑지 않은 단지(part)는 최근 4개월만 쓴다. */
+        var RE = G.re != null ? G.re : null, REF = {}, PART = {}; (G.reFor || []).forEach(function (ak) { REF[ak] = 1; }); (G.part || []).forEach(function (ak) { PART[ak] = 1; });
+        var win0 = idxYm(ymIdx(nowYm) - 3), minYm = function (ak) { return REF[ak] && RE != null ? RE : PART[ak] ? win0 : 0; };
         ["84", "59", "S", "L", "P"].forEach(function (bk) {   /* v13.5 소형·대형·평단가(P = 평형 가리지 않고 ㎡당가) 대장도 같은 방법으로 */
           var LL = (L[bk] || []).slice(0, 3).map(function (x) { return x.dong + "|" + x.apt; }); if (!LL.length) return;
           /* v13.7 평단가 대장은 '그 단지를 대장으로 만든 평형대'의 거래만 잇는다 — 한 단지 안에서 60㎡와 134㎡가 달마다 섞이면 ㎡당가가 구성 때문에 출렁인다 */
           var PB = {}; if (bk === "P") (L[bk] || []).slice(0, 3).forEach(function (x) { PB[x.dong + "|" + x.apt] = lb(x.ar); });
           var inB = function (ak, r) { return bk === "P" ? lb(r[2]) === PB[ak] : lb(r[2]) === bk; };
-          var per = LL.map(function (ak) { var by = {}; (G.t[ak] || []).forEach(function (r) { if (!inB(ak, r)) return; var i = ymIdx(Math.floor(r[0] / 100)) - i0; if (i < 0 || i >= N) return; (by[i] = by[i] || []).push(r[1] / r[2]); }); var raw = [], ff = [], last = null; for (var i = 0; i < N; i++) { raw.push(by[i] ? med(by[i]) : null); if (by[i]) last = raw[i]; ff.push(last); } return { raw: raw, ff: ff, n: by }; });
+          var per = LL.map(function (ak) { var by = {}, m0 = minYm(ak); (G.t[ak] || []).forEach(function (r) { if (!inB(ak, r)) return; if (Math.floor(r[0] / 100) < m0) return; var i = ymIdx(Math.floor(r[0] / 100)) - i0; if (i < 0 || i >= N) return; (by[i] = by[i] || []).push(r[1] / r[2]); }); var raw = [], ff = [], last = null; for (var i = 0; i < N; i++) { raw.push(by[i] ? med(by[i]) : null); if (by[i]) last = raw[i]; ff.push(last); } return { raw: raw, ff: ff, n: by }; });
           var ix = [], n = [], k = [], cur = 100; for (var i = 0; i < N; i++) { var cnt = 0, kk = 0; per.forEach(function (p) { if (p.n[i]) cnt += p.n[i].length; if (p.ff[i] != null) kk++; }); n.push(cnt); k.push(kk);
             if (i > 0) { var R = per.filter(function (p) { return p.ff[i] != null && p.ff[i - 1] != null; }).map(function (p) { return p.ff[i] / p.ff[i - 1]; }); if (R.length) cur *= R.reduce(function (a, v) { return a + v; }, 0) / R.length; } ix.push(kk ? cur : null); }
           var lastV = per.map(function (p) { return p.ff[N - 1]; }).filter(function (v) { return v != null; }); if (!lastV.length) return; var base = ix[N - 1];
           var rc = []; LL.forEach(function (ak) { (G.t[ak] || []).forEach(function (r) { if (inB(ak, r)) rc.push([r[0], ak.split("|")[1], r[2], r[3], r[1]]); }); }); rc.sort(function (a, b) { return b[0] - a[0]; });
           M[bk] = { lv: Math.round(lastV.reduce(function (a, v) { return a + v; }, 0) / lastV.length * (bk === "84" || bk === "59" ? Number(bk) : 3.3058)), u: bk === "84" || bk === "59" ? "amt" : "py",   /* 59·84 = 그 면적 환산 금액 · 소형·대형·평단가 = 평당가(만원/평) */ ix: ix.map(function (v) { return v == null ? null : Math.round(v / base * 10000) / 100; }), n: n, k: k, rc: rc.slice(0, 8), tot: n.reduce(function (a, v) { return a + v; }, 0) }; mTrades += M[bk].tot;
         });
-        if (Object.keys(M).length) { (out.r[code] = out.r[code] || {}).m = { from: from, b: M }; mN++; }
+        if (Object.keys(M).length) { (out.r[code] = out.r[code] || {}).m = { from: from, b: M }; if (RE != null) out.r[code].m.re = RE;   /* v14.4 새 대장의 과거를 다시 훑는 중(여기까지 훑음) — 화면에 알린다 */ mN++; }
       });
       out.v = 2; out.mrule = "월 지수 = 대장 3곳의 실거래(직거래 제외) ㎡당가 월 중위를 단지별로 잇고, 두 달 모두 값이 있는 단지의 전월 대비 평균을 이어 붙임 · 거래 없는 달은 직전 값";
       console.log("대장 실거래 지수(월) — 지역 " + mN + "곳 · 거래 " + mTrades + "건" + (fs.existsSync(LDIR) ? "" : " · 장부(data/highs/lead) 아직 없음"));

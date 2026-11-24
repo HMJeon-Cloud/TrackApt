@@ -1,18 +1,18 @@
 {
  "v": 1,
- "builtAt": "2026-11-23T07:22:38.954Z",
- "asOf": 20261123,
+ "builtAt": "2026-11-24T03:16:54.891Z",
+ "asOf": 20261124,
  "items": [
   {
-   "kind": "loan",
+   "kind": "policy",
    "date": "2026-11-20",
-   "title": "[국감AS] “소득 제자리, 대출은 늘어”…주금공 보금자리론 이달 금리 인상에 부담↑",
-   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBzc2djSmc3R3pLZnBtbm1HVmVFOUdTS190Mm12dTFXeUZ6X0JEeUF3NFhMOEh1ZFd3SUFfajNWZzNSdW14eDZwRVdFRWJ6dTNGdnFobHNsaFo2cEZqV3IwNEdHSm92VEI5dVNMWFFBbzDSAXRBVV95cUxPalZvaS1QVF9DSE9FRkRlX1dsZ0ZJTlhYWVFKMUV2TXZYTEdzbzdxZ0dCdHZRemxhWkYwUTBLRTNya2x3ZUp5aV93XzZRVHJSUDFjUEo4X1Qwb2ltbXBlRmY0YWhweER2R0Zlc1pXXzdwQXlzOA?oc=5",
-   "src": "주간한국",
+   "title": "정부, '8·13 주택공급 대책' 발표… 수도권 23만 호+α 공급에 전문가 \"실제 입주 시차 극복이 열쇠\"",
+   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5KY1RFeWNOZlY4NmdmczdxQXhfcDhoU2M3QjFIaElmUE01dFhkdEdwekxLZ0V6Qm5fNG9JN1dMR3BxZl9NMjZVenFTUC0yRTdvWTVGaWlyWVdBQUNLbnB3QnFKeGpmTjFHTmwxYjJFUlo?oc=5",
+   "src": "미디어써치",
    "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-21",
-   "isNew": false
+   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
+   "firstSeen": "2026-11-24",
+   "isNew": true
   },
   {
    "kind": "loan",
@@ -24,6 +24,17 @@
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-11-20",
    "isNew": false
+  },
+  {
+   "kind": "loan",
+   "date": "2026-11-16",
+   "title": "\"3억 빌리면 매달 161만원 갚아야\" 보금자리론 금리 5% 돌파…서민들 '발칵'",
+   "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9Ca2Y3bnh6NmlKYVZrSUFhX1E4bnRKUENDYzJvTW9TUVBVc09Bek5uWXpFYWo0NW52S3ZoaWJCMnRQMjBXaUsxU2I4cUtMNmlvLUZ3N3A3bWlkYlBFQlVRazVJVTQzalRQcnI5bw?oc=5",
+   "src": "나남뉴스",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-24",
+   "isNew": true
   }
  ]
 }

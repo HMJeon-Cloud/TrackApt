@@ -1,8 +1,21 @@
 {
  "v": 1,
- "builtAt": "2026-11-24T03:16:54.891Z",
- "asOf": 20261124,
+ "builtAt": "2026-11-25T01:16:39.914Z",
+ "asOf": 20261125,
  "items": [
+  {
+   "kind": "transit",
+   "line": "GTX-C 덕정~수원",
+   "what": "일정 변경",
+   "date": "2026-11-24",
+   "title": "성복임 경기도의원 “군포 철도지하화 아쉬운 결과, GTX-C·금정역 통합역사사업 차질 없이 진행해야”",
+   "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE00V3FlRDEtQ0hzMjZVVTZZLU1RZmZtMV9wOGlJNHhTM3ZNbnVUb1d3VzRJbEtiSjJlMHdpOGFnMThGNnRQdmQwcDU2SnM5OWhLX3lMNGw2ajB3Z3hzanBxT0dLZTVfa29X?oc=5",
+   "src": "뉴스피크",
+   "official": false,
+   "todo": "data/manual/transit.json 에서 'GTX-C 덕정~수원' 의 status·open·note 를 확인해 주세요",
+   "firstSeen": "2026-11-25",
+   "isNew": true
+  },
   {
    "kind": "policy",
    "date": "2026-11-20",
@@ -12,6 +25,17 @@
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-11-24",
+   "isNew": false
+  },
+  {
+   "kind": "loan",
+   "date": "2026-11-20",
+   "title": "[국감AS] “소득 제자리, 대출은 늘어”…주금공 보금자리론 이달 금리 인상에 부담↑",
+   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBzc2djSmc3R3pLZnBtbm1HVmVFOUdTS190Mm12dTFXeUZ6X0JEeUF3NFhMOEh1ZFd3SUFfajNWZzNSdW14eDZwRVdFRWJ6dTNGdnFobHNsaFo2cEZqV3IwNEdHSm92VEI5dVNMWFFBbzDSAXRBVV95cUxPalZvaS1QVF9DSE9FRkRlX1dsZ0ZJTlhYWVFKMUV2TXZYTEdzbzdxZ0dCdHZRemxhWkYwUTBLRTNya2x3ZUp5aV93XzZRVHJSUDFjUEo4X1Qwb2ltbXBlRmY0YWhweER2R0Zlc1pXXzdwQXlzOA?oc=5",
+   "src": "주간한국",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-25",
    "isNew": true
   },
   {
@@ -24,17 +48,6 @@
    "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
    "firstSeen": "2026-11-20",
    "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-16",
-   "title": "\"3억 빌리면 매달 161만원 갚아야\" 보금자리론 금리 5% 돌파…서민들 '발칵'",
-   "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9Ca2Y3bnh6NmlKYVZrSUFhX1E4bnRKUENDYzJvTW9TUVBVc09Bek5uWXpFYWo0NW52S3ZoaWJCMnRQMjBXaUsxU2I4cUtMNmlvLUZ3N3A3bWlkYlBFQlVRazVJVTQzalRQcnI5bw?oc=5",
-   "src": "나남뉴스",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-24",
-   "isNew": true
   }
  ]
 }

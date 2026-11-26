@@ -1,8 +1,19 @@
 {
  "v": 1,
- "builtAt": "2026-11-26T00:51:10.251Z",
+ "builtAt": "2026-11-26T05:00:18.103Z",
  "asOf": 20261126,
  "items": [
+  {
+   "kind": "loan",
+   "date": "2026-11-26",
+   "title": "[카드뉴스] 아기 낳고 2년 안이면 집 대출 금리가 최저 연 1%대, 신생아 특례 대출이에요",
+   "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE80eF91WWJ3bFJTRVU4Vnl6ZklLUm5QOEhXYUpmUXBiUUs0aDRSa2xXRVFVTm83T1c2WUpBeG95SzhPZllEVWRrZlhnMmY1QmpJMXhjUlhncmtiYUVuakV2RHhqMEgyVENLTDZZaw?oc=5",
+   "src": "베이비뉴스",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-26",
+   "isNew": false
+  },
   {
    "kind": "policy",
    "date": "2026-11-25",
@@ -12,31 +23,18 @@
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-11-26",
-   "isNew": true
+   "isNew": false
   },
   {
-   "kind": "loan",
-   "date": "2026-11-25",
-   "title": "[카드뉴스] 아기 낳고 2년 안이면 집 대출 금리가 최저 연 1%대, 신생아 특례 대출이에요",
-   "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE80eF91WWJ3bFJTRVU4Vnl6ZklLUm5QOEhXYUpmUXBiUUs0aDRSa2xXRVFVTm83T1c2WUpBeG95SzhPZllEVWRrZlhnMmY1QmpJMXhjUlhncmtiYUVuakV2RHhqMEgyVENLTDZZaw?oc=5",
-   "src": "베이비뉴스",
+   "kind": "policy",
+   "date": "2026-11-20",
+   "title": "정부, '8·13 주택공급 대책' 발표… 수도권 23만 호+α 공급에 전문가 \"실제 입주 시차 극복이 열쇠\"",
+   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5KY1RFeWNOZlY4NmdmczdxQXhfcDhoU2M3QjFIaElmUE01dFhkdEdwekxLZ0V6Qm5fNG9JN1dMR3BxZl9NMjZVenFTUC0yRTdvWTVGaWlyWVdBQUNLbnB3QnFKeGpmTjFHTmwxYjJFUlo?oc=5",
+   "src": "미디어써치",
    "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-11-26",
    "isNew": true
-  },
-  {
-   "kind": "transit",
-   "line": "GTX-C 덕정~수원",
-   "what": "일정 변경",
-   "date": "2026-11-24",
-   "title": "성복임 경기도의원 “군포 철도지하화 아쉬운 결과, GTX-C·금정역 통합역사사업 차질 없이 진행해야”",
-   "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE00V3FlRDEtQ0hzMjZVVTZZLU1RZmZtMV9wOGlJNHhTM3ZNbnVUb1d3VzRJbEtiSjJlMHdpOGFnMThGNnRQdmQwcDU2SnM5OWhLX3lMNGw2ajB3Z3hzanBxT0dLZTVfa29X?oc=5",
-   "src": "뉴스피크",
-   "official": false,
-   "todo": "data/manual/transit.json 에서 'GTX-C 덕정~수원' 의 status·open·note 를 확인해 주세요",
-   "firstSeen": "2026-11-25",
-   "isNew": false
   }
  ]
 }

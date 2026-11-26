@@ -1,6 +1,6 @@
 {
  "v": 1,
- "builtAt": "2026-11-26T05:00:18.103Z",
+ "builtAt": "2026-11-26T05:36:07.908Z",
  "asOf": 20261126,
  "items": [
   {
@@ -34,7 +34,7 @@
    "official": false,
    "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
    "firstSeen": "2026-11-26",
-   "isNew": true
+   "isNew": false
   }
  ]
 }

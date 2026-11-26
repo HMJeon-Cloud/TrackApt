@@ -39,7 +39,13 @@
   "tblId": "DT_118N_MON054",
   "nm": "산업/규모별 임금 및 근로시간",
   "nLev": 2,
-  "last": 202608
+  "last": 202608,
+  "row": {
+   "nLev": 2,
+   "itmId": "13103110311MD_12",
+   "objL1": "260225INDUSTRY_11S0",
+   "objL2": "size01"
+  }
  },
  "kosisWageOld": "DT_118N_MON051"
 }

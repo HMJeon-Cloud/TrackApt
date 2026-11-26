@@ -2,8 +2,9 @@
    GitHub Actions 가 brief_build.js 다음에 돌려 macro_data.json 을 커밋한다. 앱은 이 파일만 읽는다.
 
    ① 금리  — 한국은행 ECOS Open API (환경변수 ECOS_KEY). 기준금리(일) · 예금은행 주택담보대출 가중평균금리(월, 신규취급액) · 국고채 3년(일)
-   ② 임금  — ECOS 에서 '임금' 통계를 먼저 찾고, 없으면 통계청 KOSIS Open API (환경변수 KOSIS_KEY) 사업체노동력조사 상용근로자 월 임금총액.
-             둘 다 실패하면 data/manual/wages.json 의 값을 쓴다(수동).
+   ② 임금  — 통계청 KOSIS Open API (환경변수 KOSIS_KEY) 사업체노동력조사 월 임금총액(전체 산업 · 전규모).
+             v14.7 매일은 기억한 한 줄만 받고, 이력은 data/manual/wages_hist.json(고정) → 지난 수집분 → 그날 값 순으로 이어 붙인다.
+             KOSIS 가 실패하면 지난 수집분을 날짜 그대로 유지하고, 그것도 없을 때만 data/manual/wages.json 의 값을 쓴다(수동).
    ③ 대책 · ④ 교통 · ⑤ 정책대출 — 새 소식은 구글 뉴스 RSS + 정책브리핑(korea.kr) 국토부·금융위 보도자료 RSS 로 자동 수집, 확정 내용은 data/manual/{policy,transit,loans}.json 을 직접 고친다.
    ⑥ 수동 목록 자동 점검(v7.8) — 보도자료·기사에서 '새 대책 발표' '노선 개통·착공' '정책대출 금리 변경' 을 찾아 data/manual/_inbox.json 에 "확인 필요" 로 쌓고,
              정책대출 금리는 기금e든든 안내 페이지(loans.json 의 src)에서 연 x~y% 범위를 직접 읽어 수동값과 다르면 알린다. 수동 파일을 고치면 해당 항목은 다음 날 사라진다.
@@ -33,10 +34,10 @@ var FETCH_REWRITE = (process.env.FETCH_REWRITE || "").split(",").filter(Boolean)
 var INBOX_P = path.join(ROOT, "data", "manual", "_inbox.json"), INBOX_NOTE = process.env.INBOX_NOTE || path.join(require("os").tmpdir(), "trackapt_inbox_new.md");
 
 var execFileSync = require("child_process").execFileSync;
-async function getText(url) {
-  CALLS++;
+async function getText(url, ms) {
+  CALLS++; ms = ms || 25000;   /* v14.7 시간 제한(ms) — 기본 25초, KOSIS 표 전체 탐색처럼 응답이 큰 요청만 길게 */
   FETCH_REWRITE.forEach(function (rw) { if (rw[1] && url.indexOf(rw[0]) === 0) url = rw[1] + url.slice(rw[0].length); });
-  var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, 25000);
+  var ac = new AbortController(), t = setTimeout(function () { ac.abort(); }, ms);
   try {
     var r = await fetch(url, { signal: ac.signal, headers: { "user-agent": "Mozilla/5.0 (TrackApt-macro-build)" } });
     return await r.text();
@@ -44,13 +45,13 @@ async function getText(url) {
     /* node fetch 가 막히는 서버(오래된 TLS 등)는 curl 로 한 번 더 */
     var why = (e && e.cause && (e.cause.code || e.cause.message)) || e.message;
     try {
-      var out = execFileSync("curl", ["-sS", "-L", "--max-time", "25", "-A", "Mozilla/5.0 (TrackApt-macro-build)", url], { encoding: "utf8", maxBuffer: 50 * 1024 * 1024 });
+      var out = execFileSync("curl", ["-sS", "-L", "--max-time", String(Math.round(ms / 1000)), "-A", "Mozilla/5.0 (TrackApt-macro-build)", url], { encoding: "utf8", maxBuffer: 50 * 1024 * 1024 });
       log("fetch 실패(" + why + ") → curl 로 받음: " + url.replace(/apiKey=[^&]+/, "apiKey=***").slice(0, 90));
       return out;
     } catch (e2) { throw new Error("fetch 실패(" + why + "), curl 도 실패(" + String(e2.message).slice(0, 80) + ")"); }
   } finally { clearTimeout(t); }
 }
-async function getJson(url) { var t = await getText(url); try { return JSON.parse(t); } catch (e) { return { _raw: t.slice(0, 300) }; } }
+async function getJson(url, ms) { var t = await getText(url, ms); try { return JSON.parse(t); } catch (e) { return { _raw: t.slice(0, 300) }; } }
 
 /* ── ECOS ─────────────────────────────────────────────────────────────── */
 function ecosUrl(svc, rest) { return ECOS_BASE + svc + "/" + encodeURIComponent(ECOS) + "/json/kr/" + rest; }
@@ -150,7 +151,24 @@ async function ecosSeries(key, def, want, months) {
   return { v: cur.v, t: c.cycle === "D" ? tDay(cur.t) : tMonth(cur.t), unit: cur.unit, name: c.nm, how: c.how, hist: hist, changes: changes.slice(-8) };
 }
 
-/* ── KOSIS (임금 대안) ───────────────────────────────────────────────── */
+/* ── KOSIS (임금) ────────────────────────────────────────────────────── */
+/* v14.7 매일은 기억한 한 줄(전체임금총액 · 전체 산업 · 전규모(1인이상))만 36개월 받는다 — 지금 약 8행, 수 KB.
+   예전엔 그 줄의 코드를 찾으려고 매번 표의 최근 1개월 전체(전 항목 × 전 산업 × 전 규모 — 5MB 넘는 JSON)를 먼저 받았고,
+   KOSIS 가 느린 날(2026.11.26 · 초당 약 200KB) 25초 제한을 넘겨 임금이 통째로 빠졌다.
+   표 전체 탐색은 표가 바뀌었거나 기억한 코드로 못 받을 때만, 시간 제한 90초. 아래는 2026.11 탐색에서 고른 줄(이후엔 data/macro_codes.json 의 kosisWage.row) */
+var KOSIS_WAGE_ROW = { DT_118N_MON054: { nLev: 2, itmId: "13103110311MD_12", objL1: "260225INDUSTRY_11S0", objL2: "size01" } };
+var KOSIS_T_PROBE = 90000, KOSIS_T_ROW = 40000, KOSIS_T_SEARCH = 60000;
+var WAGE_HIST_P = path.join(ROOT, "data", "manual", "wages_hist.json");
+/* 임금 이력 = 고정 이력 파일(수록이 끝난 옛 표 2023.1~2025.12 + 마지막 확인분) → 지난 수집분 → 그날 받은 값 순으로 덮어 이어 붙인다(같은 달은 뒤의 값) */
+function wageHistMerge(fresh) {
+  var mm = {}, n = { fix: 0, prev: 0, fresh: 0 };
+  var put = function (L, key) { (L || []).forEach(function (x) { var k = Number(x && x[0]), v = num(x && x[1]); if (k > 190000 && k < 300000 && v != null && v > 0) { mm[k] = v; n[key]++; } }); };
+  var fix = readJson(WAGE_HIST_P, null); put(fix && fix.hist, "fix");
+  var PW = (readJson(OUT_P, {}) || {}).wages; if (PW && /^KOSIS/.test(PW.how || "")) put(PW.hist, "prev");
+  put(fresh, "fresh");
+  var ks = Object.keys(mm).map(Number).sort(function (a, b) { return a - b; }).slice(-48);
+  return { hist: ks.map(function (k) { return [k, mm[k]]; }), n: n, fix: fix };
+}
 function kosisUrl(svc, q) {
   var s = KOSIS_BASE + svc + "?method=" + q.method + "&apiKey=" + encodeURIComponent(KOSIS) + "&format=json&jsonVD=Y";
   Object.keys(q).forEach(function (k) { if (k !== "method") s += "&" + k + "=" + encodeURIComponent(q[k]); });
@@ -167,7 +185,7 @@ async function kosisWages() {
   /* v12.0 기억한 표가 끊겼으면(마지막 달이 5개월 넘게 지남 — 2026.11 점검: 202512 에서 멈춘 표를 계속 쓰고 있었다) 표를 다시 찾는다 */
   if (c && c.last && ymOf(kst()) > ymShift(c.last, 5)) { log("KOSIS 임금 표 " + c.tblId + " 가 " + c.last + " 에서 멈춤 → 다시 찾기"); CODES.kosisWageOld = c.tblId; c = null; }
   if (!c) {
-    var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: "산업/규모별 임금 및 근로시간" }));
+    var found = await getJson(kosisUrl("statisticsSearch.do", { method: "getList", searchNm: "산업/규모별 임금 및 근로시간" }), KOSIS_T_SEARCH);
     var list = kosisArr(found) || [];
     DBG.kosisSearch = list.slice(0, 10);
     /* 수록 기간 끝(END_PRD_DE)이 가장 최근인 고용노동부(118) 임금 표를 고른다 — 멈춘 표(끝이 6개월 넘게 지남)와 방금 버린 표는 뺀다 */
@@ -179,22 +197,8 @@ async function kosisWages() {
     c = { orgId: pick.ORG_ID, tblId: pick.TBL_ID, nm: pick.TBL_NM };
     log("KOSIS 표 선택: " + c.orgId + "/" + c.tblId + " " + c.nm);
   }
-  /* 1차: 최근 1개월만 전체(ALL)로 받아 분류 단계·코드를 알아낸다 (40,000셀 제한 때문에 전체 기간은 못 받음) */
-  function q(n, over) {
-    var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: "ALL", prdSe: "M", newEstPrdCnt: "1" };
-    for (var k = 1; k <= n; k++) o["objL" + k] = "ALL";
-    Object.keys(over || {}).forEach(function (k) { o[k] = over[k]; });
-    return o;
-  }
-  var probe = null, nLev = 0, j = null;
-  for (var n = (c.nLev || 1); n <= 4 && !probe; n++) {   /* v12.0 분류 단수를 기억해 그 단수부터 */
-    j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n)));
-    var arr = kosisArr(j);
-    if (arr && arr.length) { probe = arr; nLev = n; }
-    else log("KOSIS 탐색 " + n + "단계: " + kosisErr(j));
-  }
-  if (!probe) { DBG.kosisRaw = j; return null; }
-  DBG.kosisProbe = probe.slice(0, 6);
+  /* 한 줄(항목·분류 코드 고정)의 최근 36개월 */
+  function rowQuery(row) { var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: row.itmId || "ALL", prdSe: "M", newEstPrdCnt: "36" }; for (var k = 1; k <= row.nLev; k++) o["objL" + k] = row["objL" + k] || "ALL"; return o; }
   /* 전산업 · 전규모(또는 전체) · 상용근로자 · 임금총액 행을 고른다 */
   function pickRow(rows) {
     var cand = rows.filter(function (r) { return /임금총액|월평균임금|월급여/.test(r.ITM_NM || "") && !/실질/.test(r.ITM_NM || ""); });
@@ -206,15 +210,36 @@ async function kosisWages() {
     best.sort(function (a, b) { return (/전규모|전체|1인 이상|계$/.test(names(b)) ? 1 : 0) - (/전규모|전체|1인 이상|계$/.test(names(a)) ? 1 : 0); });
     return best[0] || null;
   }
-  var pr = pickRow(probe);
-  if (!pr) { log("KOSIS 임금 행을 고르지 못함 — 항목 이름: " + probe.slice(0, 5).map(function (r) { return r.ITM_NM + "/" + r.C1_NM + "/" + (r.C2_NM || ""); }).join(", ")); return null; }
-  /* 2차: 그 조합만 36개월 */
-  var over = { itmId: pr.ITM_ID || "ALL", newEstPrdCnt: "36" };
-  for (var k2 = 1; k2 <= nLev; k2++) { var code = pr["C" + k2]; if (code) over["objL" + k2] = code; }
-  j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(nLev, over)));
-  var rows = kosisArr(j);
-  if (!rows || !rows.length) { log("KOSIS 2차 실패: " + kosisErr(j)); DBG.kosisRaw = j; return null; }
-  log("KOSIS 자료 " + rows.length + "행 — " + [pr.ITM_NM, pr.C1_NM, pr.C2_NM, pr.C3_NM].filter(Boolean).join(" · "));
+  var row = c.row || KOSIS_WAGE_ROW[c.tblId] || null, rows = null, j = null;
+  if (row) {
+    j = await getJson(kosisUrl("Param/statisticsParameterData.do", rowQuery(row)), KOSIS_T_ROW);
+    rows = kosisArr(j);
+    if (rows && rows.length) log("KOSIS 임금: 기억한 코드로 한 줄만 받음(" + rows.length + "행)");
+    else { kosisWages.lastErr = kosisErr(j); log("KOSIS 임금: 기억한 코드로 못 받음(" + kosisWages.lastErr + ") → 표 전체 탐색"); rows = null; row = null; }
+  }
+  if (!rows) {
+    /* 표 전체 탐색 — 최근 1개월만 전체(ALL)로 받아 분류 단계·코드를 알아낸다(40,000셀 제한 때문에 전체 기간은 못 받음). 응답이 수 MB 라 시간 제한 90초 */
+    var q = function (n) { var o = { method: "getList", orgId: c.orgId, tblId: c.tblId, itmId: "ALL", prdSe: "M", newEstPrdCnt: "1" }; for (var k = 1; k <= n; k++) o["objL" + k] = "ALL"; return o; };
+    var probe = null, nLev = 0;
+    for (var n = (c.nLev || 1); n <= 4 && !probe; n++) {   /* v12.0 분류 단수를 기억해 그 단수부터 */
+      j = await getJson(kosisUrl("Param/statisticsParameterData.do", q(n)), KOSIS_T_PROBE);
+      var arr0 = kosisArr(j);
+      if (arr0 && arr0.length) { probe = arr0; nLev = n; }
+      else { kosisWages.lastErr = kosisErr(j); log("KOSIS 탐색 " + n + "단계: " + kosisWages.lastErr); }
+    }
+    if (!probe) { DBG.kosisRaw = j; return null; }
+    DBG.kosisProbe = probe.slice(0, 6);
+    var pr = pickRow(probe);
+    if (!pr) { log("KOSIS 임금 행을 고르지 못함 — 항목 이름: " + probe.slice(0, 5).map(function (r) { return r.ITM_NM + "/" + r.C1_NM + "/" + (r.C2_NM || ""); }).join(", ")); return null; }
+    row = { nLev: nLev, itmId: pr.ITM_ID || "ALL" };
+    for (var k2 = 1; k2 <= nLev; k2++) { var code = pr["C" + k2]; if (code) row["objL" + k2] = code; }
+    log("KOSIS 임금 줄 코드: " + [pr.ITM_NM, pr.C1_NM, pr.C2_NM, pr.C3_NM].filter(Boolean).join(" · ") + " → " + JSON.stringify(row));
+    /* 2차: 그 줄만 36개월 */
+    j = await getJson(kosisUrl("Param/statisticsParameterData.do", rowQuery(row)), KOSIS_T_ROW);
+    rows = kosisArr(j);
+    if (!rows || !rows.length) { kosisWages.lastErr = kosisErr(j); log("KOSIS 2차 실패: " + kosisWages.lastErr); DBG.kosisRaw = j; return null; }
+  }
+  log("KOSIS 자료 " + rows.length + "행 — " + [rows[0].ITM_NM, rows[0].C1_NM, rows[0].C2_NM, rows[0].C3_NM].filter(Boolean).join(" · "));
   DBG.kosisSample = rows.slice(0, 5);
   var cand = rows.filter(function (r) { return /임금총액|월평균임금|월급여/.test(r.ITM_NM || "") && !/실질|임시|일용/.test([r.ITM_NM, r.C1_NM, r.C2_NM, r.C3_NM].join(" ")); });
   var pref = cand.filter(function (r) { return /전산업|전체|계$/.test(r.C1_NM || "") && /전규모|전체|계$|1인 이상|5인 이상/.test((r.C2_NM || "전체")); });
@@ -227,12 +252,13 @@ async function kosisWages() {
   var best = keys.filter(function (k) { return /상용/.test(k); })[0] || keys[0], arr = g[best];
   var hist = arr.map(function (r) { return [Number(r.PRD_DE), num(r.DT)]; }).filter(function (x) { return x[1] != null && x[0] > 190000; }).sort(function (a, b) { return a[0] - b[0]; });
   if (!hist.length) return null;
-  c.nLev = nLev; c.last = hist[hist.length - 1][0]; CODES.kosisWage = c;
+  c.row = row; c.nLev = row.nLev; c.last = hist[hist.length - 1][0]; CODES.kosisWage = c;
   if (ymOf(kst()) > ymShift(c.last, 5) && !kosisWages._retry) { kosisWages._retry = 1; log("KOSIS 임금 표 " + c.tblId + " 마지막 달 " + c.last + " — 5개월 넘게 멈춤 → 더 최근 표를 찾아본다"); CODES.kosisWageOld = c.tblId; delete CODES.kosisWage; var again = null; try { again = await kosisWages(); } catch (e) { log("KOSIS 임금 다시 찾기 실패: " + e.message); } if (again && again.t > c.last) return again; CODES.kosisWage = c; delete CODES.kosisWageOld; log("더 최근 임금 표를 못 찾음 — " + c.last + " 값을 그대로 둔다(화면에 기준 달 표시)"); }
   var unit = arr[0].UNIT_NM || "원", scale = /천원/.test(unit) ? 1000 : /만원/.test(unit) ? 10000 : 1;
   hist = hist.map(function (x) { return [x[0], x[1] * scale]; });
-  /* v12.1 새 표는 2026년부터만 있다 — 1년 전 대비·12개월 평균을 내려면 그 앞 달이 필요해 지난 수집분(macro_data.json 의 임금 이력)을 이어 붙인다. 같은 달은 새 표 값 */
-  try { var PWg = (readJson(OUT_P, {}) || {}).wages, ph = (PWg && PWg.how === "KOSIS" && PWg.hist) || []; if (ph.length) { var mm = {}; ph.forEach(function (x) { mm[x[0]] = x[1]; }); hist.forEach(function (x) { mm[x[0]] = x[1]; }); var merged = Object.keys(mm).map(Number).sort().map(function (k) { return [k, mm[k]]; }).slice(-48); if (merged.length > hist.length) { log("임금 이력: 지난 수집분 " + ph.length + "달과 이어 붙임 → " + merged.length + "달(" + merged[0][0] + "~" + merged[merged.length - 1][0] + ")"); hist = merged; } } } catch (e) {}
+  /* v12.1 새 표는 2026년부터만 있다 — 1년 전 대비·12개월 평균을 내려면 그 앞 달이 필요하다.
+     v14.7 지난 수집분(macro_data.json)만 믿으면 하루 실패로 수동값이 덮어써 옛 이력이 사라졌다(2026.11.26) → 고정 이력 파일 → 지난 수집분 → 새 값 순으로 */
+  try { var M = wageHistMerge(hist); if (M.hist.length > hist.length) { log("임금 이력: 고정 이력 " + M.n.fix + "달 · 지난 수집분 " + M.n.prev + "달 · 이번 " + M.n.fresh + "달 → " + M.hist.length + "달(" + M.hist[0][0] + "~" + M.hist[M.hist.length - 1][0] + ")"); hist = M.hist; } } catch (e) { log("임금 이력 잇기 실패: " + e.message); }
   return { v: hist[hist.length - 1][1], t: hist[hist.length - 1][0], unit: "원", name: "KOSIS " + c.nm + " · " + best.replace(/\|/g, " ").replace(/\s+/g, " "), how: "KOSIS", hist: hist };
 }
 
@@ -330,6 +356,15 @@ async function rss(feeds, days, max, mustRe) {
   /* ② 임금 — ECOS → KOSIS → 수동 */
   /* v12.0 ECOS 에는 임금 통계표가 없다(매일 통계표 617개 목록을 읽고 0개 찾던 호출 제거) — KOSIS 사업체노동력조사만 쓴다 */
   if (!out.wages) { try { out.wages = await kosisWages(); } catch (e) { out.errors.push("KOSIS: " + e.message); log("KOSIS 실패: " + e.message); } }
+  /* v14.7 KOSIS 가 실패해도 2024년 수동값으로 내려가지 않는다 — 지난 수집분(없으면 고정 이력 파일)의 마지막 달 값을 날짜 그대로 유지.
+     화면의 데이터 현황에는 'KOSIS(지난 수집분 유지)'로 보이고, 실패 사유는 errors 에 남는다 */
+  if (!out.wages) try {
+    var KW = wageHistMerge([]), PW0 = (readJson(OUT_P, {}) || {}).wages;
+    if (KW.hist.length) { var lastW = KW.hist[KW.hist.length - 1];
+      out.wages = { v: lastW[1], t: lastW[0], unit: "원", name: (PW0 && /^KOSIS/.test(PW0.how || "") && PW0.name) || (KW.fix && KW.fix.name) || "KOSIS 사업체노동력조사 임금총액", how: "KOSIS(지난 수집분 유지)", kept: true, hist: KW.hist };
+      if (KOSIS) out.errors.push("임금: 이번 수집 실패" + (kosisWages.lastErr ? "(" + String(kosisWages.lastErr).slice(0, 80) + ")" : "") + " — 지난 수집분 유지(" + lastW[0] + ")");   /* 실패 사유를 같이 — '인증키 기간만료' 같은 문구는 데이터 운영 화면이 키 문제로 알린다 */
+      log("임금: 이번 KOSIS 수집 실패 → 지난 수집분 유지(" + lastW[0] + " · 이력 " + KW.hist.length + "달)"); }
+  } catch (e) { log("임금 지난 수집분 유지 실패: " + e.message); }
   var manualW = readJson(path.join(ROOT, "data", "manual", "wages.json"), null);
   if (!out.wages && manualW && manualW.monthly) { out.wages = { v: manualW.monthly, t: manualW.asOf, unit: "원", name: manualW.source || "직접 입력", how: "수동 파일", hist: [] }; log("임금: 수동 파일 사용"); }
   if (out.wages) {

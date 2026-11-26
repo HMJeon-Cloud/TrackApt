@@ -44,14 +44,14 @@
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", "yi127bob6u");
 </script>
-<link rel="stylesheet" href="style.css?v=14.6">
+<link rel="stylesheet" href="style.css?v=14.7">
 </head>
 <body>
 
 <header>
   <div class="brand">
     <h1 id="brandhome" title="홈으로">Track<span class="accent">Apt</span></h1>
-    <span class="ver">v14.6</span>
+    <span class="ver">v14.7</span>
     <span class="ver" id="datainfo" style="margin-left:auto;font-size:.68rem"></span>
   </div>
   <nav id="nav" aria-label="주요 메뉴"></nav>
@@ -69,7 +69,7 @@
 </footer>
 <nav id="botnav" aria-label="아래 메뉴"></nav>
 
-<script src="cards.js?v=14.6"></script>
+<script src="cards.js?v=14.7"></script>
 <script>
 "use strict";
 
@@ -8520,7 +8520,8 @@ var OPS = {
     ["data/manual/calendar.json", "부동산 일정(일회성 events + 반복 recurring: 금통위·입주·청약 발표 등)", "월 1회", "한국은행 금통위 일정 · 국토부 보도계획", "채널 「금주·금월 확인할 것」 · 카드 「부동산 달력」 · 오늘 할 일"],
     ["data/manual/terms.json", "용어 사전 [용어, 한 줄 뜻, [보충…]]", "수시", "—", "오늘 한 장 「오늘의 용어」 · 카드 「부동산 단어」(여러 장이면 단어별)"],
     ["data/manual/subs_notes.json / subs_guide.json", "단지별 청약 조건(거주 요건·우선 비율·전매) · 청약 전 확인 목록", "관심 단지 공고 때", "청약홈 모집공고문", "청약 단지 상세 · 카드 「청약 단지 한 장」"],
-    ["data/manual/wages.json", "임금(자동 수집이 둘 다 실패했을 때만 쓰는 값)", "실패 로그가 뜰 때만", "통계청 임금 통계", "소득 대비 집값 계산"],
+    ["data/manual/wages_hist.json", "임금 이력(2023.1~ 월별) — 매일 수집이 이 이력에 그날 값을 이어 붙이고, KOSIS 가 실패한 날엔 마지막 달 값을 날짜 그대로 보여 줌", "거의 없음(옛 표 값 고정)", "KOSIS 사업체노동력조사(전체임금총액·전 산업·전규모)", "소득 대비 집값(PIR) · 월급 몇 년 · 1년 전 대비"],
+    ["data/manual/wages.json", "임금(자동 수집이 실패하고 이력 파일도 없을 때만 쓰는 값)", "실패 로그가 뜰 때만", "통계청 임금 통계", "소득 대비 집값 계산"],
     ["data/school/*.xls", "학교알리미 「교과별 학업성취 사항」 엑셀(학교별 내려받기)", "연 1회(공시 갱신 때)", "schoolinfo.go.kr → 학교 검색 → 공시 다운로드", "학군 탭 성취 자료"],
     ["보관함 · 외부 조사", "브리핑 7장 프롬프트를 ChatGPT·Claude·Gemini 에 묻고 JSON 답을 붙여 저장(공급·지역·심리·정책·금융·전세·과거 비교·거시)", "월 1~2회 · 큰 변화 때", "AI + 그 답에 적힌 출처를 직접 확인", "브리핑 축 「외부 조사」 열 · 인사이트 속사정 · 카드 「함께 보면」"],
     ["보관함 · 예상 기록", "인사이트 「지난 예상은 맞았어?」에 예상을 적어 두면 기한에 데이터로 자동 채점", "예상이 생길 때", "—", "인사이트 검증 코너"],
@@ -13705,6 +13706,28 @@ document.addEventListener("toggle", function (ev) { var d = ev.target; if (d && 
 if (typeof UX_GUIDE !== "undefined") UX_GUIDE.today = { what: "작업실 홈 — 아침 5~10분이면 오늘 할 일이 끝나도록 한 화면에 모았습니다", steps: ["맨 위 다섯 칸(할 일 · 데이터 · 시장 · 일정 · 올릴 것)을 훑고, 노란·빨간 칸부터 누르세요(그 구역으로 내려갑니다). [오늘 준비]는 선택 — 누르고 기다리는 1분 30초 동안 아래를 읽으면 됩니다.", "할 일 · 오늘 시장(2분) → 일정 · 데이터 현황(1분)을 본 뒤, 아침 브리핑 글을 복사해 보내고 [보낸 표시].", "오늘 올릴 것에서 하나씩 열어 [숫자 검사] → 글 복사 → 올린 뒤 [올림 표시]. 끝낸 줄은 아래로 내려가고 맨 위 진행 막대가 찹니다."], tip: "이 화면의 숫자·판정은 이미 받은 자료로 계산합니다(호출 0). Claude 는 [오늘 준비] · [판단 만들기] · [숫자 검사]를 누를 때만 씁니다.", start: 1 };
 if (typeof STEP_DESC !== "undefined") STEP_DESC.today = "아침 점검 · 올릴 것";
 /* ══ v14.6 작업실 홈 END ══ */
+/* ══ v14.7 지난 수집분 유지 표시 START ══
+   수집 단계가 실패해도 지난 수집분을 지우지 않게 바꿨다(scripts/daily_build.js · macro_build.js v14.7 — 2026.11.26 KOSIS 시간 초과로
+   부동산원 월간 지수와 임금 이력이 통째로 빠졌던 일). 그런 단계는 데이터 현황에서 '문제'가 아니라 '확인'으로, 무엇이 실패했고
+   언제 수집분을 쓰고 있는지 적는다. 자료는 그 자료의 기준 달 그대로라 숫자 자체는 맞다 — 다음 수집에서 다시 받는다. */
+(function () {
+  if (typeof opStatus !== "function") return;
+  var o = opStatus, MAP = [[/^미분양/, "unsold"], [/^부동산원 월간/, "index"], [/^인허가/, "supply"], [/^주간 매매/, "weekly"], [/^청약 공고/, "subs"], [/^은행별 금리/, "rates"]];
+  opStatus = function () {
+    var S = o.apply(this, arguments);
+    try {
+      var D = (typeof DY !== "undefined" && DY.data) || {}, K = D.kept || {}, MD = (typeof MACRO !== "undefined" && MACRO.data) || {}, W = MD.wages;
+      S.L.forEach(function (x) {
+        var m = MAP.filter(function (p) { return p[0].test(x.nm || ""); })[0], k = m && m[1];
+        if (k && K[k] != null && D[k] && x.st === "bad") { x.st = "late"; x.msg = "이번 수집 실패 — " + (K[k] ? opT(K[k]) + " " : "지난 ") + "수집분을 그대로 씀(다음 수집에서 다시 받음). " + (x.msg || ""); }
+        if (/^임금/.test(x.nm || "") && W && W.kept && x.st === "ok") { x.st = "late"; x.msg = "이번 KOSIS 수집 실패 — 지난 수집분(" + opD(W.t) + " 값)을 그대로 씀. 다음 새벽에 다시 받는다"; }
+      });
+      S.bad = S.L.filter(function (x) { return x.st === "bad"; }).length; S.late = S.L.filter(function (x) { return x.st === "late"; }).length;
+    } catch (e) { if (typeof appErr === "function") appErr("지난 수집분 표시", e); }
+    return S;
+  };
+})();
+/* ══ v14.7 지난 수집분 유지 표시 END ══ */
 /* ══ 시작 탭 ══════════════════════════════════ */
 function buildStart(root) {
   root.innerHTML =

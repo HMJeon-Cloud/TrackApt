@@ -623,9 +623,20 @@ if (require.main === module) (async function () {
   /* v9.37 ONLY=subs — 오후 추가 실행: 청약만 새로 받고 나머지(미분양·지수·금리)는 새벽 수집분을 그대로 둔다(호출 최소) */
   var ONLY = String(process.env.ONLY || "").trim(); if (ONLY === "subs" && new Date(Date.now() + 9 * 3600000).getUTCDay() === 4) { ONLY = "subs,weekly"; log("목요일 오후 실행 — 부동산원 주간 발표(14시) 뒤라 주간 지수도 같이 받는다"); }   /* v12.0 워크플로를 바꾸지 않고 발표 당일 반영 */
   var prevOut = ONLY ? readJson(OUT_P, null) : null;
+  /* v14.7 전체 실행에서도 지난 수집분을 읽어 둔다 — 한 단계가 실패하면(KOSIS 가 느린 날 등) 그 단계의 지난 값을 지운 채 내보내지 않는다.
+     2026.11.26 09:52 실행에서 부동산원 월간 매매·전세지수(index)가 시간 초과 한 번으로 통째로 빠졌다. 실패 사유는 fail · errors 에 그대로 남고,
+     유지한 단계는 kept 에 마지막 성공 시각을 적는다(데이터 운영 화면이 '지난 수집분 유지'로 보여 준다). 실패가 30일 넘게 이어지면 내린다 */
+  var prevAll = prevOut || readJson(OUT_P, null);
   var out = ONLY && prevOut ? Object.assign({}, prevOut, { builtAt: new Date().toISOString(), errors: [] }) : { v: 1, builtAt: new Date().toISOString(), asOf: kst(), errors: [] };
+  function keepPrev(nm) {
+    if (!prevAll || prevAll[nm] == null || (out[nm] != null && out[nm] !== prevAll[nm])) return;   /* 오후(ONLY) 실행은 이미 지난 값을 들고 있다 — 그때도 '유지' 표시 */
+    var lastOk = (prevAll.at && prevAll.at[nm]) || (prevAll.kept && prevAll.kept[nm]) || prevAll.builtAt || null, age = lastOk ? (Date.now() - Date.parse(lastOk)) / 86400000 : null;
+    if (age != null && age > 30) { log(nm + ": 지난 수집분이 " + Math.round(age) + "일 전 것이라 유지하지 않음"); return; }
+    out[nm] = prevAll[nm]; out.kept = out.kept || {}; out.kept[nm] = lastOk || ""; if (lastOk) out.at[nm] = lastOk;
+    log(nm + ": 이번 수집 실패 — 지난 수집분 유지(마지막 성공 " + (lastOk || "?") + ")");
+  }
   async function step(nm, fn) { if (ONLY && ONLY.split(",").indexOf(nm) < 0) { log(nm + " 건너뜀(ONLY=" + ONLY + ")"); return; } out.at = out.at || {}; out.fail = out.fail || {};   /* v12.0 단계별 마지막 성공 시각·마지막 실패(데이터 운영 화면의 '카테고리별 최신화'가 읽는다) */
-    try { var r = await fn(); if (r) { out[nm] = r; out.at[nm] = new Date().toISOString(); delete out.fail[nm]; } else out.fail[nm] = { t: new Date().toISOString(), msg: "자료 없음(키 없음 또는 응답 비어 있음)" }; log(nm + (r ? " OK" : " 없음")); } catch (e) { out.errors.push(nm + ": " + e.message); out.fail[nm] = { t: new Date().toISOString(), msg: String(e.message).slice(0, 160) }; log(nm + " 실패: " + e.message); } }
+    try { var r = await fn(); if (r) { out[nm] = r; out.at[nm] = new Date().toISOString(); delete out.fail[nm]; if (out.kept) delete out.kept[nm]; } else { out.fail[nm] = { t: new Date().toISOString(), msg: "자료 없음(키 없음 또는 응답 비어 있음)" }; keepPrev(nm); } log(nm + (r ? " OK" : " 없음")); } catch (e) { out.errors.push(nm + ": " + e.message); out.fail[nm] = { t: new Date().toISOString(), msg: String(e.message).slice(0, 160) }; log(nm + " 실패: " + e.message); keepPrev(nm); } }
   await step("unsold", unsold);
   await step("index", priceIndex);
   await step("supply", supply);

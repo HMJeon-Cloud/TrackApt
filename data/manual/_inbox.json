@@ -1,8 +1,30 @@
 {
  "v": 1,
- "builtAt": "2026-11-25T01:16:39.914Z",
- "asOf": 20261125,
+ "builtAt": "2026-11-26T00:51:10.251Z",
+ "asOf": 20261126,
  "items": [
+  {
+   "kind": "policy",
+   "date": "2026-11-25",
+   "title": "국힘ㆍ개혁신당 \"종부세 폐지해야…내달부터 공급대책 발표\"",
+   "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE41OXcteDZneThHRTR0bXNQT2x2b3dlbUFVeFRhTkl3bFI3QUJrZDJ2S1Q1Tm51ak1OeExhRlhPZUhDMFdPbGxUZmlkVnk5RGNjNnFRM3ZPaFZkYlRiQVc0Q0ZqTWQ?oc=5",
+   "src": "매일일보",
+   "official": false,
+   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
+   "firstSeen": "2026-11-26",
+   "isNew": true
+  },
+  {
+   "kind": "loan",
+   "date": "2026-11-25",
+   "title": "[카드뉴스] 아기 낳고 2년 안이면 집 대출 금리가 최저 연 1%대, 신생아 특례 대출이에요",
+   "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE80eF91WWJ3bFJTRVU4Vnl6ZklLUm5QOEhXYUpmUXBiUUs0aDRSa2xXRVFVTm83T1c2WUpBeG95SzhPZllEVWRrZlhnMmY1QmpJMXhjUlhncmtiYUVuakV2RHhqMEgyVENLTDZZaw?oc=5",
+   "src": "베이비뉴스",
+   "official": false,
+   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
+   "firstSeen": "2026-11-26",
+   "isNew": true
+  },
   {
    "kind": "transit",
    "line": "GTX-C 덕정~수원",
@@ -14,39 +36,6 @@
    "official": false,
    "todo": "data/manual/transit.json 에서 'GTX-C 덕정~수원' 의 status·open·note 를 확인해 주세요",
    "firstSeen": "2026-11-25",
-   "isNew": true
-  },
-  {
-   "kind": "policy",
-   "date": "2026-11-20",
-   "title": "정부, '8·13 주택공급 대책' 발표… 수도권 23만 호+α 공급에 전문가 \"실제 입주 시차 극복이 열쇠\"",
-   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5KY1RFeWNOZlY4NmdmczdxQXhfcDhoU2M3QjFIaElmUE01dFhkdEdwekxLZ0V6Qm5fNG9JN1dMR3BxZl9NMjZVenFTUC0yRTdvWTVGaWlyWVdBQUNLbnB3QnFKeGpmTjFHTmwxYjJFUlo?oc=5",
-   "src": "미디어써치",
-   "official": false,
-   "todo": "data/manual/policy.json 맨 위에 발표일·시행일·요점 2~4줄을 적어 주세요",
-   "firstSeen": "2026-11-24",
-   "isNew": false
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-20",
-   "title": "[국감AS] “소득 제자리, 대출은 늘어”…주금공 보금자리론 이달 금리 인상에 부담↑",
-   "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBzc2djSmc3R3pLZnBtbm1HVmVFOUdTS190Mm12dTFXeUZ6X0JEeUF3NFhMOEh1ZFd3SUFfajNWZzNSdW14eDZwRVdFRWJ6dTNGdnFobHNsaFo2cEZqV3IwNEdHSm92VEI5dVNMWFFBbzDSAXRBVV95cUxPalZvaS1QVF9DSE9FRkRlX1dsZ0ZJTlhYWVFKMUV2TXZYTEdzbzdxZ0dCdHZRemxhWkYwUTBLRTNya2x3ZUp5aV93XzZRVHJSUDFjUEo4X1Qwb2ltbXBlRmY0YWhweER2R0Zlc1pXXzdwQXlzOA?oc=5",
-   "src": "주간한국",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-25",
-   "isNew": true
-  },
-  {
-   "kind": "loan",
-   "date": "2026-11-19",
-   "title": "보금자리론 신청…자격 요건부터 한도와 금리 구조까지 한눈에 보기",
-   "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE1SUllXOGRlMXd5OTdFbEpUZnplTEMyZ1FXYXNsWi0tYURCWkxVVVNSQnY4bENVTWpuZFZ5WEF2VXlidzBteDhPZ1JmTVlDSmYwYy11MXVrOWRwQ3RoWng1MVBpMTlEMWpGUGNMbG56QmNfRHM?oc=5",
-   "src": "스페셜타임스",
-   "official": false,
-   "todo": "data/manual/loans.json 의 조건(소득·집값·한도·금리)을 확인해 주세요",
-   "firstSeen": "2026-11-20",
    "isNew": false
   }
  ]

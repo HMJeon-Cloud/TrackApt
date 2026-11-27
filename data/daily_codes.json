@@ -40,7 +40,8 @@
   "orgId": "408",
   "tblId": "DT_304004_WEEK_002_C",
   "nm": "주간 아파트 매매가격지수",
-  "prdSe": "D"
+  "prdSe": "D",
+  "nLev": 1
  },
  "roneWeeklyRent": {
   "sale": "T247713133046872",
